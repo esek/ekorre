@@ -6,10 +6,17 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+//using Npgsql.EntityFrameworkCore.PostgreSQL;
+
 
 namespace ekorre
 {
@@ -27,6 +34,18 @@ namespace ekorre
         {
             services.AddControllers();
             services.AddCors();
+
+            services.AddDbContext<Contexts.ApplicationDbContext>(options => {
+                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection"));
+            });
+            services.AddScoped<Contexts.IApplicationDbContext, Contexts.ApplicationDbContext>();
+
+            // Lägg till authentication och auhtorization
+            services.AddSingleton<IAppSecurity, AppSecurity>();
+
+            // Använd interface för att göra testbar
+            services.AddScoped<Services.IUserService, Services.UserService>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -41,6 +60,7 @@ namespace ekorre
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
