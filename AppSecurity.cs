@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -22,7 +23,11 @@ namespace ekorre
         private const int TOKEN_LIFETIME = 6;
         private static SymmetricSecurityKey key;
 
-        private static void ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
+        public AppSecurity(ILogger<AppSecurity> logger, IApplicationBuilder app) {
+            _logger = logger;
+        }
+
+        public static void ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
         {
             string keyStr = "";
             byte[] keyBytes = Encoding.ASCII.GetBytes(keyStr);
@@ -46,11 +51,12 @@ namespace ekorre
                     options =>
                     {
                         configuration.Bind("CookieSettings", options);
-                    });
+                    }
+                );
             
         }
 
-        private static void ConfigureAuthorization(IServiceCollection services)
+        public static void ConfigureAuthorization(IServiceCollection services)
         {
             services.AddAuthorization(options =>
             {
@@ -64,6 +70,7 @@ namespace ekorre
         /// <returns>The jwt token</returns>
         public string IssueJwtToken(ClaimsIdentity identity)
         {
+            _logger.LogInformation("Creating token for identity: ", identity);
             // Create new token handler
             var tokenHandler = new JwtSecurityTokenHandler();
 

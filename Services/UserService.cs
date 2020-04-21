@@ -4,6 +4,7 @@ using System.Security.Claims;
 using ekorre.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace ekorre.Services
 {
@@ -18,11 +19,13 @@ namespace ekorre.Services
     {
         private readonly Contexts.ApplicationDbContext _dbctx;
         private readonly IAppSecurity _security;
+        private readonly ILogger _logger;
 
-        public UserService(Contexts.ApplicationDbContext context, IAppSecurity security)
+        public UserService(Contexts.ApplicationDbContext context, IAppSecurity security, ILogger<UserService> logger)
         {
             _dbctx = context;
             _security = security;
+            _logger = logger;
         }
 
         public Tuple<User, string> Authenticate(string stilId, string password)
@@ -33,8 +36,10 @@ namespace ekorre.Services
             );
 
             // return null if user not found
-            if (user == null)
+            if (user == null) {
+                _logger.LogInformation("User was not authenticated");
                 return null;
+            }
 
             // authentication successful so generate jwt token
             string token = IssueToken(user);
