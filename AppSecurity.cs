@@ -69,7 +69,6 @@ namespace ekorre
         /// <returns>The jwt token</returns>
         public string IssueJwtToken(ClaimsIdentity identity)
         {
-            _logger.LogInformation("Creating token for identity: ", identity);
             // Create new token handler
             var tokenHandler = new JwtSecurityTokenHandler();
 
@@ -86,6 +85,8 @@ namespace ekorre
 
             // Generate the actual token, will be stored in some place
             SecurityToken token = tokenHandler.CreateToken(descriptor);
+            _logger.LogInformation($"Created token for {identity.Name}");
+
             return tokenHandler.WriteToken(token);
         }
 

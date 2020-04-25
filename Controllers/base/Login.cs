@@ -26,9 +26,7 @@ namespace ekorre.Controllers
         [HttpPost]
         public ActionResult<AuthenticatedUser> Authenticate([FromBody]AuthenticationRequest model)
         {
-            //var user = _userService.AuthenticateUser(model.StilID, model.Password);
-            var u = new User();
-            var user = new AuthenticatedUser(u, "abc123");
+            var user = _userService.AuthenticateUser(model.StilID, model.Password);
 
             return Ok(user);
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -67,6 +68,8 @@ namespace ekorre.Services
             u.Email = userInfo.Email;
             u.Programme = userInfo.Programme;
             u.PhoneNumber = userInfo.PhoneNumber;
+            u.DateJoined = DateTime.Now;
+            u.Roles = new List<string>();
 
             var sp = _security.SecurePassword(userInfo.Password);
             u.PasswordHash = sp.HashedPassword;
@@ -85,7 +88,8 @@ namespace ekorre.Services
 
         public User GetUser(string stilId, string password)
         {
-            var user = _dbctx.Users.AsNoTracking().SingleOrDefault(x =>
+            // Query need client evaluation and therefore AsEnumrable is used
+            var user = _dbctx.Users.AsNoTracking().AsEnumerable().SingleOrDefault(x =>
                 x.StilID == stilId && _security.CheckPassword(password, new SecurePassword(x.PasswordHash, x.Salt))
             );
 
@@ -145,7 +149,8 @@ namespace ekorre.Services
 
         private User GetTrackedUser(string stilId, string password)
         {
-            var user = _dbctx.Users.SingleOrDefault(x =>
+            // Query need client evaluation and therefore AsEnumrable is used
+            var user = _dbctx.Users.AsEnumerable().SingleOrDefault(x =>
                 x.StilID == stilId && _security.CheckPassword(password, new SecurePassword(x.PasswordHash, x.Salt))
             );
 
