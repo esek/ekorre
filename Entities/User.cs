@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace ekorre.Models
+namespace ekorre.Entities
 {
     public class User
     {
@@ -12,14 +13,14 @@ namespace ekorre.Models
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public DateTime DateJoined { get; set; }
-        public string[] Roles { get; set; }
+        public List<string> Roles { get; set; }
         public byte[] PasswordHash { get; set; }
         public byte[] Salt { get; set; }
 
-        public static User WithoutPassword(User u)
+        public User WithoutPassword()
         {
-            u.PasswordHash = null;
-            return u;
+            this.PasswordHash = null;
+            return this;
         }
     }
 }

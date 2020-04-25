@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Http;
 
+using ekorre.Entities;
 using ekorre.Models;
+using ekorre.Services;
 
 namespace ekorre.Controllers
 {
@@ -15,31 +17,20 @@ namespace ekorre.Controllers
     [Produces("application/json")]
     public class Login : ControllerBase
     {
+        private readonly IUserService _userService;
+
+        public Login (IUserService userService) {
+            this._userService = userService;
+        }
 
         [HttpPost]
-        public IActionResult Authenticate([FromBody]AuthenticationRequest model)
+        public ActionResult<AuthenticatedUser> Authenticate([FromBody]AuthenticationRequest model)
         {
-            var tokenHandler = new JwtSecurityTokenHandler();
-            //var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-            byte[] key = Encoding.ASCII.GetBytes("my big secret is a big penis haha just kidding");
-            var tokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.Name, model.StilID),
-                }),
-                Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-            };
-            var token = tokenHandler.CreateToken(tokenDescriptor);
-            string Token = tokenHandler.WriteToken(token);
+            //var user = _userService.AuthenticateUser(model.StilID, model.Password);
+            var u = new User();
+            var user = new AuthenticatedUser(u, "abc123");
 
-            //return Ok(Models.User.WithoutPassword(user));
-            var cookieOptions = new CookieOptions();
-            cookieOptions.Expires = DateTimeOffset.Now.AddHours(6);
-
-            Response.Cookies.Append("JWTToken", Token, cookieOptions);
-            return Ok(new { token = Token });
+            return Ok(user);
         }
 
         [HttpGet]

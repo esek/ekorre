@@ -47,6 +47,7 @@ namespace ekorre
 
             // Använd interface för att göra testbar
             services.AddScoped<Services.IUserService, Services.UserService>();
+            services.AddScoped<Services.ICasService, Services.CasService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

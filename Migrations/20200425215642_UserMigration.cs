@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace ekorre.Migrations
 {
-    public partial class IntialCreate : Migration
+    public partial class UserMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -17,7 +18,7 @@ namespace ekorre.Migrations
                     Email = table.Column<string>(nullable: true),
                     PhoneNumber = table.Column<string>(nullable: true),
                     DateJoined = table.Column<DateTime>(nullable: false),
-                    Roles = table.Column<string[]>(nullable: true),
+                    Roles = table.Column<List<string>>(nullable: true),
                     PasswordHash = table.Column<byte[]>(nullable: true),
                     Salt = table.Column<byte[]>(nullable: true)
                 },

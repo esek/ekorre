@@ -19,7 +19,7 @@ namespace ekorre.Models
                 attribute = prop.GetCustomAttributes(typeof(RequiredAttribute), false).FirstOrDefault() as RequiredAttribute;
 
                 typeStr = typeStr.Split('.').Last();
-                outStr += String.Format("{0}: {1} {2}", prop.Name, typeStr, attribute != null ? "[required]" : "");
+                outStr += $"{prop.Name}: {typeStr} {(attribute != null ? "[required]" : "")}";
             }
 
             return outStr + "}";
