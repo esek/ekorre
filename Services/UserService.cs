@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using ekorre.Entities;
+using ekorre.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +12,7 @@ namespace ekorre.Services
     public interface IUserService
     {
         AuthenticatedUser AuthenticateUser(string stilId, string password);
-        AuthenticatedUser RegisterUser(string stilId, string password);
+        AuthenticatedUser RegisterUser(RegistrationRequest userInfo);
         User GetUser(string stilId);
         User GetUser(string stilId, string password);
         bool AddRole(string stilId, string role);
@@ -44,7 +44,7 @@ namespace ekorre.Services
 
         public AuthenticatedUser AuthenticateUser(string stilId, string password)
         {
-            User user = GetUser(stilId, password);
+            var user = GetUser(stilId, password);
 
             // return null if user not found
             if (user == null)
@@ -57,6 +57,26 @@ namespace ekorre.Services
             string token = IssueToken(user);
             return new AuthenticatedUser(user, token);
         }
+        public AuthenticatedUser RegisterUser(RegistrationRequest userInfo)
+        {
+            if (GetUser(userInfo.StilID) != null) return null;
+
+            var u = new User();
+            u.StilID = userInfo.StilID;
+            u.Name = userInfo.Name;
+            u.Email = userInfo.Email;
+            u.Programme = userInfo.Programme;
+            u.PhoneNumber = userInfo.PhoneNumber;
+
+            var sp = _security.SecurePassword(userInfo.Password);
+            u.PasswordHash = sp.HashedPassword;
+            u.Salt = sp.Salt;
+
+            _dbctx.Add(u);
+            _dbctx.SaveChanges();
+
+            return new AuthenticatedUser(u.WithoutPassword(), IssueToken(u));
+        }
 
         public User GetUser(string stilId)
         {
@@ -65,26 +85,23 @@ namespace ekorre.Services
 
         public User GetUser(string stilId, string password)
         {
-            User user = _dbctx.Users.AsNoTracking().SingleOrDefault(x =>
+            var user = _dbctx.Users.AsNoTracking().SingleOrDefault(x =>
                 x.StilID == stilId && _security.CheckPassword(password, new SecurePassword(x.PasswordHash, x.Salt))
             );
 
             return user?.WithoutPassword();
         }
 
-        public AuthenticatedUser RegisterUser(string stilId, string password)
-        {
-            throw new NotImplementedException();
-        }
 
         public bool AddRole(string stilId, string role)
         {
             if (!Roles.IsValidRole(role)) return false;
 
-            User user = GetTrackedUser(stilId);
+            var user = GetTrackedUser(stilId);
             if (user == null) return false;
 
-            if (!user.Roles.Contains(role)) {
+            if (!user.Roles.Contains(role))
+            {
                 user.Roles.Append(role);
                 _dbctx.SaveChanges();
                 _logger.LogInformation($"Added role {role} to {stilId}");
@@ -95,7 +112,7 @@ namespace ekorre.Services
 
         public bool RemoveRole(string stilId, string role)
         {
-            User user = GetTrackedUser(stilId);
+            var user = GetTrackedUser(stilId);
             if (user == null) return false;
 
             bool removed = user.Roles.Remove(role);
@@ -128,7 +145,7 @@ namespace ekorre.Services
 
         private User GetTrackedUser(string stilId, string password)
         {
-            User user = _dbctx.Users.SingleOrDefault(x =>
+            var user = _dbctx.Users.SingleOrDefault(x =>
                 x.StilID == stilId && _security.CheckPassword(password, new SecurePassword(x.PasswordHash, x.Salt))
             );
 
@@ -136,14 +153,14 @@ namespace ekorre.Services
         }
         private string IssueToken(User user)
         {
-            ClaimsIdentity identity = GenerateClaimsIdentity(user);
-            string token = _security.IssueJwtToken(identity);
+            var identity = GenerateClaimsIdentity(user);
+            var token = _security.IssueJwtToken(identity);
             return token;
         }
 
         private ClaimsIdentity GenerateClaimsIdentity(User user)
         {
-            Claim[] claims = new Claim[]{
+            var claims = new Claim[]{
                 new Claim(ClaimTypes.Name, user.Name),
                 new Claim(ClaimTypes.NameIdentifier, user.StilID),
             };
@@ -154,7 +171,7 @@ namespace ekorre.Services
 
         private Claim[] GenerateRoleClaims(List<string> roles)
         {
-            Claim[] claims = new Claim[roles.Count];
+            var claims = new Claim[roles.Count];
             for (int i = 0; i < claims.Length; i++)
             {
                 claims[i] = new Claim(ClaimTypes.Role, roles.ElementAt(i));
