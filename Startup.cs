@@ -42,10 +42,11 @@ namespace ekorre
 
             // Lägg till authentication och auhtorization
             services.AddSingleton<IAppSecurity, AppSecurity>();
+            AppSecurity.ConfigureAuthentication(services, Configuration);
+            AppSecurity.ConfigureAuthorization(services);
 
             // Använd interface för att göra testbar
             services.AddScoped<Services.IUserService, Services.UserService>();
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,17 +1,18 @@
 using System;
-using System.Collections;
-using System.Security.Claims;
-using ekorre.Models;
-using Microsoft.IdentityModel.Tokens;
 using System.Linq;
+using System.Security.Claims;
+using ekorre.Entities;
+using ekorre.Models;
 using Microsoft.Extensions.Logging;
+
 
 namespace ekorre.Services
 {
 
     public interface IUserService
     {
-        Tuple<User, string> Authenticate(string stilId, string password);
+        AuthenticatedUser AuthenticateUser(string stilId, string password);
+        AuthenticatedUser RegisterUser(string stilId, string password);
         User GetUser(string stilId);
     }
 
@@ -28,23 +29,22 @@ namespace ekorre.Services
             _logger = logger;
         }
 
-        public Tuple<User, string> Authenticate(string stilId, string password)
+        public AuthenticatedUser AuthenticateUser(string stilId, string password)
         {
-            string passwordHash = password;
-            User user = _dbctx.Users.SingleOrDefault(x => 
-                x.StilID == stilId && x.PasswordHash == passwordHash
+            User user = _dbctx.Users.SingleOrDefault(x =>
+                x.StilID == stilId && _security.CheckPassword(password, new SecurePassword(x.PasswordHash, x.Salt))
             );
 
             // return null if user not found
-            if (user == null) {
+            if (user == null)
+            {
                 _logger.LogInformation("User was not authenticated");
                 return null;
             }
 
             // authentication successful so generate jwt token
             string token = IssueToken(user);
-
-            return new Tuple<User, string>(user, token);
+            return new AuthenticatedUser(user, token);
         }
 
         public User GetUser(string stilId)
@@ -52,8 +52,13 @@ namespace ekorre.Services
             return _dbctx.Users.SingleOrDefault(x => x.StilID == stilId);
         }
 
-        private string IssueToken(User user) {
-            // Generate the actual token, will be stored in some place
+        public AuthenticatedUser RegisterUser(string stilId, string password)
+        {
+            throw new NotImplementedException();
+        }
+
+        private string IssueToken(User user)
+        {
             ClaimsIdentity identity = GenerateClaimsIdentity(user);
             string token = _security.IssueJwtToken(identity);
             return token;
@@ -80,5 +85,6 @@ namespace ekorre.Services
 
             return claims;
         }
+
     }
 }

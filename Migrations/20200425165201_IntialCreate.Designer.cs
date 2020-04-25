@@ -10,8 +10,8 @@ using ekorre.Contexts;
 namespace ekorre.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200224174252_initial")]
-    partial class initial
+    [Migration("20200425165201_IntialCreate")]
+    partial class IntialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,30 +23,34 @@ namespace ekorre.Migrations
 
             modelBuilder.Entity("ekorre.Models.User", b =>
                 {
-                    b.Property<long>("UID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                    b.Property<string>("StilID")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("DateJoined")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<string>("Email")
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<string>("PasswordHash")
+                    b.Property<byte[]>("PasswordHash")
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
-                    b.Property<string>("StilID")
+                    b.Property<string>("Programme")
                         .HasColumnType("text");
 
-                    b.Property<string>("Token")
-                        .HasColumnType("text");
+                    b.Property<string[]>("Roles")
+                        .HasColumnType("text[]");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
+                    b.Property<byte[]>("Salt")
+                        .HasColumnType("bytea");
 
-                    b.HasKey("UID");
+                    b.HasKey("StilID");
 
                     b.ToTable("Users");
                 });
