@@ -18,7 +18,7 @@ using System.Security.Claims;
 //using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 
-namespace ekorre
+namespace Ekorre
 {
     public class Startup
     {
@@ -32,7 +32,7 @@ namespace ekorre
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.IgnoreNullValues = true);
             services.AddCors();
 
             services.AddDbContext<Contexts.ApplicationDbContext>(options => {
@@ -42,10 +42,12 @@ namespace ekorre
 
             // Lägg till authentication och auhtorization
             services.AddSingleton<IAppSecurity, AppSecurity>();
+            AppSecurity.ConfigureAuthentication(services, Configuration);
+            AppSecurity.ConfigureAuthorization(services);
 
             // Använd interface för att göra testbar
             services.AddScoped<Services.IUserService, Services.UserService>();
-
+            services.AddScoped<Services.ICasService, Services.CasService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

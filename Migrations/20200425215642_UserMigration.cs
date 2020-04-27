@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
-namespace ekorre.Migrations
+namespace Ekorre.Migrations
 {
-    public partial class initial : Migration
+    public partial class UserMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -12,18 +12,19 @@ namespace ekorre.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    UID = table.Column<long>(nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    StilID = table.Column<string>(nullable: true),
+                    StilID = table.Column<string>(nullable: false),
                     Name = table.Column<string>(nullable: true),
-                    PasswordHash = table.Column<string>(nullable: true),
+                    Programme = table.Column<string>(nullable: true),
+                    Email = table.Column<string>(nullable: true),
+                    PhoneNumber = table.Column<string>(nullable: true),
                     DateJoined = table.Column<DateTime>(nullable: false),
-                    Type = table.Column<int>(nullable: false),
-                    Token = table.Column<string>(nullable: true)
+                    Roles = table.Column<List<string>>(nullable: true),
+                    PasswordHash = table.Column<byte[]>(nullable: true),
+                    Salt = table.Column<byte[]>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.UID);
+                    table.PrimaryKey("PK_Users", x => x.StilID);
                 });
         }
 

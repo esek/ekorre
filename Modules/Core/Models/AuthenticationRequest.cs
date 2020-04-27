@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ekorre.Models {
+namespace Ekorre.Core.Models
+{
     public class AuthenticationRequest {
         [Required]
-        public string Username { get; set; }
+        public string StilID { get; set; }
         [Required]
         public string Password { get; set; }
     }

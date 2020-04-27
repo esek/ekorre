@@ -17,7 +17,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "ekorre": {
+    "Ekorre": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "weatherforecast",

@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+
 using Microsoft.Extensions.Logging;
 
-namespace ekorre
+namespace Ekorre
 {
     public class Program
     {
@@ -18,10 +20,6 @@ namespace ekorre
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureLogging(logging => {
-                    logging.ClearProviders();
-                    logging.AddConsole();
-                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>().UseUrls("https://localhost:5000");

@@ -1,10 +1,10 @@
-# EKORRE - E-Sektionens backend
+# Ekorre - E-Sektionens backend
 
 Ekorre är nästa generationens backen för E-Sektionen
 med syfte att ersätta eracle.
 
 # Installation
-För att få igång en egen server med EKORRE så behövs [dotnet core](https://dotnet.microsoft.com/download/dotnet-core)
+För att få igång en egen server med Ekorre så behövs [dotnet core](https://dotnet.microsoft.com/download/dotnet-core)
 därefter så är det bara att köra
 
 ```
