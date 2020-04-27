@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace ekorre.Models
+namespace Ekorre.Core.Models
 {
     public class RegistrationRequest {
         [Required]

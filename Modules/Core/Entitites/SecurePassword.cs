@@ -1,4 +1,4 @@
-namespace ekorre.Entities
+namespace Ekorre.Core.Entities
 {
     public struct SecurePassword
     {

@@ -18,7 +18,7 @@ using System.Security.Claims;
 //using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 
-namespace ekorre
+namespace Ekorre
 {
     public class Startup
     {
@@ -32,7 +32,7 @@ namespace ekorre
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.IgnoreNullValues = true);
             services.AddCors();
 
             services.AddDbContext<Contexts.ApplicationDbContext>(options => {

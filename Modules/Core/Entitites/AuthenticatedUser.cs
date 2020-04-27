@@ -1,6 +1,6 @@
-using ekorre.Models;
+using Ekorre.Core.Models;
 
-namespace ekorre.Entities
+namespace Ekorre.Core.Entities
 {
     public class AuthenticatedUser {
         public User User { get; set; }

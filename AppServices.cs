@@ -1,4 +1,4 @@
-using ekorre.Services;
+using Ekorre.Services;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

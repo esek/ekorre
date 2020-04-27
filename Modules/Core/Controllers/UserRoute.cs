@@ -1,13 +1,13 @@
-using ekorre.Entities;
-using ekorre.Models;
-using ekorre.Services;
+using Ekorre.Core.Entities;
+using Ekorre.Core.Models;
+using Ekorre.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ekorre.Controllers
+namespace Ekorre.Controllers
 {
     [ApiController]
-    [Route("user")]
+    [Route("users")]
     [Produces("application/json")]
     public class UserRoute : ControllerBase
     {
@@ -18,42 +18,50 @@ namespace ekorre.Controllers
             _userService = userService;
         }
 
+        [HttpGet]
+        public ActionResult<User[]> GetAllUsers() {
+            return Ok(_userService.GetAllUsers());
+        }
+
         [HttpGet("{stilId}")]
         public ActionResult<User> GetUser(string stilId)
         {
             return Ok(_userService.GetUser(stilId));
         }
 
-        [HttpPut("{stilId}/addrole")]
+        [HttpPatch("{stilId}/addrole")]
         public ActionResult AddRole(string stilId, [FromBody]RoleRequest request)
         {
-            string r = request.Role;
+            var r = request.Role;
+            request.StilId = stilId;
 
             if (!Roles.IsValidRole(r)) return BadRequest($"Role {r} is invalid");
 
-            bool roleAdded = _userService.AddRole(stilId, r);
+            var roleAdded = _userService.AddRole(request);
 
             if (roleAdded) return Ok();
             else return BadRequest($"User {stilId} was not found");
         }
 
-        [HttpPut("{stilId}/removerole")]
+        [HttpPatch("{stilId}/removerole")]
         public ActionResult RemoveRole(string stilId, [FromBody]RoleRequest request)
         {
-            string r = request.Role;
+            request.StilId = stilId;
+            var r = request.Role;
 
             if (!Roles.IsValidRole(r)) return BadRequest($"Role {r} is invalid");
 
-            bool roleRemoved = _userService.RemoveRole(stilId, r);
+            var roleRemoved = _userService.RemoveRole(request);
 
             if (roleRemoved) return Ok();
             else return BadRequest($"User {stilId} was not found");
         }
 
-        [HttpPut("{stilId}/changepassword")]
+        [HttpPatch("{stilId}/changepassword")]
         public ActionResult ChangePassword(string stilId, [FromBody]ChangePasswordRequest request)
         {
-            bool changedPassword = _userService.ChangePassword(stilId, request.OldPassword, request.NewPassword);
+            request.StilId = stilId;
+            var changedPassword = _userService.ChangePassword(request);
 
             if (changedPassword) return Ok();
             else return BadRequest($"Password could not be changed");

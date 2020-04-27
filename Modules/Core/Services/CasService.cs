@@ -1,4 +1,4 @@
-namespace ekorre.Services
+namespace Ekorre.Services
 {
     public interface ICasService
     {

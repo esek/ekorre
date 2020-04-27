@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace ekorre.Entities
+namespace Ekorre.Core.Entities
 {
     public class User
     {
@@ -12,7 +12,7 @@ namespace ekorre.Entities
         public string Programme { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
-        public DateTime DateJoined { get; set; }
+        public DateTime? DateJoined { get; set; }
         public List<string> Roles { get; set; }
         public byte[] PasswordHash { get; set; }
         public byte[] Salt { get; set; }
@@ -20,6 +20,16 @@ namespace ekorre.Entities
         public User WithoutPassword()
         {
             this.PasswordHash = null;
+            this.Salt = null;
+            return this;
+        }
+
+        public User WithoutPersonalInfo()
+        {
+            this.Email = null;
+            this.PhoneNumber = null;
+            this.DateJoined = null;
+
             return this;
         }
     }

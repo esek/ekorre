@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.ComponentModel.DataAnnotations;
 
-namespace ekorre.Models
+namespace Ekorre.Core.Models
 {
     public class RequestHelper {
         public static string Describe<T>() {

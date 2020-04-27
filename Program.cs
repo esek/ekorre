@@ -9,7 +9,7 @@ using Microsoft.Extensions.Hosting;
 
 using Microsoft.Extensions.Logging;
 
-namespace ekorre
+namespace Ekorre
 {
     public class Program
     {

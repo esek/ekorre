@@ -1,10 +1,13 @@
 using System.Linq;
 
-namespace ekorre.Entities
+namespace Ekorre.Core.Entities
 {
     public static class Roles {
         private static string[] roles;
         public static string OFFICAL = "Funktionär";
+        public static string MACAPAR = "Macapär";
+        public static string TENOKRAT = "Teknokrat";
+        public static string CODER = "Kodhackare";
 
         public static bool IsValidRole(string role) {
             return GetRoles().Contains(role);

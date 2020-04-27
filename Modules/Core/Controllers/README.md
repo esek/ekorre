@@ -1,2 +1,2 @@
-# EKORRE/CORE
+# Ekorre/CORE
 Någon beskrivning här

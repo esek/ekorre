@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using ekorre.Entities;
+using Ekorre.Core.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Extensions.Configuration;
@@ -12,20 +12,36 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace ekorre
+namespace Ekorre
 {
     public interface IAppSecurity
     {
+        /// <summary>
+        /// Issue a token for the given identity, will be used by the client to authenticate
+        /// </summary>
+        /// <param name="identity"></param>
+        /// <returns></returns>
         string IssueJwtToken(ClaimsIdentity identity);
 
+        /// <summary>
+        /// Hashes the password the same way it was when created to check if login password is valid
+        /// </summary>
+        /// <param name="password"></param>
+        /// <param name="savedPassword"></param>
+        /// <returns></returns>
         bool CheckPassword(string password, SecurePassword savedPassword);
+        /// <summary>
+        /// Hashes the given password with a random salt and returns hash and salt
+        /// </summary>
+        /// <param name="password"></param>
+        /// <returns></returns>
         SecurePassword SecurePassword(string password);
     }
     public class AppSecurity : IAppSecurity
     {
         public static void ConfigureAuthentication(IServiceCollection services, IConfiguration configuration)
         {
-            string keyStr = "my big secret is a big penis haha just kidding";
+            string keyStr = "A long random key that should come from config";
             byte[] keyBytes = Encoding.ASCII.GetBytes(keyStr);
             key = new SymmetricSecurityKey(keyBytes);
 
@@ -50,8 +66,18 @@ namespace ekorre
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("Offical", policy => policy.RequireClaim(ClaimTypes.Role));
+                options.AddPolicy("DDG", policy => {
+                    policy.RequireRole(new string[]{
+                        Roles.MACAPAR, Roles.TENOKRAT, Roles.CODER
+                    });
+                });
             });
         }
+
+        /*
+        -------------------------------------------------------------------------------------------------------------        
+        */
+
         private readonly ILogger _logger;
 
         // Token lifetime in hours

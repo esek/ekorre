@@ -1,6 +1,6 @@
 using System;
 
-namespace ekorre
+namespace Ekorre
 {
     public class WeatherForecast
     {

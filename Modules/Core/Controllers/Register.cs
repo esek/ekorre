@@ -1,8 +1,8 @@
-using ekorre.Models;
-using ekorre.Services;
+using Ekorre.Core.Models;
+using Ekorre.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ekorre.Controllers
+namespace Ekorre.Controllers
 {
     // TODO
     [ApiController]
