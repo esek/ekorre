@@ -1,6 +1,5 @@
 import 'source-map-support/register'; // Show reference to source file in stack trace instead of compiled
 import 'dotenv/config';
-import 'reflect-metadata';
 
 import { ApolloServer } from 'apollo-server';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';

@@ -58,20 +58,20 @@ som behövs för din funktion.
 
 Det är rekomenderat att du bekantar dig lite med de verktyg som används:
 
-* [Typescript]()
-* [GraphQL]()
-* [Knex]()
-* [graphql-codegen]()
-* [apollo-server]()*
-* [graphql-tools]()*
-* [swc-project]()*
-* [jwt]()*
+* [Typescript](https://www.typescriptlang.org/)
+* [GraphQL](https://graphql.org/)
+* [Knex.js](http://knexjs.org)
+* [graphql-codegen](https://graphql-code-generator.com/)
+* [apollo-server](https://www.apollographql.com/docs/apollo-server/)*
+* [graphql-tools](https://www.graphql-tools.com/docs/introduction/)*
+* [swc-project](https://swc.rs/)*
+* [jwt](https://jwt.io/)*
 
 \**kursivt*
 
 #### graphql-codegen
 
-För att underlätta utveckling så används [graphql-codegen](https://graphql-code-generator.com/).
+För att underlätta utveckling så används [graphql-codegen](https://graphql-code-generator.com/docs/plugins/typescript).
 Detta gör att en typescript fil vid namn 'graphql.generated.ts'
 generas som innehåller typdefintioner för graphql frågor.
 Använd denna!
