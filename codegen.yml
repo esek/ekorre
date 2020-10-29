@@ -1,0 +1,12 @@
+overwrite: true
+documents: null
+generates:
+  src/graphql.generated.ts:
+    config:
+      useIndexSignature: true
+      useTypeImports: true
+      contextType: ./context#Context
+    schema: "./src/schemas/*.graphql"
+    plugins:
+      - "typescript"
+      - "typescript-resolvers"
