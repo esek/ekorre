@@ -2,9 +2,9 @@
 # import Post from 'post.graphql'
 
 type Query {
-    userAccess(user: User!): Access
-    postAccess(post: Post!): Access
-    roleAccess(role: Role!): Access
+    userAccess(username: String!): Access
+    postAccess(name: [String!]): Access
+    roleAccess(role: [Role!]): Access
 }
 
 type Access {
