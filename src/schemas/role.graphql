@@ -1,0 +1,9 @@
+
+type Query {
+    role(user: User!): [role]!
+}
+
+enum Role {
+    admin
+    styrelse
+}

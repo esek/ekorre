@@ -1,15 +1,17 @@
 # import * from 'post.graphql'
+# import * from 'role.graphql'
 
 type Query {
   user(username: String!): User
-  users(role: String): [User]
+  users(role: Role): [User]
   usersOnPost(post: Post): [User]
 }
 
 type Mutation {
   login(username: String!, password: String!): String
   createUser(input: NewUser!): User
-  setRoles(username: String!, roles: [String!]!): User
+  setRoles(username: String!, roles: [Role!]!): User
+  setPosts(username: String!, roles: [Role!]!)
 }
 
 type User {
@@ -17,7 +19,7 @@ type User {
   name: String!
   lastname: String!
   class: String!
-  roles: [String!]
+  roles: [Role!]
   posts: [Post]
 }
 
