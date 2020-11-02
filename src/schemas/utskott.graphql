@@ -1,0 +1,19 @@
+# Denna filen är för att vi ska ha ett gemensamt namn på
+# utskotten
+
+type Query {
+    utskott(name: String): Utskott
+}
+
+enum Utskott {
+    CM
+    KM
+    INFU
+    E6
+    NOJU
+    NOLLU
+    SRE
+    ENU
+    FVU
+    OTHER
+}

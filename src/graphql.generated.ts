@@ -15,8 +15,14 @@ export type Scalars = {
 export type Query = {
   __typename?: 'Query';
   hello2?: Maybe<Scalars['String']>;
+  post?: Maybe<Post>;
+  postAccess?: Maybe<Access>;
+  posts?: Maybe<Array<Maybe<Post>>>;
   user?: Maybe<User>;
+  userAccess?: Maybe<Access>;
+  userPosts?: Maybe<Array<Maybe<Post>>>;
   users?: Maybe<Array<Maybe<User>>>;
+  usersOnPost?: Maybe<Array<Maybe<User>>>;
 };
 
 
@@ -25,14 +31,87 @@ export type QueryHello2Args = {
 };
 
 
+export type QueryPostArgs = {
+  name: Scalars['String'];
+};
+
+
+export type QueryPostAccessArgs = {
+  post?: Maybe<Post>;
+};
+
+
+export type QueryPostsArgs = {
+  utskott: Scalars['String'];
+};
+
+
 export type QueryUserArgs = {
   username: Scalars['String'];
 };
 
 
-export type QueryUsersArgs = {
-  role: Scalars['String'];
+export type QueryUserAccessArgs = {
+  user?: Maybe<User>;
 };
+
+
+export type QueryUserPostsArgs = {
+  user?: Maybe<User>;
+};
+
+
+export type QueryUsersArgs = {
+  role?: Maybe<Scalars['String']>;
+};
+
+
+export type QueryUsersOnPostArgs = {
+  post?: Maybe<Post>;
+};
+
+export type Access = {
+  __typename?: 'Access';
+  door: Array<Maybe<Scalars['String']>>;
+  web: Array<Maybe<Scalars['String']>>;
+};
+
+export type User = {
+  __typename?: 'User';
+  class: Scalars['String'];
+  lastname: Scalars['String'];
+  name: Scalars['String'];
+  posts?: Maybe<Array<Maybe<Post>>>;
+  roles?: Maybe<Array<Scalars['String']>>;
+  username: Scalars['String'];
+};
+
+export type Post = {
+  __typename?: 'Post';
+  access?: Maybe<Array<Maybe<Access>>>;
+  history: Array<Maybe<HistoryEntry>>;
+  name: Scalars['String'];
+  utskott: Utskott;
+};
+
+export type HistoryEntry = {
+  __typename?: 'HistoryEntry';
+  holder: Array<Maybe<User>>;
+  period: Scalars['String'];
+};
+
+export enum Utskott {
+  Cm = 'CM',
+  E6 = 'E6',
+  Enu = 'ENU',
+  Fvu = 'FVU',
+  Infu = 'INFU',
+  Km = 'KM',
+  Noju = 'NOJU',
+  Nollu = 'NOLLU',
+  Other = 'OTHER',
+  Sre = 'SRE'
+}
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -56,15 +135,6 @@ export type MutationCreateUserArgs = {
 export type MutationSetRolesArgs = {
   username: Scalars['String'];
   roles: Array<Scalars['String']>;
-};
-
-export type User = {
-  __typename?: 'User';
-  username: Scalars['String'];
-  name: Scalars['String'];
-  lastname: Scalars['String'];
-  class: Scalars['String'];
-  roles?: Maybe<Array<Scalars['String']>>;
 };
 
 export type NewUser = {
@@ -156,8 +226,12 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = ResolversObject<{
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
-  Mutation: ResolverTypeWrapper<{}>;
+  Access: ResolverTypeWrapper<Access>;
   User: ResolverTypeWrapper<User>;
+  Post: ResolverTypeWrapper<Post>;
+  HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
+  Utskott: Utskott;
+  Mutation: ResolverTypeWrapper<{}>;
   NewUser: NewUser;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
 }>;
@@ -166,16 +240,55 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Query: {};
   String: Scalars['String'];
-  Mutation: {};
+  Access: Access;
   User: User;
+  Post: Post;
+  HistoryEntry: HistoryEntry;
+  Mutation: {};
   NewUser: NewUser;
   Boolean: Scalars['Boolean'];
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   hello2?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<QueryHello2Args, 'name'>>;
+  post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
+  postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, never>>;
+  posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, 'utskott'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
-  users?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType, RequireFields<QueryUsersArgs, 'role'>>;
+  userAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryUserAccessArgs, never>>;
+  userPosts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryUserPostsArgs, never>>;
+  users?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType, RequireFields<QueryUsersArgs, never>>;
+  usersOnPost?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType, RequireFields<QueryUsersOnPostArgs, never>>;
+}>;
+
+export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
+  door?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType>;
+  web?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type UserResolvers<ContextType = Context, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
+  class?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  lastname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType>;
+  roles?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
+  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
+  access?: Resolver<Maybe<Array<Maybe<ResolversTypes['Access']>>>, ParentType, ContextType>;
+  history?: Resolver<Array<Maybe<ResolversTypes['HistoryEntry']>>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type HistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HistoryEntry'] = ResolversParentTypes['HistoryEntry']> = ResolversObject<{
+  holder?: Resolver<Array<Maybe<ResolversTypes['User']>>, ParentType, ContextType>;
+  period?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
@@ -184,19 +297,13 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   setRoles?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationSetRolesArgs, 'username' | 'roles'>>;
 }>;
 
-export type UserResolvers<ContextType = Context, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
-  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  lastname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  class?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  roles?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Query?: QueryResolvers<ContextType>;
-  Mutation?: MutationResolvers<ContextType>;
+  Access?: AccessResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
+  Post?: PostResolvers<ContextType>;
+  HistoryEntry?: HistoryEntryResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
 }>;
 
 

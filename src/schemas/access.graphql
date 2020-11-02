@@ -1,0 +1,12 @@
+# import User from 'user.graphql'
+# import Post from 'post.graphql'
+
+type Query {
+    userAccess(user: User): Access
+    postAccess(post: Post): Access
+}
+
+type Access {
+    door: [String]!
+    web: [String]!
+}

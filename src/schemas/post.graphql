@@ -1,28 +1,18 @@
+# import User from 'user.graphql'
+# import Access from 'access.graphql'
+# import Utskott from 'utskott.graphql'
 
 type Query {
     post(name: String!): Post
     posts(utskott: String!): [Post]
-    userPosts(user: User): [Post]
+    userPosts(user: User!): [Post]
 }
 
 type Post {
     name: String!
     utskott: Utskott!
-    access: [Access] # TODO
+    access: [Access]
     history: [HistoryEntry]!
-}
-
-enum Utskott {
-    CM
-    KM
-    INFU
-    E6
-    NOJU
-    NOLLU
-    SRE
-    ENU
-    FVU
-    OTHER
 }
 
 type HistoryEntry {
