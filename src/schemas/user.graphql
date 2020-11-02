@@ -1,3 +1,4 @@
+# import * from 'post.graphql'
 
 type Query {
   user(username: String!): User
@@ -16,6 +17,7 @@ type User {
   lastname: String!
   class: String!
   roles: [String!]
+  posts: [Posts]
 }
 
 input NewUser {

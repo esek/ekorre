@@ -1,4 +1,3 @@
-# import User from 'user.graphql'
 
 type Query {
     post(name: String!): Post
