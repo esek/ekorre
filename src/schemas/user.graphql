@@ -3,6 +3,7 @@
 type Query {
   user(username: String!): User
   users(role: String): [User]
+  usersOnPost(post: Post): [User]
 }
 
 type Mutation {
@@ -17,7 +18,7 @@ type User {
   lastname: String!
   class: String!
   roles: [String!]
-  posts: [Posts]
+  posts: [Post]
 }
 
 input NewUser {
