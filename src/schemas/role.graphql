@@ -1,6 +1,11 @@
 
 type Query {
-    role(user: User!): [role]!
+    role(user: User!): [Role]!
+}
+
+type Mutation {
+    addRole(user: [User!], role: [Role!])
+    removeRole(user: [User!], role: [Role!])
 }
 
 enum Role {

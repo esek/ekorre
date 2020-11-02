@@ -10,7 +10,7 @@ type Query {
 
 type Mutation {
     addPost(name: String!, utskott: Utskott!, access: [Access]): Post
-    setPostAccess(post: Post!, access: Access!)
+    setPostAccess(post: [Post!], access: [Access!])
 }
 
 type Post {
