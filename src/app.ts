@@ -70,6 +70,9 @@ void (async () => {
     ],
   });
 
-  const serverInfo = await server.listen();
+  const serverInfo = await server.listen({
+    port: process.env.port ?? 3000,
+    host: '0.0.0.0',
+  });
   logger.log(`Server started at ${serverInfo.url}`);
 })();

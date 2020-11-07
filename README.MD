@@ -6,26 +6,36 @@ Ekorre är sektionens nya backend driven av node och graphql.
 
 Kort och gott:
 ```
-> npm install
-> npm run start
+npm install
+npm run start
+```
+
+### Fortsättning på det korta och goda...
+
+Det behövs en databas och konfiguration. Det enklaste är att kopiera
+`.env.example.dev` till `.env` och ange filnamnet på databasen.
+För att skapa en sqlite databas använd kommandot
+
+```
+sqlite3 -init <din sql fil> <databasnamn> .exit
 ```
 
 Mer avancerat
 ```c
-> npm run dev // Kompilera kontiuerligt
-> npm run swc // Snabb kompilering med swc
-> npm run swcdev // Snabb kontinuerlig kompilering
+npm run dev // Kompilera kontiuerligt
+npm run swc // Snabb kompilering med swc
+npm run swcdev // Snabb kontinuerlig kompilering
 ```
 
 ## Hur utvecklar jag?
 
 TL;DR
 ```c
-> npm run generate // Generera typescript från gql
-> npm run swcdev // Kontiuerlig kompilering
+npm run generate // Generera typescript från gql
+npm run swcdev // Kontiuerlig kompilering
 alt
-> npm run dev
-> npm run prettier-format // Formatera kod, finns IDE intergration oftast
+npm run dev
+npm run prettier-format // Formatera kod, finns IDE intergration oftast
 ```
 
 ### Struktur
@@ -78,9 +88,8 @@ Använd denna!
 
 För att generera:
 ```
-> npm run generate
+npm run generate
 ```
-
 #### Kodstil
 
 Eslint och prettier är konfigurerat och det
@@ -88,6 +97,6 @@ rekomenderas att du följer de regler som är
 givna.
 
 ```c
-> npm run lint // Testa kodfel, brukar göras av IDE
-> npm run prettier-format // Formatera all kod
+npm run lint // Testa kodfel, brukar göras av IDE
+npm run prettier-format // Formatera all kod
 ```
