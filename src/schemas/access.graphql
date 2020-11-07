@@ -2,12 +2,21 @@
 # import Post from 'post.graphql'
 
 type Query {
-    userAccess(user: User!): Access
-    postAccess(post: Post!): Access
-    roleAccess(role: Role!): Access
+    individualAccess(username: String!): Access
+    postAccess(postname: String!): Access
 }
 
+type Mutation {
+    setIndividualAccess(username: String!, access:AccessInput!): Boolean!
+}
+
+"Access will be treated as a immutable object!"
 type Access {
-    door: [String]
-    web: [String]
+    doors: [String]!
+    web: [String]!
+}
+
+input AccessInput {
+    doors: [String]!
+    web: [String]!
 }

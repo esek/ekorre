@@ -109,6 +109,8 @@ export default class UserAPI {
 
   /**
    * Check if user credentials are correct and create a jwt token.
+   * The user object that is used to create token should be fully
+   * specified!!!
    * @param username the username
    * @param password the password in plaintext
    */
