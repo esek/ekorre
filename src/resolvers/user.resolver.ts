@@ -3,10 +3,10 @@ import UserAPI from '../api/user.api';
 
 const api = new UserAPI();
 
-const a: Resolvers = {
+const userResolver: Resolvers = {
   Query: {
-    users: (_, { role }) => {
-      if (role != null) return api.getUsersByRole(role);
+    users: (_, { havingRole }) => {
+      if (havingRole != null) return api.getUsersByRole(havingRole);
       return api.getAllUsers();
     },
     user: (_, { username }, ctx) => {
@@ -21,4 +21,4 @@ const a: Resolvers = {
   },
 };
 
-export default a;
+export default userResolver;

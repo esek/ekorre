@@ -1,0 +1,28 @@
+#import User from 'user.graphql'
+#import DateTime from '_shared.graphql'
+
+type Query {
+  newsentries(creator: String, after: DateTime, first: Int, offset: Int): [NewsEntry]!
+  latestnews: NewsEntry
+  newsentry(id: ID): NewsEntry!
+}
+
+type Mutation {
+  addNews(entry: NewNewsEntry!): NewsEntry
+}
+
+type NewsEntry {
+  id: ID
+  creator: User!
+  title: String!
+  body: String!
+  createdAt: DateTime!
+  signature: String!
+}
+
+input NewNewsEntry {
+  creator: String!
+  title: String!
+  body: String!
+  signature: String!
+}
