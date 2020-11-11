@@ -8,6 +8,7 @@ const logger = Logger.getLogger('AccessAPI');
 const POST_ACCESS_TABLE = 'PostAccess';
 const IND_ACCESS_TABLE = 'IndividualAccess';
 
+// TODO: Combine these into one?
 type PostAccess = {
   refpostname: string;
   resourcetype: ResourceType;
@@ -68,6 +69,32 @@ export default class AccessAPI {
     }));
     const doorEntries = newaccess.doors.map<IndividualAccess>((e) => ({
       refusername: username,
+      resourcetype: ResourceType.Door,
+      resource: e,
+    }));
+
+    const status = await knex<IndividualAccess>(IND_ACCESS_TABLE).insert([
+      ...webEntries,
+      ...doorEntries,
+    ]);
+    
+    return status[0] > 0;
+  }
+
+  async setPostAccess(postname: string, newaccess: AccessInput): Promise<boolean> {
+    await knex<PostAccess>(POST_ACCESS_TABLE)
+      .where({
+        refpostname: postname,
+      })
+      .delete();
+
+    const webEntries = newaccess.web.map<PostAccess>((e) => ({
+      refpostname: postname,
+      resourcetype: ResourceType.Web,
+      resource: e,
+    }));
+    const doorEntries = newaccess.doors.map<PostAccess>((e) => ({
+      refpostname: postname,
       resourcetype: ResourceType.Door,
       resource: e,
     }));

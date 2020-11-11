@@ -13,6 +13,7 @@ const accessresolver: Resolvers = {
   },
   Mutation: {
     setIndividualAccess: (_, { username, access }) => api.setIndividualAccess(username, access),
+    setPostAccess: (_, { postname, access }) => api.setPostAccess(postname, access),
   }
 };
 

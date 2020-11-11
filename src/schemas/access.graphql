@@ -8,6 +8,7 @@ type Query {
 
 type Mutation {
     setIndividualAccess(username: String!, access:AccessInput!): Boolean!
+    setPostAccess(postname: String!, access:AccessInput!): Boolean!
 }
 
 "Access will be treated as a immutable object!"
@@ -16,6 +17,7 @@ type Access {
     web: [String!]!
 }
 
+"Access input is the entire set of access that resource will have"
 input AccessInput {
     doors: [String!]!
     web: [String!]!
