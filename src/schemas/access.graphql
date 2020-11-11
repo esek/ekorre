@@ -12,13 +12,13 @@ type Mutation {
 
 "Access will be treated as a immutable object!"
 type Access {
-    doors: [String]!
-    web: [String]!
+    doors: [String!]!
+    web: [String!]!
 }
 
 input AccessInput {
-    doors: [String]!
-    web: [String]!
+    doors: [String!]!
+    web: [String!]!
 }
 
 enum ResourceType {

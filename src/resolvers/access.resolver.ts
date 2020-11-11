@@ -6,11 +6,14 @@ dependecyGuard('access', ['user']);
 
 const api = new AccessAPI();
 
-const access: Resolvers = {
+const accessresolver: Resolvers = {
   Query: {
     individualAccess: (_, { username }) => api.getIndividualAccess(username),
     postAccess: (_, { postname }) => api.getPostAccess(postname),
   },
+  Mutation: {
+    setIndividualAccess: (_, { username, access }) => api.setIndividualAccess(username, access),
+  }
 };
 
-export default access;
+export default accessresolver;

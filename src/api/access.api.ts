@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { Access, ResourceType } from '../graphql.generated';
+import { Access, AccessInput, ResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
 import knex from './knex';
 
@@ -52,5 +52,31 @@ export default class AccessAPI {
     });
 
     return this.accessReducer(res);
+  }
+
+  async setIndividualAccess(username: string, newaccess: AccessInput): Promise<boolean> {
+    await knex<IndividualAccess>(IND_ACCESS_TABLE)
+      .where({
+        refusername: username,
+      })
+      .delete();
+
+    const webEntries = newaccess.web.map<IndividualAccess>((e) => ({
+      refusername: username,
+      resourcetype: ResourceType.Web,
+      resource: e,
+    }));
+    const doorEntries = newaccess.doors.map<IndividualAccess>((e) => ({
+      refusername: username,
+      resourcetype: ResourceType.Door,
+      resource: e,
+    }));
+
+    const status = await knex<IndividualAccess>(IND_ACCESS_TABLE).insert([
+      ...webEntries,
+      ...doorEntries,
+    ]);
+    
+    return status[0] > 0;
   }
 }

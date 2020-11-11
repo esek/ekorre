@@ -60,8 +60,8 @@ export type QueryUtskottArgs = {
 
 /** Access will be treated as a immutable object! */
 export type Access = {
-  doors: Array<Maybe<Scalars['String']>>;
-  web: Array<Maybe<Scalars['String']>>;
+  doors: Array<Scalars['String']>;
+  web: Array<Scalars['String']>;
 };
 
 export type Mutation = {
@@ -109,8 +109,8 @@ export type MutationSetPostAccessArgs = {
 };
 
 export type AccessInput = {
-  doors: Array<Maybe<Scalars['String']>>;
-  web: Array<Maybe<Scalars['String']>>;
+  doors: Array<Scalars['String']>;
+  web: Array<Scalars['String']>;
 };
 
 export enum ResourceType {
@@ -287,8 +287,8 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
 }>;
 
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
-  doors?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType>;
-  web?: Resolver<Array<Maybe<ResolversTypes['String']>>, ParentType, ContextType>;
+  doors?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  web?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
