@@ -23,6 +23,11 @@ const ROLE_CONNECTION_TABLE = 'UserRoleConnection';
 const logger = Logger.getLogger('UserAPI');
 const accessApi = new AccessAPI();
 
+/**
+ * This is the user api class. All operations done to
+ * the database should be done using this class since it
+ * will enforce business rules.
+ */
 export default class UserAPI {
   private async userReduce(user: DatabaseUser): Promise<User> {
     const indAccess = await accessApi.getIndividualAccess(user.username);
