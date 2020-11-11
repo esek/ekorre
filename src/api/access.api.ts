@@ -8,8 +8,7 @@ const logger = Logger.getLogger('AccessAPI');
 const POST_ACCESS_TABLE = 'PostAccess';
 const IND_ACCESS_TABLE = 'IndividualAccess';
 
-// TODO: Combine these into one?
-type AccessModel = {
+export type AccessModel = {
   ref: string;
   resourcetype: ResourceType;
   resource: string;
@@ -81,5 +80,11 @@ export default class AccessAPI {
   async setPostAccess(postname: string, newaccess: AccessInput): Promise<boolean> {
     const status = this.setAccess(POST_ACCESS_TABLE, postname, newaccess);
     return status;
+  }
+
+  async getAccessForPosts(posts: string[]): Promise<Access> {
+    const res = await knex<AccessModel>(POST_ACCESS_TABLE).whereIn('ref', posts);
+
+    return this.accessReducer(res);
   }
 }

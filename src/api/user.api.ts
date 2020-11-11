@@ -2,8 +2,9 @@
 import crypto from 'crypto';
 
 import auth from '../auth';
-import type { NewUser, User } from '../graphql.generated';
+import type { Access, NewUser, Post, User } from '../graphql.generated';
 import { Logger } from '../logger';
+import AccessAPI from './access.api';
 import knex from './knex';
 
 type UserRoleConnection = {
@@ -12,7 +13,7 @@ type UserRoleConnection = {
   refusername: string;
 };
 
-type DatabaseUser = Omit<User, 'roles'> & {
+type DatabaseUser = Omit<User, 'posts' | 'access'> & {
   passwordhash: string;
   salt: string;
 };
@@ -20,18 +21,24 @@ type DatabaseUser = Omit<User, 'roles'> & {
 const USER_TABLE = 'Users';
 const ROLE_CONNECTION_TABLE = 'UserRoleConnection';
 const logger = Logger.getLogger('UserAPI');
+const accessApi = new AccessAPI();
 
 export default class UserAPI {
-  private async applyRolesAndReduce(user: DatabaseUser): Promise<User> {
-    const roles = await knex<UserRoleConnection>('UserRoleConnection')
-      .select('refrolename')
-      .where({ refusername: user.username })
-      .pluck('refrolename');
+  private async userReduce(user: DatabaseUser): Promise<User> {
+    const indAccess = await accessApi.getIndividualAccess(user.username);
+    const posts: Post[] = []; // TODO: Implement post resolver
+    const postNames = posts.map((e) => e.postname);
+    const postAccess = await accessApi.getAccessForPosts(postNames);
+
+    const access: Access = {
+      web: [...indAccess.web, ...postAccess.web],
+      doors: [...indAccess.doors, ...postAccess.doors],
+    };
 
     // Strip sensitive data! https://stackoverflow.com/a/50840024
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { salt, passwordhash, ...reduced } = user;
-    const u = { ...reduced, roles };
+    const u = { ...reduced, access, posts };
     return u;
   }
 
@@ -44,10 +51,10 @@ export default class UserAPI {
   private async userReducer(u: DatabaseUser[]): Promise<User[]>;
   private async userReducer(u: DatabaseUser | DatabaseUser[]): Promise<User | User[]> {
     if (u instanceof Array) {
-      const a = await Promise.all(u.map((e) => this.applyRolesAndReduce(e)));
+      const a = await Promise.all(u.map((e) => this.userReduce(e)));
       return a;
     }
-    return this.applyRolesAndReduce(u);
+    return this.userReduce(u);
   }
 
   /**
@@ -185,6 +192,10 @@ export default class UserAPI {
     const logStr = `Created user ${Logger.pretty(input)}`;
     logger.info(logStr);
     logger.debug(logStr);
-    return u;
+    return {
+      ...input,
+      access: { doors: [], web: [] }, // TODO: Maybe some default access?
+      posts: [],
+    };
   }
 }
