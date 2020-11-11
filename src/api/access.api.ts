@@ -1,7 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { Access, AccessInput, ResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
-import { access } from '../resolvers';
 import knex from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
