@@ -113,6 +113,11 @@ export type AccessInput = {
   web: Array<Maybe<Scalars['String']>>;
 };
 
+export enum ResourceType {
+  Door = 'DOOR',
+  Web = 'WEB'
+}
+
 export type Post = {
   access: Access;
   history: Array<Maybe<HistoryEntry>>;
@@ -150,7 +155,7 @@ export type User = {
   class: Scalars['String'];
   lastname: Scalars['String'];
   name: Scalars['String'];
-  posts?: Maybe<Array<Maybe<Post>>>;
+  posts: Array<Post>;
   username: Scalars['String'];
 };
 
@@ -247,6 +252,7 @@ export type ResolversTypes = ResolversObject<{
   Mutation: ResolverTypeWrapper<{}>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   AccessInput: AccessInput;
+  ResourceType: ResourceType;
   Post: ResolverTypeWrapper<Post>;
   NewPost: NewPost;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
@@ -314,7 +320,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   class?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   lastname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType>;
+  posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
