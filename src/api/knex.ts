@@ -11,7 +11,7 @@ if (process.env.DB_CLIENT === 'sqlite') {
   });
 } else {
   k = Knex({
-    client: process.env.DB_CLIENT ?? 'mysql',
+    client: process.env.DB_CLIENT ?? 'mariadb',
     connection: {
       host: process.env.DB_HOST ?? 'localhost',
     },

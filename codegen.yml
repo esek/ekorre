@@ -6,6 +6,9 @@ generates:
       useIndexSignature: true
       useTypeImports: true
       contextType: ./context#Context
+      skipTypename: true
+      scalars:
+        DateTime: Date
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"

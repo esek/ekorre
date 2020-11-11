@@ -1,17 +1,15 @@
-# import * from 'post.graphql'
-# import * from 'role.graphql'
+# import Post from 'post.graphql'
+# import Access from 'access.graphql'
 
 type Query {
   user(username: String!): User
-  users(role: Role): [User]
-  usersOnPost(post: Post): [User]
+  users(rolenname: String, postname: String): [User]
 }
 
 type Mutation {
+  "Test user credentials and if valid get a jwt token"
   login(username: String!, password: String!): String
   createUser(input: NewUser!): User
-  setRoles(username: String!, roles: [Role!]!): User
-  setPosts(username: String!, roles: [Role!]!)
 }
 
 type User {

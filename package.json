@@ -28,7 +28,7 @@
     "graphql-tools": "^6.2.4",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.6",
-    "mysql2": "^2.2.5",
+    "mariadb": "^2.5.1",
     "regenerator-runtime": "^0.13.7",
     "source-map-support": "^0.5.19",
     "type-graphql": "^1.0.0",
