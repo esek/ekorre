@@ -1,6 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import { Access, AccessInput, ResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
+import { access } from '../resolvers';
 import knex from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
@@ -9,28 +10,20 @@ const POST_ACCESS_TABLE = 'PostAccess';
 const IND_ACCESS_TABLE = 'IndividualAccess';
 
 // TODO: Combine these into one?
-type PostAccess = {
-  refpostname: string;
-  resourcetype: ResourceType;
-  resource: string;
-};
-
-type IndividualAccess = {
-  refusername: string;
+type AccessModel = {
+  ref: string;
   resourcetype: ResourceType;
   resource: string;
 };
 
 export default class AccessAPI {
-  private accessReducer(incoming: IndividualAccess[]): Access;
-  private accessReducer(incoming: PostAccess[]): Access;
-  private accessReducer(incoming: PostAccess[] | IndividualAccess[]): Access {
+  private accessReducer(incoming: AccessModel[]): Access {
     const initval: Access = {
       doors: [],
       web: [],
     };
 
-    const access = (incoming as Omit<PostAccess, 'refpost'>[]).reduce((ac, e) => {
+    const access = incoming.reduce((ac, e) => {
       if (e.resourcetype === ResourceType.Web) ac.web.push(e.resource);
       else if (e.resourcetype === ResourceType.Door) ac.doors.push(e.resource);
       return ac;
@@ -40,40 +33,40 @@ export default class AccessAPI {
   }
 
   async getIndividualAccess(username: string): Promise<Access> {
-    const res = await knex<IndividualAccess>(IND_ACCESS_TABLE).where({
-      refusername: username,
+    const res = await knex<AccessModel>(IND_ACCESS_TABLE).where({
+      ref: username,
     });
 
     return this.accessReducer(res);
   }
 
   async getPostAccess(postname: string): Promise<Access> {
-    const res = await knex<PostAccess>(POST_ACCESS_TABLE).where({
-      refpostname: postname,
+    const res = await knex<AccessModel>(POST_ACCESS_TABLE).where({
+      ref: postname,
     });
 
     return this.accessReducer(res);
   }
 
-  async setIndividualAccess(username: string, newaccess: AccessInput): Promise<boolean> {
-    await knex<IndividualAccess>(IND_ACCESS_TABLE)
+  private async setAccess(table: string, ref: string, newaccess: AccessInput): Promise<boolean> {
+    await knex<AccessModel>(table)
       .where({
-        refusername: username,
+        ref
       })
       .delete();
 
-    const webEntries = newaccess.web.map<IndividualAccess>((e) => ({
-      refusername: username,
+    const webEntries = newaccess.web.map<AccessModel>((e) => ({
+      ref,
       resourcetype: ResourceType.Web,
       resource: e,
     }));
-    const doorEntries = newaccess.doors.map<IndividualAccess>((e) => ({
-      refusername: username,
+    const doorEntries = newaccess.doors.map<AccessModel>((e) => ({
+      ref,
       resourcetype: ResourceType.Door,
       resource: e,
     }));
 
-    const status = await knex<IndividualAccess>(IND_ACCESS_TABLE).insert([
+    const status = await knex<AccessModel>(table).insert([
       ...webEntries,
       ...doorEntries,
     ]);
@@ -81,29 +74,13 @@ export default class AccessAPI {
     return status[0] > 0;
   }
 
+  async setIndividualAccess(username: string, newaccess: AccessInput): Promise<boolean> {
+    const status = this.setAccess(IND_ACCESS_TABLE, username, newaccess);
+    return status;
+  }
+
   async setPostAccess(postname: string, newaccess: AccessInput): Promise<boolean> {
-    await knex<PostAccess>(POST_ACCESS_TABLE)
-      .where({
-        refpostname: postname,
-      })
-      .delete();
-
-    const webEntries = newaccess.web.map<PostAccess>((e) => ({
-      refpostname: postname,
-      resourcetype: ResourceType.Web,
-      resource: e,
-    }));
-    const doorEntries = newaccess.doors.map<PostAccess>((e) => ({
-      refpostname: postname,
-      resourcetype: ResourceType.Door,
-      resource: e,
-    }));
-
-    const status = await knex<IndividualAccess>(IND_ACCESS_TABLE).insert([
-      ...webEntries,
-      ...doorEntries,
-    ]);
-    
-    return status[0] > 0;
+    const status = this.setAccess(POST_ACCESS_TABLE, postname, newaccess);
+    return status;
   }
 }

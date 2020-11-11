@@ -1,7 +1,7 @@
 BEGIN TRANSACTION;
 
 CREATE TABLE "PostAccess" (
-	"refusername"	TEXT,
+	"ref"	TEXT,
 	"resourcetype"	TEXT,
 	"resouce"	TEXT,
 	PRIMARY KEY("refusername","resouce"),
@@ -9,7 +9,7 @@ CREATE TABLE "PostAccess" (
 );
 
 CREATE TABLE "IndividualAccess" (
-	"refusername"	TEXT,
+	"ref"	TEXT,
 	"resourcetype"	TEXT,
 	"resource"	TEXT,
 	PRIMARY KEY("refusername","resource")
