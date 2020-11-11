@@ -9,7 +9,7 @@ const POST_ACCESS_TABLE = 'PostAccess';
 const IND_ACCESS_TABLE = 'IndividualAccess';
 
 type PostAccess = {
-  refpost: string;
+  refpostname: string;
   resourcetype: ResourceType;
   resource: string;
 };
@@ -41,6 +41,14 @@ export default class AccessAPI {
   async getIndividualAccess(username: string): Promise<Access> {
     const res = await knex<IndividualAccess>(IND_ACCESS_TABLE).where({
       refusername: username,
+    });
+
+    return this.accessReducer(res);
+  }
+
+  async getPostAccess(postname: string): Promise<Access> {
+    const res = await knex<PostAccess>(POST_ACCESS_TABLE).where({
+      refpostname: postname,
     });
 
     return this.accessReducer(res);
