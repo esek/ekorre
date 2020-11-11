@@ -19,8 +19,9 @@ type User {
   name: String!
   lastname: String!
   class: String!
-  roles: [Role!]
-  posts: [Post]
+  posts: [Post!]!
+  "This will be all the access have concated from Posts and personal"
+  access: Access!
 }
 
 input NewUser {

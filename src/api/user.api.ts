@@ -1,9 +1,10 @@
 /* eslint-disable class-methods-use-this */
 import crypto from 'crypto';
-import { NewUser, User } from '../graphql.generated';
-import knex from './knex';
+
 import auth from '../auth';
+import type { NewUser, User } from '../graphql.generated';
 import { Logger } from '../logger';
+import knex from './knex';
 
 type UserRoleConnection = {
   id: number;
@@ -12,7 +13,7 @@ type UserRoleConnection = {
 };
 
 type DatabaseUser = Omit<User, 'roles'> & {
-  passwordHash: string;
+  passwordhash: string;
   salt: string;
 };
 
@@ -29,7 +30,7 @@ export default class UserAPI {
 
     // Strip sensitive data! https://stackoverflow.com/a/50840024
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { salt, passwordHash, ...reduced } = user;
+    const { salt, passwordhash, ...reduced } = user;
     const u = { ...reduced, roles };
     return u;
   }
@@ -121,7 +122,7 @@ export default class UserAPI {
       .first();
 
     if (u != null) {
-      if (this.verifyUser(password, u.passwordHash, u.salt)) {
+      if (this.verifyUser(password, u.passwordhash, u.salt)) {
         const fullUser = await this.userReducer(u);
 
         const token = auth.issueToken(fullUser);
@@ -148,12 +149,12 @@ export default class UserAPI {
     const u = await query.first();
 
     if (u != null) {
-      if (this.verifyUser(oldPassword, u.passwordHash, u.salt)) {
+      if (this.verifyUser(oldPassword, u.passwordhash, u.salt)) {
         const salt = crypto.randomBytes(16).toString('base64');
-        const passwordHash = this.hashPassword(newPassword, salt);
+        const passwordhash = this.hashPassword(newPassword, salt);
         query.update({
           salt,
-          passwordHash,
+          passwordhash,
         });
         const logStr = `Changed password for user ${username}`;
         logger.info(logStr);
@@ -170,11 +171,11 @@ export default class UserAPI {
    */
   createUser(input: NewUser): User {
     const salt = crypto.randomBytes(16).toString('base64');
-    const passwordHash = this.hashPassword(input.password, salt);
+    const passwordhash = this.hashPassword(input.password, salt);
 
     const u: DatabaseUser = {
       ...input,
-      passwordHash,
+      passwordhash,
       salt,
     };
 

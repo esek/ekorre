@@ -1,12 +1,15 @@
-import { Resolvers } from '../graphql.generated';
 import UserAPI from '../api/user.api';
+import type { Resolvers } from '../graphql.generated';
+import { dependecyGuard } from '../util';
+
+dependecyGuard('user', ['access']);
 
 const api = new UserAPI();
 
 const a: Resolvers = {
   Query: {
-    users: (_, { role }) => {
-      if (role != null) return api.getUsersByRole(role);
+    users: (_, { rolenname }) => {
+      if (rolenname != null) return api.getUsersByRole(rolenname);
       return api.getAllUsers();
     },
     user: (_, { username }, ctx) => {
