@@ -1,9 +1,11 @@
 /* eslint-disable class-methods-use-this */
 import crypto from 'crypto';
-import { NewUser, User } from '../graphql.generated';
-import knex from './knex';
+
 import auth from '../auth';
+import type { Access, NewUser, Post, User } from '../graphql.generated';
 import { Logger } from '../logger';
+import AccessAPI from './access.api';
+import knex from './knex';
 
 type UserRoleConnection = {
   id: number;
@@ -11,26 +13,37 @@ type UserRoleConnection = {
   refusername: string;
 };
 
-type DatabaseUser = Omit<User, 'roles'> & {
-  passwordHash: string;
+type DatabaseUser = Omit<User, 'posts' | 'access'> & {
+  passwordhash: string;
   salt: string;
 };
 
 const USER_TABLE = 'Users';
 const ROLE_CONNECTION_TABLE = 'UserRoleConnection';
 const logger = Logger.getLogger('UserAPI');
+const accessApi = new AccessAPI();
 
+/**
+ * This is the user api class. All operations done to
+ * the database should be done using this class since it
+ * will enforce business rules.
+ */
 export default class UserAPI {
-  private async applyRolesAndReduce(user: DatabaseUser): Promise<User> {
-    const roles = await knex<UserRoleConnection>('UserRoleConnection')
-      .select('refrolename')
-      .where({ refusername: user.username })
-      .pluck('refrolename');
+  private async userReduce(user: DatabaseUser): Promise<User> {
+    const indAccess = await accessApi.getIndividualAccess(user.username);
+    const posts: Post[] = []; // TODO: Implement post resolver
+    const postNames = posts.map((e) => e.postname);
+    const postAccess = await accessApi.getAccessForPosts(postNames);
+
+    const access: Access = {
+      web: [...indAccess.web, ...postAccess.web],
+      doors: [...indAccess.doors, ...postAccess.doors],
+    };
 
     // Strip sensitive data! https://stackoverflow.com/a/50840024
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { salt, passwordHash, ...reduced } = user;
-    const u = { ...reduced, roles };
+    const { salt, passwordhash, ...reduced } = user;
+    const u = { ...reduced, access, posts };
     return u;
   }
 
@@ -43,10 +56,10 @@ export default class UserAPI {
   private async userReducer(u: DatabaseUser[]): Promise<User[]>;
   private async userReducer(u: DatabaseUser | DatabaseUser[]): Promise<User | User[]> {
     if (u instanceof Array) {
-      const a = await Promise.all(u.map((e) => this.applyRolesAndReduce(e)));
+      const a = await Promise.all(u.map((e) => this.userReduce(e)));
       return a;
     }
-    return this.applyRolesAndReduce(u);
+    return this.userReduce(u);
   }
 
   /**
@@ -109,6 +122,8 @@ export default class UserAPI {
 
   /**
    * Check if user credentials are correct and create a jwt token.
+   * The user object that is used to create token should be fully
+   * specified!!!
    * @param username the username
    * @param password the password in plaintext
    */
@@ -121,7 +136,7 @@ export default class UserAPI {
       .first();
 
     if (u != null) {
-      if (this.verifyUser(password, u.passwordHash, u.salt)) {
+      if (this.verifyUser(password, u.passwordhash, u.salt)) {
         const fullUser = await this.userReducer(u);
 
         const token = auth.issueToken(fullUser);
@@ -148,12 +163,12 @@ export default class UserAPI {
     const u = await query.first();
 
     if (u != null) {
-      if (this.verifyUser(oldPassword, u.passwordHash, u.salt)) {
+      if (this.verifyUser(oldPassword, u.passwordhash, u.salt)) {
         const salt = crypto.randomBytes(16).toString('base64');
-        const passwordHash = this.hashPassword(newPassword, salt);
+        const passwordhash = this.hashPassword(newPassword, salt);
         query.update({
           salt,
-          passwordHash,
+          passwordhash,
         });
         const logStr = `Changed password for user ${username}`;
         logger.info(logStr);
@@ -170,11 +185,11 @@ export default class UserAPI {
    */
   createUser(input: NewUser): User {
     const salt = crypto.randomBytes(16).toString('base64');
-    const passwordHash = this.hashPassword(input.password, salt);
+    const passwordhash = this.hashPassword(input.password, salt);
 
     const u: DatabaseUser = {
       ...input,
-      passwordHash,
+      passwordhash,
       salt,
     };
 
@@ -182,6 +197,10 @@ export default class UserAPI {
     const logStr = `Created user ${Logger.pretty(input)}`;
     logger.info(logStr);
     logger.debug(logStr);
-    return u;
+    return {
+      ...input,
+      access: { doors: [], web: [] }, // TODO: Maybe some default access?
+      posts: [],
+    };
   }
 }
