@@ -9,7 +9,6 @@ type Query {
 
 type Mutation {
     addPost(info: NewPost!): Boolean!
-    setPostAccess(postname: String!, access: AccessInput): Boolean!
     addUsersToPost(usernames: [String!]!, postname: String!): Boolean!
 }
 
