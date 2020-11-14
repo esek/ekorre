@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { Post, HistoryEntry, Utskott } from '../graphql.generated';
+import { Post, HistoryEntry, Utskott, NewPost } from '../graphql.generated';
 import { Logger } from '../logger';
 import AccessAPI from './access.api';
 import knex from './knex';
@@ -20,7 +20,7 @@ export type PostHistoryModel = Omit<HistoryEntry, 'holders'> & {
  * This is the api for handling posts.
  */
 export default class PostAPI {
-  private async postReduce(post: PostModel) {
+  private async postReduce(post: PostModel): Promise<Post> {
     const access = await accessApi.getPostAccess(post.postname);
     const history: HistoryEntry[] = [];
 
@@ -35,7 +35,7 @@ export default class PostAPI {
 
   private async postReducer(incoming: PostModel): Promise<Post>;
   private async postReducer(incoming: PostModel[]): Promise<Post[]>;
-  private async postReducer(incoming: PostModel | PostModel[]) {
+  private async postReducer(incoming: PostModel | PostModel[]): Promise<Post | Post[]> {
     if (incoming instanceof Array) {
       const posts = await Promise.all(incoming.map((e) => this.postReduce(e)));
       return posts;
@@ -43,7 +43,7 @@ export default class PostAPI {
     return this.postReduce(incoming);
   }
 
-  async getPost(postname: string) {
+  async getPost(postname: string): Promise<Post | null> {
     const post = await knex<PostModel>(POSTS_TABLE)
       .where({
         postname,
@@ -54,7 +54,16 @@ export default class PostAPI {
     return null;
   }
 
-  async getPosts(utskott: string) {
+  /**
+   * Get all posts. TODO: profile and maybe limit...
+   */
+  async getPosts(): Promise<Post[]> {
+    const posts = await knex<PostModel>(POSTS_TABLE);
+
+    return this.postReducer(posts);
+  }
+
+  async getPostsFromUtskott(utskott: string): Promise<Post[]> {
     const posts = await knex<PostModel>(POSTS_TABLE).where({
       utskott: utskott as Utskott,
     });
@@ -62,7 +71,7 @@ export default class PostAPI {
     return this.postReducer(posts);
   }
 
-  async addUsersToPost(usernames: string[], postname: string) {
+  async addUsersToPost(usernames: string[], postname: string): Promise<boolean> {
     // Filter out already added users
     const alreadyAdded = ((await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
       .select('refuser')
@@ -75,11 +84,37 @@ export default class PostAPI {
     const insert = usernamesToUse.map<PostHistoryModel>((e) => ({
       refuser: e,
       refpost: postname,
-      start: new Date()
+      start: new Date(),
     }));
 
     const res = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).insert(insert);
 
     return res[0] > 0;
+  }
+
+  async createPost({ name, access, utskott }: NewPost): Promise<boolean> {
+    const res = await knex<PostModel>(POSTS_TABLE).insert({
+      postname: name,
+      utskott,
+    });
+
+    // If post was added successfully.
+    if (res[0] > 0) {
+      logger.debug(`Created a post named ${name}`);
+      const accessOk = accessApi.setPostAccess(name, access);
+      return accessOk;
+    }
+    return false;
+  }
+
+  async removeUsersFromPost(users: string[], postname: string): Promise<boolean> {
+    const res = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
+      .where({
+        refpost: postname,
+      })
+      .whereIn('refuser', users)
+      .delete();
+    
+    return res > 0;
   }
 }

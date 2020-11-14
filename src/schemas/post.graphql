@@ -5,7 +5,7 @@
 
 type Query {
     post(name: String!): Post
-    posts(utskott: String!): [Post]
+    posts(utskott: String): [Post]
 }
 
 type Mutation {
@@ -23,7 +23,7 @@ type Post {
 
 input NewPost {
     name: String!
-    utskott: String!
+    utskott: Utskott!
     access: AccessInput!
 }
 
