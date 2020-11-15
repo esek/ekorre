@@ -85,12 +85,13 @@ export default class AccessAPI {
       resource: e,
     }));
 
-    const status = await knex<AccessModel>(table).insert([
-      ...webEntries,
-      ...doorEntries,
-    ]);
-    
-    return status[0] > 0;
+    // Only do insert with actual values.
+    const inserts = [...webEntries, ...doorEntries];
+    if (inserts.length > 0) {
+      const status = await knex<AccessModel>(table).insert(inserts);
+      return status[0] > 0;
+    }
+    return true;
   }
 
   /**
