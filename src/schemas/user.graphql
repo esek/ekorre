@@ -1,9 +1,10 @@
 # import Post from 'post.graphql'
 # import Access from 'access.graphql'
+scalar DateTime
 
 type Query {
   user(username: String!): User
-  users(rolenname: String, postname: String): [User]
+  users(postname: String, postname: String): [User]
 }
 
 type Mutation {

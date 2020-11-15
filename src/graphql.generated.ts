@@ -40,7 +40,7 @@ export type QueryPostAccessArgs = {
 
 
 export type QueryPostsArgs = {
-  utskott?: Maybe<Scalars['String']>;
+  utskott?: Maybe<Utskott>;
 };
 
 
@@ -50,19 +50,12 @@ export type QueryUserArgs = {
 
 
 export type QueryUsersArgs = {
-  rolenname?: Maybe<Scalars['String']>;
   postname?: Maybe<Scalars['String']>;
 };
 
 
 export type QueryUtskottArgs = {
   name?: Maybe<Scalars['String']>;
-};
-
-/** Access will be treated as a immutable object! */
-export type Access = {
-  doors: Array<Scalars['String']>;
-  web: Array<Scalars['String']>;
 };
 
 export type Mutation = {
@@ -85,6 +78,7 @@ export type MutationAddPostArgs = {
 export type MutationAddUsersToPostArgs = {
   usernames: Array<Scalars['String']>;
   postname: Scalars['String'];
+  period: Scalars['Int'];
 };
 
 
@@ -116,6 +110,12 @@ export type MutationSetPostAccessArgs = {
   access: AccessInput;
 };
 
+/** Access will be treated as a immutable object! */
+export type Access = {
+  doors: Array<Scalars['String']>;
+  web: Array<Scalars['String']>;
+};
+
 /** Access input is the entire set of access that resource will have */
 export type AccessInput = {
   doors: Array<Scalars['String']>;
@@ -127,23 +127,12 @@ export enum ResourceType {
   Web = 'WEB'
 }
 
+
 export type Post = {
   access: Access;
   history: Array<HistoryEntry>;
   postname: Scalars['String'];
   utskott: Utskott;
-};
-
-export type NewPost = {
-  name: Scalars['String'];
-  utskott: Utskott;
-  access: AccessInput;
-};
-
-export type HistoryEntry = {
-  end?: Maybe<Scalars['DateTime']>;
-  holders: Array<Maybe<User>>;
-  start: Scalars['DateTime'];
 };
 
 export enum Utskott {
@@ -159,6 +148,17 @@ export enum Utskott {
   Sre = 'SRE'
 }
 
+export type NewPost = {
+  name: Scalars['String'];
+  utskott: Utskott;
+};
+
+export type HistoryEntry = {
+  end?: Maybe<Scalars['DateTime']>;
+  holder: User;
+  start: Scalars['DateTime'];
+};
+
 export type User = {
   /** This will be all the access have concated from Posts and personal */
   access: Access;
@@ -168,7 +168,6 @@ export type User = {
   posts: Array<Post>;
   username: Scalars['String'];
 };
-
 
 export type NewUser = {
   username: Scalars['String'];
@@ -259,17 +258,18 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = ResolversObject<{
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
-  Access: ResolverTypeWrapper<Access>;
   Mutation: ResolverTypeWrapper<{}>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
+  Access: ResolverTypeWrapper<Access>;
   AccessInput: AccessInput;
   ResourceType: ResourceType;
+  DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Post: ResolverTypeWrapper<Post>;
+  Utskott: Utskott;
   NewPost: NewPost;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
-  Utskott: Utskott;
   User: ResolverTypeWrapper<User>;
-  DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   NewUser: NewUser;
 }>;
 
@@ -277,15 +277,16 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Query: {};
   String: Scalars['String'];
-  Access: Access;
   Mutation: {};
   Boolean: Scalars['Boolean'];
+  Int: Scalars['Int'];
+  Access: Access;
   AccessInput: AccessInput;
+  DateTime: Scalars['DateTime'];
   Post: Post;
   NewPost: NewPost;
   HistoryEntry: HistoryEntry;
   User: User;
-  DateTime: Scalars['DateTime'];
   NewUser: NewUser;
 }>;
 
@@ -299,21 +300,25 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
 
-export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
-  doors?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  web?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
-  addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname'>>;
+  addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
 }>;
+
+export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
+  doors?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  web?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
+  name: 'DateTime';
+}
 
 export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
@@ -325,7 +330,7 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
 
 export type HistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HistoryEntry'] = ResolversParentTypes['HistoryEntry']> = ResolversObject<{
   end?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
-  holders?: Resolver<Array<Maybe<ResolversTypes['User']>>, ParentType, ContextType>;
+  holder?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   start?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -340,18 +345,14 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
-  name: 'DateTime';
-}
-
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Query?: QueryResolvers<ContextType>;
-  Access?: AccessResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  Access?: AccessResolvers<ContextType>;
+  DateTime?: GraphQLScalarType;
   Post?: PostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
-  DateTime?: GraphQLScalarType;
 }>;
 
 

@@ -1,6 +1,3 @@
-# import User from 'user.graphql'
-# import Post from 'post.graphql'
-
 type Query {
     individualAccess(username: String!): Access
     postAccess(postname: String!): Access
