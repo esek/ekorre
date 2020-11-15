@@ -1,5 +1,6 @@
 import { ApolloServer } from 'apollo-server';
 import 'dotenv/config';
+import { DateTimeResolver } from 'graphql-scalars';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import 'source-map-support/register';
 
@@ -31,7 +32,10 @@ ${modules.join('\n\t')}`);
 // Load all schemas from .graphql files.
 const schemas = modules.map((module) =>
   loadSchemaSync(`./src/schemas/${module}.graphql`, {
-    loaders: [new GraphQLFileLoader()],
+    loaders: [new GraphQLFileLoader()], 
+    resolvers: {
+      DateTime: DateTimeResolver
+    },
   }),
 );
 

@@ -25,6 +25,7 @@
     "crypto": "^1.0.1",
     "dotenv": "^8.2.0",
     "graphql": "^15.3.0",
+    "graphql-scalars": "^1.4.1",
     "graphql-tools": "^6.2.4",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.6",
