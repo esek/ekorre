@@ -1,77 +1,62 @@
 /* eslint-disable class-methods-use-this */
-import { Post, HistoryEntry, Utskott, NewPost } from '../graphql.generated';
+import type { Post, HistoryEntry, Utskott, NewPost } from '../graphql.generated';
 import { Logger } from '../logger';
-import AccessAPI from './access.api';
+import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('PostAPI');
-const accessApi = new AccessAPI();
-
-const POSTS_TABLE = 'Posts';
-const POSTS_HISTORY_TABLE = '';
 
 export type PostModel = Omit<Post, 'history' | 'access'>;
-export type PostHistoryModel = Omit<HistoryEntry, 'holders'> & {
+export type PostHistoryModel = Omit<HistoryEntry, 'holder'> & {
   refpost: string;
   refuser: string;
+  period: number;
 };
 
 /**
  * This is the api for handling posts.
  */
-export default class PostAPI {
-  private async postReduce(post: PostModel): Promise<Post> {
-    const access = await accessApi.getPostAccess(post.postname);
-    const history: HistoryEntry[] = [];
+export class PostAPI {
+  /**
+   * Get all posts. TODO: profile and maybe limit...
+   */
+  async getPosts(): Promise<PostModel[]> {
+    const posts = await knex<PostModel>(POSTS_TABLE);
 
-    const p: Post = {
-      ...post,
-      access,
-      history,
-    };
-
-    return p;
+    return posts;
   }
 
-  private async postReducer(incoming: PostModel): Promise<Post>;
-  private async postReducer(incoming: PostModel[]): Promise<Post[]>;
-  private async postReducer(incoming: PostModel | PostModel[]): Promise<Post | Post[]> {
-    if (incoming instanceof Array) {
-      const posts = await Promise.all(incoming.map((e) => this.postReduce(e)));
-      return posts;
-    }
-    return this.postReduce(incoming);
-  }
+  async getPost(postname: string): Promise<PostModel | null> {
+    const posts = await knex<PostModel>(POSTS_TABLE).where({ postname }).first();
 
-  async getPost(postname: string): Promise<Post | null> {
-    const post = await knex<PostModel>(POSTS_TABLE)
-      .where({
-        postname,
-      })
-      .first();
-
-    if (post != null) return this.postReducer(post);
-    return null;
+    return posts ?? null;
   }
 
   /**
    * Get all posts. TODO: profile and maybe limit...
    */
-  async getPosts(): Promise<Post[]> {
-    const posts = await knex<PostModel>(POSTS_TABLE);
+  async getPostsForUser(username: string): Promise<PostModel[]> {
+    const refposts = (await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
+      .where({
+        refuser: username,
+        end: null,
+      })
+      .select('refpost'));
 
-    return this.postReducer(posts);
+    const posts = await knex<PostModel>(POSTS_TABLE).whereIn('postname', refposts.map(e => e.refpost));
+
+    return posts;
   }
 
-  async getPostsFromUtskott(utskott: string): Promise<Post[]> {
+  async getPostsFromUtskott(utskott: Utskott): Promise<PostModel[]> {
     const posts = await knex<PostModel>(POSTS_TABLE).where({
-      utskott: utskott as Utskott,
+      utskott,
     });
 
-    return this.postReducer(posts);
+    return posts;
   }
 
-  async addUsersToPost(usernames: string[], postname: string): Promise<boolean> {
+  async addUsersToPost(usernames: string[], postname: string, period: number): Promise<boolean> {
     // Filter out already added users
     const alreadyAdded = ((await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
       .select('refuser')
@@ -79,20 +64,24 @@ export default class PostAPI {
         refpost: postname,
       })
       .whereIn('refuser', usernames)) as unknown) as string;
-    const usernamesToUse = usernames.filter((e) => alreadyAdded.includes(e));
+    const usernamesToUse = usernames.filter((e) => !alreadyAdded.includes(e));
 
     const insert = usernamesToUse.map<PostHistoryModel>((e) => ({
       refuser: e,
       refpost: postname,
       start: new Date(),
+      end: null,
+      period,
     }));
 
-    const res = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).insert(insert);
-
-    return res[0] > 0;
+    if (insert.length > 0) {
+      const res = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).insert(insert);
+      return res[0] > 0;
+    }
+    return false;
   }
 
-  async createPost({ name, access, utskott }: NewPost): Promise<boolean> {
+  async createPost({ name, utskott }: NewPost): Promise<boolean> {
     const res = await knex<PostModel>(POSTS_TABLE).insert({
       postname: name,
       utskott,
@@ -101,8 +90,7 @@ export default class PostAPI {
     // If post was added successfully.
     if (res[0] > 0) {
       logger.debug(`Created a post named ${name}`);
-      const accessOk = accessApi.setPostAccess(name, access);
-      return accessOk;
+      return true;
     }
     return false;
   }
@@ -114,7 +102,15 @@ export default class PostAPI {
       })
       .whereIn('refuser', users)
       .delete();
-    
+
     return res > 0;
+  }
+
+  async getHistoryEntries(refpost: string) {
+    const entries = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).where({
+      refpost,
+    });
+
+    return entries;
   }
 }

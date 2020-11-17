@@ -1,12 +1,10 @@
 /* eslint-disable class-methods-use-this */
 import { Access, AccessInput, ResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
+import { IND_ACCESS_TABLE, POST_ACCESS_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
-
-const POST_ACCESS_TABLE = 'PostAccess';
-const IND_ACCESS_TABLE = 'IndividualAccess';
 
 export type AccessModel = {
   ref: string;
@@ -17,7 +15,7 @@ export type AccessModel = {
 /**
  * This is the api for adding and removing user access.
  */
-export default class AccessAPI {
+export class AccessAPI {
   /**
    * Reduce access model array to single access object
    * @param incoming the database rows
@@ -70,7 +68,7 @@ export default class AccessAPI {
   private async setAccess(table: string, ref: string, newaccess: AccessInput): Promise<boolean> {
     await knex<AccessModel>(table)
       .where({
-        ref
+        ref,
       })
       .delete();
 

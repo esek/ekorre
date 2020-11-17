@@ -32,9 +32,9 @@ ${modules.join('\n\t')}`);
 // Load all schemas from .graphql files.
 const schemas = modules.map((module) =>
   loadSchemaSync(`./src/schemas/${module}.graphql`, {
-    loaders: [new GraphQLFileLoader()], 
+    loaders: [new GraphQLFileLoader()],
     resolvers: {
-      DateTime: DateTimeResolver
+      DateTime: DateTimeResolver,
     },
   }),
 );
@@ -74,6 +74,7 @@ void (async () => {
       },
     ],
     cors: true,
+    tracing: true
   });
 
   const serverInfo = await server.listen({

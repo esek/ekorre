@@ -28,6 +28,7 @@ input NewPost {
 }
 
 type HistoryEntry {
+    postname: String!
     holder: User!
     start: DateTime!
     end: DateTime
