@@ -27,8 +27,12 @@ export class AccessAPI {
     };
 
     const access = incoming.reduce((ac, e) => {
-      if (e.resourcetype === ResourceType.Web) ac.web.push(e.resource);
-      else if (e.resourcetype === ResourceType.Door) ac.doors.push(e.resource);
+      switch (e.resourcetype) {
+        case ResourceType.Web: ac.web.push(e.resource); break;
+        case ResourceType.Door: ac.doors.push(e.resource); break;
+        default:
+          break;
+      }
       return ac;
     }, initval);
 
@@ -120,6 +124,7 @@ export class AccessAPI {
 
   /**
    * Gets access for multiple posts. Useful in user api.
+   * TODO: Maybe include a reference to the corresponding post
    * @param posts the postnames
    */
   async getAccessForPosts(posts: string[]): Promise<Access> {

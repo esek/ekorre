@@ -156,6 +156,7 @@ export type NewPost = {
 export type HistoryEntry = {
   end?: Maybe<Scalars['DateTime']>;
   holder: User;
+  postname: Scalars['String'];
   start: Scalars['DateTime'];
 };
 
@@ -331,6 +332,7 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
 export type HistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HistoryEntry'] = ResolversParentTypes['HistoryEntry']> = ResolversObject<{
   end?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   holder?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   start?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

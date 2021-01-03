@@ -28,6 +28,7 @@ export async function postHistoryReduce(refpost: string) {
   const userMap = reducedUsers.reduce((a, e) => ({ [e.username]: e }), init);
 
   const history = entries.map<HistoryEntry>((e) => ({
+    postname: refpost,
     holder: userMap[e.refuser],
     start: e.start,
     end: e.end,
@@ -42,6 +43,7 @@ export async function postReduce(post: PostModel): Promise<Post> {
   const p: Post = {
     ...post,
     access,
+    history: [] // This will be thunk?
   };
 
   return p;
@@ -75,7 +77,7 @@ export async function userReduce(user: DatabaseUser): Promise<User> {
   // Strip sensitive data! https://stackoverflow.com/a/50840024
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { salt, passwordhash, ...reduced } = user;
-  const u = { ...reduced, access };
+  const u = { ...reduced, access, posts: [] /* another thunk */ };
   return u;
 }
 

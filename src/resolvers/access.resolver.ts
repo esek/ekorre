@@ -3,7 +3,7 @@ import { PostAPI } from '../api/post.api';
 import { Access, Resolvers } from '../graphql.generated';
 import { dependecyGuard } from '../util';
 
-dependecyGuard('access', ['user']);
+dependecyGuard('access', ['user', 'post']);
 
 const accessApi = new AccessAPI();
 const postApi = new PostAPI();
@@ -27,6 +27,19 @@ const accessresolver: Resolvers = {
       const access: Access = {
         web: [...indAccess.web, ...postAccess.web],
         doors: [...indAccess.doors, ...postAccess.doors],
+      };
+
+      return access;
+    }
+  },
+  Post: {
+    access: async ({ postname }) => {
+      // Maybe implement API method that takes single postname.
+      const postAccess = await accessApi.getAccessForPosts([postname]);
+
+      const access: Access = {
+        web: [...postAccess.web],
+        doors: [...postAccess.doors],
       };
 
       return access;

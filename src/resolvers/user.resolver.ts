@@ -14,8 +14,8 @@ const a: Resolvers = {
       if (postname != null) return userReducer(await api.getUsersByPost(postname));
       return userReducer(await api.getAllUsers());
     },
-    user: async (_, { username }, ctx) => {
-      //ctx.getUser();
+    user: async (_, { username }) => {
+      // ctx.getUser();
       const u = await api.getSingleUser(username);
       if (u != null) return userReducer(u);
       return null;
