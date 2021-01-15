@@ -7,10 +7,10 @@
     "run": "node build/app.js",
     "build": "tsc",
     "start": "npm run build && npm run run",
-    "dev": "npx nodemon -e ts --exec 'tsc && node build/app.js'",
+    "dev": "npx nodemon -e ts --watch src --exec 'tsc && node build/app.js'",
     "swc": "swc src -d build",
     "swcdevbuild": "swc src -d build --source-maps inline",
-    "swcdev": "nodemon -e ts,graphql --exec 'npm run swcdevbuild -s && node build/app.js'",
+    "swcdev": "nodemon --watch src -e ts,graphql --exec 'npm run swcdevbuild -s && node build/app.js'",
     "generate": "graphql-codegen --config codegen.yml",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
     "lint": "eslint src; exit 0"
