@@ -10,7 +10,7 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  DateTime: Date;
+  Date: Date;
 };
 
 export type Query = {
@@ -154,10 +154,10 @@ export type NewPost = {
 };
 
 export type HistoryEntry = {
-  end?: Maybe<Scalars['DateTime']>;
+  end?: Maybe<Scalars['Date']>;
   holder: User;
   postname: Scalars['String'];
-  start: Scalars['DateTime'];
+  start: Scalars['Date'];
 };
 
 export type User = {
@@ -265,7 +265,7 @@ export type ResolversTypes = ResolversObject<{
   Access: ResolverTypeWrapper<Access>;
   AccessInput: AccessInput;
   ResourceType: ResourceType;
-  DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
+  Date: ResolverTypeWrapper<Scalars['Date']>;
   Post: ResolverTypeWrapper<Post>;
   Utskott: Utskott;
   NewPost: NewPost;
@@ -283,7 +283,7 @@ export type ResolversParentTypes = ResolversObject<{
   Int: Scalars['Int'];
   Access: Access;
   AccessInput: AccessInput;
-  DateTime: Scalars['DateTime'];
+  Date: Scalars['Date'];
   Post: Post;
   NewPost: NewPost;
   HistoryEntry: HistoryEntry;
@@ -317,8 +317,8 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
-  name: 'DateTime';
+export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
+  name: 'Date';
 }
 
 export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
@@ -330,10 +330,10 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
 }>;
 
 export type HistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HistoryEntry'] = ResolversParentTypes['HistoryEntry']> = ResolversObject<{
-  end?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   holder?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  start?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -351,7 +351,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Query?: QueryResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Access?: AccessResolvers<ContextType>;
-  DateTime?: GraphQLScalarType;
+  Date?: GraphQLScalarType;
   Post?: PostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
   User?: UserResolvers<ContextType>;

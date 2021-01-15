@@ -2,7 +2,7 @@
 # import Access, AccessInput from 'access.graphql'
 # import Utskott from 'utskott.graphql'
 
-scalar DateTime
+scalar Date
 
 type Query {
     post(name: String!): Post
@@ -30,6 +30,6 @@ input NewPost {
 type HistoryEntry {
     postname: String!
     holder: User!
-    start: DateTime!
-    end: DateTime
+    start: Date!
+    end: Date
 }
