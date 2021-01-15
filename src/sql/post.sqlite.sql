@@ -17,4 +17,8 @@ CREATE TABLE "PostHistory" (
 	FOREIGN KEY("refpost") REFERENCES "Posts"("postname")
 );
 
+INSERT INTO Posts (postname,utskott) VALUES ('Macapär','INFU');
+INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär','aa0000bb-s','2020-12-29','2020-12-30',2020);
+INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär','aa0000bb-s','2020-12-29',null,2020);
+
 END TRANSACTION;

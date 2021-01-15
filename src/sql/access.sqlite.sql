@@ -16,4 +16,7 @@ CREATE TABLE "IndividualAccess" (
 	FOREIGN KEY("ref") REFERENCES "Users"("username")
 );
 
+INSERT INTO IndividualAccess ("ref",resourcetype,resource) VALUES ('aa0000bb-s','DOOR','pump');
+INSERT INTO PostAccess ("ref",resourcetype,resource) VALUES ('Macapär','DOOR','hk');
+
 END TRANSACTION;
