@@ -10,20 +10,7 @@ CREATE TABLE IF NOT EXISTS "Users" (
 	PRIMARY KEY("username")
 );
 
-CREATE TABLE IF NOT EXISTS "Roles" (
-	"rolename"	TEXT NOT NULL,
-	PRIMARY KEY("rolename")
-);
-
-CREATE TABLE IF NOT EXISTS "UserRoleConnection" (
-	"id"	INTEGER NOT NULL,
-	"refusername"	TEXT NOT NULL,
-	"refrolename"	TEXT NOT NULL,
-	FOREIGN KEY("refrolename") REFERENCES "Roles"("rolename"),
-	FOREIGN KEY("refusername") REFERENCES "Users"("username"),
-	PRIMARY KEY("id" AUTOINCREMENT)
-);
-
+-- Alla lösenord är test men olika hash pga salt.
 INSERT INTO "Users" ("username","passwordHash","salt","name","lastname","class") 
 VALUES ('aa0000bb-s','Y8IUptOZ0LI3sUUP6JVNtOZiNaIblxTTXBIJ4JIBFzr/PZgFoGHM0ua7hVFCb3yFSlyV/DI0/G/br7cU9qG4Ag==',
 'Z1w2IPe1l9nCKwWM6RV+PA==','Emil','Blennow','E19');
@@ -33,7 +20,4 @@ VALUES ('bb1111cc-s','Os3+GcPpLwK+PWF9mei/dstvdawQGpT0C4wP1oebTBp5JVooisVLpOJK4/
 INSERT INTO "Users" ("username","passwordHash","salt","name","lastname","class")
 VALUES ('no0000oh-s','lQFpDvvCGSVywE3PTjpTUSzwWYfGwlE4MxJ/dGZp0YRe7N/U8zKUx6NWA2aGWD7p/c090lpWYDIEcuXnaiFz5Q==',
 'zXr+8b22sOLTvi/Zstu9Zw==','Lena','Handén','BME19');
-INSERT INTO "Roles" ("rolename") VALUES ('Macapär');
-INSERT INTO "Roles" ("rolename") VALUES ('Teknokrat');
-INSERT INTO "UserRoleConnection" ("id","refusername","refrolename") VALUES (1,'aa0000bb-s','Macapär');
 COMMIT;

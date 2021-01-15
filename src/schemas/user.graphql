@@ -1,13 +1,16 @@
+# import Post from 'post.graphql'
+# import Access from 'access.graphql'
+scalar DateTime
 
 type Query {
   user(username: String!): User
-  users(role: String): [User]
+  users(postname: String, postname: String): [User]
 }
 
 type Mutation {
+  "Test user credentials and if valid get a jwt token"
   login(username: String!, password: String!): String
   createUser(input: NewUser!): User
-  setRoles(username: String!, roles: [String!]!): User
 }
 
 type User {
@@ -15,7 +18,9 @@ type User {
   name: String!
   lastname: String!
   class: String!
-  roles: [String!]
+  posts: [Post!]!
+  "This will be all the access have concated from Posts and personal"
+  access: Access!
 }
 
 input NewUser {

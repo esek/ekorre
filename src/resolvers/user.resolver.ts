@@ -1,22 +1,35 @@
-import { Resolvers } from '../graphql.generated';
-import UserAPI from '../api/user.api';
+import { UserAPI } from '../api/user.api';
+import auth from '../auth';
+import type { Resolvers } from '../graphql.generated';
+import { dependecyGuard } from '../util';
+import { userReducer } from './reducers';
+
+dependecyGuard('user', ['access']);
 
 const api = new UserAPI();
 
 const a: Resolvers = {
   Query: {
-    users: (_, { role }) => {
-      if (role != null) return api.getUsersByRole(role);
-      return api.getAllUsers();
+    users: async (_, { postname }) => {
+      if (postname != null) return userReducer(await api.getUsersByPost(postname));
+      return userReducer(await api.getAllUsers());
     },
-    user: (_, { username }, ctx) => {
-      ctx.getUser();
-      return api.getSingleUser(username);
+    user: async (_, { username }) => {
+      // ctx.getUser();
+      const u = await api.getSingleUser(username);
+      if (u != null) return userReducer(u);
+      return null;
     },
   },
   Mutation: {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    login: (_, { username, password }) => api.loginUser(username, password),
+    login: async (_, { username, password }) => {
+      const partialUser = await api.loginUser(username, password);
+      if (partialUser == null) return null;
+      const user = await userReducer(partialUser);
+      const token = auth.issueToken(user);
+      return token;
+    },
     createUser: (_, { input }) => api.createUser(input),
   },
 };

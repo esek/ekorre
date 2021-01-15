@@ -1,14 +1,16 @@
-import 'source-map-support/register'; // Show reference to source file in stack trace instead of compiled
-import 'dotenv/config';
-
 import { ApolloServer } from 'apollo-server';
+import 'dotenv/config';
+import { DateTimeResolver } from 'graphql-scalars';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
+import 'source-map-support/register';
 
-import { Logger } from './logger';
-import * as Resolvers from './resolvers/index';
 import auth from './auth';
 import type { Context } from './context';
 import type { User } from './graphql.generated';
+import { Logger } from './logger';
+import * as Resolvers from './resolvers/index';
+
+// Show reference to source file in stack trace instead of compiled
 
 Logger.logLevel = Logger.getLogLevelFromString(process.env.LOGLEVEL ?? 'normal');
 const logger = Logger.getLogger('App');
@@ -21,7 +23,7 @@ const logger = Logger.getLogger('App');
  *  - src/resolvers/<module>.resolver.ts
  * and resolver should be included in file src/resolvers/index.ts
  */
-const modules = ['user'];
+const modules = JSON.parse(process.env.MODULES ?? '[]') as string[];
 
 logger.log('Beginning startup...');
 logger.log(`I will load the following modules:\n\t\
@@ -31,6 +33,9 @@ ${modules.join('\n\t')}`);
 const schemas = modules.map((module) =>
   loadSchemaSync(`./src/schemas/${module}.graphql`, {
     loaders: [new GraphQLFileLoader()],
+    resolvers: {
+      DateTime: DateTimeResolver,
+    },
   }),
 );
 
@@ -68,6 +73,8 @@ void (async () => {
         },
       },
     ],
+    cors: true,
+    tracing: true
   });
 
   const serverInfo = await server.listen({
