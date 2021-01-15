@@ -1,11 +1,14 @@
 import { PostAPI } from '../api/post.api';
+import { UserAPI } from '../api/user.api';
 import { Resolvers } from '../graphql.generated';
+import { userReducer } from '../reducers/user.reducer';
 import { dependecyGuard } from '../util';
-import { postHistoryReduce, postReduce, postReducer } from './reducers';
+import { postReduce, postReducer } from '../reducers/post.reducer';
 
-dependecyGuard('post', ['user', 'access']);
+dependecyGuard('post', ['user']);
 
 const api = new PostAPI();
+const userApi = new UserAPI();
 
 // TODO: Lägg till auth
 const postresolver: Resolvers = {
@@ -33,7 +36,16 @@ const postresolver: Resolvers = {
     posts: async ({ username }) => postReducer(await api.getPostsForUser(username)),
   },
   Post: {
-    history: async ({ postname }) => postHistoryReduce(postname),
+    history: async ({ postname }) => {
+      const entries = await api.getHistoryEntries(postname);
+      const a = Promise.all(entries.map(async (e) => {
+        const h = await userApi.getSingleUser(e.refuser);
+        const holder = await userReducer(h!);
+
+        return {...e, holder};
+      }));
+      return a;
+    },
   },
 };
 
