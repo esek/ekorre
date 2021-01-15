@@ -3,9 +3,8 @@ import crypto from 'crypto';
 
 import type { NewUser, User } from '../graphql.generated';
 import { Logger } from '../logger';
-import { POSTS_HISTORY_TABLE, USER_TABLE } from './constants';
+import { USER_TABLE } from './constants';
 import knex from './knex';
-import type { PostHistoryModel } from './post.api';
 
 export type DatabaseUser = Omit<User, 'posts' | 'access'> & {
   passwordhash: string;
@@ -52,27 +51,21 @@ export class UserAPI {
   }
 
   /**
-   * This should not be here?
-   * Get all users that currently have the supplied post.
-   * @param postname the role
-   */
-  async getUsersByPost(postname: string): Promise<DatabaseUser[]> {
-    const conn = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).where({
-      refpost: postname,
-      end: null,
-    });
-    const refnames = conn.map((e) => e.refuser);
-
-    const u = await knex<DatabaseUser>(USER_TABLE).whereIn('username', refnames);
-    return u;
-  }
-
-  /**
    * Get a single user
    * @param username the unique username
    */
   async getSingleUser(username: string): Promise<DatabaseUser | null> {
     const u = await knex<DatabaseUser>(USER_TABLE).where({ username }).first();
+    if (u != null) return u;
+    return null;
+  }
+
+  /**
+   * Get multiple users
+   * @param usernames the usernames
+   */
+  async getMultipleUsers(usernames: string[]): Promise<DatabaseUser[] | null> {
+    const u = await knex<DatabaseUser>(USER_TABLE).whereIn('username', usernames);
     if (u != null) return u;
     return null;
   }
