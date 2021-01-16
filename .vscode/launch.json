@@ -10,21 +10,27 @@
       "request": "launch",
       "name": "Launch Program",
       "program": "${workspaceFolder}/src/app.ts",
-      //"preLaunchTask": "tsc: build - tsconfig.json",
-      "preLaunchTask": "npm: swcdevbuild",
-      "cwd": "${workspaceFolder}",
-      "outFiles": [
-        "${workspaceFolder}/build/**/*.js"
-      ],
-      "skipFiles": [
-        "<node_internals>/**",
-        "${workspaceFolder}/node_modules/**",
-      ],
+      "args": ["src/app.ts"],
+      "runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
+      "cwd": "${workspaceRoot}",
       "smartStep": true,
       "sourceMaps": true,
-      "sourceMapPathOverrides": {
-        "src/*": "${workspaceRoot}/src/*",
-      },
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**/*.js",
+      ],
+    },
+    {
+      "name": "Attach",
+      "port": 9229,
+      "request": "attach",
+      "type": "pwa-node",
+      "smartStep": true,
+      "sourceMaps": true,
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**/*.js",
+      ],
     }
   ]
 }
