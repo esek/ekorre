@@ -14,16 +14,16 @@ export type DatabaseUser = Omit<User, 'posts' | 'access'> & {
 const logger = Logger.getLogger('UserAPI');
 
 /**
- * This is the user api class. All operations done to
- * the database should be done using this class since it
- * will enforce business rules.
+ * Det är användar api:n. Alla operationer bör göras
+ * med hjälp av denna klass för den ser till att
+ * allt blir rätt.
  */
 export class UserAPI {
   /**
-   * Verify if supplied password matches the stored hash.
-   * @param input the password
-   * @param hash the stored hash
-   * @param salt the stored salt
+   * Verifierar om det givna lösenordet är rätt.
+   * @param input lösenordet
+   * @param hash den lagrade hashen
+   * @param salt den lagrade salten
    */
   private verifyUser(input: string, hash: string, salt: string): boolean {
     const equal = hash === this.hashPassword(input, salt);
@@ -31,9 +31,9 @@ export class UserAPI {
   }
 
   /**
-   * Hash a password with the supplied salt.
-   * @param password the password
-   * @param salt the randomly generated salt
+   * Hasha ett lösenord med den givna salten.
+   * @param password lösenordet
+   * @param salt den slumpmässigt generade salten
    */
   private hashPassword(password: string, salt: string): string {
     const hash = crypto.pbkdf2Sync(password, Buffer.from(salt, 'base64'), 1000, 64, 'sha512');
@@ -42,8 +42,7 @@ export class UserAPI {
   }
 
   /**
-   * Returns all users stored in the database.
-   * TODO: May require pagnation and/or limiting.
+   * Returnerar alla lagarade användare.
    */
   async getAllUsers(): Promise<DatabaseUser[]> {
     const u = await knex<DatabaseUser>(USER_TABLE).select('*');
@@ -51,8 +50,8 @@ export class UserAPI {
   }
 
   /**
-   * Get a single user
-   * @param username the unique username
+   * Hämta en användare.
+   * @param username det unika användarnamnet
    */
   async getSingleUser(username: string): Promise<DatabaseUser | null> {
     const u = await knex<DatabaseUser>(USER_TABLE).where({ username }).first();
@@ -61,8 +60,8 @@ export class UserAPI {
   }
 
   /**
-   * Get multiple users
-   * @param usernames the usernames
+   * Hämta flera användare.
+   * @param usernames användarnamnen
    */
   async getMultipleUsers(usernames: string[]): Promise<DatabaseUser[] | null> {
     const u = await knex<DatabaseUser>(USER_TABLE).whereIn('username', usernames);
@@ -71,9 +70,9 @@ export class UserAPI {
   }
 
   /**
-   * Check if user credentials are correct and return partial user.
-   * @param username the username
-   * @param password the password in plaintext
+   * Kontrollera ifall inloggningen är korrekt och returnera användaren.
+   * @param username användarnamnet
+   * @param password lösenordet i plaintext
    */
   async loginUser(username: string, password: string): Promise<DatabaseUser | null> {
     const u = await knex<DatabaseUser>(USER_TABLE)
@@ -92,10 +91,10 @@ export class UserAPI {
   }
 
   /**
-   * Change password for a user.
-   * @param username the username
-   * @param oldPassword the old password in plaintext
-   * @param newPassword the new password in plaintext
+   * Ändra lösenord för en användare
+   * @param username användarnamnet
+   * @param oldPassword det gamla lösenordet i plaintext
+   * @param newPassword det nya lösenordet i plaintext
    */
   async changePassword(
     username: string,
@@ -125,8 +124,8 @@ export class UserAPI {
   }
 
   /**
-   * Create a new user. TODO: FIX, should not return User type...
-   * @param input the new user information
+   * Skapa en ny anvädare. TODO: FIX, ska inte returnera User typ...
+   * @param input den nya användarinformationen
    */
   createUser(input: NewUser): User {
     const salt = crypto.randomBytes(16).toString('base64');
@@ -144,7 +143,7 @@ export class UserAPI {
     logger.debug(logStr);
     return {
       ...input,
-      access: { doors: [], web: [] }, // TODO: Maybe some default access?
+      access: { doors: [], web: [] }, // TODO: Kanske default access?
       posts: [],
     };
   }

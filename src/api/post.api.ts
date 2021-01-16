@@ -14,11 +14,11 @@ export type PostHistoryModel = Omit<HistoryEntry, 'holder'> & {
 };
 
 /**
- * This is the api for handling posts.
+ * Det här är apin för att hantera poster.
  */
 export class PostAPI {
   /**
-   * Get all posts. TODO: profile and maybe limit...
+   * Hämta alla poster.
    */
   async getPosts(): Promise<PostModel[]> {
     const posts = await knex<PostModel>(POSTS_TABLE);
@@ -33,7 +33,8 @@ export class PostAPI {
   }
 
   /**
-   * Get all posts. TODO: profile and maybe limit...
+   * Hämta alla poster som en användare sitter på.
+   * @param username användaren
    */
   async getPostsForUser(username: string): Promise<PostModel[]> {
     const refposts = (await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
@@ -48,6 +49,10 @@ export class PostAPI {
     return posts;
   }
 
+  /**
+   * Hämta alla poster som tillhör ett utskott.
+   * @param utskott utskottet
+   */
   async getPostsFromUtskott(utskott: Utskott): Promise<PostModel[]> {
     const posts = await knex<PostModel>(POSTS_TABLE).where({
       utskott,

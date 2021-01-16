@@ -13,12 +13,17 @@ export type AccessModel = {
 };
 
 /**
- * This is the api for adding and removing user access.
+ * Det är api:n som hanterar access.
+ * Access finns i två former:
+ *   - Den access som en användare ärver från en post
+ *   - Den access som en specifik användare får tilldelad
+ * Det är viktigt att hålla koll på denna skillnaden.
  */
 export class AccessAPI {
   /**
-   * Reduce access model array to single access object
-   * @param incoming the database rows
+   * Reducera access arrays till ett access objekt.
+   * TODO: Gör en reducer istället
+   * @param incoming databasraderna
    */
   private accessReducer(incoming: AccessModel[]): Access {
     const initval: Access = {
@@ -40,8 +45,8 @@ export class AccessAPI {
   }
 
   /**
-   * Get access for a single user
-   * @param username the user
+   * Hämta specifik access för en användare
+   * @param username användaren
    */
   async getIndividualAccess(username: string): Promise<Access> {
     const res = await knex<AccessModel>(IND_ACCESS_TABLE).where({
@@ -52,8 +57,8 @@ export class AccessAPI {
   }
 
   /**
-   * Get access for a single post
-   * @param postname the postname
+   * Hämta access för en post.
+   * @param postname posten
    */
   async getPostAccess(postname: string): Promise<Access> {
     const res = await knex<AccessModel>(POST_ACCESS_TABLE).where({
@@ -64,10 +69,10 @@ export class AccessAPI {
   }
 
   /**
-   * A private helper function for setting access
-   * @param table the table where access rows reside
-   * @param ref the foregin key value
-   * @param newaccess the new access
+   * En private hjälpfunktion för att sätta access.
+   * @param table tabellen där access raderna finns
+   * @param ref referens (användare eller post)
+   * @param newaccess den nya accessen
    */
   private async setAccess(table: string, ref: string, newaccess: AccessInput): Promise<boolean> {
     await knex<AccessModel>(table)
@@ -97,10 +102,11 @@ export class AccessAPI {
   }
 
   /**
-   * Sets access for a user. NOTE: Access is immutable, be sure all
-   * access is in the `newaccess` variable
-   * @param username the username
-   * @param newaccess the new access
+   * Sätt access för en användare. VIKTIGT: Access är icke muterbart
+   * vilket innebär att accessobjektet som matas ska innehålla allt
+   * som behövs.
+   * @param username användaren
+   * @param newaccess den nya accessen
    */
   async setIndividualAccess(username: string, newaccess: AccessInput): Promise<boolean> {
     const status = this.setAccess(IND_ACCESS_TABLE, username, newaccess);
@@ -110,10 +116,11 @@ export class AccessAPI {
   }
 
   /**
-   * Sets access for a post. NOTE: Access is immutable, be sure all
-   * access is in the `newaccess` variable
-   * @param postname the postname
-   * @param newaccess the new access
+   * Sätt access för en post. VIKTIGT: Access är icke muterbart
+   * vilket innebär att accessobjektet som matas ska innehålla allt
+   * som behövs.
+   * @param postname posten
+   * @param newaccess den nya accessen
    */
   async setPostAccess(postname: string, newaccess: AccessInput): Promise<boolean> {
     const status = this.setAccess(POST_ACCESS_TABLE, postname, newaccess);
@@ -123,9 +130,9 @@ export class AccessAPI {
   }
 
   /**
-   * Gets access for multiple posts. Useful in user api.
-   * TODO: Maybe include a reference to the corresponding post
-   * @param posts the postnames
+   * Hämta access för flera poster.
+   * TODO: Kanske inkludera referens till post.
+   * @param posts posterna
    */
   async getAccessForPosts(posts: string[]): Promise<Access> {
     const res = await knex<AccessModel>(POST_ACCESS_TABLE).whereIn('ref', posts);

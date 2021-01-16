@@ -10,7 +10,7 @@ export function postReduce(post: PostModel): Post {
   const p: Post = {
     ...post,
     access,
-    history: [] // This will be thunk?
+    history: [] // Det här fylls på senare
   };
 
   return p;
