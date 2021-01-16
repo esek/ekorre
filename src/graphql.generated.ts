@@ -19,7 +19,6 @@ export type Query = {
   postAccess?: Maybe<Access>;
   posts?: Maybe<Array<Maybe<Post>>>;
   user?: Maybe<User>;
-  users?: Maybe<Array<Maybe<User>>>;
   utskott?: Maybe<Utskott>;
 };
 
@@ -46,11 +45,6 @@ export type QueryPostsArgs = {
 
 export type QueryUserArgs = {
   username: Scalars['String'];
-};
-
-
-export type QueryUsersArgs = {
-  postname?: Maybe<Scalars['String']>;
 };
 
 
@@ -297,7 +291,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
   posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, never>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
-  users?: Resolver<Maybe<Array<Maybe<ResolversTypes['User']>>>, ParentType, ContextType, RequireFields<QueryUsersArgs, never>>;
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
 

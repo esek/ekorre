@@ -7,7 +7,7 @@ import knex from './knex';
 const logger = Logger.getLogger('PostAPI');
 
 export type PostModel = Omit<Post, 'history' | 'access'>;
-export type PostHistoryModel = Omit<HistoryEntry, 'holder'> & {
+export type PostHistoryModel = Omit<HistoryEntry, 'holder' | 'postname'> & {
   refpost: string;
   refuser: string;
   period: number;
