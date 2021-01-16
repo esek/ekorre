@@ -42,7 +42,7 @@ const postresolver: Resolvers = {
         const h = await userApi.getSingleUser(e.refuser);
         const holder = await userReducer(h!);
 
-        return {...e, holder};
+        return {...e, holder, postname};
       }));
       return a;
     },
