@@ -8,6 +8,9 @@ enum LogLevel {
   warn,
 }
 
+/**
+ * En simpel loggare. Bör vidareutvecklas.
+ */
 class Logger {
   public static getLogger(name: string): Logger {
     return new Logger(name);
