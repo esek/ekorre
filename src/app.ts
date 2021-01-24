@@ -74,7 +74,7 @@ void (async () => {
       },
     ],
     cors: true,
-    tracing: true
+    tracing: true,
   });
 
   const serverInfo = await server.listen({

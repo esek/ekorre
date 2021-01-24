@@ -20,4 +20,5 @@ VALUES ('bb1111cc-s','Os3+GcPpLwK+PWF9mei/dstvdawQGpT0C4wP1oebTBp5JVooisVLpOJK4/
 INSERT INTO "Users" ("username","passwordHash","salt","name","lastname","class")
 VALUES ('no0000oh-s','lQFpDvvCGSVywE3PTjpTUSzwWYfGwlE4MxJ/dGZp0YRe7N/U8zKUx6NWA2aGWD7p/c090lpWYDIEcuXnaiFz5Q==',
 'zXr+8b22sOLTvi/Zstu9Zw==','Lena','Handén','BME19');
-COMMIT;
+
+END TRANSACTION;
