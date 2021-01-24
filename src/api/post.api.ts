@@ -37,14 +37,17 @@ export class PostAPI {
    * @param username användaren
    */
   async getPostsForUser(username: string): Promise<PostModel[]> {
-    const refposts = (await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
+    const refposts = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
       .where({
         refuser: username,
         end: null,
       })
-      .select('refpost'));
+      .select('refpost');
 
-    const posts = await knex<PostModel>(POSTS_TABLE).whereIn('postname', refposts.map(e => e.refpost));
+    const posts = await knex<PostModel>(POSTS_TABLE).whereIn(
+      'postname',
+      refposts.map((e) => e.refpost),
+    );
 
     return posts;
   }

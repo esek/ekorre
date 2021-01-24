@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+
 import { Logger } from './logger';
 
 const SECRET = 'bigone';

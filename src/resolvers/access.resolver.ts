@@ -14,7 +14,8 @@ const accessresolver: Resolvers = {
     postAccess: (_, { postname }) => accessApi.getPostAccess(postname),
   },
   Mutation: {
-    setIndividualAccess: (_, { username, access }) => accessApi.setIndividualAccess(username, access),
+    setIndividualAccess: (_, { username, access }) =>
+      accessApi.setIndividualAccess(username, access),
     setPostAccess: (_, { postname, access }) => accessApi.setPostAccess(postname, access),
   },
   User: {
@@ -30,7 +31,7 @@ const accessresolver: Resolvers = {
       };
 
       return access;
-    }
+    },
   },
   Post: {
     access: async ({ postname }) => {
@@ -43,8 +44,8 @@ const accessresolver: Resolvers = {
       };
 
       return access;
-    }
-  }
+    },
+  },
 };
 
 export default accessresolver;

@@ -33,8 +33,12 @@ export class AccessAPI {
 
     const access = incoming.reduce((ac, e) => {
       switch (e.resourcetype) {
-        case ResourceType.Web: ac.web.push(e.resource); break;
-        case ResourceType.Door: ac.doors.push(e.resource); break;
+        case ResourceType.Web:
+          ac.web.push(e.resource);
+          break;
+        case ResourceType.Door:
+          ac.doors.push(e.resource);
+          break;
         default:
           break;
       }

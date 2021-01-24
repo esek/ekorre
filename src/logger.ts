@@ -39,11 +39,12 @@ class Logger {
 
   public static logLevel: LogLevel;
 
-  private c = console;
+  private c: Console;
 
   private loggerName: string;
 
   private constructor(name: string) {
+    this.c = console;
     this.loggerName = name;
   }
 
