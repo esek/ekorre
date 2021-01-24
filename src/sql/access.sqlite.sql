@@ -4,7 +4,7 @@ CREATE TABLE "PostAccess" (
 	"ref"	TEXT,
 	"resourcetype"	TEXT,
 	"resource"	TEXT,
-	PRIMARY KEY("ref","resouce"),
+	PRIMARY KEY("ref","resource"),
 	FOREIGN KEY("ref") REFERENCES "Posts"("postname")
 );
 
