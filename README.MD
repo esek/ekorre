@@ -1,6 +1,7 @@
 # Ekorre
 
-Ekorre är sektionens nya backend driven av node och graphql.
+Ekorre är sektionens nya backend driven av Node och GraphQL och
+skriven i TypeScript.
 
 ## Hur startar jag?
 
@@ -12,19 +13,22 @@ npm run start
 
 ### Fortsättning på det korta och goda...
 
-Det behövs en databas och konfiguration. Det enklaste är att kopiera
-`.env.example.dev` till `.env` och ange filnamnet på databasen.
-För att skapa en sqlite databas använd kommandot
+Det behövs en databas och konfiguration för att starta servern.
+För att generera databasen med exempeldata så skriv:
 
 ```
-sqlite3 -init <din sql fil> <databasnamn> .exit
+sqlite3 -init src/sql/init.sql <databasnamn> .exit
 ```
 
-Mer avancerat
+(du behöver installera [sqlite3](https://www.sqlite.org/download.html). Det är även
+rekommenderat att ha en databashanterare t.ex. [dbeaver](https://dbeaver.io/). För få merga sin funktion måste `init.sql` vara uppdaterad med din sql kod.)
+
+Därefter kopiera `.env.example.dev` till `.env` och ange
+filnamnet på databasen vid `DB_FILE` fältet.
+
+För utveckling:
 ```c
-npm run dev // Kompilera kontiuerligt
-npm run swc // Snabb kompilering med swc
-npm run swcdev // Snabb kontinuerlig kompilering
+npm run dev // Kompilera kontiuerligt och öppna för debugger
 ```
 
 ## Hur utvecklar jag?
@@ -32,16 +36,14 @@ npm run swcdev // Snabb kontinuerlig kompilering
 TL;DR
 ```c
 npm run generate // Generera typescript från gql
-npm run swcdev // Kontiuerlig kompilering
-alt
-npm run dev
+npm run dev // Kompilera kontiuerligt och öppna för debugger
 npm run prettier-format // Formatera kod, finns IDE intergration oftast
 ```
 
 ### Struktur
 
 För att separera kod och underlätta utveckling så
-finns det en struktur. För den som ska uttöka
+finns det en struktur. För den som ska utöka
 funktionaliteten i programmet finns det fyra mappar
 som är viktiga:
 

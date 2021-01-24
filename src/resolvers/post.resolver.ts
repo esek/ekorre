@@ -1,9 +1,9 @@
 import { PostAPI } from '../api/post.api';
 import { UserAPI } from '../api/user.api';
 import { Resolvers } from '../graphql.generated';
+import { postReduce, postReducer } from '../reducers/post.reducer';
 import { userReducer } from '../reducers/user.reducer';
 import { dependecyGuard } from '../util';
-import { postReduce, postReducer } from '../reducers/post.reducer';
 
 dependecyGuard('post', ['user']);
 
@@ -38,12 +38,14 @@ const postresolver: Resolvers = {
   Post: {
     history: async ({ postname }) => {
       const entries = await api.getHistoryEntries(postname);
-      const a = Promise.all(entries.map(async (e) => {
-        const h = await userApi.getSingleUser(e.refuser);
-        const holder = await userReducer(h!);
+      const a = Promise.all(
+        entries.map(async (e) => {
+          const h = await userApi.getSingleUser(e.refuser);
+          const holder = await userReducer(h!);
 
-        return {...e, holder, postname};
-      }));
+          return { ...e, holder, postname };
+        }),
+      );
       return a;
     },
   },
