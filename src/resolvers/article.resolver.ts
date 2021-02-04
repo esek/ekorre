@@ -13,7 +13,7 @@ const articleResolver: Resolvers = {
         body: '',
         signature: '',
         tags: [''],
-        createdAt: new Date()
+        createdAt: new Date(),
       };
       return u;
     },
@@ -28,9 +28,8 @@ const articleResolver: Resolvers = {
     },
     modifyArticle: () => {
       return null;
-    }
+    },
   },
-
 };
 
 export default articleResolver;

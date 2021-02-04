@@ -3,8 +3,8 @@
 
 type Query {
   newsentries(creator: String, after: DateTime, first: Int, offset: Int): [Article]!
-  latestnews: Article
-  article(id: ID): Article!
+  latestnews: [Article]
+  article(id: ID, html: Boolean): Article!
 }
 
 type Mutation {
@@ -12,6 +12,7 @@ type Mutation {
   modifyArticle(entry: ModifyArticle!): Article
 }
 
+"Body is saved as HTML serverside, but edited in MarkDown"
 type Article {
   id: ID
   creator: User!
