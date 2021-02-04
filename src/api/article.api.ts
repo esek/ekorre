@@ -1,6 +1,6 @@
 import type { Article, ArticleType, NewArticle, ModifyArticle } from '../graphql.generated';
 import { Logger } from '../logger';
-import { IND_ACCESS_TABLE, POST_ACCESS_TABLE } from './constants';
+import { ARTICLE_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
