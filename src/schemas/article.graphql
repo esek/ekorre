@@ -9,6 +9,7 @@ type Query {
 
 type Mutation {
   addArticle(entry: NewArticle!): Article
+  modifyArticle(entry: ModifyArticle!): Article
 }
 
 type Article {
@@ -37,4 +38,13 @@ input NewArticle {
   signature: String!
   tags: [String]
   articleType: ArticleType!
+}
+
+"We don't need every part; It should already exist"
+input ModifyArticle {
+  title: String
+  body: String
+  signature: String
+  tags: [String]
+  articleType: ArticleType
 }
