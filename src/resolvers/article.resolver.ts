@@ -1,4 +1,4 @@
-import { NewArticle, ModifyArticle, Resolvers, ArticleType } from '../graphql.generated';
+import { NewArticle, ModifyArticle, ArticleType, Resolvers } from '../graphql.generated';
 
 const articleResolver: Resolvers = {
   Query: {
