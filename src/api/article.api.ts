@@ -24,7 +24,7 @@ export class articleAPI {
   async getArticle(id: ID): Promise<any> {
     return null;
   }
-  // Gör så att man kan välja efter creator, datum, etc.
+  // Gör så att man kan välja efter creator, datum, tags etc.
 
   /**
    * Hämtar de senaste nyhetsartiklarna
@@ -38,7 +38,16 @@ export class articleAPI {
    * Lägger till en ny artikel
    * @param entry artikel som ska läggas till
    */
-  async addArticle(entry: Article): Promise<any> {
+  async addArticle(entry: NewArticle): Promise<any> {
+    return null;
+  }
+
+  /**
+   * Modifierar en artikel; notera att vissa saker inte får
+   * modifieras via API:n
+   * @param entry Modifiering av existerande artikel
+   */
+  async modifyArticle(entry: ModifyArticle): Primise<any> {
     return null;
   }
 }
