@@ -2,27 +2,39 @@
 #import DateTime from '_shared.graphql'
 
 type Query {
-  newsentries(creator: String, after: DateTime, first: Int, offset: Int): [NewsEntry]!
-  latestnews: NewsEntry
-  newsentry(id: ID): NewsEntry!
+  newsentries(creator: String, after: DateTime, first: Int, offset: Int): [Article]!
+  latestnews: Article
+  article(id: ID): Article!
 }
 
 type Mutation {
-  addNews(entry: NewNewsEntry!): NewsEntry
+  addArticle(entry: NewArticle!): Article
 }
 
-type NewsEntry {
+type Article {
   id: ID
   creator: User!
+  lastUpdatedBy: User
   title: String!
   body: String!
   createdAt: DateTime!
+  lastUpdatedAt: DateTime
   signature: String!
+  tags: [String]
+  articleType: ArticleType!
 }
 
-input NewNewsEntry {
+"News are the ones to be used by a website newsreel"
+enum ArticleType {
+  news
+  information
+}
+
+input NewArticle {
   creator: String!
   title: String!
   body: String!
   signature: String!
+  tags: [String]
+  articleType: ArticleType!
 }
