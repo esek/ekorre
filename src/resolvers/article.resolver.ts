@@ -1,19 +1,36 @@
-import { NewsEntry, Resolvers } from '../graphql.generated';
+import { NewArticle, ModifyArticle, Resolvers, ArticleType } from '../graphql.generated';
 
-const newsResolver: Resolvers = {
+const articleResolver: Resolvers = {
   Query: {
+    newsentries: () => {
+      return null;
+    },
     latestnews: () => {
-      const u: NewsEntry = {
+      // Testtesttest
+      const u: NewArticle = {
+        creator: '',
+        title: '',
         body: '',
-        createdAt: new Date(),
-        creator: {},
         signature: '',
-        title: ''
+        tags: [''],
+        createdAt: new Date()
       };
       return u;
     },
+    article: () => {
+      return null;
+    },
     test: () => new Date(),
-  }
+  },
+  Mutation: {
+    addArticle: () => {
+      return null;
+    },
+    modifyArticle: () => {
+      return null;
+    }
+  },
+
 };
 
-export default newsResolver;
+export default articleResolver;
