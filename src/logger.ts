@@ -8,6 +8,9 @@ enum LogLevel {
   warn,
 }
 
+/**
+ * En simpel loggare. Bör vidareutvecklas.
+ */
 class Logger {
   public static getLogger(name: string): Logger {
     return new Logger(name);
@@ -36,11 +39,12 @@ class Logger {
 
   public static logLevel: LogLevel;
 
-  private c = console;
+  private c: Console;
 
   private loggerName: string;
 
   private constructor(name: string) {
+    this.c = console;
     this.loggerName = name;
   }
 

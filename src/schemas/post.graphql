@@ -2,31 +2,34 @@
 # import Access, AccessInput from 'access.graphql'
 # import Utskott from 'utskott.graphql'
 
+scalar Date
+
 type Query {
     post(name: String!): Post
-    posts(utskott: String!): [Post]
+    posts(utskott: Utskott): [Post]
 }
 
 type Mutation {
     addPost(info: NewPost!): Boolean!
-    setPostAccess(postname: String!, access: AccessInput): Boolean!
-    addUsersToPost(usernames: [String!]!, postname: String!): Boolean!
+    addUsersToPost(usernames: [String!]!, postname: String!, period: Int!): Boolean!
+    removeUsersFromPost(usernames: [String!]!, postname: String!): Boolean!
 }
 
 type Post {
     postname: String!
     utskott: Utskott!
     access: Access!
-    history: [HistoryEntry]!
+    history: [HistoryEntry!]!
 }
 
 input NewPost {
     name: String!
-    utskott: String!
-    access: AccessInput!
+    utskott: Utskott!
 }
 
 type HistoryEntry {
-    holders: [User]!
-    period: String!
+    postname: String!
+    holder: User!
+    start: Date!
+    end: Date
 }

@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+
 import { Logger } from './logger';
 
 const SECRET = 'bigone';
@@ -6,7 +7,8 @@ const EXPIRE = '2h';
 const logger = Logger.getLogger('Auth');
 
 /**
- * Verify an incoming token and return it's payload. Will throw error on invalid token!
+ * Verifiera inkommande token. Kommer kasta error ifall den är ogiltig!
+ * Om tokenen är godkänd så kommer dess data att returneras.
  * @param token the jwt token
  */
 const verifyToken = (token: string): unknown => {
