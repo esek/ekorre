@@ -7,7 +7,7 @@ import knex from './knex';
 const logger = Logger.getLogger('AccessAPI');
 
 export type ArticleModel = Omit<Article, 'creator'> & {
-  refuser: string;
+  refuser: string;  // Reference for use, i.e. username
 }
 
 /**
@@ -40,11 +40,18 @@ export class articleAPI {
   }
 
   /**
-   * Hämta en specifik artikel efter ID
-   * @param id artikel-id:n
+   * Retrieves articles matching the parameters given
+   * @param id Article id
+   * @param creator username of creator
+   * @param title title of article
+   * @param createdAt Date of creation
+   * @param lastUpdatedAt Date of last update
+   * @param signature signature
+   * @param tags article tags
    */
   async getArticles(id?: string, creator?: string, title?: string, createdAt?: Date | string, 
-                  lastUpdatedAt?: Date | string, signature?: string, tags?: string[]): Promise<ArticleModel[] | null> {
+                  lastUpdatedAt?: Date | string, signature?: string, tags?: string[], 
+                  articleType?: ArticleType | string): Promise<ArticleModel[] | null> {
     // All parameters not passed is replaced by wildcard character '%'
     id = id || '%';
     creator = creator || '%';
@@ -53,6 +60,7 @@ export class articleAPI {
     lastUpdatedAt = lastUpdatedAt || '%';
     signature = signature || '%';
     tags = tags || ['%'];
+    articleType = articleType || '%';
     const article = await knex<ArticleModel>(ARTICLE_TABLE).where({
       id: id,
       refuser: creator,
@@ -60,7 +68,8 @@ export class articleAPI {
       createdAt: createdAt,
       lastUpdatedAt: lastUpdatedAt,
       signature: signature,
-      tags: tags
+      tags: tags,
+      // articleType: articleType //hmmmm
     });
 
     return article ?? null;

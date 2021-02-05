@@ -6,18 +6,18 @@ const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
 
 /**
  * Converts MarkDown to HTML
- * @param md String formatted as Markdown
+ * @param md string formatted as Markdown
  */
-export function convertMarkdownToHtml(md: String): String {
-  const html: String = converter.makeHtml(md);
+export function convertMarkdownToHtml(md: string): string {
+  const html: string = converter.makeHtml(md);
   return html;
 }
 
 /**
  * Converts HTML to Markdown
- * @param html String formatted as HTML
+ * @param html string formatted as HTML
  */
-export function convertHtmlToMarkdown(html: String): String {
-  const md: String = converter.makeHtml(html);
+export function convertHtmlToMarkdown(html: string): string {
+  const md: string = converter.makeMarkdown(html);
   return md;
 }
