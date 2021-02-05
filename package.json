@@ -19,6 +19,7 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@types/showdown": "^1.9.3",
     "apollo-server": "^2.18.2",
     "crypto": "^1.0.1",
     "dotenv": "^8.2.0",
@@ -29,6 +30,7 @@
     "knex": "^0.21.6",
     "mariadb": "^2.5.1",
     "regenerator-runtime": "^0.13.7",
+    "showdown": "^1.9.1",
     "source-map-support": "^0.5.19",
     "ts-node": "^9.0.0",
     "type-graphql": "^1.0.0",
