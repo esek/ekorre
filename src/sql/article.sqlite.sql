@@ -2,6 +2,7 @@ BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "Articles" (
   "id" INT NOT NULL,
   "creator" TEXT NOT NULL,
+  "lastupdateby" TEXT,
   "title" TEXT NOT NULL,
   "body" TEXT NOT NULL,
   "createdat" TIMESTAMP NOT NULL CURRENT_TIMESTAMP,
@@ -11,4 +12,5 @@ CREATE TABLE IF NOT EXISTS "Articles" (
   "articletype" TEXT NOT NULL,
   PRIMARY KEY("id"),
   FOREIGN KEY("author") REFERENCES "Users"("username")
+  FOREIGN KEY("lastupdateby") REFERENCES "Users"("username")
 );
