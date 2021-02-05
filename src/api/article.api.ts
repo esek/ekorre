@@ -1,9 +1,14 @@
+import { sign } from 'jsonwebtoken';
 import type { Article, ArticleType, NewArticle, ModifyArticle } from '../graphql.generated';
 import { Logger } from '../logger';
 import { ARTICLE_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
+
+export type ArticleModel = Omit<Article, 'creator'> & {
+  refuser: string;
+}
 
 /**
  * Det här är API:n för att hantera artiklar
@@ -13,8 +18,8 @@ export class articleAPI {
   /**
    * Hämta alla artiklar
    */
-  async getAllArticles(): Promise<Article[]> {
-    const allArticles = await knex<Article>(ARTICLE_TABLE);
+  async getAllArticles(): Promise<ArticleModel[]> {
+    const allArticles = await knex<ArticleModel>(ARTICLE_TABLE);
 
     return allArticles;
   }
@@ -22,14 +27,14 @@ export class articleAPI {
   /** 
    * Hämtar alla nyhetsartiklar
   */
-  async getAllNewsArticles(): Promise<Article[]> {
-    const allNewsArticles = await knex<Article>(ARTICLE_TABLE).where('articleType', 'news');
+  async getAllNewsArticles(): Promise<ArticleModel[]> {
+    const allNewsArticles = await knex<ArticleModel>(ARTICLE_TABLE).where('articleType', 'news');
 
     return allNewsArticles;
   }
 
-  async getAllInformationArticles(): Promise<Article[]> {
-    const allInformationArticles = await knex<Article>(ARTICLE_TABLE).where('articleType', 'information');
+  async getAllInformationArticles(): Promise<ArticleModel[]> {
+    const allInformationArticles = await knex<ArticleModel>(ARTICLE_TABLE).where('articleType', 'information');
 
     return allInformationArticles;
   }
@@ -38,19 +43,35 @@ export class articleAPI {
    * Hämta en specifik artikel efter ID
    * @param id artikel-id:n
    */
-  async getArticle(id: string): Promise<Article | null> {
-    const article = await knex<Article>(ARTICLE_TABLE).where('id', id).first();
+  async getArticles(id?: string, creator?: string, title?: string, createdAt?: Date | string, 
+                  lastUpdatedAt?: Date | string, signature?: string, tags?: string[]): Promise<ArticleModel[] | null> {
+    // All parameters not passed is replaced by wildcard character '%'
+    id = id || '%';
+    creator = creator || '%';
+    title = title || '%';
+    createdAt = createdAt || '%';
+    lastUpdatedAt = lastUpdatedAt || '%';
+    signature = signature || '%';
+    tags = tags || ['%'];
+    const article = await knex<ArticleModel>(ARTICLE_TABLE).where({
+      id: id,
+      refuser: creator,
+      title: title,
+      createdAt: createdAt,
+      lastUpdatedAt: lastUpdatedAt,
+      signature: signature,
+      tags: tags
+    });
 
     return article ?? null;
   }
-  // TODO: Gör så att man kan välja efter creator, datum, tags etc.
 
   /**
    * Hämtar de senaste nyhetsartiklarna
    * @param nbr antal artiklar
    */
-  async getLatestNews(limit: number): Promise<Article[]> {
-    const lastestNews = await knex<Article>(ARTICLE_TABLE).where('articleType', 'news').orderBy('createdat', 'desc').limit(limit);
+  async getLatestNews(limit: number): Promise<ArticleModel[]> {
+    const lastestNews = await knex<ArticleModel>(ARTICLE_TABLE).where('articleType', 'news').orderBy('createdat', 'desc').limit(limit);
     
     return lastestNews;
   }

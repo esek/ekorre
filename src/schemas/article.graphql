@@ -4,7 +4,7 @@
 type Query {
   newsentries(creator: String, after: DateTime, first: Int, offset: Int): [Article]!
   latestnews(limit: Int): [Article]
-  article(id: ID, html: Boolean): Article!
+  article(id: ID, creator: User, title: String, createdAt: DateTime, lastUpdatedAt: DateTime, signature: String, tags: [String], html: Boolean): Article!
 }
 
 type Mutation {
