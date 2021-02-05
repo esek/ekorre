@@ -3,7 +3,7 @@
 
 type Query {
   newsentries(creator: String, after: DateTime, first: Int, offset: Int): [Article]!
-  latestnews: [Article]
+  latestnews(limit: Int): [Article]
   article(id: ID, html: Boolean): Article!
 }
 
