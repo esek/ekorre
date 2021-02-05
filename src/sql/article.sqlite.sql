@@ -1,11 +1,14 @@
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "Articles" (
-  "id" TEXT NOT NULL,
+  "id" INT NOT NULL,
+  "creator" TEXT NOT NULL,
   "title" TEXT NOT NULL,
   "body" TEXT NOT NULL,
   "createdat" TIMESTAMP NOT NULL CURRENT_TIMESTAMP,
   "lastupdatedat" TIMESTAMP CURRENT_TIMESTAMP,
   "signature" TEXT NOT NULL,
   "tags" TEXT NOT NULL,
-  "articletype" TEXT NOT NULL
+  "articletype" TEXT NOT NULL,
+  PRIMARY KEY("id"),
+  FOREIGN KEY("author") REFERENCES "Users"("username")
 );

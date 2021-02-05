@@ -1,4 +1,5 @@
 import { showdown } from 'showdown';
+
 import { SHOWDOWN_CONVERTER_OPTIONS } from './constants';
 
 const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
