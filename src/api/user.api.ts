@@ -7,7 +7,7 @@ import { USER_TABLE } from './constants';
 import knex from './knex';
 
 export type DatabaseUser = Omit<User, 'posts' | 'access'> & {
-  passwordhash: string;
+  passwordHash: string;
   salt: string;
 };
 
@@ -83,7 +83,7 @@ export class UserAPI {
       .first();
 
     if (u != null) {
-      if (this.verifyUser(password, u.passwordhash, u.salt)) {
+      if (this.verifyUser(password, u.passwordHash, u.salt)) {
         return u;
       }
     }
@@ -107,12 +107,12 @@ export class UserAPI {
     const u = await query.first();
 
     if (u != null) {
-      if (this.verifyUser(oldPassword, u.passwordhash, u.salt)) {
+      if (this.verifyUser(oldPassword, u.passwordHash, u.salt)) {
         const salt = crypto.randomBytes(16).toString('base64');
-        const passwordhash = this.hashPassword(newPassword, salt);
+        const passwordHash = this.hashPassword(newPassword, salt);
         query.update({
           salt,
-          passwordhash,
+          passwordHash,
         });
         const logStr = `Changed password for user ${username}`;
         logger.info(logStr);
@@ -129,11 +129,11 @@ export class UserAPI {
    */
   createUser(input: NewUser): User {
     const salt = crypto.randomBytes(16).toString('base64');
-    const passwordhash = this.hashPassword(input.password, salt);
+    const passwordHash = this.hashPassword(input.password, salt);
 
     const u: DatabaseUser = {
       ...input,
-      passwordhash,
+      passwordHash,
       salt,
     };
 
