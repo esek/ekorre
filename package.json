@@ -19,9 +19,11 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@types/dompurify": "^2.2.1",
     "@types/showdown": "^1.9.3",
     "apollo-server": "^2.18.2",
     "crypto": "^1.0.1",
+    "dompurify": "^2.2.6",
     "dotenv": "^8.2.0",
     "graphql": "^15.3.0",
     "graphql-scalars": "^1.4.1",

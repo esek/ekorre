@@ -1,4 +1,4 @@
-import { NewArticle, ModifyArticle, ArticleType, Resolvers } from '../graphql.generated';
+import { Article, NewArticle, ModifyArticle, ArticleType, Resolvers } from '../graphql.generated';
 
 const articleResolver: Resolvers = {
   Query: {
@@ -17,7 +17,7 @@ const articleResolver: Resolvers = {
       };
       return u;
     },
-    article: () => {
+    article: (params: Partial<Article>) => {
       return null;
     },
     test: () => new Date(),
