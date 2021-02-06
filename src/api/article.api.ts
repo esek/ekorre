@@ -39,38 +39,13 @@ export class articleAPI {
     return allInformationArticles;
   }
 
+
   /**
-   * Retrieves articles matching the parameters given
-   * @param id Article id
-   * @param creator username of creator
-   * @param title title of article
-   * @param createdAt Date of creation
-   * @param lastUpdatedAt Date of last update
-   * @param signature signature
-   * @param tags article tags
+   * Returns a list of AticleModels from database WHERE params match.
+   * @param params possible params are ArticleModel parts.
    */
-  async getArticles(id?: string, creator?: string, title?: string, createdAt?: Date | string, 
-                  lastUpdatedAt?: Date | string, signature?: string, tags?: string[], 
-                  articleType?: ArticleType | string): Promise<ArticleModel[] | null> {
-    // All parameters not passed is replaced by wildcard character '%'
-    id = id || '%';
-    creator = creator || '%';
-    title = title || '%';
-    createdAt = createdAt || '%';
-    lastUpdatedAt = lastUpdatedAt || '%';
-    signature = signature || '%';
-    tags = tags || ['%'];
-    articleType = articleType || '%';
-    const article = await knex<ArticleModel>(ARTICLE_TABLE).where({
-      id: id,
-      refuser: creator,
-      title: title,
-      createdAt: createdAt,
-      lastUpdatedAt: lastUpdatedAt,
-      signature: signature,
-      tags: tags,
-      // articleType: articleType //hmmmm
-    });
+  async getArticles(params: Partial<ArticleModel>): Promise<ArticleModel[] | null> {
+    const article = await knex<ArticleModel>(ARTICLE_TABLE).where(params);
 
     return article ?? null;
   }
