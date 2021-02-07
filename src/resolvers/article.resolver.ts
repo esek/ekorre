@@ -1,4 +1,8 @@
 import { Article, NewArticle, ModifyArticle, ArticleType, Resolvers } from '../graphql.generated';
+import { ArticleAPI } from '../api/article.api';
+import { articleReducer } from '../reducers/article.reducer'
+
+const articleApi = new ArticleAPI();
 
 const articleResolver: Resolvers = {
   Query: {
@@ -18,7 +22,7 @@ const articleResolver: Resolvers = {
       return u;
     },
     article: (params: Partial<Article>) => {
-      return null;
+      return articleReducer(await articleApi.getArticles(params));
     },
     test: () => new Date(),
   },

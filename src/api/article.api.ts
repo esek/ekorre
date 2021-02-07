@@ -4,7 +4,7 @@ import { Logger } from '../logger';
 import { ARTICLE_TABLE } from './constants';
 import knex from './knex';
 
-const logger = Logger.getLogger('AccessAPI');
+const logger = Logger.getLogger('ArticleAPI');
 
 export type ArticleModel = Omit<Article, 'creator'> & {
   refuser: string;  // Reference for use, i.e. username
@@ -14,7 +14,7 @@ export type ArticleModel = Omit<Article, 'creator'> & {
  * Det här är API:n för att hantera artiklar
  */
 // TODO: Fixa vad som ska kräva auth och inte
-export class articleAPI {
+export class ArticleAPI {
   /**
    * Hämta alla artiklar
    */
