@@ -20,9 +20,9 @@ type Article {
   title: String!
   body: String!
   createdAt: DateTime!
-  lastUpdatedAt: DateTime
+  lastUpdatedAt: DateTime!
   signature: String!
-  tags: [String]
+  tags: [String!]!
   articleType: ArticleType!
 }
 

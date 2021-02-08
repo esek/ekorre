@@ -21,8 +21,9 @@ const articleResolver: Resolvers = {
       };
       return u;
     },
-    article: (params: Partial<Article>) => {
-      return articleReducer(await articleApi.getArticles(params));
+    article: (_, { id, markdown }) => {
+      markdown = markdown ?? false;  // If markdown not passed, returns default (false)
+      return articleReducer(await articleApi.getArticle(id), markdown);
     },
     test: () => new Date(),
   },

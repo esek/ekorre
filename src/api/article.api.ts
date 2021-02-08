@@ -39,6 +39,15 @@ export class ArticleAPI {
     return allInformationArticles;
   }
 
+  /**
+   * Returns the article with the specified id
+   * @param id article id
+   */
+  async getArticle(id: string): Promise<ArticleModel | null> {
+    const article = await knex<ArticleModel>(ARTICLE_TABLE).where("id", id).first();
+
+    return article ?? null;
+  }
 
   /**
    * Returns a list of AticleModels from database WHERE params match.
