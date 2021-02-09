@@ -17,7 +17,7 @@ type Mutation {
 type Article {
   id: ID
   creator: User!
-  lastUpdatedBy: User
+  lastUpdatedBy: User!
   title: String!
   body: String!
   createdAt: DateTime!

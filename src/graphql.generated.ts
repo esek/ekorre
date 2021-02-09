@@ -175,7 +175,7 @@ export enum ResourceType {
 export type Article = {
   id?: Maybe<Scalars['ID']>;
   creator: User;
-  lastUpdatedBy?: Maybe<User>;
+  lastUpdatedBy: User;
   title: Scalars['String'];
   body: Scalars['String'];
   createdAt: Scalars['DateTime'];
@@ -422,7 +422,7 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 export type ArticleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Article'] = ResolversParentTypes['Article']> = ResolversObject<{
   id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  lastUpdatedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  lastUpdatedBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;

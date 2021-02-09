@@ -28,9 +28,11 @@ const articleResolver: Resolvers = {
       // för varje
       //OBS: Är detta illa om varje User dyker upp flera gånger?
       return await Promise.all(articleModels.map(async (articleModel) => {
-        const creator = await userReducer((await userApi.getSingleUser(articleModel.refuser))!);
-        const { refuser, ...reduced } = articleModel;
-        return { creator, ...reduced };
+        const creator = await userReducer((await userApi.getSingleUser(articleModel.refcreator))!);
+        const lastUpdatedBy = await userReducer((await userApi.getSingleUser(articleModel.reflastupdater))!);
+        // Rensar bort referenser från objektet
+        const { refcreator, reflastupdater, ...reduced } = articleModel;
+        return { creator, lastUpdatedBy, ...reduced };
       }));
     },
     article: async (_, { id, markdown }) => {
@@ -38,9 +40,11 @@ const articleResolver: Resolvers = {
       // Vi får tillbaka en ArticleModel som inte har en hel användare, bara unikt användarnamn.
       // Vi måste använda UserAPI:n för att få fram denna användare.
       const articleModel = await articleReducer((await articleApi.getArticle(id!))!, markdown);
-      const creator = await userReducer((await userApi.getSingleUser(articleModel.refuser))!);
-      const { refuser, ...reduced } = articleModel;
-      return { creator, ...reduced };
+      const creator = await userReducer((await userApi.getSingleUser(articleModel.refcreator))!);
+      const lastUpdatedBy = await userReducer((await userApi.getSingleUser(articleModel.reflastupdater))!);
+      // Rensar bort referenser från objektet
+      const { refcreator, reflastupdater, ...reduced } = articleModel;
+      return { creator, lastUpdatedBy, ...reduced };
     },
     test: () => new Date(),
   },

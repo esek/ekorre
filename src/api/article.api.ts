@@ -6,8 +6,9 @@ import knex from './knex';
 
 const logger = Logger.getLogger('ArticleAPI');
 
-export type ArticleModel = Omit<Article, 'creator'> & {
-  refuser: string;  // Reference for use, i.e. username
+export type ArticleModel = Omit<Article, 'creator' | 'lastUpdatedBy'> & {
+  refcreator: string;  // Reference for use, i.e. username
+  reflastupdater: string
 }
 
 /**
