@@ -20,4 +20,4 @@ export type ArticleModel = Omit<Article, 'creator'> & {
 }
 ```
 
-dvs. vi har ett referens-användarnamn `refuser`, en sträng, som placeholder. Eftersom `username` är unikt i databasen räcker detta för att i resolvern kalla på `UserAPI.getSingleUser()` för att få fram ett färdigt `User`-objekt, som vi sedan kan returnera som en del i vårt `Article`-objekt.
+dvs. vi har ett referens-användarnamn `refuser`, en sträng, som placeholder. Eftersom `username` är unikt i databasen räcker detta för att i resolvern kalla på `UserAPI.getSingleUser()` för att få fram ett färdigt `User`-objekt genom vårt användarnamn `refuser`, som vi sedan kan returnera som en del i vårt `Article`-objekt.
