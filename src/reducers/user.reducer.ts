@@ -10,7 +10,7 @@ export function userReduce(user: DatabaseUser): User {
 
   // Strip sensitive data! https://stackoverflow.com/a/50840024
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { salt, passwordhash, ...reduced } = user;
+  const { salt, passwordHash, ...reduced } = user;
   const u = { ...reduced, access, posts: [] };
   return u;
 }
