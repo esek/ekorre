@@ -38,7 +38,7 @@ function convertHtmlToMarkdown(html: string): string {
 // Vi definierar Reducers för alla olika typer av ArticleModels
 // Vi returnerar ArticleModel; refuser -> User i resolvern
 export async function articleReducer(a: ArticleModel, markdown: boolean): Promise<ArticleModel>;
-export async function articleReducer(a: ArticleModel[], markdown: boolean): Promise<ArticleModel>;
+export async function articleReducer(a: ArticleModel[], markdown: boolean): Promise<ArticleModel[]>;
 export async function articleReducer(a: ArticleModel | ArticleModel[], markdown: boolean): Promise<ArticleModel | ArticleModel[]> {
   // Är det en array, reducera varje för sig, annars skicka bara tillbaka en reducerad
   if (a instanceof Array) {

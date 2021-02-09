@@ -17,8 +17,9 @@ export type Scalars = {
 
 export type Query = {
   article: Article;
+  articles: Array<Maybe<Article>>;
   individualAccess?: Maybe<Access>;
-  latestnews?: Maybe<Article>;
+  latestnews?: Maybe<Array<Maybe<Article>>>;
   newsentries: Array<Maybe<Article>>;
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
@@ -30,11 +31,30 @@ export type Query = {
 
 export type QueryArticleArgs = {
   id?: Maybe<Scalars['ID']>;
+  markdown?: Maybe<Scalars['Boolean']>;
+};
+
+
+export type QueryArticlesArgs = {
+  id?: Maybe<Scalars['ID']>;
+  creator?: Maybe<User>;
+  title?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['DateTime']>;
+  lastUpdatedAt?: Maybe<Scalars['DateTime']>;
+  signature?: Maybe<Scalars['String']>;
+  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  markdown?: Maybe<Scalars['Boolean']>;
 };
 
 
 export type QueryIndividualAccessArgs = {
   username: Scalars['String'];
+};
+
+
+export type QueryLatestnewsArgs = {
+  limit?: Maybe<Scalars['Int']>;
+  markdown?: Maybe<Scalars['Boolean']>;
 };
 
 
@@ -151,6 +171,7 @@ export enum ResourceType {
   Web = 'WEB'
 }
 
+/** Body is saved as HTML serverside, but edited in MarkDown */
 export type Article = {
   id?: Maybe<Scalars['ID']>;
   creator: User;
@@ -158,35 +179,11 @@ export type Article = {
   title: Scalars['String'];
   body: Scalars['String'];
   createdAt: Scalars['DateTime'];
-  lastUpdatedAt?: Maybe<Scalars['DateTime']>;
+  lastUpdatedAt: Scalars['DateTime'];
   signature: Scalars['String'];
-  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  tags: Array<Scalars['String']>;
   articleType: ArticleType;
 };
-
-export type NewArticle = {
-  creator: Scalars['String'];
-  title: Scalars['String'];
-  body: Scalars['String'];
-  signature: Scalars['String'];
-  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
-  articleType: ArticleType;
-};
-
-/** We don't need every part; It should already exist */
-export type ModifyArticle = {
-  title?: Maybe<Scalars['String']>;
-  body?: Maybe<Scalars['String']>;
-  signature?: Maybe<Scalars['String']>;
-  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
-  articleType?: Maybe<ArticleType>;
-};
-
-/** News are the ones to be used by a website newsreel */
-export enum ArticleType {
-  News = 'news',
-  Information = 'information'
-}
 
 export type User = {
   /** This will be all the access have concated from Posts and personal */
@@ -223,6 +220,30 @@ export enum Utskott {
   Nollu = 'NOLLU',
   Other = 'OTHER',
   Sre = 'SRE'
+}
+
+export type NewArticle = {
+  creator: Scalars['String'];
+  title: Scalars['String'];
+  body: Scalars['String'];
+  signature: Scalars['String'];
+  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  articleType: ArticleType;
+};
+
+/** We don't need every part; It should already exist */
+export type ModifyArticle = {
+  title?: Maybe<Scalars['String']>;
+  body?: Maybe<Scalars['String']>;
+  signature?: Maybe<Scalars['String']>;
+  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  articleType?: Maybe<ArticleType>;
+};
+
+/** News are the ones to be used by a website newsreel */
+export enum ArticleType {
+  News = 'news',
+  Information = 'information'
 }
 
 
@@ -321,21 +342,21 @@ export type ResolversTypes = ResolversObject<{
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Query: ResolverTypeWrapper<{}>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   String: ResolverTypeWrapper<Scalars['String']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Mutation: ResolverTypeWrapper<{}>;
-  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   Access: ResolverTypeWrapper<Access>;
   AccessInput: AccessInput;
   ResourceType: ResourceType;
   Article: ResolverTypeWrapper<Article>;
-  NewArticle: NewArticle;
-  ModifyArticle: ModifyArticle;
-  ArticleType: ArticleType;
   User: ResolverTypeWrapper<User>;
   Post: ResolverTypeWrapper<Post>;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
+  NewArticle: NewArticle;
+  ModifyArticle: ModifyArticle;
+  ArticleType: ArticleType;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   NewPost: NewPost;
   NewUser: NewUser;
@@ -346,18 +367,18 @@ export type ResolversParentTypes = ResolversObject<{
   DateTime: Scalars['DateTime'];
   Query: {};
   ID: Scalars['ID'];
+  Boolean: Scalars['Boolean'];
   String: Scalars['String'];
   Int: Scalars['Int'];
   Mutation: {};
-  Boolean: Scalars['Boolean'];
   Access: Access;
   AccessInput: AccessInput;
   Article: Article;
-  NewArticle: NewArticle;
-  ModifyArticle: ModifyArticle;
   User: User;
   Post: Post;
   HistoryEntry: HistoryEntry;
+  NewArticle: NewArticle;
+  ModifyArticle: ModifyArticle;
   Date: Scalars['Date'];
   NewPost: NewPost;
   NewUser: NewUser;
@@ -369,8 +390,9 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   article?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
+  articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
-  latestnews?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType>;
+  latestnews?: Resolver<Maybe<Array<Maybe<ResolversTypes['Article']>>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
@@ -404,9 +426,9 @@ export type ArticleResolvers<ContextType = Context, ParentType extends Resolvers
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  lastUpdatedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   signature?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  tags?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+  tags?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   articleType?: Resolver<ResolversTypes['ArticleType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

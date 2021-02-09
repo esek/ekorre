@@ -1,4 +1,4 @@
-import { Article, NewArticle, ModifyArticle, ArticleType, Resolvers } from '../graphql.generated';
+import { Article, NewArticle, ModifyArticle, ArticleType, ArticleModel, Resolvers } from '../graphql.generated';
 import { ArticleAPI } from '../api/article.api';
 import { UserAPI } from '../api/user.api';
 import { userReducer } from '../reducers/user.reducer';
@@ -9,20 +9,29 @@ const userApi = new UserAPI();
 
 const articleResolver: Resolvers = {
   Query: {
-    newsentries: () => {
+    newsentries: async (_, {}) => {
       return null;
     },
-    latestnews: () => {
-      // Testtesttest
-      const u: NewArticle = {
-        creator: '',
-        title: '',
-        body: '',
-        signature: '',
-        tags: [''],
-        createdAt: new Date(),
-      };
-      return u;
+    latestnews: async (_, { limit, markdown }) => {
+      markdown = markdown ?? false;
+      let articleModels: ArticleModel[];
+
+      // Om vi inte gett en limit returnerar vi bara alla artiklar
+      if (limit) {
+        articleModels = await articleReducer((await articleApi.getLatestNews(limit)), markdown);
+      } else {
+        articleModels = await articleReducer((await articleApi.getAllNewsArticles()), markdown);
+      }
+
+      // Måste hitta user för varje artikel, map kallas på varje objekt i vår array
+      // Vi skapar Promise för alla funktionsanrop och inväntar att vi skapat en user
+      // för varje
+      //OBS: Är detta illa om varje User dyker upp flera gånger?
+      return await Promise.all(articleModels.map(async (articleModel) => {
+        const creator = await userReducer((await userApi.getSingleUser(articleModel.refuser))!);
+        const { refuser, ...reduced } = articleModel;
+        return { creator, ...reduced };
+      }));
     },
     article: async (_, { id, markdown }) => {
       markdown = markdown ?? false;  // If markdown not passed, returns default (false)
