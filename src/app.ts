@@ -2,21 +2,16 @@ import { ApolloServer } from 'apollo-server';
 import 'dotenv/config';
 import { DateResolver } from 'graphql-scalars';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
+// Visa en referens till källfilen istället för den kompilerade
 import 'source-map-support/register';
 
+import { UserAPI } from './api/user.api';
 import auth from './auth';
 import type { Context } from './context';
 import type { User } from './graphql.generated';
 import { Logger } from './logger';
+import { userReducer } from './reducers/user.reducer';
 import * as Resolvers from './resolvers/index';
-
-// Använt av userLoader
-// userLoader är ett sätt att cacha User, då dessa
-// används på flera olika ställen i API:n. Jag har utgått
-// från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
-import DataLoader = require('../node_modules/dataloader');
-import { UserAPI } from './api/user.api';
-import { userReducer } from './reducers/user.reducer'
 
 // Visa en referens till källfilen istället för den kompilerade
 
@@ -72,19 +67,24 @@ void (async () => {
       return {
         token,
         getUser: () => auth.verifyToken(token) as User,
-        userLoader: new DataLoader<string, User>(async (usernames) => {
-            // TODO: Behöver detta auth? Tror detta ska va gömt bakom auth iaf...
-            const users = await userReducer((await userApi.getMultipleUsers(usernames))!);
+        /**
+         * Batch function used as parameter to DataLoader constructor,
+         * see /src/resolvers/README.md
+         * @param usernames 
+         */
+        batchUsersFunction: async function(usernames) {
+          // TODO: Behöver detta auth? Tror detta ska va gömt bakom auth iaf...
+          const users = await userReducer((await userApi.getMultipleUsers(usernames))!);
 
-            // Mappar skit, detta är copypasta
-            const userMap: any = {};
-            users.forEach(user => {
-              userMap[user.username] = user;
-            });
+          // Mappar skit, detta är copypasta
+          const userMap: any = {};
+          users.forEach(user => {
+            userMap[user.username] = user;
+          });
 
-            // Eeeh
-            return usernames.map(username => users[username]);
-          }),
+          // Eeeh
+          return usernames.map(username => users[username]);
+}
       }
     },
     debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),

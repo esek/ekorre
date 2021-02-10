@@ -23,4 +23,16 @@ export type ArticleModel = Omit<Article, 'creator' | 'lastUpdatedBy'> & {
 
 dvs. vi har referens-användarnamn `refcreator`, en sträng, som placeholder. Eftersom `username` är unikt i databasen räcker detta för att i resolvern kalla på `UserAPI.getSingleUser()` för att få fram ett färdigt `User`-objekt genom vårt användarnamn `refuser`, som vi sedan kan returnera som en del i vårt `Article`-objekt.
 
-Detta medför dock ett känt problem med GraphQL; n+1 problemet. Vi kan ju behöva göra en massa queries för att få `User`-objekt, vilket gör det väldigt långsamt att få fram artiklar. Problemet beskrivs bra i [denna](https://youtu.be/uCbFMZYQbxE) videon. Detta är något man måste lösa för att få en snabb API.
+### (n+1)-problemet och vår standardlösning
+
+Detta medför dock ett känt problem med GraphQL; n+1 problemet. Vi kan ju behöva göra en massa queries för att få `User`-objekt, vilket gör det väldigt långsamt att få fram artiklar. Problemet beskrivs bra i [denna](https://youtu.be/uCbFMZYQbxE) videon. Detta är något man måste lösa för att få en snabb och bra API.
+
+I grunden går problemet ut på att om vi t.ex. ska ladda in flera `Article`-objekt, och varje objekt behöver ett `User`-objekt (som sköts av en annan del av API:n) måste vi skapa ett `User`-objekt för varje `Article`-objekt. Det kommer ju bli jättemånga queries snabbt! Vi vill lösa så att vi återanvänder `User`-objekt, om samma skulle dyka upp flera gånger.
+
+Vår standardlösning är att använda `DataLoader`, ett objekt vi skapar vid varje request för att batcha `User`-objekt, denna lagrar vi i `ctx` som `ctx.batchUsersFunction()`. Vid varje request skapar vi ett nytt `DataLoader`-objekt med `ctx.batchUsersFunction` som parameter. Sedan använder vi `load()`-metoden på detta objekt när vi vill hämta nya users. Om en user hämtats en gång redan i samma request så löser DataLoadern detta.
+
+T.ex. kan vi i vår resolver skapa en ny `DataLoader` i en av våra Query-funktioner som
+
+```
+const userLoader = new DataLoader<string, User>(usernames => ctx.batchUsersFunction(usernames));
+```
