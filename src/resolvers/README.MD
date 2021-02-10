@@ -36,3 +36,7 @@ T.ex. kan vi i vår resolver skapa en ny `DataLoader` i en av våra Query-funkti
 ```
 const userLoader = new DataLoader<string, User>(usernames => ctx.batchUsersFunction(usernames));
 ```
+
+Anledningen att vi skapar ett nytt `DataLoader`-objekt varje gång är att vi inte ska cacha en `User` som sedan uppdateras i databasen, men inte i `DataLoader`-objektet; Då riskerar vi att skicka utdaterad information.
+
+För den intresserade kan man kolla upp _memoization_, vilket är hur `DataLoader` håller koll på vilka `username` den redan har en `User` på.
