@@ -10,7 +10,7 @@ import type { User } from './graphql.generated';
 import { Logger } from './logger';
 import * as Resolvers from './resolvers/index';
 
-// Used by userLoader
+// Använt av userLoader
 // userLoader är ett sätt att cacha User, då dessa
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
@@ -72,9 +72,9 @@ void (async () => {
       return {
         token,
         getUser: () => auth.verifyToken(token) as User,
-        userLoader: new DataLoader<string, User>(async (keys) => {
+        userLoader: new DataLoader<string, User>(async (usernames) => {
             // TODO: Behöver detta auth? Tror detta ska va gömt bakom auth iaf...
-            const users = await userReducer((await userApi.getMultipleUsers(keys))!);
+            const users = await userReducer((await userApi.getMultipleUsers(usernames))!);
 
             // Mappar skit, detta är copypasta
             const userMap: any = {};
@@ -83,7 +83,7 @@ void (async () => {
             });
 
             // Eeeh
-            return keys.map(key => users[key]);
+            return usernames.map(username => users[username]);
           }),
       }
     },
