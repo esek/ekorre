@@ -10,10 +10,19 @@ import type { User } from './graphql.generated';
 import { Logger } from './logger';
 import * as Resolvers from './resolvers/index';
 
+// Used by userLoader
+// userLoader är ett sätt att cacha User, då dessa
+// används på flera olika ställen i API:n. Jag har utgått
+// från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
+import DataLoader = require('../node_modules/dataloader');
+import { UserAPI } from './api/user.api';
+import { userReducer } from './reducers/user.reducer'
+
 // Visa en referens till källfilen istället för den kompilerade
 
 Logger.logLevel = Logger.getLogLevelFromString(process.env.LOGLEVEL ?? 'normal');
 const logger = Logger.getLogger('App');
+const userApi = new UserAPI();
 
 /**
  * Alla moduler att ladda
@@ -63,7 +72,20 @@ void (async () => {
       return {
         token,
         getUser: () => auth.verifyToken(token) as User,
-      };
+        userLoader: new DataLoader<string, User>(async (keys) => {
+            // TODO: Behöver detta auth? Tror detta ska va gömt bakom auth iaf...
+            const users = await userReducer((await userApi.getMultipleUsers(keys))!);
+
+            // Mappar skit, detta är copypasta
+            const userMap: any = {};
+            users.forEach(user => {
+              userMap[user.username] = user;
+            });
+
+            // Eeeh
+            return keys.map(key => users[key]);
+          }),
+      }
     },
     debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
     plugins: [

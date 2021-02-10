@@ -2,7 +2,7 @@ import { Article, NewArticle, ModifyArticle, ArticleType, ArticleModel, Resolver
 import { ArticleAPI } from '../api/article.api';
 import { UserAPI } from '../api/user.api';
 import { userReducer } from '../reducers/user.reducer';
-import { articleReducer } from '../reducers/article.reducer'
+import { articleReducer } from '../reducers/article.reducer';
 
 const articleApi = new ArticleAPI();
 const userApi = new UserAPI();
