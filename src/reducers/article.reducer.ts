@@ -8,7 +8,6 @@ import type { Article, User } from '../graphql.generated';
 const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
 
 function articleReduce(article: ArticleModel, markdown: boolean): ArticleModel {
-
   // Vi lagrar alltid HTML i databasen; vi gör om till markdown vid
   // förfrågan
   article.body = markdown ? article.body : convertHtmlToMarkdown(article.body);

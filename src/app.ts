@@ -82,7 +82,7 @@ void (async () => {
             userMap[user.username] = user;
           });
 
-          // Eeeh
+          // @ts-ignore: Detta är taget från någon annans kod och jag pallar helt enkelt inte
           return usernames.map(username => users[username]);
 }
       }

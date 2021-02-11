@@ -3,8 +3,8 @@
 
 type Query {
   newsentries(creator: String, after: DateTime, first: Int, offset: Int): [Article]!
-  latestnews(limit: Int, markdown: Boolean): [Article]
-  article(id: ID, markdown: Boolean): Article!
+  latestnews(limit: Int, markdown: Boolean): [Article]!
+  article(id: ID, markdown: Boolean): Article
   articles(id: ID, creator: User, title: String, createdAt: DateTime, lastUpdatedAt: DateTime, signature: String, tags: [String], markdown: Boolean): [Article]!
 }
 

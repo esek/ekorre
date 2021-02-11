@@ -44,11 +44,21 @@ const articleResolver: Resolvers = {
       }));
     },
     article: async (_, { id, markdown }, ctx) => {
+      if (!id) return null;
+      
       markdown = markdown ?? false;  // If markdown not passed, returns default (false)
       const userLoader = new DataLoader<string, User>(usernames => ctx.batchUsersFunction(usernames));
+      
       // Vi får tillbaka en ArticleModel som inte har en hel användare, bara unikt användarnamn.
       // Vi måste använda UserAPI:n för att få fram denna användare.
-      const articleModel = await articleReducer((await articleApi.getArticle(id!))!, markdown);
+      let articleModel = await articleApi.getArticle(id);
+
+      // Om API::n returnerar null finns inte artikeln; returnera null
+      if (articleModel == null) {
+        return null;
+      }
+
+      articleModel = await articleReducer(articleModel, markdown);
       const creator = await userLoader.load(articleModel.refcreator);
       const lastUpdatedBy = await userLoader.load(articleModel.reflastupdater);
 
