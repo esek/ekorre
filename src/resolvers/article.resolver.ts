@@ -43,9 +43,7 @@ const articleResolver: Resolvers = {
         return { creator, lastUpdatedBy, ...reduced };
       }));
     },
-    article: async (_, { id, markdown }, ctx) => {
-      if (!id) return null;
-      
+    article: async (_, { id, markdown }, ctx) => {      
       markdown = markdown ?? false;  // If markdown not passed, returns default (false)
       const userLoader = new DataLoader<string, User>(usernames => ctx.batchUsersFunction(usernames));
       
