@@ -30,19 +30,21 @@ export type Query = {
 
 
 export type QueryArticleArgs = {
-  id?: Maybe<Scalars['ID']>;
+  id: Scalars['ID'];
   markdown?: Maybe<Scalars['Boolean']>;
 };
 
 
 export type QueryArticlesArgs = {
   id?: Maybe<Scalars['ID']>;
-  creator?: Maybe<User>;
+  creator?: Maybe<Scalars['String']>;
+  lastUpdateBy?: Maybe<Scalars['String']>;
   title?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['DateTime']>;
   lastUpdatedAt?: Maybe<Scalars['DateTime']>;
   signature?: Maybe<Scalars['String']>;
   tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  articleType?: Maybe<Scalars['String']>;
   markdown?: Maybe<Scalars['Boolean']>;
 };
 
@@ -185,6 +187,30 @@ export type Article = {
   articleType: ArticleType;
 };
 
+export type NewArticle = {
+  creator: Scalars['String'];
+  title: Scalars['String'];
+  body: Scalars['String'];
+  signature: Scalars['String'];
+  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  articleType: ArticleType;
+};
+
+/** We don't need every part; It should already exist */
+export type ModifyArticle = {
+  title?: Maybe<Scalars['String']>;
+  body?: Maybe<Scalars['String']>;
+  signature?: Maybe<Scalars['String']>;
+  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  articleType?: Maybe<ArticleType>;
+};
+
+/** News are the ones to be used by a website newsreel */
+export enum ArticleType {
+  News = 'news',
+  Information = 'information'
+}
+
 export type User = {
   /** This will be all the access have concated from Posts and personal */
   access: Access;
@@ -220,30 +246,6 @@ export enum Utskott {
   Nollu = 'NOLLU',
   Other = 'OTHER',
   Sre = 'SRE'
-}
-
-export type NewArticle = {
-  creator: Scalars['String'];
-  title: Scalars['String'];
-  body: Scalars['String'];
-  signature: Scalars['String'];
-  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
-  articleType: ArticleType;
-};
-
-/** We don't need every part; It should already exist */
-export type ModifyArticle = {
-  title?: Maybe<Scalars['String']>;
-  body?: Maybe<Scalars['String']>;
-  signature?: Maybe<Scalars['String']>;
-  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
-  articleType?: Maybe<ArticleType>;
-};
-
-/** News are the ones to be used by a website newsreel */
-export enum ArticleType {
-  News = 'news',
-  Information = 'information'
 }
 
 
@@ -350,13 +352,13 @@ export type ResolversTypes = ResolversObject<{
   AccessInput: AccessInput;
   ResourceType: ResourceType;
   Article: ResolverTypeWrapper<Article>;
+  NewArticle: NewArticle;
+  ModifyArticle: ModifyArticle;
+  ArticleType: ArticleType;
   User: ResolverTypeWrapper<User>;
   Post: ResolverTypeWrapper<Post>;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
-  NewArticle: NewArticle;
-  ModifyArticle: ModifyArticle;
-  ArticleType: ArticleType;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   NewPost: NewPost;
   NewUser: NewUser;
@@ -374,11 +376,11 @@ export type ResolversParentTypes = ResolversObject<{
   Access: Access;
   AccessInput: AccessInput;
   Article: Article;
+  NewArticle: NewArticle;
+  ModifyArticle: ModifyArticle;
   User: User;
   Post: Post;
   HistoryEntry: HistoryEntry;
-  NewArticle: NewArticle;
-  ModifyArticle: ModifyArticle;
   Date: Scalars['Date'];
   NewPost: NewPost;
   NewUser: NewUser;
@@ -389,7 +391,7 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 }
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
+  article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, 'id'>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;

@@ -64,7 +64,23 @@ const articleResolver: Resolvers = {
       const { refcreator, reflastupdater, ...reduced } = articleModel;
       return { creator, lastUpdatedBy, ...reduced };
     },
-    test: () => new Date(),
+    articles: async (_, { id, refcreator, title, 
+                        createdAt, lastUpdatedAt, signature, 
+                        tags, articleType, markdown }, ctx) => {
+      markdown = markdown ?? false;
+      let articleModels: ArticleModel[] | null;
+
+      // If all parameters are empty, we should just return all articles
+      const params = { id, refcreator, title, 
+                          createdAt, lastUpdatedAt, signature, 
+                          tags, articleType }
+      if (Object.entries(params).length === 0) {
+        // We have no entered paramters
+        articleModels = await articleReducer((await articleApi.getAllArticles()), markdown);
+      } else {
+        articleModels = await articleReducer((await articleApi.getArticles(params)), markdown);
+      }
+    }
   },
   Mutation: {
     addArticle: () => {

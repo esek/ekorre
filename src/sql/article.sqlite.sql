@@ -11,6 +11,6 @@ CREATE TABLE IF NOT EXISTS "Articles" (
   "tags" TEXT NOT NULL,
   "articletype" TEXT NOT NULL,
   PRIMARY KEY("id"),
-  FOREIGN KEY("author") REFERENCES "Users"("username")
+  FOREIGN KEY("creator") REFERENCES "Users"("username")
   FOREIGN KEY("lastupdateby") REFERENCES "Users"("username")
 );

@@ -55,6 +55,9 @@ export class ArticleAPI {
    * @param params possible params are ArticleModel parts.
    */
   async getArticles(params: Partial<ArticleModel>): Promise<ArticleModel[] | null> {
+    // Vi måste se till att params matchar kolonnamnen i SQL, därför alla
+    // keys till lowercase
+    
     const article = await knex<ArticleModel>(ARTICLE_TABLE).where(params);
 
     return article ?? null;
