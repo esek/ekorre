@@ -41,6 +41,9 @@ const postresolver: Resolvers = {
       const a = Promise.all(
         entries.map(async (e) => {
           const h = await userApi.getSingleUser(e.refuser);
+          // Null assertion används här för den bakomliggande databasen
+          // Ska ha foregin key constraint
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const holder = await userReducer(h!);
 
           return { ...e, holder, postname };
