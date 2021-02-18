@@ -1,4 +1,7 @@
+import { graphql } from 'graphql';
+
 import { UserAPI } from '../api/user.api';
+import { schema } from '../app';
 import auth from '../auth';
 import type { Resolvers } from '../graphql.generated';
 import { userReducer } from '../reducers/user.reducer';
@@ -19,8 +22,28 @@ const a: Resolvers = {
     login: async (_, { username, password }) => {
       const partialUser = await api.loginUser(username, password);
       if (partialUser == null) return null;
-      const user = await userReducer(partialUser);
-      const token = auth.issueToken(user);
+
+      // Detta är sinnessjukt osnyggt... dock nyttjar vi den modulära
+      // struktruren och gör att import av en beroende modul krävs
+      const query = `{
+        user(username: "${username}") {
+          username
+          name
+          lastname
+          class
+          access {
+            web
+            doors
+          }
+          posts {
+            postname
+            utskott
+          }
+        }
+      }`;
+      const data = await graphql(schema, query);
+
+      const token = auth.issueToken(data.data?.user);
       return token;
     },
     createUser: (_, { input }) => api.createUser(input),
