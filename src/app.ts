@@ -45,7 +45,8 @@ const resolvers = Object.entries(Resolvers)
   .map(([_, value]) => value);
 
 // Konstruera root schema. VIKTIGT! Det senaste schemat kommer skugga andra.
-const schema = mergeSchemas({
+// eslint-disable-next-line import/prefer-default-export
+export const schema = mergeSchemas({
   schemas,
   resolvers,
 });
