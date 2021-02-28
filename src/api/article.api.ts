@@ -1,3 +1,5 @@
+/* eslint-disable class-methods-use-this */
+
 import { sign } from 'jsonwebtoken';
 import type { Article, ArticleType, NewArticle, ModifyArticle } from '../graphql.generated';
 import { Logger } from '../logger';
@@ -8,8 +10,8 @@ const logger = Logger.getLogger('ArticleAPI');
 
 export type ArticleModel = Omit<Article, 'creator' | 'lastUpdatedBy'> & {
   refcreator: string;  // Reference for use, i.e. username
-  reflastupdater: string
-}
+  reflastupdater: string;
+};
 
 /**
  * Det här är API:n för att hantera artiklar
@@ -29,13 +31,13 @@ export class ArticleAPI {
    * Hämtar alla nyhetsartiklar
   */
   async getAllNewsArticles(): Promise<ArticleModel[]> {
-    const allNewsArticles = await knex<ArticleModel>(ARTICLE_TABLE).where('articleType', 'news');
+    const allNewsArticles = await knex<ArticleModel>(ARTICLE_TABLE).where('articletype', 'news').orderBy('createdat', 'desc');
 
     return allNewsArticles;
   }
 
   async getAllInformationArticles(): Promise<ArticleModel[]> {
-    const allInformationArticles = await knex<ArticleModel>(ARTICLE_TABLE).where('articleType', 'information');
+    const allInformationArticles = await knex<ArticleModel>(ARTICLE_TABLE).where('articletype', 'information');
 
     return allInformationArticles;
   }
@@ -45,7 +47,7 @@ export class ArticleAPI {
    * @param id article id
    */
   async getArticle(id: string): Promise<ArticleModel | null> {
-    const article = await knex<ArticleModel>(ARTICLE_TABLE).where("id", id).first();
+    const article = await knex<ArticleModel>(ARTICLE_TABLE).where('id', id).first();
 
     return article ?? null;
   }
@@ -55,10 +57,17 @@ export class ArticleAPI {
    * @param params possible params are ArticleModel parts.
    */
   async getArticles(params: Partial<ArticleModel>): Promise<ArticleModel[] | null> {
-    // Vi måste se till att params matchar kolonnamnen i SQL, därför alla
-    // keys till lowercase
-    
-    const article = await knex<ArticleModel>(ARTICLE_TABLE).where(params);
+    // Eftersom SQL inte delar exakt samma namn som ArticleModel
+    // måste vi se till att rätt sak blir rätt. De rebindas här.
+    const reboundParams = {
+      creator: params.refcreator,
+      lastupdateby: params.reflastupdater,
+      createdat: params.createdAt,
+      lastupdateat: params.lastUpdatedAt,
+      articletype: params.articleType,
+    };
+
+    const article = await knex<ArticleModel>(ARTICLE_TABLE).where(reboundParams);
 
     return article ?? null;
   }
@@ -67,7 +76,7 @@ export class ArticleAPI {
    * Hämtar de senaste nyhetsartiklarna
    * @param nbr antal artiklar
    */
-  async getLatestNews(limit: number): Promise<ArticleModel[]> {
+  async getLatestNews(limit: number): Promise<ArticleModel[] | null> {
     const lastestNews = await knex<ArticleModel>(ARTICLE_TABLE).where('articleType', 'news').orderBy('createdat', 'desc').limit(limit);
     
     return lastestNews;

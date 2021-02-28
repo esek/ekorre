@@ -20,7 +20,7 @@ function articleReduce(article: ArticleModel, markdown: boolean): ArticleModel {
  * @param md string formatted as Markdown
  */
 function convertMarkdownToHtml(md: string): string {
-  let html: string = converter.makeHtml(md);
+  let html = converter.makeHtml(md);
   html = sanitize(html);  // Don't want any dirty XSS xD
   return html;
 }
@@ -30,7 +30,7 @@ function convertMarkdownToHtml(md: string): string {
  * @param html string formatted as HTML
  */
 function convertHtmlToMarkdown(html: string): string {
-  const md: string = converter.makeMarkdown(html);
+  const md = converter.makeMarkdown(html);
   return md;
 }
 
