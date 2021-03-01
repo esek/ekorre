@@ -59,11 +59,17 @@ export class ArticleAPI {
   async getArticles(params: Partial<ArticleModel>): Promise<ArticleModel[] | null> {
     // Eftersom SQL inte delar exakt samma namn som ArticleModel
     // måste vi se till att rätt sak blir rätt. De rebindas här.
+
+    //TODO: Se till att inget undefined ges till knex
     const reboundParams = {
+      id: params.id,
       creator: params.refcreator,
+      title: params.title,
       lastupdateby: params.reflastupdater,
       createdat: params.createdAt,
       lastupdateat: params.lastUpdatedAt,
+      signature: params.signature,
+      tags: params.tags,
       articletype: params.articleType,
     };
 
