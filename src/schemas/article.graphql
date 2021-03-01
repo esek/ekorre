@@ -2,10 +2,10 @@
 #import DateTime from '_shared.graphql'
 
 type Query {
-  newsentries(creator: String, after: DateTime, first: Int, offset: Int): [Article]!
-  latestnews(limit: Int, markdown: Boolean): [Article]!
+  newsentries(creator: String, after: DateTime, before: DateTime): [Article]!
+  latestnews(limit: Int, markdown: Boolean): [Article]
   article(id: ID!, markdown: Boolean): Article
-  articles(id: ID, creator: String, lastUpdateBy: String, title: String, createdAt: DateTime, lastUpdatedAt: DateTime, signature: String, tags: [String], articleType: String, markdown: Boolean): [Article]!
+  articles(id: ID, creator: String, lastUpdateBy: String, title: String, createdAt: DateTime, lastUpdatedAt: DateTime, signature: String, tags: [String], articleType: String, markdown: Boolean): [Article]
 }
 
 type Mutation {

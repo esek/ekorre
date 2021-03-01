@@ -15,7 +15,7 @@ const userApi = new UserAPI();
 
 const articleResolver: Resolvers = {
   Query: {
-    newsentries: async (_, {}) => {
+    newsentries: async (_, { creator, after, before }, ctx) => {
       return null;
     },
     latestnews: async (_, { limit, markdown }, ctx) => {
@@ -42,8 +42,9 @@ const articleResolver: Resolvers = {
       // Måste hitta user för varje artikel, map kallas på varje objekt i vår array
       // Vi skapar Promise för alla funktionsanrop och inväntar att vi skapat en user
       // för varje
-      // OBS: Är detta illa om varje User dyker upp flera gånger?
-      return Promise.all<Article>(articleModels.map(async (articleModel) => {
+      // Vi använder userLoader för att komma ihåg Users vi redan
+      // efterfrågat.
+      return Promise.all(articleModels.map(async (articleModel) => {
         const creator = await userLoader.load(articleModel.refcreator);
         const lastUpdatedBy = await userLoader.load(articleModel.reflastupdater);
         // Rensar bort referenser från objektet

@@ -17,9 +17,9 @@ export type Scalars = {
 
 export type Query = {
   article?: Maybe<Article>;
-  articles: Array<Maybe<Article>>;
+  articles?: Maybe<Array<Maybe<Article>>>;
   individualAccess?: Maybe<Access>;
-  latestnews: Array<Maybe<Article>>;
+  latestnews?: Maybe<Array<Maybe<Article>>>;
   newsentries: Array<Maybe<Article>>;
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
@@ -63,8 +63,7 @@ export type QueryLatestnewsArgs = {
 export type QueryNewsentriesArgs = {
   creator?: Maybe<Scalars['String']>;
   after?: Maybe<Scalars['DateTime']>;
-  first?: Maybe<Scalars['Int']>;
-  offset?: Maybe<Scalars['Int']>;
+  before?: Maybe<Scalars['DateTime']>;
 };
 
 
@@ -392,9 +391,9 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, 'id'>>;
-  articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
+  articles?: Resolver<Maybe<Array<Maybe<ResolversTypes['Article']>>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
-  latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
+  latestnews?: Resolver<Maybe<Array<Maybe<ResolversTypes['Article']>>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
