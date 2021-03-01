@@ -46,9 +46,9 @@ const articleResolver: Resolvers = {
       // efterfrågat.
       return Promise.all(articleModels.map(async (articleModel) => {
         const creator = await userLoader.load(articleModel.refcreator);
-        const lastUpdatedBy = await userLoader.load(articleModel.reflastupdater);
+        const lastUpdatedBy = await userLoader.load(articleModel.reflastupdateby);
         // Rensar bort referenser från objektet
-        const { refcreator, reflastupdater, ...reduced } = articleModel;
+        const { refcreator, reflastupdateby, ...reduced } = articleModel;
         return { creator, lastUpdatedBy, ...reduced };
       }));
     },
@@ -67,10 +67,10 @@ const articleResolver: Resolvers = {
 
       articleModel = await articleReducer(articleModel, safeMarkdown);
       const creator = await userLoader.load(articleModel.refcreator);
-      const lastUpdatedBy = await userLoader.load(articleModel.reflastupdater);
+      const lastUpdatedBy = await userLoader.load(articleModel.reflastupdateby);
 
       // Rensar bort referenser från objektet
-      const { refcreator, reflastupdater, ...reduced } = articleModel;
+      const { refcreator, reflastupdateby, ...reduced } = articleModel;
       return { creator, lastUpdatedBy, ...reduced };
     },
     articles: async (_, { id, creator, lastUpdateBy, title, createdAt, lastUpdatedAt, signature, tags, articleType, markdown }, ctx) => {
@@ -80,7 +80,7 @@ const articleResolver: Resolvers = {
       // If all parameters are empty, we should just return all articles
       // We need to rebind creator and reflastupdater
       // (string, not user) to refcreator and reflastupdater for ArticleModel
-      const params = { id, refcreator: creator, reflastupdater: lastUpdateBy, title, createdAt, lastUpdatedAt, signature, tags, articleType };
+      const params = { id, refcreator: creator, reflastupdateby: lastUpdateBy, title, createdAt, lastUpdatedAt, signature, tags, articleType };
       if (Object.entries(params).length === 0) {
         // We have no entered paramters
         articleModels = await articleReducer((await articleApi.getAllArticles()), safeMarkdown);
@@ -105,9 +105,9 @@ const articleResolver: Resolvers = {
         // Creator redan i outer scope, men vi binder
         // den till creator i vad vi returnerar senare
         const creatorUser = await userLoader.load(articleModel.refcreator);
-        const lastUpdatedBy = await userLoader.load(articleModel.reflastupdater);
+        const lastUpdatedBy = await userLoader.load(articleModel.reflastupdateby);
         // Rensar bort referenser från objektet
-        const { refcreator, reflastupdater, ...reduced } = articleModel;
+        const { refcreator, reflastupdateby, ...reduced } = articleModel;
         return { creator : creatorUser, lastUpdatedBy, ...reduced };
       }));
     }

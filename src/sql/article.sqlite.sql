@@ -1,16 +1,16 @@
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "Articles" (
   "id" INT NOT NULL,
-  "creator" TEXT NOT NULL,
-  "lastupdateby" TEXT,
+  "refcreator" TEXT NOT NULL,
+  "reflastupdateby" TEXT NOT NULL,
   "title" TEXT NOT NULL,
   "body" TEXT NOT NULL,
-  "createdat" TIMESTAMP NOT NULL CURRENT_TIMESTAMP,
-  "lastupdatedat" TIMESTAMP CURRENT_TIMESTAMP,
+  "createdAt" TIMESTAMP NOT NULL CURRENT_TIMESTAMP,
+  "lastUpdatedAt" TIMESTAMP CURRENT_TIMESTAMP,
   "signature" TEXT NOT NULL,
   "tags" TEXT NOT NULL,
-  "articletype" TEXT NOT NULL,
+  "articleType" TEXT NOT NULL,
   PRIMARY KEY("id"),
-  FOREIGN KEY("creator") REFERENCES "Users"("username")
-  FOREIGN KEY("lastupdateby") REFERENCES "Users"("username")
+  FOREIGN KEY("refcreator") REFERENCES "Users"("username")
+  FOREIGN KEY("reflastupdateby") REFERENCES "Users"("username")
 );

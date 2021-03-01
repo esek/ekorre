@@ -8,9 +8,12 @@ import knex from './knex';
 
 const logger = Logger.getLogger('ArticleAPI');
 
+// Refs används när en annan databas innehåller informationen,
+// så denna innehåller bara en referens för att kunna hitta
+// rätt i den
 export type ArticleModel = Omit<Article, 'creator' | 'lastUpdatedBy'> & {
   refcreator: string;  // Reference for use, i.e. username
-  reflastupdater: string;
+  reflastupdateby: string;
 };
 
 /**
@@ -57,23 +60,11 @@ export class ArticleAPI {
    * @param params possible params are ArticleModel parts.
    */
   async getArticles(params: Partial<ArticleModel>): Promise<ArticleModel[] | null> {
-    // Eftersom SQL inte delar exakt samma namn som ArticleModel
-    // måste vi se till att rätt sak blir rätt. De rebindas här.
 
-    //TODO: Se till att inget undefined ges till knex
-    const reboundParams = {
-      id: params.id,
-      creator: params.refcreator,
-      title: params.title,
-      lastupdateby: params.reflastupdater,
-      createdat: params.createdAt,
-      lastupdateat: params.lastUpdatedAt,
-      signature: params.signature,
-      tags: params.tags,
-      articletype: params.articleType,
-    };
+    // Ta bort undefined, de ogillas SKARPT  av Knex.js
+    Object.keys(params).forEach(key => params[key] === undefined ? delete params[key] : {});
 
-    const article = await knex<ArticleModel>(ARTICLE_TABLE).where(reboundParams);
+    const article = await knex<ArticleModel>(ARTICLE_TABLE).where(params);
 
     return article ?? null;
   }
