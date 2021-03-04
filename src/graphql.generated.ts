@@ -64,6 +64,7 @@ export type QueryNewsentriesArgs = {
   creator?: Maybe<Scalars['String']>;
   after?: Maybe<Scalars['DateTime']>;
   before?: Maybe<Scalars['DateTime']>;
+  markdown?: Maybe<Scalars['Boolean']>;
 };
 
 

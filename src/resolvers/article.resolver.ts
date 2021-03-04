@@ -15,7 +15,18 @@ const userApi = new UserAPI();
 
 const articleResolver: Resolvers = {
   Query: {
-    newsentries: async (_, { creator, after, before }, ctx) => {
+    newsentries: async (_, { creator, after, before, markdown }, ctx) => {
+      const safeMarkdown = markdown ?? false;
+      let articleModels: ArticleModel[];
+
+      if (!creator && !after && !before) {
+        const apiResponse = await articleApi.getAllNewsArticles();
+        if (apiResponse === null) return [];
+        articleModels = await articleReducer(apiResponse, safeMarkdown);
+      } else {
+        
+      }
+
       return [];
     },
     latestnews: async (_, { limit, markdown }, ctx) => {
