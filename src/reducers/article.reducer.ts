@@ -1,9 +1,7 @@
 import { showdown } from 'showdown';
 import { sanitize } from 'dompurify';
 import { SHOWDOWN_CONVERTER_OPTIONS } from './constants';
-import { Resolvers } from '../graphql.generated';
 import { ArticleModel } from '../api/article.api';
-import type { Article, User } from '../graphql.generated';
 
 const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
 

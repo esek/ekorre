@@ -2,7 +2,6 @@
 // userLoader är ett sätt att cacha User, då dessa
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
-import DataLoader from 'dataloader';
 import { Article, NewArticle, ModifyArticle, ArticleType, Resolvers, User } from '../graphql.generated';
 import { ArticleAPI, ArticleModel } from '../api/article.api';
 import { articleReducer } from '../reducers/article.reducer';

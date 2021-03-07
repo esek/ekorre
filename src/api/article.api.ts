@@ -46,6 +46,18 @@ export class ArticleAPI {
   }
 
   /**
+   * Hämtar alla nyhetsartiklar i ett intervall. Utelämnas
+   * parametrar finns ingen begränsning.
+   * @param creator 
+   * @param after 
+   * @param before 
+   */
+  async getNewsArticlesFromInterval(creator: string, after: DateTime, before: DateTime): Promise<ArticleModel[] | null> {
+
+    const newsArticleModels = await knex<ArticleModel>(ARTICLE_TABLE)
+  }
+
+  /**
    * Returns the article with the specified id
    * @param id article id
    */
