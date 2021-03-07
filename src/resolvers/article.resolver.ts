@@ -6,8 +6,8 @@ import DataLoader from 'dataloader';
 import { Article, NewArticle, ModifyArticle, ArticleType, Resolvers, User } from '../graphql.generated';
 import { ArticleAPI, ArticleModel } from '../api/article.api';
 import { articleReducer } from '../reducers/article.reducer';
-import { userReducer } from '../reducers/user.reducer';
 import { UserAPI } from '../api/user.api';
+import { createUserDataLoader } from '../util';
 
 
 const articleApi = new ArticleAPI();
@@ -48,7 +48,7 @@ const articleResolver: Resolvers = {
         return [];
       }
 
-      const userLoader = new DataLoader<string, User>(usernames => ctx.batchUsersFunction(usernames));
+      const userLoader = createUserDataLoader();
 
       // Måste hitta user för varje artikel, map kallas på varje objekt i vår array
       // Vi skapar Promise för alla funktionsanrop och inväntar att vi skapat en user
@@ -68,7 +68,7 @@ const articleResolver: Resolvers = {
     },
     article: async (_, { id, markdown }, ctx) => {      
       const safeMarkdown = markdown ?? false;  // If markdown not passed, returns default (false)
-      const userLoader = new DataLoader<string, User>(usernames => ctx.batchUsersFunction(usernames));
+      const userLoader = createUserDataLoader();
       
       // Vi får tillbaka en ArticleModel som inte har en hel användare, bara unikt användarnamn.
       // Vi måste använda UserAPI:n för att få fram denna användare.
@@ -109,7 +109,7 @@ const articleResolver: Resolvers = {
         return [];
       }
 
-      const userLoader = new DataLoader<string, User>(usernames => ctx.batchUsersFunction(usernames));
+      const userLoader = createUserDataLoader();
 
       // Måste hitta user för varje artikel, map kallas på varje objekt i vår array
       // Vi skapar Promise för alla funktionsanrop och inväntar att vi skapat en user

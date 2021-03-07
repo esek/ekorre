@@ -5,19 +5,16 @@ import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 // Visa en referens till källfilen istället för den kompilerade
 import 'source-map-support/register';
 
-import { UserAPI } from './api/user.api';
 import auth from './auth';
 import type { Context } from './context';
 import type { User } from './graphql.generated';
 import { Logger } from './logger';
-import { userReducer } from './reducers/user.reducer';
 import * as Resolvers from './resolvers/index';
 
 // Visa en referens till källfilen istället för den kompilerade
 
 Logger.logLevel = Logger.getLogLevelFromString(process.env.LOGLEVEL ?? 'normal');
 const logger = Logger.getLogger('App');
-const userApi = new UserAPI();
 
 /**
  * Alla moduler att ladda
@@ -67,26 +64,6 @@ void (async () => {
       return {
         token,
         getUser: () => auth.verifyToken(token) as User,
-        batchUsersFunction: async (usernames) => {
-          /**
-         * Batch function used as parameter to DataLoader constructor,
-         * see /src/resolvers/README.md
-         * @param usernames 
-         */
-
-          // TODO: Behöver detta auth? Tror detta ska va gömt bakom auth iaf...
-          const users = await userReducer((await userApi.getMultipleUsers(usernames))!);
-
-          // Mappar skit, detta är copypasta
-          const userMap: any = {};
-          users.forEach(user => {
-            // @ts-ignore: username är non-nullable i databasen
-            userMap[user.username] = user;
-          });
-
-          // @ts-ignore: Detta är taget från någon annans kod och jag pallar helt enkelt inte
-          return usernames.map(username => users[username]);
-        },
       };
     },
     debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),

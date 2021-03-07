@@ -31,12 +31,12 @@ Detta medför dock ett känt problem med GraphQL; n+1 problemet. Vi kan ju behö
 
 I grunden går problemet ut på att om vi t.ex. ska ladda in flera `Article`-objekt, och varje objekt behöver ett `User`-objekt (som sköts av en annan del av API:n) måste vi skapa ett `User`-objekt för varje `Article`-objekt. Det kommer ju bli jättemånga queries snabbt! Vi vill lösa så att vi återanvänder `User`-objekt, om samma skulle dyka upp flera gånger.
 
-Vår standardlösning är att använda `DataLoader`, ett objekt vi skapar vid varje request för att batcha `User`-objekt. Konstruktorn till `DataLoader` kräver en funktion som ska vara på en viss form och laddar in `User`-objekt från `UserAPI`. Denna funktionen finns färdigskriven och den lagrar vi i `ctx` som `ctx.batchUsersFunction()`. Vid varje request skapar vi  alltså ett nytt `DataLoader`-objekt med `ctx.batchUsersFunction` som parameter. Sedan använder vi `load()`-metoden på detta objekt när vi vill hämta nya users. Om en user hämtats en gång redan i samma request så löser DataLoadern detta.
+Vår standardlösning är att använda `DataLoader`, ett objekt vi skapar vid varje request för att batcha t.ex. `User`-objekt. Konstruktorn till `DataLoader` kräver en funktion som ska vara på en viss form och laddar in `User`-objekt från `UserAPI`. Då detta är återkommande finns funktioner i `../util.ts` som sköter skapandet av DataLoaders. Sedan använder vi `load()`-metoden på detta objekt när vi vill hämta nya users. Om en user hämtats en gång redan i samma request så löser DataLoadern detta.
 
 T.ex. kan vi i vår resolver skapa en ny `DataLoader` i en av våra Query-funktioner som
 
 ```
-const userLoader = new DataLoader<string, User>(usernames => ctx.batchUsersFunction(usernames));
+const userLoader = createUserDataLoader(); // Custom funktion som kan hittas i utils.ts
 ```
 
 Anledningen att vi skapar ett nytt `DataLoader`-objekt varje gång är att vi inte ska cacha en `User` som sedan uppdateras i databasen, men inte i `DataLoader`-objektet; Då riskerar vi att skicka utdaterad information.
