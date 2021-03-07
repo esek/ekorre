@@ -96,7 +96,10 @@ export class ArticleAPI {
    * @param entry artikel som ska läggas till
    */
   async newArticle(entry: NewArticle): Promise<any> {
-    return null;
+    // Lägger till dagens datum som createdAt och lastUpdatedAt
+    // samt sätter creator som lastUpdateBy
+
+    knex<ArticleModel>(ARTICLE_TABLE).insert();
   }
 
   /**
