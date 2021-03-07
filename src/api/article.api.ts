@@ -95,7 +95,7 @@ export class ArticleAPI {
    * Lägger till en ny artikel
    * @param entry artikel som ska läggas till
    */
-  async addArticle(entry: NewArticle): Promise<any> {
+  async newArticle(entry: NewArticle): Promise<any> {
     return null;
   }
 

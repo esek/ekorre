@@ -128,9 +128,7 @@ const articleResolver: Resolvers = {
     }
   },
   Mutation: {
-    addArticle: () => {
-      return null;
-    },
+    newArticle: (_, { entry } ) => articleApi.newArticle(entry),
     modifyArticle: () => {
       return null;
     },
