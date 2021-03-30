@@ -1,5 +1,7 @@
 #import User from 'user.graphql'
-#import DateTime from '_shared.graphql'
+
+scalar Date
+scalar DateTime
 
 type Query {
   newsentries(creator: String, after: DateTime, before: DateTime, markdown: Boolean): [Article]!

@@ -2,7 +2,6 @@ import { ApolloServer } from 'apollo-server';
 import 'dotenv/config';
 import { DateResolver } from 'graphql-scalars';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
-// Visa en referens till källfilen istället för den kompilerade
 import 'source-map-support/register';
 
 import auth from './auth';
@@ -10,6 +9,8 @@ import type { Context } from './context';
 import type { User } from './graphql.generated';
 import { Logger } from './logger';
 import * as Resolvers from './resolvers/index';
+
+// Visa en referens till källfilen istället för den kompilerade
 
 // Visa en referens till källfilen istället för den kompilerade
 

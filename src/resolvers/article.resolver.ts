@@ -2,12 +2,11 @@
 // userLoader är ett sätt att cacha User, då dessa
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
-import { Article, NewArticle, ModifyArticle, ArticleType, Resolvers, User } from '../graphql.generated';
 import { ArticleAPI, ArticleModel } from '../api/article.api';
-import { articleReducer } from '../reducers/article.reducer';
 import { UserAPI } from '../api/user.api';
+import { Article, Resolvers } from '../graphql.generated';
+import { articleReducer } from '../reducers/article.reducer';
 import { createUserDataLoader } from '../util';
-
 
 const articleApi = new ArticleAPI();
 const userApi = new UserAPI();
@@ -23,7 +22,6 @@ const articleResolver: Resolvers = {
         if (apiResponse === null) return [];
         articleModels = await articleReducer(apiResponse, safeMarkdown);
       } else {
-        
       }
 
       return [];
@@ -37,9 +35,8 @@ const articleResolver: Resolvers = {
         const apiResponse = await articleApi.getLatestNews(limit);
         if (apiResponse === null) return [];
         articleModels = await articleReducer(apiResponse, safeMarkdown);
-      
       } else {
-        articleModels = await articleReducer((await articleApi.getAllNewsArticles()), safeMarkdown);
+        articleModels = await articleReducer(await articleApi.getAllNewsArticles(), safeMarkdown);
       }
 
       // If we get no articles, we should just return null directly.
@@ -54,21 +51,23 @@ const articleResolver: Resolvers = {
       // för varje
       // Vi använder userLoader för att komma ihåg Users vi redan
       // efterfrågat.
-      const resultArticles = await Promise.all(articleModels.map(async (articleModel) => {
-        const creator = await userLoader.load(articleModel.refcreator);
-        const lastUpdatedBy = await userLoader.load(articleModel.reflastupdateby);
-        // Rensar bort referenser från objektet
-        const { refcreator, reflastupdateby, ...reduced } = articleModel;
-        return { creator, lastUpdatedBy, ...reduced };
-      }));
+      const resultArticles = await Promise.all(
+        articleModels.map(async (articleModel) => {
+          const creator = await userLoader.load(articleModel.refcreator);
+          const lastUpdatedBy = await userLoader.load(articleModel.reflastupdateby);
+          // Rensar bort referenser från objektet
+          const { refcreator, reflastupdateby, ...reduced } = articleModel;
+          return { creator, lastUpdatedBy, ...reduced };
+        }),
+      );
 
       // Vi vill returnera en tom array, inte null
       return resultArticles ?? [];
     },
-    article: async (_, { id, markdown }, ctx) => {      
-      const safeMarkdown = markdown ?? false;  // If markdown not passed, returns default (false)
+    article: async (_, { id, markdown }, ctx) => {
+      const safeMarkdown = markdown ?? false; // If markdown not passed, returns default (false)
       const userLoader = createUserDataLoader();
-      
+
       // Vi får tillbaka en ArticleModel som inte har en hel användare, bara unikt användarnamn.
       // Vi måste använda UserAPI:n för att få fram denna användare.
       let articleModel = await articleApi.getArticle(id);
@@ -86,19 +85,45 @@ const articleResolver: Resolvers = {
       const { refcreator, reflastupdateby, ...reduced } = articleModel;
       return { creator, lastUpdatedBy, ...reduced };
     },
-    articles: async (_, { id, creator, lastUpdateBy, title, createdAt, lastUpdatedAt, signature, tags, articleType, markdown }, ctx) => {
+    articles: async (
+      _,
+      {
+        id,
+        creator,
+        lastUpdateBy,
+        title,
+        createdAt,
+        lastUpdatedAt,
+        signature,
+        tags,
+        articleType,
+        markdown,
+      },
+    ) => {
       const safeMarkdown = markdown ?? false;
       let articleModels: ArticleModel[] | null;
 
       // If all parameters are empty, we should just return all articles
       // We need to rebind creator and reflastupdater
       // (string, not user) to refcreator and reflastupdater for ArticleModel
-      const params = { id, refcreator: creator, reflastupdateby: lastUpdateBy, title, createdAt, lastUpdatedAt, signature, tags, articleType };
+
+      const params = {
+        id,
+        refcreator: creator,
+        reflastupdateby: lastUpdateBy,
+        title,
+        createdAt,
+        lastUpdatedAt,
+        signature,
+        tags,
+        articleType,
+      };
+
       if (Object.entries(params).length === 0) {
         // We have no entered paramters
-        articleModels = await articleReducer((await articleApi.getAllArticles()), safeMarkdown);
+        articleModels = await articleReducer(await articleApi.getAllArticles(), safeMarkdown);
       } else {
-        const apiResponse = await articleApi.getArticles(params);
+        const apiResponse = await articleApi.getArticles(params as Partial<ArticleModel>);
         if (apiResponse === null) return [];
         articleModels = await articleReducer(apiResponse, safeMarkdown);
       }
@@ -114,21 +139,23 @@ const articleResolver: Resolvers = {
       // Vi skapar Promise för alla funktionsanrop och inväntar att vi skapat en user
       // för varje
       // OBS: Är detta illa om varje User dyker upp flera gånger?
-      const resultArticles = await Promise.all<Article>(articleModels.map(async (articleModel) => {
-        // Creator redan i outer scope, men vi binder
-        // den till creator i vad vi returnerar senare
-        const creatorUser = await userLoader.load(articleModel.refcreator);
-        const lastUpdatedBy = await userLoader.load(articleModel.reflastupdateby);
-        // Rensar bort referenser från objektet
-        const { refcreator, reflastupdateby, ...reduced } = articleModel;
-        return { creator : creatorUser, lastUpdatedBy, ...reduced };
-      }));
+      const resultArticles = await Promise.all<Article>(
+        articleModels.map(async (articleModel) => {
+          // Creator redan i outer scope, men vi binder
+          // den till creator i vad vi returnerar senare
+          const creatorUser = await userLoader.load(articleModel.refcreator);
+          const lastUpdatedBy = await userLoader.load(articleModel.reflastupdateby);
+          // Rensar bort referenser från objektet
+          const { refcreator, reflastupdateby, ...reduced } = articleModel;
+          return { creator: creatorUser, lastUpdatedBy, ...reduced };
+        }),
+      );
 
       return resultArticles ?? [];
-    }
+    },
   },
   Mutation: {
-    newArticle: (_, { entry } ) => articleApi.newArticle(entry),
+    addArticle: (_, { entry }) => articleApi.newArticle(entry),
     modifyArticle: () => {
       return null;
     },

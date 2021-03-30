@@ -1,7 +1,6 @@
 /* eslint-disable class-methods-use-this */
 
-import { sign } from 'jsonwebtoken';
-import type { Article, ArticleType, NewArticle, ModifyArticle } from '../graphql.generated';
+import type { Article, ModifyArticle, NewArticle, Scalars } from '../graphql.generated';
 import { Logger } from '../logger';
 import { ARTICLE_TABLE } from './constants';
 import knex from './knex';
@@ -12,7 +11,7 @@ const logger = Logger.getLogger('ArticleAPI');
 // så denna innehåller bara en referens för att kunna hitta
 // rätt i den
 export type ArticleModel = Omit<Article, 'creator' | 'lastUpdatedBy'> & {
-  refcreator: string;  // Reference for use, i.e. username
+  refcreator: string; // Reference for use, i.e. username
   reflastupdateby: string;
 };
 
@@ -30,17 +29,22 @@ export class ArticleAPI {
     return allArticles;
   }
 
-  /** 
+  /**
    * Hämtar alla nyhetsartiklar
-  */
+   */
   async getAllNewsArticles(): Promise<ArticleModel[]> {
-    const allNewsArticles = await knex<ArticleModel>(ARTICLE_TABLE).where('articletype', 'news').orderBy('createdat', 'desc');
+    const allNewsArticles = await knex<ArticleModel>(ARTICLE_TABLE)
+      .where('articletype', 'news')
+      .orderBy('createdat', 'desc');
 
     return allNewsArticles;
   }
 
   async getAllInformationArticles(): Promise<ArticleModel[]> {
-    const allInformationArticles = await knex<ArticleModel>(ARTICLE_TABLE).where('articletype', 'information');
+    const allInformationArticles = await knex<ArticleModel>(ARTICLE_TABLE).where(
+      'articletype',
+      'information',
+    );
 
     return allInformationArticles;
   }
@@ -48,13 +52,17 @@ export class ArticleAPI {
   /**
    * Hämtar alla nyhetsartiklar i ett intervall. Utelämnas
    * parametrar finns ingen begränsning.
-   * @param creator 
-   * @param after 
-   * @param before 
+   * @param creator
+   * @param after
+   * @param before
    */
-  async getNewsArticlesFromInterval(creator: string, after: DateTime, before: DateTime): Promise<ArticleModel[] | null> {
-
-    const newsArticleModels = await knex<ArticleModel>(ARTICLE_TABLE)
+  async getNewsArticlesFromInterval(
+    creator: string,
+    after: Scalars['DateTime'],
+    before: Scalars['DateTime'],
+  ): Promise<ArticleModel[] | null> {
+    const newsArticleModels = await knex<ArticleModel>(ARTICLE_TABLE);
+    return newsArticleModels?.length ? newsArticleModels : null;
   }
 
   /**
@@ -72,11 +80,13 @@ export class ArticleAPI {
    * @param params possible params are ArticleModel parts.
    */
   async getArticles(params: Partial<ArticleModel>): Promise<ArticleModel[] | null> {
-
     // Ta bort undefined, de ogillas SKARPT  av Knex.js
-    Object.keys(params).forEach(key => params[key] === undefined ? delete params[key] : {});
 
-    const article = await knex<ArticleModel>(ARTICLE_TABLE).where(params);
+    // Ts låter en inte indexera nycklar i params med foreach
+    const copy: any = { ...params };
+    Object.keys(copy).forEach((key) => (copy[key] === undefined ? delete copy[key] : {}));
+
+    const article = await knex<ArticleModel>(ARTICLE_TABLE).where(copy);
 
     return article ?? null;
   }
@@ -86,8 +96,11 @@ export class ArticleAPI {
    * @param nbr antal artiklar
    */
   async getLatestNews(limit: number): Promise<ArticleModel[] | null> {
-    const lastestNews = await knex<ArticleModel>(ARTICLE_TABLE).where('articleType', 'news').orderBy('createdat', 'desc').limit(limit);
-    
+    const lastestNews = await knex<ArticleModel>(ARTICLE_TABLE)
+      .where('articleType', 'news')
+      .orderBy('createdat', 'desc')
+      .limit(limit);
+
     return lastestNews;
   }
 
@@ -98,8 +111,7 @@ export class ArticleAPI {
   async newArticle(entry: NewArticle): Promise<any> {
     // Lägger till dagens datum som createdAt och lastUpdatedAt
     // samt sätter creator som lastUpdateBy
-
-    knex<ArticleModel>(ARTICLE_TABLE).insert();
+    // knex<ArticleModel>(ARTICLE_TABLE).insert();
   }
 
   /**
