@@ -65,8 +65,7 @@ export class UserAPI {
    */
   async getMultipleUsers(usernames: string[] | readonly string[]): Promise<DatabaseUser[] | null> {
     const u = await knex<DatabaseUser>(USER_TABLE).whereIn('username', usernames);
-    if (u != null) return u;
-    return null;
+    return u ?? null;
   }
 
   /**

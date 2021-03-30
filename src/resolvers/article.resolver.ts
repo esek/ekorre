@@ -3,17 +3,21 @@
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
 import { ArticleAPI, ArticleModel } from '../api/article.api';
-import { UserAPI } from '../api/user.api';
-import { Article, Resolvers } from '../graphql.generated';
+import { Resolvers } from '../graphql.generated';
 import { articleReducer } from '../reducers/article.reducer';
-import { createUserDataLoader } from '../util';
 
 const articleApi = new ArticleAPI();
-const userApi = new UserAPI();
 
 const articleResolver: Resolvers = {
+  Article: {
+    // Load creator & lastUpdateBy using dataloader for performace reasons
+    creator: async (model: any, _: any, { userDataLoader }) =>
+      userDataLoader.load(model.refcreator),
+    lastUpdatedBy: async (model: any, _: any, { userDataLoader }) =>
+      userDataLoader.load(model.reflastupdateby),
+  },
   Query: {
-    newsentries: async (_, { creator, after, before, markdown }, ctx) => {
+    newsentries: async (_, { creator, after, before, markdown }, _ctx) => {
       const safeMarkdown = markdown ?? false;
       let articleModels: ArticleModel[];
 
@@ -40,33 +44,15 @@ const articleResolver: Resolvers = {
       }
 
       // If we get no articles, we should just return null directly.
-      if (articleModels.length === 0) {
+      if (articleModels?.length === 0) {
         return [];
       }
 
-      const userLoader = createUserDataLoader();
-
-      // Måste hitta user för varje artikel, map kallas på varje objekt i vår array
-      // Vi skapar Promise för alla funktionsanrop och inväntar att vi skapat en user
-      // för varje
-      // Vi använder userLoader för att komma ihåg Users vi redan
-      // efterfrågat.
-      const resultArticles = await Promise.all(
-        articleModels.map(async (articleModel) => {
-          const creator = await userLoader.load(articleModel.refcreator);
-          const lastUpdatedBy = await userLoader.load(articleModel.reflastupdateby);
-          // Rensar bort referenser från objektet
-          const { refcreator, reflastupdateby, ...reduced } = articleModel;
-          return { creator, lastUpdatedBy, ...reduced };
-        }),
-      );
-
       // Vi vill returnera en tom array, inte null
-      return resultArticles ?? [];
+      return articleModels as any[];
     },
     article: async (_, { id, markdown }, ctx) => {
       const safeMarkdown = markdown ?? false; // If markdown not passed, returns default (false)
-      const userLoader = createUserDataLoader();
 
       // Vi får tillbaka en ArticleModel som inte har en hel användare, bara unikt användarnamn.
       // Vi måste använda UserAPI:n för att få fram denna användare.
@@ -78,12 +64,9 @@ const articleResolver: Resolvers = {
       }
 
       articleModel = await articleReducer(articleModel, safeMarkdown);
-      const creator = await userLoader.load(articleModel.refcreator);
-      const lastUpdatedBy = await userLoader.load(articleModel.reflastupdateby);
 
-      // Rensar bort referenser från objektet
-      const { refcreator, reflastupdateby, ...reduced } = articleModel;
-      return { creator, lastUpdatedBy, ...reduced };
+      //? Detta är inte så snyggt men vet inte hur man ska göra det eftersom typescript genererar returtypen?
+      return articleModel as any;
     },
     articles: async (
       _,
@@ -119,7 +102,7 @@ const articleResolver: Resolvers = {
         articleType,
       };
 
-      if (Object.entries(params).length === 0) {
+      if (Object.values(params).filter((v) => v).length === 0) {
         // We have no entered paramters
         articleModels = await articleReducer(await articleApi.getAllArticles(), safeMarkdown);
       } else {
@@ -133,25 +116,8 @@ const articleResolver: Resolvers = {
         return [];
       }
 
-      const userLoader = createUserDataLoader();
-
-      // Måste hitta user för varje artikel, map kallas på varje objekt i vår array
-      // Vi skapar Promise för alla funktionsanrop och inväntar att vi skapat en user
-      // för varje
-      // OBS: Är detta illa om varje User dyker upp flera gånger?
-      const resultArticles = await Promise.all<Article>(
-        articleModels.map(async (articleModel) => {
-          // Creator redan i outer scope, men vi binder
-          // den till creator i vad vi returnerar senare
-          const creatorUser = await userLoader.load(articleModel.refcreator);
-          const lastUpdatedBy = await userLoader.load(articleModel.reflastupdateby);
-          // Rensar bort referenser från objektet
-          const { refcreator, reflastupdateby, ...reduced } = articleModel;
-          return { creator: creatorUser, lastUpdatedBy, ...reduced };
-        }),
-      );
-
-      return resultArticles ?? [];
+      // Return raw data here, article-resolver will handle mapping of creator and lastupdatedby
+      return articleModels as any[];
     },
   },
   Mutation: {

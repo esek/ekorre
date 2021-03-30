@@ -6,11 +6,11 @@ import 'source-map-support/register';
 
 import auth from './auth';
 import type { Context } from './context';
+import { createDataLoader } from './dataloaders';
+import { batchUsersFunction } from './dataloaders/user.dataloader';
 import type { User } from './graphql.generated';
 import { Logger } from './logger';
 import * as Resolvers from './resolvers/index';
-
-// Visa en referens till källfilen istället för den kompilerade
 
 // Visa en referens till källfilen istället för den kompilerade
 
@@ -65,6 +65,7 @@ void (async () => {
       return {
         token,
         getUser: () => auth.verifyToken(token) as User,
+        userDataLoader: createDataLoader(batchUsersFunction),
       };
     },
     debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
