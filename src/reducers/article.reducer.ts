@@ -5,7 +5,7 @@ import showdown from 'showdown';
 import { ArticleModel } from '../api/article.api';
 import { SHOWDOWN_CONVERTER_OPTIONS } from './constants';
 
-const converter = new showdown.Converter({ ...SHOWDOWN_CONVERTER_OPTIONS });
+const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
 const dom = new JSDOM();
 
 /**
