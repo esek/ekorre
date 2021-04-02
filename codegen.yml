@@ -9,6 +9,8 @@ generates:
       skipTypename: true
       scalars:
         Date: Date
+      mappers:
+        Article: ./models/mappers#ArticleResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"

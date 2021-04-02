@@ -3,7 +3,9 @@
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
 import { ArticleAPI, ArticleModel } from '../api/article.api';
+import { useDataLoader } from '../dataloaders';
 import { Resolvers } from '../graphql.generated';
+import { ArticleResponse } from '../models/mappers';
 import { articleReducer } from '../reducers/article.reducer';
 
 const articleApi = new ArticleAPI();
@@ -11,10 +13,14 @@ const articleApi = new ArticleAPI();
 const articleResolver: Resolvers = {
   Article: {
     // Load creator & lastUpdateBy using dataloader for performace reasons
-    creator: async (model: any, _: any, { userDataLoader }) =>
-      userDataLoader.load(model.refcreator),
-    lastUpdatedBy: async (model: any, _: any, { userDataLoader }) =>
-      userDataLoader.load(model.reflastupdateby),
+    creator: useDataLoader((model, ctx) => ({
+      key: model.creator.username,
+      dataLoader: ctx.userDataLoader,
+    })),
+    lastUpdatedBy: useDataLoader((model, ctx) => ({
+      key: model.lastUpdatedBy.username,
+      dataLoader: ctx.userDataLoader,
+    })),
   },
   Query: {
     newsentries: async (_, { creator, after, before, markdown }, _ctx) => {
@@ -49,7 +55,7 @@ const articleResolver: Resolvers = {
       }
 
       // Vi vill returnera en tom array, inte null
-      return articleModels as any[];
+      return articleModels.map(hydrate);
     },
     article: async (_, { id, markdown }, ctx) => {
       const safeMarkdown = markdown ?? false; // If markdown not passed, returns default (false)
@@ -65,8 +71,7 @@ const articleResolver: Resolvers = {
 
       articleModel = await articleReducer(articleModel, safeMarkdown);
 
-      //? Detta är inte så snyggt men vet inte hur man ska göra det eftersom typescript genererar returtypen?
-      return articleModel as any;
+      return hydrate(articleModel);
     },
     articles: async (
       _,
@@ -117,7 +122,7 @@ const articleResolver: Resolvers = {
       }
 
       // Return raw data here, article-resolver will handle mapping of creator and lastupdatedby
-      return articleModels as any[];
+      return articleModels.map(hydrate);
     },
   },
   Mutation: {
@@ -126,6 +131,26 @@ const articleResolver: Resolvers = {
       return null;
     },
   },
+};
+
+/**
+ * Maps an `ArticleModel` i.e. a partial of `Article` to an ArticleResponse object
+ * @param partial ArticleModel to be mapped
+ * @returns ArticleResponse object with references to `creator` and
+ * `lastUpdatedBy`
+ */
+
+const hydrate = (partial: ArticleModel): ArticleResponse => {
+  const { refcreator, reflastupdateby, ...reduced } = partial;
+  return {
+    ...reduced,
+    creator: {
+      username: refcreator,
+    },
+    lastUpdatedBy: {
+      username: reflastupdateby,
+    },
+  };
 };
 
 export default articleResolver;

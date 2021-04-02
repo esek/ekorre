@@ -1,4 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
+import type { ArticleResponse } from './models/mappers';
 import type { Context } from './context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -173,6 +174,7 @@ export enum ResourceType {
   Web = 'WEB'
 }
 
+
 /** Body is saved as HTML serverside, but edited in MarkDown */
 export type Article = {
   id?: Maybe<Scalars['ID']>;
@@ -247,7 +249,6 @@ export enum Utskott {
   Other = 'OTHER',
   Sre = 'SRE'
 }
-
 
 export type NewPost = {
   name: Scalars['String'];
@@ -351,7 +352,8 @@ export type ResolversTypes = ResolversObject<{
   Access: ResolverTypeWrapper<Access>;
   AccessInput: AccessInput;
   ResourceType: ResourceType;
-  Article: ResolverTypeWrapper<Article>;
+  Date: ResolverTypeWrapper<Scalars['Date']>;
+  Article: ResolverTypeWrapper<ArticleResponse>;
   NewArticle: NewArticle;
   ModifyArticle: ModifyArticle;
   ArticleType: ArticleType;
@@ -359,7 +361,6 @@ export type ResolversTypes = ResolversObject<{
   Post: ResolverTypeWrapper<Post>;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
-  Date: ResolverTypeWrapper<Scalars['Date']>;
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -375,13 +376,13 @@ export type ResolversParentTypes = ResolversObject<{
   Mutation: {};
   Access: Access;
   AccessInput: AccessInput;
-  Article: Article;
+  Date: Scalars['Date'];
+  Article: ArticleResponse;
   NewArticle: NewArticle;
   ModifyArticle: ModifyArticle;
   User: User;
   Post: Post;
   HistoryEntry: HistoryEntry;
-  Date: Scalars['Date'];
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -420,6 +421,10 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
   web?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
+
+export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
+  name: 'Date';
+}
 
 export type ArticleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Article'] = ResolversParentTypes['Article']> = ResolversObject<{
   id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
@@ -461,20 +466,16 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
-  name: 'Date';
-}
-
 export type Resolvers<ContextType = Context> = ResolversObject<{
   DateTime?: GraphQLScalarType;
   Query?: QueryResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Access?: AccessResolvers<ContextType>;
+  Date?: GraphQLScalarType;
   Article?: ArticleResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   Post?: PostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
-  Date?: GraphQLScalarType;
 }>;
 
 
