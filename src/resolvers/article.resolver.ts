@@ -21,6 +21,8 @@ const articleResolver: Resolvers = {
       key: model.lastUpdatedBy.username,
       dataLoader: ctx.userDataLoader,
     })),
+    lastUpdatedAt: (model) => new Date(model.lastUpdatedAt),
+    createdAt: (model) => new Date(model.createdAt),
   },
   Query: {
     newsentries: async (_, { creator, after, before, markdown }) => {
