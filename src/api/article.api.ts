@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 
-import type { Article, ModifyArticle, NewArticle, Scalars } from '../graphql.generated';
+import { Article, ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
 import { Logger } from '../logger';
 import { ARTICLE_TABLE } from './constants';
 import knex from './knex';
@@ -57,12 +57,24 @@ export class ArticleAPI {
    * @param before
    */
   async getNewsArticlesFromInterval(
-    creator: string,
-    after: Scalars['DateTime'],
-    before: Scalars['DateTime'],
-  ): Promise<ArticleModel[] | null> {
-    const newsArticleModels = await knex<ArticleModel>(ARTICLE_TABLE);
-    return newsArticleModels?.length ? newsArticleModels : null;
+    after: Date,
+    before: Date,
+    creator?: string,
+  ): Promise<ArticleModel[]> {
+    const search: any = {
+      articleType: ArticleType.News,
+    };
+
+    if (creator) {
+      search.refcreator = creator;
+    }
+
+    const newsArticleModels = await knex<ArticleModel>(ARTICLE_TABLE)
+      .where(search)
+      .andWhere('createdAt', '<', before)
+      .andWhere('createdAt', '>', after);
+
+    return newsArticleModels?.length ? newsArticleModels : [];
   }
 
   /**

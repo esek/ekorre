@@ -23,7 +23,7 @@ const articleResolver: Resolvers = {
     })),
   },
   Query: {
-    newsentries: async (_, { creator, after, before, markdown }, _ctx) => {
+    newsentries: async (_, { creator, after, before, markdown }) => {
       const safeMarkdown = markdown ?? false;
       let articleModels: ArticleModel[];
 
@@ -32,11 +32,19 @@ const articleResolver: Resolvers = {
         if (apiResponse === null) return [];
         articleModels = await articleReducer(apiResponse, safeMarkdown);
       } else {
+        const beforeDate = new Date(before ?? Number.MAX_VALUE); // Set really high date if nothing is provided
+        const afterDate = new Date(after ?? Number.MIN_VALUE); // Set really low date if nothing is provided
+
+        articleModels = await articleApi.getNewsArticlesFromInterval(
+          afterDate,
+          beforeDate,
+          creator ?? undefined,
+        );
       }
 
-      return [];
+      return articleModels.map(hydrate);
     },
-    latestnews: async (_, { limit, markdown }, ctx) => {
+    latestnews: async (_, { limit, markdown }) => {
       const safeMarkdown = markdown ?? false;
       let articleModels: ArticleModel[];
 
@@ -57,7 +65,7 @@ const articleResolver: Resolvers = {
       // Vi vill returnera en tom array, inte null
       return articleModels.map(hydrate);
     },
-    article: async (_, { id, markdown }, ctx) => {
+    article: async (_, { id, markdown }) => {
       const safeMarkdown = markdown ?? false; // If markdown not passed, returns default (false)
 
       // Vi får tillbaka en ArticleModel som inte har en hel användare, bara unikt användarnamn.
