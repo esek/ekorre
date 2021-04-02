@@ -2,6 +2,7 @@
 
 import { Article, ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
 import { Logger } from '../logger';
+import { toUTC } from '../util';
 import { ARTICLE_TABLE } from './constants';
 import knex from './knex';
 
@@ -128,8 +129,8 @@ export class ArticleAPI {
 
     const article: ArticleModel = {
       ...reduced,
-      createdAt: new Date(),
-      lastUpdatedAt: new Date(),
+      createdAt: toUTC(new Date()),
+      lastUpdatedAt: toUTC(new Date()),
       tags: entry.tags ?? [],
       refcreator: creator,
       reflastupdateby: creator,
@@ -156,7 +157,7 @@ export class ArticleAPI {
 
     // TODO: Add lastUpdatedBy using auth
 
-    update.lastUpdatedAt = new Date();
+    update.lastUpdatedAt = toUTC(new Date());
 
     const res = await knex<ArticleModel>(ARTICLE_TABLE).where('id', id).update(update);
 
