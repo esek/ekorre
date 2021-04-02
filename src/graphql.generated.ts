@@ -100,7 +100,7 @@ export type Mutation = {
   createUser?: Maybe<User>;
   /** Test user credentials and if valid get a jwt token */
   login?: Maybe<Scalars['String']>;
-  modifyArticle?: Maybe<Article>;
+  modifyArticle: Scalars['Boolean'];
   removeUsersFromPost: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
@@ -136,6 +136,7 @@ export type MutationLoginArgs = {
 
 
 export type MutationModifyArticleArgs = {
+  articleId: Scalars['Int'];
   entry: ModifyArticle;
 };
 
@@ -194,7 +195,7 @@ export type NewArticle = {
   title: Scalars['String'];
   body: Scalars['String'];
   signature: Scalars['String'];
-  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  tags?: Maybe<Array<Scalars['String']>>;
   articleType: ArticleType;
 };
 
@@ -203,7 +204,7 @@ export type ModifyArticle = {
   title?: Maybe<Scalars['String']>;
   body?: Maybe<Scalars['String']>;
   signature?: Maybe<Scalars['String']>;
-  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  tags?: Maybe<Array<Scalars['String']>>;
   articleType?: Maybe<ArticleType>;
 };
 
@@ -410,7 +411,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
-  modifyArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'entry'>>;
+  modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;

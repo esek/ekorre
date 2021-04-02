@@ -136,10 +136,8 @@ const articleResolver: Resolvers = {
     },
   },
   Mutation: {
-    addArticle: (_, { entry }) => articleApi.newArticle(entry),
-    modifyArticle: () => {
-      return null;
-    },
+    addArticle: async (_, { entry }) => hydrate(await articleApi.newArticle(entry)),
+    modifyArticle: (_, { articleId, entry }) => articleApi.modifyArticle(articleId, entry),
   },
 };
 

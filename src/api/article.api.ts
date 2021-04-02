@@ -120,10 +120,26 @@ export class ArticleAPI {
    * Lägger till en ny artikel
    * @param entry artikel som ska läggas till
    */
-  async newArticle(entry: NewArticle): Promise<any> {
+  async newArticle(entry: NewArticle): Promise<ArticleModel> {
     // Lägger till dagens datum som createdAt och lastUpdatedAt
     // samt sätter creator som lastUpdateBy
-    // knex<ArticleModel>(ARTICLE_TABLE).insert();
+
+    const { creator, ...reduced } = entry;
+
+    const article: ArticleModel = {
+      ...reduced,
+      createdAt: new Date(),
+      lastUpdatedAt: new Date(),
+      tags: entry.tags ?? [],
+      refcreator: creator,
+      reflastupdateby: creator,
+    };
+    const res = await knex<ArticleModel>(ARTICLE_TABLE).insert(article);
+
+    return {
+      ...article,
+      id: res[0].toString() ?? -1,
+    };
   }
 
   /**
@@ -131,7 +147,19 @@ export class ArticleAPI {
    * modifieras via API:n
    * @param entry Modifiering av existerande artikel
    */
-  async modifyArticle(entry: ModifyArticle): Promise<any> {
-    return null;
+  async modifyArticle(id: number, entry: ModifyArticle): Promise<boolean> {
+    const update: any = {};
+
+    Object.keys(entry).forEach((k: string) => {
+      update[k] = (entry as any)[k] ?? undefined;
+    });
+
+    // TODO: Add lastUpdatedBy using auth
+
+    update.lastUpdatedAt = new Date();
+
+    const res = await knex<ArticleModel>(ARTICLE_TABLE).where('id', id).update(update);
+
+    return res > 0;
   }
 }

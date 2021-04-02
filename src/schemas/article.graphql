@@ -12,7 +12,7 @@ type Query {
 
 type Mutation {
   addArticle(entry: NewArticle!): Article
-  modifyArticle(entry: ModifyArticle!): Article
+  modifyArticle(articleId: Int!, entry: ModifyArticle!): Boolean!
 }
 
 "Body is saved as HTML serverside, but edited in MarkDown"
@@ -40,7 +40,7 @@ input NewArticle {
   title: String!
   body: String!
   signature: String!
-  tags: [String]
+  tags: [String!]
   articleType: ArticleType!
 }
 
@@ -49,6 +49,6 @@ input ModifyArticle {
   title: String
   body: String
   signature: String
-  tags: [String]
+  tags: [String!]
   articleType: ArticleType
 }
