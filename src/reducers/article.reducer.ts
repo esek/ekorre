@@ -1,10 +1,12 @@
 import { sanitize } from 'dompurify';
+import { JSDOM } from 'jsdom';
 import showdown from 'showdown';
 
 import { ArticleModel } from '../api/article.api';
 import { SHOWDOWN_CONVERTER_OPTIONS } from './constants';
 
-const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
+const converter = new showdown.Converter({ ...SHOWDOWN_CONVERTER_OPTIONS });
+const dom = new JSDOM();
 
 /**
  * Converts MarkDown to HTML
@@ -21,7 +23,7 @@ export function convertMarkdownToHtml(md: string): string {
  * @param html string formatted as HTML
  */
 function convertHtmlToMarkdown(html: string): string {
-  const md = converter.makeMarkdown(html);
+  const md = converter.makeMarkdown(html, dom.window.document);
   return md;
 }
 
