@@ -83,21 +83,9 @@ const articleResolver: Resolvers = {
 
       return hydrate(articleModel);
     },
-    articles: async (
-      _,
-      {
-        id,
-        creator,
-        lastUpdateBy,
-        title,
-        createdAt,
-        lastUpdatedAt,
-        signature,
-        tags,
-        articleType,
-        markdown,
-      },
-    ) => {
+    articles: async (_, { ...parameters }) => {
+      const { creator, lastUpdateBy, markdown, ...reduced } = parameters;
+
       const safeMarkdown = markdown ?? false;
       let articleModels: ArticleModel[] | null;
 
@@ -106,15 +94,9 @@ const articleResolver: Resolvers = {
       // (string, not user) to refcreator and reflastupdater for ArticleModel
 
       const params = {
-        id,
+        ...reduced,
         refcreator: creator,
         reflastupdateby: lastUpdateBy,
-        title,
-        createdAt,
-        lastUpdatedAt,
-        signature,
-        tags,
-        articleType,
       };
 
       if (Object.values(params).filter((v) => v).length === 0) {
