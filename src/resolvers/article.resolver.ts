@@ -35,11 +35,13 @@ const articleResolver: Resolvers = {
         const beforeDate = new Date(before ?? Number.MAX_VALUE); // Set really high date if nothing is provided
         const afterDate = new Date(after ?? Number.MIN_VALUE); // Set really low date if nothing is provided
 
-        articleModels = await articleApi.getNewsArticlesFromInterval(
+        const apiResponse = await articleApi.getNewsArticlesFromInterval(
           afterDate,
           beforeDate,
           creator ?? undefined,
         );
+
+        articleModels = await articleReducer(apiResponse, safeMarkdown);
       }
 
       return articleModels.map(hydrate);
