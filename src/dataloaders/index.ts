@@ -1,15 +1,14 @@
 import DataLoader from 'dataloader';
 
-/**
- * These are functions related to DataLoader and the
- * GraphQL (n+1) problem. To create a new kind of dataloader,
- * create a batch function and a create<Type>DataLoader() function.
- *
- * Why not simply have global DataLoader objects? Well they would quickly become
- * outdated, and it would result in caching data server-side which may quickly
- * be outdated. This is intended for batching, i.e. not having to query
- * for the same User multiple times.
- */
+import { Context } from '../context';
+
+type DataLoaderCallback<T, E> = (
+  model: T,
+  context: Context,
+) => {
+  key?: string;
+  dataLoader: DataLoader<string, E>;
+};
 
 /**
  * Creates a new dataloader of type T
@@ -19,3 +18,22 @@ import DataLoader from 'dataloader';
 export const createDataLoader = <T, K = string>(
   cb: (keys: readonly K[]) => Promise<ArrayLike<T | Error>>,
 ) => new DataLoader<K, T>(cb);
+
+/**
+ * Generic helper function to create a dataloader of any type as well as load it with the correct key
+ * @param cb Callback function that takes the value to load as well as the type of dataloader to use
+ * @returns A promise of type E
+ * @throws Error if key is undefiend
+ */
+
+export const useDataLoader = <T, E>(cb: DataLoaderCallback<T, E>) => (
+  model: T,
+  _: any,
+  ctx: Context,
+) => {
+  const { key, dataLoader } = cb(model, ctx);
+  if (!key) {
+    throw new Error('Missing key in DataLoader');
+  }
+  return dataLoader.load(key);
+};
