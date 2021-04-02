@@ -1,6 +1,6 @@
 BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS "Articles" (
-  "id" INT NOT NULL,
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
   "refcreator" TEXT NOT NULL,
   "reflastupdateby" TEXT NOT NULL,
   "title" TEXT NOT NULL,
@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS "Articles" (
   "signature" TEXT NOT NULL,
   "tags" TEXT NOT NULL,
   "articleType" TEXT NOT NULL,
-  PRIMARY KEY("id"),
   FOREIGN KEY("refcreator") REFERENCES "Users"("username")
   FOREIGN KEY("reflastupdateby") REFERENCES "Users"("username")
 );
