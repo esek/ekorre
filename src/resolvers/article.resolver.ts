@@ -75,7 +75,7 @@ const articleResolver: Resolvers = {
       }
 
       // If we get no articles, we should just return null directly.
-      if (articleModels?.length === 0) {
+      if (articleModels.length === 0) {
         return [];
       }
 
