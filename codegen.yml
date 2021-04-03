@@ -5,7 +5,7 @@ generates:
     config:
       useIndexSignature: true
       useTypeImports: true
-      contextType: ./context#Context
+      contextType: ./models/context#Context
       skipTypename: true
       scalars:
         Date: Date

@@ -1,12 +1,9 @@
 /* eslint-disable class-methods-use-this */
 
 import { Article, ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
-import { Logger } from '../logger';
 import { toUTC } from '../util';
 import { ARTICLE_TABLE } from './constants';
 import knex from './knex';
-
-const logger = Logger.getLogger('ArticleAPI');
 
 // Refs används när en annan databas innehåller informationen,
 // så denna innehåller bara en referens för att kunna hitta
@@ -62,7 +59,7 @@ export class ArticleAPI {
     before: Date,
     creator?: string,
   ): Promise<ArticleModel[]> {
-    const search: any = {
+    const search: Record<string, string> = {
       articleType: ArticleType.News,
     };
 
@@ -96,7 +93,7 @@ export class ArticleAPI {
     // Ta bort undefined, de ogillas SKARPT  av Knex.js
 
     // Ts låter en inte indexera nycklar i params med foreach
-    const copy: any = { ...params };
+    const copy: Record<string, unknown> = { ...params };
     Object.keys(copy).forEach((key) => (copy[key] === undefined ? delete copy[key] : {}));
 
     const article = await knex<ArticleModel>(ARTICLE_TABLE).where(copy);
@@ -149,10 +146,10 @@ export class ArticleAPI {
    * @param entry Modifiering av existerande artikel
    */
   async modifyArticle(id: number, entry: ModifyArticle): Promise<boolean> {
-    const update: any = {};
+    const update: Record<string, unknown> = {};
 
-    Object.keys(entry).forEach((k: string) => {
-      update[k] = (entry as any)[k] ?? undefined;
+    (Object.keys(entry) as (keyof ModifyArticle)[]).forEach((k) => {
+      update[k] = entry[k] ?? undefined;
     });
 
     // TODO: Add lastUpdatedBy using auth

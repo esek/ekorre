@@ -1,6 +1,6 @@
 import DataLoader from 'dataloader';
 
-import { Context } from '../context';
+import { Context } from '../models/context';
 
 type DataLoaderCallback<T, E> = (
   model: T,
@@ -28,7 +28,7 @@ export const createDataLoader = <T, K = string>(
 
 export const useDataLoader = <T, E>(cb: DataLoaderCallback<T, E>) => (
   model: T,
-  _: any,
+  _: Record<string, unknown>,
   ctx: Context,
 ) => {
   const { key, dataLoader } = cb(model, ctx);

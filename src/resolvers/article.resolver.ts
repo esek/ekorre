@@ -10,6 +10,19 @@ import { articleReducer } from '../reducers/article.reducer';
 
 const articleApi = new ArticleAPI();
 
+const hydrate = (partial: ArticleModel): ArticleResponse => {
+  const { refcreator, reflastupdateby, ...reduced } = partial;
+  return {
+    ...reduced,
+    creator: {
+      username: refcreator,
+    },
+    lastUpdatedBy: {
+      username: reflastupdateby,
+    },
+  };
+};
+
 const articleResolver: Resolvers = {
   Article: {
     // Load creator & lastUpdateBy using dataloader for performace reasons
@@ -131,18 +144,5 @@ const articleResolver: Resolvers = {
  * @returns ArticleResponse object with references to `creator` and
  * `lastUpdatedBy`
  */
-
-const hydrate = (partial: ArticleModel): ArticleResponse => {
-  const { refcreator, reflastupdateby, ...reduced } = partial;
-  return {
-    ...reduced,
-    creator: {
-      username: refcreator,
-    },
-    lastUpdatedBy: {
-      username: reflastupdateby,
-    },
-  };
-};
 
 export default articleResolver;
