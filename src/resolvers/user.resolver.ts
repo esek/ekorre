@@ -8,7 +8,7 @@ import { userReducer } from '../reducers/user.reducer';
 
 const api = new UserAPI();
 
-const a: Resolvers = {
+const userResolver: Resolvers = {
   Query: {
     user: async (_, { username }) => {
       // ctx.getUser();
@@ -50,4 +50,4 @@ const a: Resolvers = {
   },
 };
 
-export default a;
+export default userResolver;
