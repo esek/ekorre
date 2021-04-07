@@ -37,7 +37,7 @@ export class PostAPI {
    * @param username användaren
    */
   async getPostsForUser(username: string): Promise<PostModel[]> {
-    const refposts = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).orderBy('period')
+    const refposts = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).orderBy('period', 'desc')
       .where({
         refuser: username,
         end: null,
