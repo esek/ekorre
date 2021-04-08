@@ -263,6 +263,24 @@ export enum Utskott {
   Sre = 'SRE'
 }
 
+export type File = {
+  id: Scalars['ID'];
+  name: Scalars['String'];
+  fileType: FileType;
+  uploadedBy: User;
+  createdAt: Scalars['DateTime'];
+  lastUpdatedAt: Scalars['DateTime'];
+  location: Scalars['String'];
+  size: Scalars['Int'];
+};
+
+export enum FileType {
+  Image = 'image',
+  Pdf = 'pdf',
+  Text = 'text',
+  Other = 'other'
+}
+
 export type NewPost = {
   name: Scalars['String'];
   utskott: Utskott;
@@ -374,6 +392,8 @@ export type ResolversTypes = ResolversObject<{
   Post: ResolverTypeWrapper<Post>;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
+  File: ResolverTypeWrapper<File>;
+  FileType: FileType;
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -396,6 +416,7 @@ export type ResolversParentTypes = ResolversObject<{
   User: User;
   Post: Post;
   HistoryEntry: HistoryEntry;
+  File: File;
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -481,6 +502,18 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type FileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  fileType?: Resolver<ResolversTypes['FileType'], ParentType, ContextType>;
+  uploadedBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  location?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Query?: QueryResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
@@ -491,6 +524,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   User?: UserResolvers<ContextType>;
   Post?: PostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
+  File?: FileResolvers<ContextType>;
 }>;
 
 

@@ -1,0 +1,23 @@
+#import User from 'user.graphql'
+
+scalar Date
+scalar DateTime
+
+
+type File {
+  id: ID!
+  name: String!
+  fileType: FileType!
+  uploadedBy: User!
+  createdAt: DateTime!
+  lastUpdatedAt: DateTime!
+  location: String!
+  size: Int!
+}
+
+enum FileType {
+  image,
+  pdf,
+  text,
+  other,
+}
