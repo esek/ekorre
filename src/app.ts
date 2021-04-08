@@ -92,7 +92,7 @@ void (async () => {
 
   await server.start();
 
-  server.applyMiddleware({ app, path: '/' });
+  server.applyMiddleware({ app, path: '/', cors: true });
 
   app.listen(PORT, HOST, () => {
     logger.log(`Server started on ${HOST}:${PORT}`);
