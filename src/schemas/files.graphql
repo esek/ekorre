@@ -3,6 +3,16 @@
 scalar Date
 scalar DateTime
 
+type Query {
+  files(type: FileType): [File!]!
+  file(id: ID!): File
+}
+
+
+type Mutation {
+  deleteFile(id: ID!): Boolean!
+  moveFile(id: String!, location: String!): Boolean!
+}
 
 type File {
   id: ID!

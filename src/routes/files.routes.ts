@@ -22,12 +22,6 @@ filesRoute.post('/upload', upload(), async ({ files, body }, res) => {
   }
 });
 
-//* Maybe GQL instead?
-filesRoute.delete('/:id', async ({ params: { id } }, res) => {
-  const rm = await filesAPI.deleteFile(id);
-  res.send(rm);
-});
-
 const checkAuth = (req: Request, res: Response, next: NextFunction) => {
   // TODO: Add auth for files requests
   return next();

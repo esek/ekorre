@@ -18,6 +18,8 @@ export type Scalars = {
 export type Query = {
   article?: Maybe<Article>;
   articles: Array<Maybe<Article>>;
+  file?: Maybe<File>;
+  files: Array<File>;
   individualAccess?: Maybe<Access>;
   latestnews: Array<Maybe<Article>>;
   newsentries: Array<Maybe<Article>>;
@@ -46,6 +48,16 @@ export type QueryArticlesArgs = {
   tags?: Maybe<Array<Maybe<Scalars['String']>>>;
   articleType?: Maybe<Scalars['String']>;
   markdown?: Maybe<Scalars['Boolean']>;
+};
+
+
+export type QueryFileArgs = {
+  id: Scalars['ID'];
+};
+
+
+export type QueryFilesArgs = {
+  type?: Maybe<FileType>;
 };
 
 
@@ -97,11 +109,11 @@ export type Mutation = {
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
   createUser?: Maybe<User>;
+  deleteFile: Scalars['Boolean'];
   /** Test user credentials and if valid get a jwt token */
   login?: Maybe<Scalars['String']>;
-  logout?: Maybe<Scalars['Boolean']>;
   modifyArticle: Scalars['Boolean'];
-  refreshToken?: Maybe<Scalars['String']>;
+  moveFile: Scalars['Boolean'];
   removeUsersFromPost: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
@@ -130,14 +142,14 @@ export type MutationCreateUserArgs = {
 };
 
 
-export type MutationLoginArgs = {
-  username: Scalars['String'];
-  password: Scalars['String'];
+export type MutationDeleteFileArgs = {
+  id: Scalars['ID'];
 };
 
 
-export type MutationLogoutArgs = {
-  token: Scalars['String'];
+export type MutationLoginArgs = {
+  username: Scalars['String'];
+  password: Scalars['String'];
 };
 
 
@@ -147,8 +159,9 @@ export type MutationModifyArticleArgs = {
 };
 
 
-export type MutationRefreshTokenArgs = {
-  token: Scalars['String'];
+export type MutationMoveFileArgs = {
+  id: Scalars['String'];
+  location: Scalars['String'];
 };
 
 
@@ -263,6 +276,13 @@ export enum Utskott {
   Sre = 'SRE'
 }
 
+export enum FileType {
+  Image = 'image',
+  Pdf = 'pdf',
+  Text = 'text',
+  Other = 'other'
+}
+
 export type File = {
   id: Scalars['ID'];
   name: Scalars['String'];
@@ -273,13 +293,6 @@ export type File = {
   location: Scalars['String'];
   size: Scalars['Int'];
 };
-
-export enum FileType {
-  Image = 'image',
-  Pdf = 'pdf',
-  Text = 'text',
-  Other = 'other'
-}
 
 export type NewPost = {
   name: Scalars['String'];
@@ -392,8 +405,8 @@ export type ResolversTypes = ResolversObject<{
   Post: ResolverTypeWrapper<Post>;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
-  File: ResolverTypeWrapper<File>;
   FileType: FileType;
+  File: ResolverTypeWrapper<File>;
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -424,6 +437,8 @@ export type ResolversParentTypes = ResolversObject<{
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, 'id'>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
+  file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
+  files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
@@ -439,10 +454,10 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
+  deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
-  logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLogoutArgs, 'token'>>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
-  refreshToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'token'>>;
+  moveFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMoveFileArgs, 'id' | 'location'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
