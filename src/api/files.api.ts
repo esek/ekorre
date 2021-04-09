@@ -1,5 +1,7 @@
+import { createHash } from 'crypto';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
+import { extname } from 'path';
 
 import config from '../config';
 import { File, FileType } from '../graphql.generated';
@@ -23,9 +25,17 @@ class FilesAPI {
    * @returns A `FileModel` object with the data of the saved file
    */
   async saveFile(file: UploadedFile, type: FileType): Promise<FileModel> {
+    const date = new Date();
+
+    // Generate hashed name from filename and current date, this way a unique file will be created on every upload
+    const hashedName =
+      createHash('md5')
+        .update(file.name + date.valueOf().toString())
+        .digest('hex') + extname(file.name);
+
     const typeFolder = type.toLowerCase() + 's';
     const folder = `${ROOT}/${typeFolder}`;
-    const location = `${folder}/${file.name}`;
+    const location = `${folder}/${hashedName}`;
 
     // Create folder if it doesn't exist
     if (!fs.existsSync(folder)) {
@@ -35,12 +45,13 @@ class FilesAPI {
     await file.mv(location);
 
     const newFile: FileModel = {
-      name: file.name,
-      createdAt: new Date(),
-      lastUpdatedAt: new Date(),
+      name: hashedName,
+      createdAt: date,
+      lastUpdatedAt: date,
       fileType: type,
+      // TODO: create ref to uploader using auth
       refuploader: 'aa0000bb-s',
-      location: `${ENDPOINT}/${typeFolder}/${file.name}`,
+      location: `${ENDPOINT}/${typeFolder}/${hashedName}`,
     };
 
     const ids = await knex<FileModel>(FILES_TABLE).insert(newFile);
