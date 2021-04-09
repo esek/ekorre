@@ -27,6 +27,7 @@ class FilesAPI {
     const folder = `${ROOT}/${typeFolder}`;
     const location = `${folder}/${file.name}`;
 
+    // Create folder if it doesn't exist
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder);
     }
@@ -62,11 +63,12 @@ class FilesAPI {
       return false;
     }
 
-    const location = `${ROOT}/${file.fileType.toLowerCase()}s/${file.name}`;
+    const location = file.location.replace(ENDPOINT, ROOT);
 
     // Delete file from system
     fs.rmSync(location);
 
+    // Delete file from DB
     await knex<FileModel>(FILES_TABLE).where('id', id).delete();
 
     return true;
