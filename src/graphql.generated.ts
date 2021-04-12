@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse } from './models/mappers';
+import type { ArticleResponse, FileResponse } from './models/mappers';
 import type { Context } from './models/context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -291,7 +291,6 @@ export type File = {
   createdAt: Scalars['DateTime'];
   lastUpdatedAt: Scalars['DateTime'];
   location: Scalars['String'];
-  size: Scalars['Int'];
 };
 
 export type NewPost = {
@@ -406,7 +405,7 @@ export type ResolversTypes = ResolversObject<{
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
   FileType: FileType;
-  File: ResolverTypeWrapper<File>;
+  File: ResolverTypeWrapper<FileResponse>;
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -429,7 +428,7 @@ export type ResolversParentTypes = ResolversObject<{
   User: User;
   Post: Post;
   HistoryEntry: HistoryEntry;
-  File: File;
+  File: FileResponse;
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -525,7 +524,6 @@ export type FileResolvers<ContextType = Context, ParentType extends ResolversPar
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   location?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

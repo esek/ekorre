@@ -11,7 +11,6 @@ type Query {
 
 type Mutation {
   deleteFile(id: ID!): Boolean!
-  moveFile(id: String!, location: String!): Boolean!
 }
 
 type File {
@@ -22,7 +21,6 @@ type File {
   createdAt: DateTime!
   lastUpdatedAt: DateTime!
   location: String!
-  size: Int!
 }
 
 enum FileType {

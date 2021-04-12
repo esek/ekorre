@@ -11,6 +11,7 @@ generates:
         Date: Date
       mappers:
         Article: ./models/mappers#ArticleResponse
+        File: ./models/mappers#FileResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"

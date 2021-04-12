@@ -8,7 +8,7 @@ import { File, FileType } from '../graphql.generated';
 import { FILES_TABLE } from './constants';
 import knex from './knex';
 
-export type FileModel = Omit<File, 'size' | 'uploadedBy' | 'id'> & {
+export type FileModel = Omit<File, 'uploadedBy' | 'id'> & {
   id?: string;
   refuploader: string;
 };
@@ -33,7 +33,7 @@ class FilesAPI {
         .update(file.name + date.valueOf().toString())
         .digest('hex') + extname(file.name);
 
-    const typeFolder = type.toLowerCase() + 's';
+    const typeFolder = `${type.toLowerCase()}s`;
     const folder = `${ROOT}/${typeFolder}`;
     const location = `${folder}/${hashedName}`;
 
@@ -83,6 +83,12 @@ class FilesAPI {
     await knex<FileModel>(FILES_TABLE).where('id', id).delete();
 
     return true;
+  }
+
+  async getMultipleFiles(type?: FileType) {
+    if (type) return knex<FileModel>(FILES_TABLE).where('fileType', type);
+
+    return knex<FileModel>(FILES_TABLE);
   }
 
   /**

@@ -16,10 +16,9 @@ filesRoute.post('/upload', upload(), async ({ files, body }, res) => {
 
     const dbFile = await filesAPI.saveFile(file, fileType);
 
-    res.send(dbFile);
-  } else {
-    return res.status(400).send('File missing');
+    return res.send(dbFile);
   }
+  return res.status(400).send('File missing');
 });
 
 const checkAuth = (req: Request, res: Response, next: NextFunction) => {
