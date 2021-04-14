@@ -6,4 +6,5 @@ export type Context = {
   token: string;
   getUser(): User;
   userDataLoader: DataLoader<string, User>;
+  response: Express.Response<any, Record<string, any>>;
 };

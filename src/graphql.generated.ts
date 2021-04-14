@@ -113,7 +113,6 @@ export type Mutation = {
   /** Test user credentials and if valid get a jwt token */
   login?: Maybe<Scalars['String']>;
   modifyArticle: Scalars['Boolean'];
-  moveFile: Scalars['Boolean'];
   removeUsersFromPost: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
@@ -156,12 +155,6 @@ export type MutationLoginArgs = {
 export type MutationModifyArticleArgs = {
   articleId: Scalars['Int'];
   entry: ModifyArticle;
-};
-
-
-export type MutationMoveFileArgs = {
-  id: Scalars['String'];
-  location: Scalars['String'];
 };
 
 
@@ -291,7 +284,14 @@ export type File = {
   createdAt: Scalars['DateTime'];
   lastUpdatedAt: Scalars['DateTime'];
   location: Scalars['String'];
+  accessType: AccessType;
 };
+
+export enum AccessType {
+  Public = 'public',
+  Authenticated = 'authenticated',
+  Admin = 'admin'
+}
 
 export type NewPost = {
   name: Scalars['String'];
@@ -406,6 +406,7 @@ export type ResolversTypes = ResolversObject<{
   Utskott: Utskott;
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
+  AccessType: AccessType;
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -456,7 +457,6 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
-  moveFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationMoveFileArgs, 'id' | 'location'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
@@ -524,6 +524,7 @@ export type FileResolvers<ContextType = Context, ParentType extends ResolversPar
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   location?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  accessType?: Resolver<ResolversTypes['AccessType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

@@ -4,7 +4,7 @@ import fs from 'fs';
 import { extname } from 'path';
 
 import config from '../config';
-import { File, FileType } from '../graphql.generated';
+import { AccessType, File, FileType } from '../graphql.generated';
 import { FILES_TABLE } from './constants';
 import knex from './knex';
 
@@ -24,7 +24,7 @@ class FilesAPI {
    * @param type What type of file it is
    * @returns A `FileModel` object with the data of the saved file
    */
-  async saveFile(file: UploadedFile, type: FileType): Promise<FileModel> {
+  async saveFile(file: UploadedFile, type: FileType, accessType: AccessType): Promise<FileModel> {
     const date = new Date();
 
     // Generate hashed name from filename and current date, this way a unique file will be created on every upload
@@ -52,6 +52,7 @@ class FilesAPI {
       // TODO: create ref to uploader using auth
       refuploader: 'aa0000bb-s',
       location: `${ENDPOINT}/${typeFolder}/${hashedName}`,
+      accessType,
     };
 
     const ids = await knex<FileModel>(FILES_TABLE).insert(newFile);
@@ -99,6 +100,11 @@ class FilesAPI {
   async getFileData(id: string) {
     const file = await knex<FileModel>(FILES_TABLE).where('id', id).first();
 
+    return file;
+  }
+
+  async getFileFromName(name: string) {
+    const file = await knex<FileModel>(FILES_TABLE).where('name', name).first();
     return file;
   }
 }

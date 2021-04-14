@@ -1,9 +1,9 @@
 import { ApolloServer } from 'apollo-server-express';
+import cookieparser from 'cookie-parser';
 import 'dotenv/config';
 import express from 'express';
 import { DateResolver } from 'graphql-scalars';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
-import 'source-map-support/register';
 
 import { verifyToken } from './auth';
 import config from './config';
@@ -63,6 +63,8 @@ void (async () => {
   // Starta server.
   const app = express();
 
+  app.use(cookieparser());
+
   // Setup files endpoint for REST-file handling
   app.use(FILES.ENDPOINT, filesRoute);
 
@@ -70,13 +72,14 @@ void (async () => {
 
   const server = new ApolloServer({
     schema,
-    context: ({ req }): Context => {
+    context: ({ req, res }): Context => {
       const token = req.headers.authorization?.split(' ')[1] ?? '';
 
       return {
         token,
         getUser: () => verifyToken<User>(token),
         userDataLoader: createDataLoader(batchUsersFunction),
+        response: res,
       };
     },
     debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),

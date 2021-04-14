@@ -21,6 +21,7 @@ type File {
   createdAt: DateTime!
   lastUpdatedAt: DateTime!
   location: String!
+  accessType: AccessType!
 }
 
 enum FileType {
@@ -28,4 +29,10 @@ enum FileType {
   pdf,
   text,
   other,
+}
+
+enum AccessType {
+  public,
+  authenticated,
+  admin
 }

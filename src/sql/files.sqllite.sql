@@ -6,5 +6,6 @@ CREATE TABLE IF NOT EXISTS "Files" (
   "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "lastUpdatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "location" TEXT NOT NULL,
+  "accessType" TEXT NOT NULL,
   FOREIGN KEY("refuploader") REFERENCES "Users"("username")
 );
