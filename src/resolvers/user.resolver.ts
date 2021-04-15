@@ -2,7 +2,7 @@ import { graphql } from 'graphql';
 
 import { UserAPI } from '../api/user.api';
 import { schema } from '../app';
-import auth from '../auth';
+import { invalidateToken, issueToken } from '../auth';
 import type { Resolvers } from '../graphql.generated';
 import { userReducer } from '../reducers/user.reducer';
 
@@ -43,10 +43,11 @@ const userResolver: Resolvers = {
       }`;
       const data = await graphql(schema, query);
 
-      const token = auth.issueToken(data.data?.user);
+      const token = issueToken(data.data?.user);
       return token;
     },
     createUser: (_, { input }) => api.createUser(input),
+    logout: (_, { token }) => invalidateToken(token),
   },
 };
 

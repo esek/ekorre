@@ -4,7 +4,7 @@ import { DateResolver } from 'graphql-scalars';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import 'source-map-support/register';
 
-import auth from './auth';
+import { verifyToken } from './auth';
 import { createDataLoader } from './dataloaders';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
 import type { User } from './graphql.generated';
@@ -47,7 +47,6 @@ const resolvers = Object.entries(Resolvers)
   .map(([_, value]) => value);
 
 // Konstruera root schema. VIKTIGT! Det senaste schemat kommer skugga andra.
-// eslint-disable-next-line import/prefer-default-export
 export const schema = mergeSchemas({
   schemas,
   resolvers,
@@ -65,7 +64,7 @@ void (async () => {
 
       return {
         token,
-        getUser: () => auth.verifyToken(token) as User,
+        getUser: () => verifyToken(token) as User,
         userDataLoader: createDataLoader(batchUsersFunction),
       };
     },
