@@ -5,11 +5,11 @@ import { extname } from 'path';
 
 import config from '../config';
 import { AccessType, File, FileType } from '../graphql.generated';
+import { FileSystemNodeResponse } from '../models/mappers';
 import { FILES_TABLE } from './constants';
 import knex from './knex';
 
-export type FileModel = Omit<File, 'uploadedBy' | 'id'> & {
-  id?: string;
+export type FileModel = Omit<File, 'createdBy' | 'url'> & {
   refuploader: string;
 };
 
@@ -39,7 +39,11 @@ class FilesAPI {
     const folder = `${ROOT}/${typeFolder}`;
     const location = `${folder}/${hashedName}`;
 
-    // Create folder if it doesn't exist
+    // Create folder(s) if it doesn't exist
+    if (!ROOT) {
+      fs.mkdirSync(ROOT);
+    }
+
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder);
     }
@@ -47,23 +51,18 @@ class FilesAPI {
     await file.mv(location);
 
     const newFile: FileModel = {
-      name: hashedName,
-      createdAt: date,
-      lastUpdatedAt: date,
-      fileType: type,
+      id: hashedName,
+      name: file.name,
+      type: type,
       // TODO: create ref to uploader using auth
       refuploader: 'aa0000bb-s',
-      location: `${typeFolder}/${hashedName}`,
+      folderLocation: `${typeFolder}/${hashedName}`,
       accessType,
     };
 
-    const ids = await knex<FileModel>(FILES_TABLE).insert(newFile);
+    await knex<FileModel>(FILES_TABLE).insert(newFile);
 
-    return {
-      ...newFile,
-      location: `${ENDPOINT}/${newFile.location}`,
-      id: ids[0].toString(),
-    };
+    return newFile;
   }
 
   /**
@@ -78,7 +77,7 @@ class FilesAPI {
       return false;
     }
 
-    const location = file.location.replace(ENDPOINT, ROOT);
+    const location = `${ROOT}/${file.folderLocation}`;
 
     // Delete file from system
     fs.rmSync(location);
@@ -90,15 +89,11 @@ class FilesAPI {
   }
 
   async getMultipleFiles(type?: FileType) {
-    let files = [];
-
     if (type) {
-      files = await knex<FileModel>(FILES_TABLE).where('fileType', type);
+      return knex<FileModel>(FILES_TABLE).where('fileType', type);
     } else {
-      files = await knex<FileModel>(FILES_TABLE);
+      return knex<FileModel>(FILES_TABLE);
     }
-
-    return files.map((f) => ({ ...f, location: `${ENDPOINT}/${f.location}` }));
   }
 
   /**
@@ -113,7 +108,7 @@ class FilesAPI {
       return null;
     }
 
-    return { ...file, location: `${ENDPOINT}/${file.location}` };
+    return file;
   }
 
   async getFileFromName(name: string) {
@@ -153,26 +148,63 @@ class FilesAPI {
    * @returns List of folder/files
    */
 
-  getFolderData(folder: string) {
-    const folderTrimmed = folder[folder.length - 1] !== '/' ? folder : folder.slice(0, -1);
-    const fullPath = `${ROOT}${folderTrimmed}`;
+  async getFolderData(folder: string): Promise<FileSystemNodeResponse[]> {
+    let folderTrimmed = folder.replace('..', ''); // Remove '..' so that you cant go back further
+
+    const res: FileSystemNodeResponse[] = [];
+
+    if (folderTrimmed[0] === '/') {
+      folderTrimmed = folderTrimmed.substring(1);
+    }
+
+    const fullPath = `${ROOT}/${folderTrimmed}`;
 
     try {
-      const content = fs.readdirSync(fullPath).map((c) => {
-        const stats = fs.statSync(`${fullPath}/${c}`);
+      const files = fs.readdirSync(fullPath);
+      for (const filename of files) {
+        const stats = fs.statSync(`${fullPath}/${filename}`);
 
-        return {
-          name: c,
+        if (stats.isDirectory()) {
+          res.push({
+            id: filename,
+            name: filename,
+            createdAt: stats.birthtime,
+            accessType: AccessType.Public,
+            type: FileType.Folder,
+            size: stats.size,
+            url: `${ENDPOINT}/${folder}/${filename}`,
+            folderLocation: `${folder}/${filename}`,
+            createdBy: {
+              username: 'aa0000bb-s',
+            },
+          } as FileSystemNodeResponse);
+
+          continue;
+        }
+
+        const dbData = await this.getFileData(filename);
+
+        if (!dbData) {
+          continue; // Skippa ifall filen inte finns i DB
+        }
+
+        res.push({
+          id: dbData.id,
+          name: dbData.name,
+          createdAt: stats.birthtime,
+          accessType: dbData.accessType,
+          type: dbData.type,
           size: stats.size,
-          lastUpdatedAt: stats.ctime,
-          location: `${folderTrimmed}/${c}`,
-          accessType: AccessType.Public,
-          type: stats.isDirectory() ? FileType.Folder : this.getFileType(c),
-        };
-      });
-
-      return content;
-    } catch {
+          url: `${ENDPOINT}/${folder}/${filename}`,
+          folderLocation: `${folder}/${filename}`,
+          createdBy: {
+            username: dbData.refuploader,
+          },
+        });
+      }
+      return res;
+    } catch (err) {
+      console.error(err);
       return [];
     }
   }

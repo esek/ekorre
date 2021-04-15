@@ -12,6 +12,7 @@ generates:
       mappers:
         Article: ./models/mappers#ArticleResponse
         File: ./models/mappers#FileResponse
+        FileSystemNode: ./models/mappers#FileSystemNodeResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"

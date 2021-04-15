@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse } from './models/mappers';
+import type { ArticleResponse, FileResponse, FileSystemNodeResponse } from './models/mappers';
 import type { Context } from './models/context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -53,7 +53,8 @@ export type QueryArticlesArgs = {
 
 
 export type QueryFileArgs = {
-  id: Scalars['ID'];
+  id?: Maybe<Scalars['ID']>;
+  name?: Maybe<Scalars['String']>;
 };
 
 
@@ -289,20 +290,22 @@ export enum FileType {
 export type File = {
   id: Scalars['ID'];
   name: Scalars['String'];
-  fileType: FileType;
-  uploadedBy: User;
-  createdAt: Scalars['DateTime'];
-  lastUpdatedAt: Scalars['DateTime'];
-  location: Scalars['String'];
+  type: FileType;
+  createdBy: User;
+  folderLocation: Scalars['String'];
+  url: Scalars['String'];
   accessType: AccessType;
 };
 
 export type FileSystemNode = {
+  id: Scalars['ID'];
   name: Scalars['String'];
-  location: Scalars['String'];
   type: FileType;
+  folderLocation: Scalars['String'];
+  url?: Maybe<Scalars['String']>;
   accessType: AccessType;
-  lastUpdatedAt: Scalars['DateTime'];
+  createdAt: Scalars['DateTime'];
+  createdBy?: Maybe<User>;
   size: Scalars['Int'];
 };
 
@@ -425,7 +428,7 @@ export type ResolversTypes = ResolversObject<{
   Utskott: Utskott;
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
-  FileSystemNode: ResolverTypeWrapper<FileSystemNode>;
+  FileSystemNode: ResolverTypeWrapper<FileSystemNodeResponse>;
   AccessType: AccessType;
   NewPost: NewPost;
   NewUser: NewUser;
@@ -450,7 +453,7 @@ export type ResolversParentTypes = ResolversObject<{
   Post: Post;
   HistoryEntry: HistoryEntry;
   File: FileResponse;
-  FileSystemNode: FileSystemNode;
+  FileSystemNode: FileSystemNodeResponse;
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -458,7 +461,7 @@ export type ResolversParentTypes = ResolversObject<{
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, 'id'>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
-  file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
+  file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, never>>;
   fileSystem?: Resolver<Array<ResolversTypes['FileSystemNode']>, ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
@@ -541,21 +544,23 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
 export type FileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = ResolversObject<{
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  fileType?: Resolver<ResolversTypes['FileType'], ParentType, ContextType>;
-  uploadedBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  location?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['FileType'], ParentType, ContextType>;
+  createdBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  folderLocation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   accessType?: Resolver<ResolversTypes['AccessType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type FileSystemNodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FileSystemNode'] = ResolversParentTypes['FileSystemNode']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  location?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['FileType'], ParentType, ContextType>;
+  folderLocation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   accessType?: Resolver<ResolversTypes['AccessType'], ParentType, ContextType>;
-  lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

@@ -5,7 +5,7 @@ scalar DateTime
 
 type Query {
   files(type: FileType): [File!]!
-  file(id: ID!): File
+  file(id: ID, name: String): File
   fileSystem(folder: String!): [FileSystemNode!]!
 }
 
@@ -15,22 +15,24 @@ type Mutation {
 }
 
 type FileSystemNode {
+  id: ID!
   name: String!
-  location: String!
   type: FileType!
+  folderLocation: String!
+  url: String
   accessType: AccessType!
-  lastUpdatedAt: DateTime!
+  createdAt: DateTime!
+  createdBy: User
   size: Int!
 }
 
 type File {
   id: ID!
   name: String!
-  fileType: FileType!
-  uploadedBy: User!
-  createdAt: DateTime!
-  lastUpdatedAt: DateTime!
-  location: String!
+  type: FileType!
+  createdBy: User!
+  folderLocation: String!
+  url: String!
   accessType: AccessType!
 }
 

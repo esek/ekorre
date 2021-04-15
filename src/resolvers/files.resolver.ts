@@ -1,14 +1,21 @@
 import FilesAPI from '../api/files.api';
 import { useDataLoader } from '../dataloaders';
 import { Resolvers } from '../graphql.generated';
+import { formatUrl } from '../reducers/file.reducer';
 
 const filesAPI = new FilesAPI();
 
 const filesResolver: Resolvers = {
-  File: {
-    uploadedBy: useDataLoader((model, context) => ({
+  FileSystemNode: {
+    createdBy: useDataLoader((model, context) => ({
       dataLoader: context.userDataLoader,
-      key: model.uploadedBy.username,
+      key: model.createdBy.username,
+    })),
+  },
+  File: {
+    createdBy: useDataLoader((model, context) => ({
+      dataLoader: context.userDataLoader,
+      key: model.createdBy.username,
     })),
   },
   Query: {
@@ -19,25 +26,23 @@ const filesResolver: Resolvers = {
         return [];
       }
 
-      return files.map((f) => ({ uploadedBy: { username: f.refuploader }, ...f }));
+      return formatUrl(files);
     },
-    file: async (_, { id }) => {
-      const filedata = await filesAPI.getFileData(id);
+    file: async (_, { id, name }) => {
+      let filedata;
+      if (id) {
+        filedata = await filesAPI.getFileData(id);
+      } else if (name) {
+        filedata = await filesAPI.getFileFromName(name);
+      }
 
       if (!filedata) {
         return null;
       }
 
-      const { refuploader, ...reduced } = filedata;
-
-      return {
-        ...reduced,
-        uploadedBy: {
-          username: refuploader,
-        },
-      };
+      return formatUrl(filedata);
     },
-    fileSystem: (_, { folder }) => filesAPI.getFolderData(folder),
+    fileSystem: async (_, { folder }) => filesAPI.getFolderData(folder),
   },
   Mutation: {
     deleteFile: async (_, { id }) => filesAPI.deleteFile(id),

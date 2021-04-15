@@ -24,8 +24,8 @@ filesRoute.post('/upload', upload(), async ({ files, body }, res) => {
 
 const checkAuth = async (req: Request, res: Response, next: NextFunction) => {
   const { url } = req;
-  const name = url.substr(url.lastIndexOf('/') + 1);
-  const file = await filesAPI.getFileFromName(name);
+  const id = url.substr(url.lastIndexOf('/') + 1);
+  const file = await filesAPI.getFileData(id);
 
   if (!file) {
     res.status(404).send();
