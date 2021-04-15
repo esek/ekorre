@@ -99,6 +99,7 @@ export type Mutation = {
   createUser?: Maybe<User>;
   /** Test user credentials and if valid get a jwt token */
   login?: Maybe<Scalars['String']>;
+  logout?: Maybe<Scalars['Boolean']>;
   modifyArticle: Scalars['Boolean'];
   removeUsersFromPost: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
@@ -131,6 +132,11 @@ export type MutationCreateUserArgs = {
 export type MutationLoginArgs = {
   username: Scalars['String'];
   password: Scalars['String'];
+};
+
+
+export type MutationLogoutArgs = {
+  token: Scalars['String'];
 };
 
 
@@ -407,6 +413,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
+  logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLogoutArgs, 'token'>>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
