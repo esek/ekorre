@@ -17,7 +17,7 @@ type Mutation {
 type FileSystemNode {
   name: String!
   location: String!
-  type: FileSystemNodeType!
+  type: FileType!
   accessType: AccessType!
   lastUpdatedAt: DateTime!
   size: Int!
@@ -38,6 +38,10 @@ enum FileType {
   image,
   pdf,
   text,
+  code,
+  powerpoint,
+  spreadsheet,
+  folder,
   other,
 }
 
@@ -45,12 +49,4 @@ enum AccessType {
   public,
   authenticated,
   admin
-}
-
-enum FileSystemNodeType {
-  folder,
-  image,
-  pdf,
-  textFile,
-  other
 }

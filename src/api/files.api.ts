@@ -4,7 +4,7 @@ import fs from 'fs';
 import { extname } from 'path';
 
 import config from '../config';
-import { AccessType, File, FileSystemNodeType, FileType } from '../graphql.generated';
+import { AccessType, File, FileType } from '../graphql.generated';
 import { FILES_TABLE } from './constants';
 import knex from './knex';
 
@@ -24,8 +24,10 @@ class FilesAPI {
    * @param type What type of file it is
    * @returns A `FileModel` object with the data of the saved file
    */
-  async saveFile(file: UploadedFile, type: FileType, accessType: AccessType): Promise<FileModel> {
+  async saveFile(file: UploadedFile, accessType: AccessType): Promise<FileModel> {
     const date = new Date();
+
+    const type = this.getFileType(file.name);
 
     // Generate hashed name from filename and current date, this way a unique file will be created on every upload
     const hashedName =
@@ -124,29 +126,25 @@ class FilesAPI {
    * @param name Name of the file, including extension
    * @returns Enumvalue for filetype
    */
-  getFileSystemType(name: string) {
+  getFileType(name: string) {
     const ext = extname(name);
 
     const REGEX: Record<string, RegExp> = {
-      [FileSystemNodeType.Image]: /[\/.](gif|jpg|jpeg|tiff|png)$/i,
-      [FileSystemNodeType.Pdf]: /[\/.](pdf)$/i,
-      [FileSystemNodeType.TextFile]: /[\/.](txt|doc|docx)$/i,
+      [FileType.Image]: /[\/.](gif|jpg|jpeg|tiff|png)$/i,
+      [FileType.Pdf]: /[\/.](pdf)$/i,
+      [FileType.Text]: /[\/.](txt|doc|docx)$/i,
+      [FileType.Code]: /[\/.](html|htm|js|ts|jsx|tsx|tex)$/i,
+      [FileType.Powerpoint]: /[\/.](ppt)$/i,
+      [FileType.Spreadsheet]: /[\/.](xlx|xlsx|xls)$/i,
     };
 
-    // Svinfult, kom gärna med förslag till förbättring
-    if (ext.match(REGEX[FileSystemNodeType.Image])) {
-      return FileSystemNodeType.Image;
+    for (const type in REGEX) {
+      if (ext.match(REGEX[type])) {
+        return type as FileType;
+      }
     }
 
-    if (ext.match(REGEX[FileSystemNodeType.Pdf])) {
-      return FileSystemNodeType.Pdf;
-    }
-
-    if (ext.match(REGEX[FileSystemNodeType.TextFile])) {
-      return FileSystemNodeType.TextFile;
-    }
-
-    return FileSystemNodeType.Other;
+    return FileType.Other;
   }
 
   /**
@@ -169,7 +167,7 @@ class FilesAPI {
           lastUpdatedAt: stats.ctime,
           location: `${folderTrimmed}/${c}`,
           accessType: AccessType.Public,
-          type: stats.isDirectory() ? FileSystemNodeType.Folder : this.getFileSystemType(c),
+          type: stats.isDirectory() ? FileType.Folder : this.getFileType(c),
         };
       });
 

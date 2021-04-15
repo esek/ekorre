@@ -279,6 +279,10 @@ export enum FileType {
   Image = 'image',
   Pdf = 'pdf',
   Text = 'text',
+  Code = 'code',
+  Powerpoint = 'powerpoint',
+  Spreadsheet = 'spreadsheet',
+  Folder = 'folder',
   Other = 'other'
 }
 
@@ -296,18 +300,11 @@ export type File = {
 export type FileSystemNode = {
   name: Scalars['String'];
   location: Scalars['String'];
-  type: FileSystemNodeType;
+  type: FileType;
   accessType: AccessType;
   lastUpdatedAt: Scalars['DateTime'];
+  size: Scalars['Int'];
 };
-
-export enum FileSystemNodeType {
-  Folder = 'folder',
-  Image = 'image',
-  Pdf = 'pdf',
-  TextFile = 'textFile',
-  Other = 'other'
-}
 
 export enum AccessType {
   Public = 'public',
@@ -429,7 +426,6 @@ export type ResolversTypes = ResolversObject<{
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemNode: ResolverTypeWrapper<FileSystemNode>;
-  FileSystemNodeType: FileSystemNodeType;
   AccessType: AccessType;
   NewPost: NewPost;
   NewUser: NewUser;
@@ -557,9 +553,10 @@ export type FileResolvers<ContextType = Context, ParentType extends ResolversPar
 export type FileSystemNodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FileSystemNode'] = ResolversParentTypes['FileSystemNode']> = ResolversObject<{
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   location?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  type?: Resolver<ResolversTypes['FileSystemNodeType'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['FileType'], ParentType, ContextType>;
   accessType?: Resolver<ResolversTypes['AccessType'], ParentType, ContextType>;
   lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

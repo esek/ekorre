@@ -4,7 +4,7 @@ import upload from 'express-fileupload';
 import FilesAPI from '../api/files.api';
 import auth from '../auth';
 import config from '../config';
-import { AccessType, FileType } from '../graphql.generated';
+import { AccessType } from '../graphql.generated';
 
 const filesRoute = Router();
 
@@ -13,10 +13,9 @@ const filesAPI = new FilesAPI();
 filesRoute.post('/upload', upload(), async ({ files, body }, res) => {
   if (files?.file) {
     const file = files.file instanceof Array ? files.file[0] : files.file;
-    const fileType = (body?.fileType as FileType) ?? FileType.Other;
     const accessType = (body?.accessType as AccessType) ?? AccessType.Public;
 
-    const dbFile = await filesAPI.saveFile(file, fileType, accessType);
+    const dbFile = await filesAPI.saveFile(file, accessType);
 
     return res.send(dbFile);
   }
