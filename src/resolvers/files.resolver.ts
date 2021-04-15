@@ -23,6 +23,7 @@ const filesResolver: Resolvers = {
     },
     file: async (_, { id }) => {
       const filedata = await filesAPI.getFileData(id);
+
       if (!filedata) {
         return null;
       }
@@ -36,6 +37,7 @@ const filesResolver: Resolvers = {
         },
       };
     },
+    fileSystem: (_, { folder }) => filesAPI.getFolderData(folder),
   },
   Mutation: {
     deleteFile: async (_, { id }) => filesAPI.deleteFile(id),

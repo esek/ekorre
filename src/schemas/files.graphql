@@ -6,11 +6,21 @@ scalar DateTime
 type Query {
   files(type: FileType): [File!]!
   file(id: ID!): File
+  fileSystem(folder: String!): [FileSystemNode!]!
 }
 
 
 type Mutation {
   deleteFile(id: ID!): Boolean!
+}
+
+type FileSystemNode {
+  name: String!
+  location: String!
+  type: FileSystemNodeType!
+  accessType: AccessType!
+  lastUpdatedAt: DateTime!
+  size: Int!
 }
 
 type File {
@@ -35,4 +45,12 @@ enum AccessType {
   public,
   authenticated,
   admin
+}
+
+enum FileSystemNodeType {
+  folder,
+  image,
+  pdf,
+  textFile,
+  other
 }

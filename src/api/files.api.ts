@@ -4,7 +4,7 @@ import fs from 'fs';
 import { extname } from 'path';
 
 import config from '../config';
-import { AccessType, File, FileType } from '../graphql.generated';
+import { AccessType, File, FileSystemNodeType, FileType } from '../graphql.generated';
 import { FILES_TABLE } from './constants';
 import knex from './knex';
 
@@ -51,7 +51,7 @@ class FilesAPI {
       fileType: type,
       // TODO: create ref to uploader using auth
       refuploader: 'aa0000bb-s',
-      location: `${ENDPOINT}/${typeFolder}/${hashedName}`,
+      location: `${typeFolder}/${hashedName}`,
       accessType,
     };
 
@@ -59,6 +59,7 @@ class FilesAPI {
 
     return {
       ...newFile,
+      location: `${ENDPOINT}/${newFile.location}`,
       id: ids[0].toString(),
     };
   }
@@ -87,9 +88,15 @@ class FilesAPI {
   }
 
   async getMultipleFiles(type?: FileType) {
-    if (type) return knex<FileModel>(FILES_TABLE).where('fileType', type);
+    let files = [];
 
-    return knex<FileModel>(FILES_TABLE);
+    if (type) {
+      files = await knex<FileModel>(FILES_TABLE).where('fileType', type);
+    } else {
+      files = await knex<FileModel>(FILES_TABLE);
+    }
+
+    return files.map((f) => ({ ...f, location: `${ENDPOINT}/${f.location}` }));
   }
 
   /**
@@ -100,12 +107,76 @@ class FilesAPI {
   async getFileData(id: string) {
     const file = await knex<FileModel>(FILES_TABLE).where('id', id).first();
 
-    return file;
+    if (!file) {
+      return null;
+    }
+
+    return { ...file, location: `${ENDPOINT}/${file.location}` };
   }
 
   async getFileFromName(name: string) {
     const file = await knex<FileModel>(FILES_TABLE).where('name', name).first();
     return file;
+  }
+
+  /**
+   * Helper method to get Enum value of file type
+   * @param name Name of the file, including extension
+   * @returns Enumvalue for filetype
+   */
+  getFileSystemType(name: string) {
+    const ext = extname(name);
+
+    const REGEX: Record<string, RegExp> = {
+      [FileSystemNodeType.Image]: /[\/.](gif|jpg|jpeg|tiff|png)$/i,
+      [FileSystemNodeType.Pdf]: /[\/.](pdf)$/i,
+      [FileSystemNodeType.TextFile]: /[\/.](txt|doc|docx)$/i,
+    };
+
+    // Svinfult, kom gärna med förslag till förbättring
+    if (ext.match(REGEX[FileSystemNodeType.Image])) {
+      return FileSystemNodeType.Image;
+    }
+
+    if (ext.match(REGEX[FileSystemNodeType.Pdf])) {
+      return FileSystemNodeType.Pdf;
+    }
+
+    if (ext.match(REGEX[FileSystemNodeType.TextFile])) {
+      return FileSystemNodeType.TextFile;
+    }
+
+    return FileSystemNodeType.Other;
+  }
+
+  /**
+   * Gets all items in provided folder
+   * @param folder The path to the directory
+   * @returns List of folder/files
+   */
+
+  getFolderData(folder: string) {
+    const folderTrimmed = folder[folder.length - 1] !== '/' ? folder : folder.slice(0, -1);
+    const fullPath = `${ROOT}${folderTrimmed}`;
+
+    try {
+      const content = fs.readdirSync(fullPath).map((c) => {
+        const stats = fs.statSync(`${fullPath}/${c}`);
+
+        return {
+          name: c,
+          size: stats.size,
+          lastUpdatedAt: stats.ctime,
+          location: `${folderTrimmed}/${c}`,
+          accessType: AccessType.Public,
+          type: stats.isDirectory() ? FileSystemNodeType.Folder : this.getFileSystemType(c),
+        };
+      });
+
+      return content;
+    } catch {
+      return [];
+    }
   }
 }
 

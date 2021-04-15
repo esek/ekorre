@@ -52,7 +52,7 @@ const checkAuth = async (req: Request, res: Response, next: NextFunction) => {
     return;
   }
 
-  res.status(404).send();
+  next();
 };
 
 // Host static files
