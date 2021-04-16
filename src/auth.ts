@@ -4,10 +4,8 @@ import { Logger } from './logger';
 
 const SECRET = 'bigone';
 const EXPIRE_MINUTES = 10;
-const EXPIRE_MS = EXPIRE_MINUTES * 1000;
 const logger = Logger.getLogger('Auth');
 const invalidTokenStore: Set<string> = new Set();
-let earliestToken = 0;
 
 /**
  * Kollar ifall det finns en svartlistad token.
@@ -15,10 +13,6 @@ let earliestToken = 0;
  * @returns Sant ifall den givna tokenen finns annars falskt.
  */
 const checkTokenStore = (token: string): boolean => {
-  if (Date.now() - earliestToken > EXPIRE_MS) {
-    invalidTokenStore.clear();
-    return false;
-  }
   if (invalidTokenStore.has(token)) {
     logger.log('Blacklisted token was used.');
     return true;
@@ -50,14 +44,15 @@ export const issueToken = (o: Record<string, unknown>): string => {
 };
 
 /**
- * Invalidera en token i lika lång tid som den är giltlig.
+ * Invalidera upp till 1000 tokens.
  * VARNING! Svarlistan är sparad i minnet och kommer förstöras
  * ifall servern startas om.
  * @param token - Den token som ska invalideras
  */
 export const invalidateToken = (token: string): boolean => {
-  if (invalidTokenStore.size === 0) {
-    earliestToken = Date.now();
+  if (invalidTokenStore.size > 1000) {
+    invalidTokenStore.clear();
+    logger.debug('Cleard blacklist store.');
   }
   invalidTokenStore.add(token);
   logger.debug('Invalidated a token.');
