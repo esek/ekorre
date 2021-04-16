@@ -101,6 +101,7 @@ export type Mutation = {
   login?: Maybe<Scalars['String']>;
   logout?: Maybe<Scalars['Boolean']>;
   modifyArticle: Scalars['Boolean'];
+  refreshToken?: Maybe<Scalars['String']>;
   removeUsersFromPost: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
@@ -143,6 +144,11 @@ export type MutationLogoutArgs = {
 export type MutationModifyArticleArgs = {
   articleId: Scalars['Int'];
   entry: ModifyArticle;
+};
+
+
+export type MutationRefreshTokenArgs = {
+  token: Scalars['String'];
 };
 
 
@@ -415,6 +421,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLogoutArgs, 'token'>>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
+  refreshToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'token'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;

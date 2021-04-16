@@ -3,8 +3,8 @@ import jwt from 'jsonwebtoken';
 import { Logger } from './logger';
 
 const SECRET = 'bigone';
-const EXPIRE_HOURS = 2;
-const EXPIRE_MS = EXPIRE_HOURS * 1000 * 60;
+const EXPIRE_MINUTES = 10;
+const EXPIRE_MS = EXPIRE_MINUTES * 1000;
 const logger = Logger.getLogger('Auth');
 const invalidTokenStore: Set<string> = new Set();
 let earliestToken = 0;
@@ -19,7 +19,11 @@ const checkTokenStore = (token: string): boolean => {
     invalidTokenStore.clear();
     return false;
   }
-  return invalidTokenStore.has(token);
+  if (invalidTokenStore.has(token)) {
+    logger.log('Blacklisted token was used.');
+    return true;
+  }
+  return false;
 };
 
 /**
@@ -29,7 +33,7 @@ const checkTokenStore = (token: string): boolean => {
  * @returns JWT payload eller false ifall tokenen har blivit invaliderad.
  */
 export const verifyToken = <T>(token: string): T | boolean => {
-  if (checkTokenStore(token)) return false;
+  if (checkTokenStore(token)) throw Error('JWT token is in blacklist!');
   const u = jwt.verify(token, SECRET);
   logger.debug(`Authorized a token with value: ${Logger.pretty(u)}`);
   return u as unknown as T; // Kan bli problem senare...
@@ -40,7 +44,7 @@ export const verifyToken = <T>(token: string): T | boolean => {
  * @param o - Ett objekt
  */
 export const issueToken = (o: Record<string, unknown>): string => {
-  const token = jwt.sign(o, SECRET, { expiresIn: `${EXPIRE_HOURS}h` });
+  const token = jwt.sign(o, SECRET, { expiresIn: `${EXPIRE_MINUTES}min` });
   logger.debug(`Issued a token for object: ${Logger.pretty(o)}`);
   return token;
 };
