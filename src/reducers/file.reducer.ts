@@ -1,29 +1,27 @@
+import { statSync } from 'fs';
+
 import { FileModel } from '../api/files.api';
 import config from '../config';
 import { FileResponse } from '../models/mappers';
 
 const {
-  FILES: { ENDPOINT },
+  FILES: { ENDPOINT, ROOT },
 } = config;
 
-export function formatUrl(file: FileModel): FileResponse;
-export function formatUrl(file: FileModel[]): FileResponse[];
-export function formatUrl(file: FileModel | FileModel[]): FileResponse | FileResponse[] {
-  if (file instanceof Array) {
-    return file.map((f) => ({
-      ...f,
-      url: `${ENDPOINT}/${f.folderLocation}`,
-      createdBy: {
-        username: f.refuploader,
-      },
-    }));
-  }
+export function hydrateFiles(file: FileModel): FileResponse;
+export function hydrateFiles(file: FileModel[]): FileResponse[];
+export function hydrateFiles(file: FileModel | FileModel[]): FileResponse | FileResponse[] {
+  return file instanceof Array ? file.map(map) : map(file);
+}
 
+const map = (file: FileModel) => {
+  const { size } = statSync(`${ROOT}/${file.folderLocation}`);
   return {
     ...file,
     url: `${ENDPOINT}/${file.folderLocation}`,
     createdBy: {
       username: file.refuploader,
     },
+    size,
   };
-}
+};

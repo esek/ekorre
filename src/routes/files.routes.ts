@@ -14,8 +14,8 @@ filesRoute.post('/upload', upload(), async ({ files, body }, res) => {
   if (files?.file) {
     const file = files.file instanceof Array ? files.file[0] : files.file;
     const accessType = (body?.accessType as AccessType) ?? AccessType.Public;
-
-    const dbFile = await filesAPI.saveFile(file, accessType);
+    const path = body?.path ?? '/';
+    const dbFile = await filesAPI.saveFile(file, accessType, path);
 
     return res.send(dbFile);
   }
@@ -32,7 +32,8 @@ const checkAuth = async (req: Request, res: Response, next: NextFunction) => {
     return;
   }
   try {
-    const jwtToken: string = req.headers.authorization ?? req.cookies.token ?? req.query.token; // Get token from cookie, query-param or header
+    const jwtToken: string =
+      req.headers.authorization ?? req.cookies?.token ?? req.query?.token ?? ''; // Get token from cookie, query-param or header
 
     if (!jwtToken) {
       throw new Error();

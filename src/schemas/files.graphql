@@ -5,16 +5,17 @@ scalar DateTime
 
 type Query {
   files(type: FileType): [File!]!
-  file(id: ID, name: String): File
-  fileSystem(folder: String!): [FileSystemNode!]!
+  file(id: ID!): File
+  fileSystem(folder: String!): [File!]!
 }
 
 
 type Mutation {
   deleteFile(id: ID!): Boolean!
+  createFolder(path: String!, name: String!): Boolean!
 }
 
-type FileSystemNode {
+type File {
   id: ID!
   name: String!
   type: FileType!
@@ -24,16 +25,6 @@ type FileSystemNode {
   createdAt: DateTime!
   createdBy: User
   size: Int!
-}
-
-type File {
-  id: ID!
-  name: String!
-  type: FileType!
-  createdBy: User!
-  folderLocation: String!
-  url: String!
-  accessType: AccessType!
 }
 
 enum FileType {

@@ -5,11 +5,10 @@ import { extname } from 'path';
 
 import config from '../config';
 import { AccessType, File, FileType } from '../graphql.generated';
-import { FileSystemNodeResponse } from '../models/mappers';
 import { FILES_TABLE } from './constants';
 import knex from './knex';
 
-export type FileModel = Omit<File, 'createdBy' | 'url'> & {
+export type FileModel = Omit<File, 'createdBy' | 'url' | 'size'> & {
   refuploader: string;
 };
 
@@ -24,28 +23,21 @@ class FilesAPI {
    * @param type What type of file it is
    * @returns A `FileModel` object with the data of the saved file
    */
-  async saveFile(file: UploadedFile, accessType: AccessType): Promise<FileModel> {
+  async saveFile(file: UploadedFile, accessType: AccessType, path: string): Promise<FileModel> {
     const date = new Date();
 
     const type = this.getFileType(file.name);
 
-    // Generate hashed name from filename and current date, this way a unique file will be created on every upload
-    const hashedName =
-      createHash('md5')
-        .update(file.name + date.valueOf().toString())
-        .digest('hex') + extname(file.name);
+    const hashedName = this.createHashedName(file.name);
 
-    const typeFolder = `${type.toLowerCase()}s`;
-    const folder = `${ROOT}/${typeFolder}`;
-    const location = `${folder}/${hashedName}`;
+    const trimmedPath = this.trimFolder(path);
+
+    const folder = `${ROOT}/${trimmedPath}`;
+    const location = `${folder}${hashedName}`;
 
     // Create folder(s) if it doesn't exist
-    if (!ROOT) {
-      fs.mkdirSync(ROOT);
-    }
-
     if (!fs.existsSync(folder)) {
-      fs.mkdirSync(folder);
+      fs.mkdirSync(folder, { recursive: true });
     }
 
     await file.mv(location);
@@ -53,16 +45,48 @@ class FilesAPI {
     const newFile: FileModel = {
       id: hashedName,
       name: file.name,
-      type: type,
+      type,
       // TODO: create ref to uploader using auth
       refuploader: 'aa0000bb-s',
-      folderLocation: `${typeFolder}/${hashedName}`,
+      folderLocation: `${trimmedPath}${hashedName}`,
       accessType,
+      createdAt: date,
     };
 
     await knex<FileModel>(FILES_TABLE).insert(newFile);
 
     return newFile;
+  }
+
+  async createFolder(folder: string, name: string, creator: string) {
+    const folderTrimmed = this.trimFolder(folder);
+    const hash = this.createHashedName(name);
+    const fullPath = `${ROOT}/${folderTrimmed}${hash}`;
+
+    if (fs.existsSync(fullPath)) {
+      return false;
+    }
+
+    try {
+      fs.mkdirSync(fullPath, { recursive: true });
+
+      const dbData: FileModel = {
+        id: hash,
+        accessType: AccessType.Public,
+        createdAt: new Date(),
+        folderLocation: `${folderTrimmed}${hash}`,
+        name: name,
+        // TODO: Fix ref
+        refuploader: creator,
+        type: FileType.Folder,
+      };
+
+      const res = await knex<FileModel>(FILES_TABLE).insert(dbData);
+
+      return res.length > 0;
+    } catch {
+      return false;
+    }
   }
 
   /**
@@ -91,9 +115,8 @@ class FilesAPI {
   async getMultipleFiles(type?: FileType) {
     if (type) {
       return knex<FileModel>(FILES_TABLE).where('fileType', type);
-    } else {
-      return knex<FileModel>(FILES_TABLE);
     }
+    return knex<FileModel>(FILES_TABLE);
   }
 
   /**
@@ -101,18 +124,13 @@ class FilesAPI {
    * @param id Id of the file to fetch
    * @returns FileData
    */
-  async getFileData(id: string) {
+  async getFileData(id: string): Promise<FileModel | null> {
     const file = await knex<FileModel>(FILES_TABLE).where('id', id).first();
 
     if (!file) {
       return null;
     }
 
-    return file;
-  }
-
-  async getFileFromName(name: string) {
-    const file = await knex<FileModel>(FILES_TABLE).where('name', name).first();
     return file;
   }
 
@@ -125,16 +143,16 @@ class FilesAPI {
     const ext = extname(name);
 
     const REGEX: Record<string, RegExp> = {
-      [FileType.Image]: /[\/.](gif|jpg|jpeg|tiff|png)$/i,
-      [FileType.Pdf]: /[\/.](pdf)$/i,
-      [FileType.Text]: /[\/.](txt|doc|docx)$/i,
-      [FileType.Code]: /[\/.](html|htm|js|ts|jsx|tsx|tex)$/i,
-      [FileType.Powerpoint]: /[\/.](ppt)$/i,
-      [FileType.Spreadsheet]: /[\/.](xlx|xlsx|xls)$/i,
+      [FileType.Image]: /[/.](gif|jpg|jpeg|tiff|png|svg)$/i,
+      [FileType.Pdf]: /[/.](pdf)$/i,
+      [FileType.Text]: /[/.](txt|doc|docx)$/i,
+      [FileType.Code]: /[/.](html|htm|js|ts|jsx|tsx|tex)$/i,
+      [FileType.Powerpoint]: /[/.](ppt)$/i,
+      [FileType.Spreadsheet]: /[/.](xlx|xlsx|xls)$/i,
     };
 
-    for (const type in REGEX) {
-      if (ext.match(REGEX[type])) {
+    for (const type of Object.keys(REGEX)) {
+      if (RegExp(REGEX[type]).exec(ext)) {
         return type as FileType;
       }
     }
@@ -148,65 +166,48 @@ class FilesAPI {
    * @returns List of folder/files
    */
 
-  async getFolderData(folder: string): Promise<FileSystemNodeResponse[]> {
-    let folderTrimmed = folder.replace('..', ''); // Remove '..' so that you cant go back further
-
-    const res: FileSystemNodeResponse[] = [];
-
-    if (folderTrimmed[0] === '/') {
-      folderTrimmed = folderTrimmed.substring(1);
-    }
-
-    const fullPath = `${ROOT}/${folderTrimmed}`;
+  async getFolderData(folder: string): Promise<FileModel[]> {
+    let folderTrimmed = this.trimFolder(folder);
 
     try {
-      const files = fs.readdirSync(fullPath);
-      for (const filename of files) {
-        const stats = fs.statSync(`${fullPath}/${filename}`);
+      const fullPath = `${ROOT}${folderTrimmed === '/' ? '' : `/${folderTrimmed}`}`;
+      const fileIds = fs.readdirSync(fullPath);
 
-        if (stats.isDirectory()) {
-          res.push({
-            id: filename,
-            name: filename,
-            createdAt: stats.birthtime,
-            accessType: AccessType.Public,
-            type: FileType.Folder,
-            size: stats.size,
-            url: `${ENDPOINT}/${folder}/${filename}`,
-            folderLocation: `${folder}/${filename}`,
-            createdBy: {
-              username: 'aa0000bb-s',
-            },
-          } as FileSystemNodeResponse);
-
-          continue;
-        }
-
-        const dbData = await this.getFileData(filename);
-
-        if (!dbData) {
-          continue; // Skippa ifall filen inte finns i DB
-        }
-
-        res.push({
-          id: dbData.id,
-          name: dbData.name,
-          createdAt: stats.birthtime,
-          accessType: dbData.accessType,
-          type: dbData.type,
-          size: stats.size,
-          url: `${ENDPOINT}/${folder}/${filename}`,
-          folderLocation: `${folder}/${filename}`,
-          createdBy: {
-            username: dbData.refuploader,
-          },
-        });
+      if (!fileIds?.length) {
+        return [];
       }
-      return res;
+
+      const files = await knex<FileModel>(FILES_TABLE).where('id', 'in', fileIds);
+
+      return files;
     } catch (err) {
-      console.error(err);
       return [];
     }
+  }
+
+  private trimFolder(folder: string) {
+    let trimmed = folder.replace('..', '').trim();
+
+    if (trimmed.charAt(0) !== '/') {
+      trimmed = `/${trimmed}`;
+    }
+
+    if (trimmed.charAt(trimmed.length - 1) !== '/') {
+      trimmed = `${trimmed}/`;
+    }
+
+    return trimmed;
+  }
+
+  private createHashedName(name: string) {
+    const date = new Date();
+
+    const hashedName =
+      createHash('md5')
+        .update(name + date.valueOf().toString())
+        .digest('hex') + extname(name);
+
+    return hashedName;
   }
 }
 

@@ -1,5 +1,6 @@
 import { ApolloServer } from 'apollo-server-express';
 import cookieparser from 'cookie-parser';
+import cors from 'cors';
 import 'dotenv/config';
 import express from 'express';
 import { DateResolver } from 'graphql-scalars';
@@ -64,6 +65,8 @@ void (async () => {
   const app = express();
 
   app.use(cookieparser());
+
+  app.use(cors());
 
   // Setup files endpoint for REST-file handling
   app.use(FILES.ENDPOINT, filesRoute);

@@ -1,4 +1,4 @@
-import { Article, File, FileSystemNode, User } from '../graphql.generated';
+import { Article, File, User } from '../graphql.generated';
 
 export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {
   creator: Partial<User>;
@@ -6,9 +6,5 @@ export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>
 };
 
 export type FileResponse = Partial<Omit<File, 'createdBy'>> & {
-  createdBy: Partial<User>;
-};
-
-export type FileSystemNodeResponse = Partial<Omit<FileSystemNode, 'createdBy'>> & {
   createdBy: Partial<User>;
 };

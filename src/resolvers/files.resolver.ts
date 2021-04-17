@@ -1,17 +1,11 @@
 import FilesAPI from '../api/files.api';
 import { useDataLoader } from '../dataloaders';
 import { Resolvers } from '../graphql.generated';
-import { formatUrl } from '../reducers/file.reducer';
+import { hydrateFiles as reduce } from '../reducers/file.reducer';
 
 const filesAPI = new FilesAPI();
 
 const filesResolver: Resolvers = {
-  FileSystemNode: {
-    createdBy: useDataLoader((model, context) => ({
-      dataLoader: context.userDataLoader,
-      key: model.createdBy.username,
-    })),
-  },
   File: {
     createdBy: useDataLoader((model, context) => ({
       dataLoader: context.userDataLoader,
@@ -26,26 +20,22 @@ const filesResolver: Resolvers = {
         return [];
       }
 
-      return formatUrl(files);
+      return reduce(files);
     },
-    file: async (_, { id, name }) => {
-      let filedata;
-      if (id) {
-        filedata = await filesAPI.getFileData(id);
-      } else if (name) {
-        filedata = await filesAPI.getFileFromName(name);
-      }
+    file: async (_, { id }) => {
+      const filedata = await filesAPI.getFileData(id);
 
       if (!filedata) {
         return null;
       }
 
-      return formatUrl(filedata);
+      return reduce(filedata);
     },
-    fileSystem: async (_, { folder }) => filesAPI.getFolderData(folder),
+    fileSystem: async (_, { folder }) => reduce(await filesAPI.getFolderData(folder)),
   },
   Mutation: {
     deleteFile: async (_, { id }) => filesAPI.deleteFile(id),
+    createFolder: async (_, { path, name }) => filesAPI.createFolder(path, name, 'aa0000bb-s'),
   },
 };
 
