@@ -33,7 +33,7 @@
     "jsdom": "^16.5.2",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.6",
-    "mariadb": "^2.5.1",
+    "mysql2": "^2.2.5",
     "regenerator-runtime": "^0.13.7",
     "showdown": "^1.9.1",
     "source-map-support": "^0.5.19",
