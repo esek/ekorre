@@ -6,7 +6,7 @@ scalar DateTime
 type Query {
   files(type: FileType): [File!]!
   file(id: ID!): File
-  fileSystem(folder: String!): [File!]!
+  fileSystem(folder: String!): FileSystemResponse!
 }
 
 
@@ -25,6 +25,16 @@ type File {
   createdAt: DateTime!
   createdBy: User
   size: Int!
+}
+
+type FileSystemResponse {
+  files: [File!]!
+  path: [FileSystemResponsePath!]!
+}
+
+type FileSystemResponsePath {
+  id: ID!
+  name: String!
 }
 
 enum FileType {

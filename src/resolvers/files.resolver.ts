@@ -31,7 +31,14 @@ const filesResolver: Resolvers = {
 
       return reduce(filedata);
     },
-    fileSystem: async (_, { folder }) => reduce(await filesAPI.getFolderData(folder)),
+    fileSystem: async (_, { folder }) => {
+      const [files, path] = await filesAPI.getFolderData(folder);
+
+      return {
+        files: reduce(files),
+        path,
+      };
+    },
   },
   Mutation: {
     deleteFile: async (_, { id }) => filesAPI.deleteFile(id),

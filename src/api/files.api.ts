@@ -4,7 +4,7 @@ import fs from 'fs';
 import { extname } from 'path';
 
 import config from '../config';
-import { AccessType, File, FileType } from '../graphql.generated';
+import { AccessType, File, FileSystemResponsePath, FileType } from '../graphql.generated';
 import { FILES_TABLE } from './constants';
 import knex from './knex';
 
@@ -166,22 +166,33 @@ class FilesAPI {
    * @returns List of folder/files
    */
 
-  async getFolderData(folder: string): Promise<FileModel[]> {
-    let folderTrimmed = this.trimFolder(folder);
+  async getFolderData(folder: string): Promise<[FileModel[], FileSystemResponsePath[]]> {
+    const folderTrimmed = this.trimFolder(folder);
 
     try {
       const fullPath = `${ROOT}${folderTrimmed === '/' ? '' : `/${folderTrimmed}`}`;
+
+      const pathNames = folderTrimmed.split('/');
+
+      const dbPaths = await knex<FileModel>(FILES_TABLE).where(
+        'id',
+        'in',
+        pathNames.filter((pn) => pn),
+      );
+
+      const paths = dbPaths.map((p) => ({ name: p.name, id: p.id }));
+
       const fileIds = fs.readdirSync(fullPath);
 
       if (!fileIds?.length) {
-        return [];
+        return [[], paths];
       }
 
       const files = await knex<FileModel>(FILES_TABLE).where('id', 'in', fileIds);
 
-      return files;
+      return [files, paths];
     } catch (err) {
-      return [];
+      return [[], []];
     }
   }
 

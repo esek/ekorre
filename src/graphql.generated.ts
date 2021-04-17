@@ -1,8 +1,9 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse } from './models/mappers';
 import type { Context } from './models/context';
+import type { ArticleResponse, FileResponse } from './models/mappers';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = { [X in Exclude<keyof T, K>]?: T[X] } & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -19,7 +20,7 @@ export type Query = {
   article?: Maybe<Article>;
   articles: Array<Maybe<Article>>;
   file?: Maybe<File>;
-  fileSystem: Array<File>;
+  fileSystem: FileSystemResponse;
   files: Array<File>;
   individualAccess?: Maybe<Access>;
   latestnews: Array<Maybe<Article>>;
@@ -305,11 +306,21 @@ export type File = {
   size: Scalars['Int'];
 };
 
+export type FileSystemResponse = {
+  files: Array<File>;
+  path: Array<FileSystemResponsePath>;
+};
+
 export enum AccessType {
   Public = 'public',
   Authenticated = 'authenticated',
   Admin = 'admin'
 }
+
+export type FileSystemResponsePath = {
+  id: Scalars['ID'];
+  name: Scalars['String'];
+};
 
 export type NewPost = {
   name: Scalars['String'];
@@ -424,7 +435,9 @@ export type ResolversTypes = ResolversObject<{
   Utskott: Utskott;
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
+  FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   AccessType: AccessType;
+  FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -448,6 +461,8 @@ export type ResolversParentTypes = ResolversObject<{
   Post: Post;
   HistoryEntry: HistoryEntry;
   File: FileResponse;
+  FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
+  FileSystemResponsePath: FileSystemResponsePath;
   NewPost: NewPost;
   NewUser: NewUser;
 }>;
@@ -456,7 +471,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, 'id'>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
   file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
-  fileSystem?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
+  fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
@@ -549,6 +564,18 @@ export type FileResolvers<ContextType = Context, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type FileSystemResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FileSystemResponse'] = ResolversParentTypes['FileSystemResponse']> = ResolversObject<{
+  files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType>;
+  path?: Resolver<Array<ResolversTypes['FileSystemResponsePath']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type FileSystemResponsePathResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FileSystemResponsePath'] = ResolversParentTypes['FileSystemResponsePath']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Query?: QueryResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
@@ -560,6 +587,8 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Post?: PostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
   File?: FileResolvers<ContextType>;
+  FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
+  FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;
 }>;
 
 

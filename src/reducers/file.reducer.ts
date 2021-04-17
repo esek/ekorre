@@ -18,7 +18,7 @@ const map = (file: FileModel) => {
   const { size } = statSync(`${ROOT}/${file.folderLocation}`);
   return {
     ...file,
-    url: `${ENDPOINT}/${file.folderLocation}`,
+    url: `${ENDPOINT}${file.folderLocation}`,
     createdBy: {
       username: file.refuploader,
     },
