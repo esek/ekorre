@@ -55,11 +55,8 @@ const userResolver: Resolvers = {
     refreshToken: async (_, { token }) => {
       const obj = verifyToken<User>(token);
 
-      if (obj !== false) {
-        const user = await getUser((obj as User).username);
-        return issueToken(user.data?.user);
-      } 
-      return '';
+      const user = await getUser(obj.username);
+      return issueToken(user.data?.user);
     }
   },
 };

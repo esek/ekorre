@@ -26,7 +26,7 @@ const checkTokenStore = (token: string): boolean => {
  * @param token the jwt token
  * @returns JWT payload eller false ifall tokenen har blivit invaliderad.
  */
-export const verifyToken = <T>(token: string): T | boolean => {
+export const verifyToken = <T>(token: string): T => {
   if (checkTokenStore(token)) throw Error('JWT token is in blacklist!');
   const u = jwt.verify(token, SECRET);
   logger.debug(`Authorized a token with value: ${Logger.pretty(u)}`);
