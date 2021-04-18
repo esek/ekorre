@@ -1,7 +1,8 @@
 import FilesAPI from '../api/files.api';
 import { useDataLoader } from '../dataloaders';
 import { Resolvers } from '../graphql.generated';
-import { hydrateFiles as reduce } from '../reducers/file.reducer';
+import { reduce } from '../reducers';
+import { fileReduce } from '../reducers/file.reducer';
 
 const filesAPI = new FilesAPI();
 
@@ -20,7 +21,7 @@ const filesResolver: Resolvers = {
         return [];
       }
 
-      return reduce(files);
+      return reduce(files, fileReduce);
     },
     file: async (_, { id }) => {
       const filedata = await filesAPI.getFileData(id);
@@ -29,13 +30,13 @@ const filesResolver: Resolvers = {
         return null;
       }
 
-      return reduce(filedata);
+      return reduce(filedata, fileReduce);
     },
     fileSystem: async (_, { folder }) => {
       const [files, path] = await filesAPI.getFolderData(folder);
 
       return {
-        files: reduce(files),
+        files: reduce(files, fileReduce),
         path,
       };
     },

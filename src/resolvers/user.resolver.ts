@@ -4,7 +4,6 @@ import { UserAPI } from '../api/user.api';
 import { schema } from '../app';
 import { invalidateToken, issueToken, verifyToken } from '../auth';
 import type { Resolvers, User } from '../graphql.generated';
-import { userReducer } from '../reducers/user.reducer';
 
 const api = new UserAPI();
 
@@ -35,7 +34,7 @@ const userResolver: Resolvers = {
     user: async (_, { username }) => {
       // ctx.getUser();
       const u = await api.getSingleUser(username);
-      if (u != null) return userReducer(u);
+      if (u != null) return reduce(u, userReduce);
       return null;
     },
   },
