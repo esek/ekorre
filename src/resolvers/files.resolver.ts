@@ -43,6 +43,7 @@ const filesResolver: Resolvers = {
   },
   Mutation: {
     deleteFile: async (_, { id }) => filesAPI.deleteFile(id),
+    // TODO: Fix ref
     createFolder: async (_, { path, name }) => filesAPI.createFolder(path, name, 'aa0000bb-s'),
   },
 };

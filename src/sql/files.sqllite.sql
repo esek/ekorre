@@ -1,11 +1,10 @@
 CREATE TABLE IF NOT EXISTS "Files" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "refuploader" TEXT NOT NULL,
   "name" TEXT NOT NULL,
-  "fileType" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "folderLocation" TEXT NOT NULL,
   "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "lastUpdatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  "location" TEXT NOT NULL,
   "accessType" TEXT NOT NULL,
+  "refuploader" TEXT NOT NULL,
   FOREIGN KEY("refuploader") REFERENCES "Users"("username")
 );

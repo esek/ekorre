@@ -23,7 +23,12 @@ class FilesAPI {
    * @param type What type of file it is
    * @returns A `FileModel` object with the data of the saved file
    */
-  async saveFile(file: UploadedFile, accessType: AccessType, path: string): Promise<FileModel> {
+  async saveFile(
+    file: UploadedFile,
+    accessType: AccessType,
+    path: string,
+    creator: string,
+  ): Promise<FileModel> {
     const date = new Date();
 
     const type = this.getFileType(file.name);
@@ -45,12 +50,11 @@ class FilesAPI {
     const newFile: FileModel = {
       id: hashedName,
       name: file.name,
-      type,
-      // TODO: create ref to uploader using auth
-      refuploader: 'aa0000bb-s',
+      refuploader: creator,
       folderLocation: `${trimmedPath}${hashedName}`,
       accessType,
       createdAt: date,
+      type,
     };
 
     await knex<FileModel>(FILES_TABLE).insert(newFile);

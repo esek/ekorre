@@ -85,5 +85,16 @@ INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags,
 INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('bb1111cc-s', 'aa0000bb-s', 'Nyhet 2', '<h1>Detta är också en nyhet</h1><p>Body för nyheten<i>italic!</i></p>', 'Hejsan', 'tag1,tag2','news');
 INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('no0000oh-s', 'no0000oh-s', 'Info 1', '<h1>Detta är information</h1><p>Body för infon<s>strikethrough!</s></p>', 'XX', '','information');
 
+CREATE TABLE IF NOT EXISTS "Files" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "folderLocation" TEXT NOT NULL,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "accessType" TEXT NOT NULL,
+  "refuploader" TEXT NOT NULL,
+  FOREIGN KEY("refuploader") REFERENCES "Users"("username")
+);
+
 
 END TRANSACTION;

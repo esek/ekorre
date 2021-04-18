@@ -15,7 +15,8 @@ filesRoute.post('/upload', upload(), async ({ files, body }, res) => {
     const file = files.file instanceof Array ? files.file[0] : files.file;
     const accessType = (body?.accessType as AccessType) ?? AccessType.Public;
     const path = body?.path ?? '/';
-    const dbFile = await filesAPI.saveFile(file, accessType, path);
+    // TODO: Fix ref
+    const dbFile = await filesAPI.saveFile(file, accessType, path, 'aa0000bb-s');
 
     return res.send(dbFile);
   }
