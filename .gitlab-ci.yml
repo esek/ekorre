@@ -7,6 +7,7 @@
 image: docker:19
 
 stages:
+  - test
   - build
   - push
 
@@ -22,9 +23,23 @@ before_script:
 
 build:
   stage: build
+  only:
+    - master
+    - /^release-[0-9]\.[0-9]\.[0-9]$/
   script:
     - docker build -t $CONTAINER_TEST_IMAGE .
     - docker push $CONTAINER_TEST_IMAGE
+
+lint:
+  stage: test
+  image: node:15
+  # Make sure docker info is not run and get some node info
+  before_script:
+    - node --version
+  script:
+    - npm ci
+    - npx eslint src
+
 
 # # Here, the goal is to tag the "master" branch as "latest"
 push latest:

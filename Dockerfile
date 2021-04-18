@@ -3,7 +3,7 @@ WORKDIR /srv/app
 
 # Kopiera både package.json och pacakge-lock.json
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --no-optional
 
 COPY tsconfig.json tsconfig.json
 
