@@ -19,7 +19,7 @@ const SECRET = () => {
 };
 const EXPIRE_MINUTES = 10;
 const logger = Logger.getLogger('Auth');
-const invalidTokenStore: Set<string> = new Set();
+let invalidTokenStore: [token:string, time:number][] = [];
 
 /**
  * Kollar ifall det finns en svartlistad token.
@@ -27,7 +27,10 @@ const invalidTokenStore: Set<string> = new Set();
  * @returns Sant ifall den givna tokenen finns annars falskt.
  */
 const checkTokenStore = (token: string): boolean => {
-  if (invalidTokenStore.has(token)) {
+  const now = Date.now();
+  invalidTokenStore = invalidTokenStore.filter(([_, time]) => now - time < EXPIRE_MINUTES * 1000 * 60);
+
+  if (invalidTokenStore.find(([t]) => t === token) != null) {
     logger.log('Blacklisted token was used.');
     return true;
   }
@@ -64,11 +67,7 @@ export const issueToken = (o: Record<string, unknown>): string => {
  * @param token - Den token som ska invalideras
  */
 export const invalidateToken = (token: string): boolean => {
-  if (invalidTokenStore.size > 1000) {
-    invalidTokenStore.clear();
-    logger.debug('Cleard blacklist store.');
-  }
-  invalidTokenStore.add(token);
+  invalidTokenStore.push([token, Date.now()]);
   logger.debug('Invalidated a token.');
   return true;
 };
