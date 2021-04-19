@@ -5,6 +5,7 @@ import { extname } from 'path';
 
 import config from '../config';
 import { AccessType, File, FileSystemResponsePath, FileType } from '../graphql.generated';
+import { Logger } from '../logger';
 import { FILES_TABLE } from './constants';
 import knex from './knex';
 
@@ -13,14 +14,18 @@ export type FileModel = Omit<File, 'createdBy' | 'url' | 'size'> & {
 };
 
 const {
-  FILES: { ROOT, ENDPOINT },
+  FILES: { ROOT },
 } = config;
+
+const logger = Logger.getLogger('Files');
 
 class FilesAPI {
   /**
    * Saves a new file to the server
    * @param file The file to save
    * @param type What type of file it is
+   * @param path Where to save the file
+   * @param creator Username of the creator of the file
    * @returns A `FileModel` object with the data of the saved file
    */
   async saveFile(
@@ -29,8 +34,6 @@ class FilesAPI {
     path: string,
     creator: string,
   ): Promise<FileModel> {
-    const date = new Date();
-
     const type = this.getFileType(file.name);
 
     const hashedName = this.createHashedName(file.name);
@@ -45,15 +48,18 @@ class FilesAPI {
       fs.mkdirSync(folder, { recursive: true });
     }
 
+    // Move file to correct location
     await file.mv(location);
 
+    // Save file to DB with hashedName as id and folderLocation
+    // pointing to the location in storage
     const newFile: FileModel = {
       id: hashedName,
       name: file.name,
       refuploader: creator,
       folderLocation: `${trimmedPath}${hashedName}`,
       accessType,
-      createdAt: date,
+      createdAt: new Date(),
       type,
     };
 
@@ -62,16 +68,20 @@ class FilesAPI {
     return newFile;
   }
 
+  /**
+   * Creates a folder on the filesystem
+   * @param folder The directory in which to save the folder
+   * @param name Name of the folder
+   * @param creator Username of the creator of the folder
+   * @returns `true` if folder was created, otherwise `false`
+   */
   async createFolder(folder: string, name: string, creator: string) {
     const folderTrimmed = this.trimFolder(folder);
     const hash = this.createHashedName(name);
     const fullPath = `${ROOT}/${folderTrimmed}${hash}`;
 
-    if (fs.existsSync(fullPath)) {
-      return false;
-    }
-
     try {
+      // Create folder in storage
       fs.mkdirSync(fullPath, { recursive: true });
 
       const dbData: FileModel = {
@@ -80,12 +90,13 @@ class FilesAPI {
         createdAt: new Date(),
         folderLocation: `${folderTrimmed}${hash}`,
         name: name,
-        // TODO: Fix ref
         refuploader: creator,
         type: FileType.Folder,
       };
 
       const res = await knex<FileModel>(FILES_TABLE).insert(dbData);
+
+      logger.info(`Created folder ${name} with hash ${hash}`);
 
       return res.length > 0;
     } catch {
@@ -99,6 +110,7 @@ class FilesAPI {
    * @returns A boolean indicating if the deletion was a success
    */
   async deleteFile(id: string) {
+    // Get file from DB
     const file = await this.getFileData(id);
 
     if (!file) {
@@ -112,6 +124,8 @@ class FilesAPI {
 
     // Delete file from DB
     await knex<FileModel>(FILES_TABLE).where('id', id).delete();
+
+    logger.info(`Deleted ${file.type} ${file.name}`);
 
     return true;
   }
@@ -161,6 +175,8 @@ class FilesAPI {
       }
     }
 
+    logger.warn(`No matching FileType found for ${ext}`);
+
     return FileType.Other;
   }
 
@@ -169,37 +185,46 @@ class FilesAPI {
    * @param folder The path to the directory
    * @returns List of folder/files
    */
-
   async getFolderData(folder: string): Promise<[FileModel[], FileSystemResponsePath[]]> {
     const folderTrimmed = this.trimFolder(folder);
 
     try {
+      // Get path for current directory
       const fullPath = `${ROOT}${folderTrimmed === '/' ? '' : `/${folderTrimmed}`}`;
 
-      const pathNames = folderTrimmed.split('/');
+      // Get all folders in the path
+      const pathNames = folderTrimmed.split('/').filter((p) => p);
 
-      const dbPaths = await knex<FileModel>(FILES_TABLE).where(
-        'id',
-        'in',
-        pathNames.filter((pn) => pn),
-      );
+      // Get details for all folders from DB
+      const dbPaths = await knex<FileModel>(FILES_TABLE)
+        .where('id', 'in', pathNames)
+        .select('id', 'name');
 
-      const paths = dbPaths.map((p) => ({ name: p.name, id: p.id }));
-
+      // Read files in current directory
       const fileIds = fs.readdirSync(fullPath);
 
+      // If no files, return empty array
       if (!fileIds?.length) {
-        return [[], paths];
+        return [[], dbPaths];
       }
 
+      // Get details for all files in current directory from DB
       const files = await knex<FileModel>(FILES_TABLE).where('id', 'in', fileIds);
 
-      return [files, paths];
+      return [files, dbPaths];
     } catch (err) {
       return [[], []];
     }
   }
 
+  /**
+   * Helper to ensure folder name is formatted as /\<foldername>/
+   *
+   * Excluding root, which should always be /
+   *
+   * @param folder folder to format
+   * @returns Correctly formatted foldername
+   */
   private trimFolder(folder: string) {
     let trimmed = folder.replace('..', '').trim();
 
@@ -214,6 +239,12 @@ class FilesAPI {
     return trimmed;
   }
 
+  /**
+   * Generates an md5 hash consisting of a string and the current date
+   * to ensure that it will always be unique
+   * @param name The string to hash
+   * @returns Random unique md5 hash
+   */
   private createHashedName(name: string) {
     const date = new Date();
 
