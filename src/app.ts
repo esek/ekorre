@@ -64,7 +64,7 @@ void (async () => {
 
       return {
         token,
-        getUser: () => verifyToken(token) as User,
+        getUser: () => verifyToken<User>(token),
         userDataLoader: createDataLoader(batchUsersFunction),
       };
     },
