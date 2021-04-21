@@ -120,7 +120,7 @@ class FilesAPI {
     const location = `${ROOT}/${file.folderLocation}`;
 
     // Delete file from system
-    fs.rmSync(location);
+    fs.rmSync(location, { recursive: true });
 
     // Delete file from DB
     await knex<FileModel>(FILES_TABLE).where('id', id).delete();
