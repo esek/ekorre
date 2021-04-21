@@ -25,6 +25,7 @@ build:
   stage: build
   only:
     - master
+    - main
     - /^release-[0-9]\.[0-9]\.[0-9]$/
   script:
     - docker build -t $CONTAINER_TEST_IMAGE .
@@ -51,6 +52,7 @@ push latest:
   only:
     # Only "master" should be tagged "latest"
     - master
+    - main
   script:
     # Because we have no guarantee that this job will be picked up by the same runner 
     # that built the image in the previous step, we pull it again locally
