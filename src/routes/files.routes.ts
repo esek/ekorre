@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response, Router, static as staticFiles } from 'express';
-import upload from 'express-fileupload';
+import upload, { UploadedFile } from 'express-fileupload';
 
 import FilesAPI from '../api/files.api';
 import { verifyToken } from '../auth';
@@ -13,6 +13,16 @@ const filesAPI = new FilesAPI();
 
 const logger = Logger.getLogger('Files');
 
+interface UploadFileRequest {
+  body: {
+    path?: string;
+    accessType?: AccessType;
+  };
+  files: {
+    file?: UploadedFile[];
+  };
+}
+
 /**
  * HTTP POST endpoint for handling uploading of files
  * Requests are to be sent using FormData with a parameter of `file`
@@ -24,7 +34,9 @@ const logger = Logger.getLogger('Files');
  * @default `path`: '/'
  */
 
-filesRoute.post('/upload', upload(), async ({ files, body }, res) => {
+filesRoute.post('/upload', upload(), async (req, res) => {
+  const { body, files } = req as UploadFileRequest;
+
   if (!files?.file) {
     // If no file is provided, send HTTP status 400
     return res.status(400).send('File missing');
@@ -48,56 +60,54 @@ filesRoute.post('/upload', upload(), async ({ files, body }, res) => {
  * @returns HTTP status 404 if the file does not exist
  */
 
-const verifyReadAccess = async (req: Request, res: Response, next: NextFunction) => {
-  const { url } = req;
-  const id = url.substr(url.lastIndexOf('/') + 1).split('?')[0];
-  const file = await filesAPI.getFileData(id);
+const verifyReadAccess = (req: Request, res: Response, next: NextFunction) => {
+  // IIFE because .use does not expect a promise
+  (async () => {
+    const { url } = req;
+    const id = url.substr(url.lastIndexOf('/') + 1).split('?')[0];
+    const file = await filesAPI.getFileData(id);
 
-  const jwtToken: string =
-    req.headers.authorization ?? req.cookies?.token ?? req.query?.token ?? ''; // Get token from cookie, query-param or header
+    const jwtToken: string = req.headers.authorization ?? req.query?.token?.toString() ?? ''; // Get token from cookie, query-param or header
 
-  if (!file) {
-    logger.debug(`Could not find file '${id}' in DB`);
-    res.status(404).send();
-    return;
-  }
-
-  // If public file, just go to content
-  if (file.accessType === AccessType.Public) {
-    next();
-    return;
-  }
-
-  try {
-    if (!jwtToken) {
-      throw new Error('Missing JWT token in access restricted file');
+    if (!file) {
+      logger.debug(`Could not find file '${id}' in DB`);
+      res.status(404).send();
+      return;
     }
 
-    const token = verifyToken<User>(jwtToken);
+    // If public file, just go to content
+    if (file.accessType === AccessType.Public) {
+      next();
+      return;
+    }
 
-    switch (file.accessType) {
-      case AccessType.Admin:
+    try {
+      if (!jwtToken) {
+        throw new Error('Missing JWT token in access restricted file');
+      }
+
+      const token = verifyToken<User>(jwtToken);
+
+      if (file.accessType === AccessType.Admin && token) {
         // TODO: Verify that user is admin
-        if (token) {
-          next();
-          return;
-        }
-      case AccessType.Authenticated:
-        if (token) {
-          next();
-          return;
-        }
+        next();
+        return;
+      }
+
+      if (file.accessType === AccessType.Authenticated && token) {
+        next();
+        return;
+      }
+
+      // If none of the above verifications succeeded, user is not authorized
+      throw new Error('Verification for file restriction failed');
+    } catch (error) {
+      // Return 403 if no token was provided or it verification failed
+      logger.error(`Error in verification middleware - ${error as string}`);
+
+      res.status(403).send('Access Denied');
     }
-
-    // If none of the above verifications succeeded, user is not authorized
-    throw new Error('Verification for file restriction failed');
-  } catch (error) {
-    // Return 403 if no token was provided or it verification failed
-    logger.error(`Error in verification middleware - ${error}`);
-
-    res.status(403).send('Access Denied');
-    return;
-  }
+  })();
 };
 
 // Host static files

@@ -89,7 +89,7 @@ class FilesAPI {
         accessType: AccessType.Public,
         createdAt: new Date(),
         folderLocation: `${folderTrimmed}${hash}`,
-        name: name,
+        name,
         refuploader: creator,
         type: FileType.Folder,
       };
@@ -169,15 +169,13 @@ class FilesAPI {
       [FileType.Spreadsheet]: /[/.](xlx|xlsx|xls)$/i,
     };
 
-    for (const type of Object.keys(REGEX)) {
-      if (RegExp(REGEX[type]).exec(ext)) {
-        return type as FileType;
-      }
+    const type = Object.keys(REGEX).find((k) => RegExp(REGEX[k]).exec(ext)) as FileType | undefined;
+
+    if (!type) {
+      logger.warn(`No matching FileType found for ${ext}`);
     }
 
-    logger.warn(`No matching FileType found for ${ext}`);
-
-    return FileType.Other;
+    return type ?? FileType.Other;
   }
 
   /**

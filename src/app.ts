@@ -75,14 +75,13 @@ void (async () => {
 
   const server = new ApolloServer({
     schema,
-    context: ({ req, res }): Context => {
+    context: ({ req }): Context => {
       const token = req.headers.authorization?.split(' ')[1] ?? '';
 
       return {
         token,
         getUser: () => verifyToken<User>(token),
         userDataLoader: createDataLoader(batchUsersFunction),
-        response: res,
       };
     },
     debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),

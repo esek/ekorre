@@ -42,7 +42,7 @@ const userResolver: Resolvers = {
   },
   Mutation: {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    login: async (_, { username, password }, { response }) => {
+    login: async (_, { username, password }) => {
       const partialUser = await api.loginUser(username, password);
       if (partialUser == null) return null;
 

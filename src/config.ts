@@ -1,7 +1,7 @@
 import path from 'path';
 
 const config = {
-  PORT: parseInt(process.env.PORT ?? '5000'),
+  PORT: parseInt(process.env.PORT ?? '5000', 10),
   HOST: process.env.HOST ?? '0.0.0.0',
   FILES: {
     ENDPOINT: process.env.FILES_ENDPOINT ?? '/files',
