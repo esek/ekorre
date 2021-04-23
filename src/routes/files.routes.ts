@@ -2,9 +2,9 @@ import { NextFunction, Request, Response, Router, static as staticFiles } from '
 import upload from 'express-fileupload';
 
 import FilesAPI from '../api/files.api';
-import auth from '../auth';
+import { verifyToken } from '../auth';
 import config from '../config';
-import { AccessType } from '../graphql.generated';
+import { AccessType, User } from '../graphql.generated';
 import { Logger } from '../logger';
 
 const filesRoute = Router();
@@ -73,7 +73,7 @@ const verifyReadAccess = async (req: Request, res: Response, next: NextFunction)
       throw new Error('Missing JWT token in access restricted file');
     }
 
-    const token = auth.verifyToken(jwtToken);
+    const token = verifyToken<User>(jwtToken);
 
     switch (file.accessType) {
       case AccessType.Admin:

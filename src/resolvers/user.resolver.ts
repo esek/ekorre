@@ -4,6 +4,8 @@ import { UserAPI } from '../api/user.api';
 import { schema } from '../app';
 import { invalidateToken, issueToken, verifyToken } from '../auth';
 import type { Resolvers, User } from '../graphql.generated';
+import { reduce } from '../reducers';
+import { userReduce } from '../reducers/user.reducer';
 
 const api = new UserAPI();
 
