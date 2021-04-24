@@ -1,3 +1,4 @@
+@echo off
 set DATABASE_PATH=sqlite_database.db
 
 sqlite3 --version >nul 2>&1 && (
@@ -19,5 +20,6 @@ sqlite3 --version >nul 2>&1 && (
   npm run dev
 
 ) || (
-    echo "sqlite3 hittades inte, du behöver installera detta"
+    echo "sqlite3 hittades inte, ladda ner 'sqlite-tools' till windows från https://sqlite.org/download.html"
+    echo "och kopiera in sqlite3.exe till denna mapp"
 )
