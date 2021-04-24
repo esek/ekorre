@@ -12,9 +12,6 @@ RUN npm run build
 
 # Default env värden för prod
 ENV PORT=5000
-ENV DB_CLIENT=mysql2
-ENV DB_HOST=localhost
-ENV MODULES='["user", "post", "access", "article"]'
 
 EXPOSE $PORT
 
