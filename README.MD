@@ -6,12 +6,15 @@ skriven i TypeScript.
 ## Hur startar jag?
 
 Kort och gott:
-```
-npm install
-npm run start
+```bash
+# för linux och troligen mac
+sh init.sh
+
+# för windows
+cmd init.bat
 ```
 
-### Fortsättning på det korta och goda...
+### Avanacerad start/förklaringar
 
 Det behövs en databas och konfiguration för att starta servern.
 För att generera databasen med exempeldata så skriv:
@@ -25,13 +28,22 @@ rekommenderat att ha en databashanterare t.ex. [dbeaver](https://dbeaver.io/). F
 
 Därefter kopiera `.env.example.dev` till `.env` och ange
 filnamnet på databasen vid `DB_FILE` fältet.
+`.env` filen innehåller konfigurationsvariabler till servern.
 
-För utveckling:
+Därefter behöver du installera alla npm-paket med hjälp av
+```
+npm install
+```
+
+och för att starta utvecklingservern så skriver du:
 ```c
 npm run dev // Kompilera kontiuerligt och öppna för debugger
 ```
+PS: För att stänga av servern trycker du CTRL+c
 
 ## Hur utvecklar jag?
+
+Läs [semver](#SEMVER)
 
 TL;DR
 ```c
@@ -64,7 +76,8 @@ där `schemas` och `resolvers` är viktigast. För
 att hålla en konsekvent och stabil struktur bör
 alla databasfrågor skötas från en klass i `api`
 och `sql` är dedikerad till att skapa de tabeller
-som behövs för din funktion.
+som behövs för din funktion. Det finns mer djupgående
+README:s i undermapparna.
 
 ### Verktyg
 
@@ -76,7 +89,6 @@ Det är rekomenderat att du bekantar dig lite med de verktyg som används:
 * [graphql-codegen](https://graphql-code-generator.com/)
 * [apollo-server](https://www.apollographql.com/docs/apollo-server/)*
 * [graphql-tools](https://www.graphql-tools.com/docs/introduction/)*
-* [swc-project](https://swc.rs/)*
 * [jwt](https://jwt.io/)*
 
 \**kursivt*
@@ -102,3 +114,23 @@ givna.
 npm run lint // Testa kodfel, brukar göras av IDE
 npm run prettier-format // Formatera all kod
 ```
+
+### SEMVER
+
+Versionshantering följer [semantic versioning](https://semver.org/spec/v2.0.0.html) specificationen. Detta är viktigt eftersom releases
+ska taggas med semver för att kunna automatiskt deployas.
+# Docker
+
+Det finns en gitlab-ci pipeline som kommer bygga docker bilder med hjälp av Dockerfile.
+Dessa publiceras sedan till en *registry* som tillhör detta projekt. Dessa bilder är i huvudsak
+designade för servern (som i skrivande stund är extrovert).
+
+För att starta en docker container med ekorre så används kommandot:
+
+```bash
+docker run -p 5000:5000 --env-file .env registry.gitlab.com/esektionen/projekt/ekorre:latest
+```
+där taggen `latest` också kan vara `release-X.X.X`.
+
+
+Referera till ddgwiki för mer information.
