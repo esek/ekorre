@@ -133,4 +133,4 @@ docker run -p 5000:5000 --env-file .env registry.gitlab.com/esektionen/projekt/e
 där taggen `latest` också kan vara `release-X.X.X`.
 
 
-Referera till ddgwiki för mer information.
+Referera till [ddgwiki](https://ddgwiki.esek.se/index.php?title=CI/CD) för mer information.
