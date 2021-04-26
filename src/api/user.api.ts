@@ -127,10 +127,10 @@ export class UserAPI {
    * @param input den nya användarinformationen
    */
   async createUser(input: NewUser): Promise<User> {
-    const salt = crypto.randomBytes(16).toString('base64');
-    const passwordHash = this.hashPassword(input.password, salt);
-
     const { password, ...inputReduced } = input;
+
+    const salt = crypto.randomBytes(16).toString('base64');
+    const passwordHash = this.hashPassword(password, salt);
 
     const u: DatabaseUser = {
       ...inputReduced,
