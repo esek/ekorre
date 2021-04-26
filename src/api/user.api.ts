@@ -126,20 +126,21 @@ export class UserAPI {
    * Skapa en ny anvädare. TODO: FIX, ska inte returnera User typ...
    * @param input den nya användarinformationen
    */
-  createUser(input: NewUser): User {
+  async createUser(input: NewUser): Promise<User> {
     const salt = crypto.randomBytes(16).toString('base64');
     const passwordHash = this.hashPassword(input.password, salt);
 
+    const { password, ...inputReduced } = input;
+
     const u: DatabaseUser = {
-      ...input,
+      ...inputReduced,
       passwordHash,
       salt,
     };
 
-    knex<DatabaseUser>(USER_TABLE).insert(u);
-    const logStr = `Created user ${Logger.pretty(input)}`;
+    await knex<DatabaseUser>(USER_TABLE).insert(u);
+    const logStr = `Created user ${Logger.pretty(inputReduced)}`;
     logger.info(logStr);
-    logger.debug(logStr);
     return {
       ...input,
       access: { doors: [], web: [] }, // TODO: Kanske default access?
