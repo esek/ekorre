@@ -132,7 +132,7 @@ class FilesAPI {
 
   async getMultipleFiles(type?: FileType) {
     if (type) {
-      return knex<FileModel>(FILES_TABLE).where('fileType', type);
+      return knex<FileModel>(FILES_TABLE).where('type', type);
     }
     return knex<FileModel>(FILES_TABLE);
   }
