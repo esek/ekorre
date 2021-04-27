@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { RequestHandler } from 'express';
 
 import FilesAPI from '../../api/files.api';
 import { verifyToken } from '../../auth';
@@ -7,9 +7,7 @@ import { Logger } from '../../logger';
 
 const logger = Logger.getLogger('RestAuth');
 
-export type Middleware = (req: Request, res: Response, next: NextFunction) => void;
-
-export const verifyAuthenticated: Middleware = (req, res, next) => {
+export const verifyAuthenticated: RequestHandler = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[0]; // Bearer abc....
 
   if (!token) {
@@ -29,7 +27,7 @@ export const verifyAuthenticated: Middleware = (req, res, next) => {
   next();
 };
 
-export const verifyFileReadAccess = (api: FilesAPI): Middleware => (req, res, next) => {
+export const verifyFileReadAccess = (api: FilesAPI): RequestHandler => (req, res, next) => {
   // IIFE because .use does not expect a promise
   (async () => {
     const { url } = req;
