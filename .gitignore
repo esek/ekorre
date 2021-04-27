@@ -8,3 +8,6 @@ public
 
 #Mac files
 .DS_Store
+
+#Windows
+*.exe

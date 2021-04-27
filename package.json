@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "E-Sektionens backend",
   "main": "src/app.ts",
   "scripts": {
@@ -8,10 +8,10 @@
     "build": "tsc",
     "prestart": "npm run build",
     "start": "npm run run",
-    "dev": "nodemon -e ts,graphql --watch src --exec 'node --nolazy --inspect -r ts-node/register src/app.ts'",
+    "dev": "nodemon -e ts,graphql --watch src --exec \"node --nolazy --inspect -r ts-node/register src/app.ts\"",
     "generate": "graphql-codegen --config codegen.yml",
-    "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
-    "lint": "eslint src; exit 0"
+    "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" --write",
+    "lint": "eslint src"
   },
   "author": "Emil Blennow",
   "contributors": [
