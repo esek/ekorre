@@ -80,7 +80,7 @@ void (async () => {
 
       return {
         token,
-        getUser: () => verifyToken<User>(token),
+        getUser: () => verifyToken<User>(token), // varför fattar inte TS att detta är av typen () => User???
         userDataLoader: createDataLoader(batchUsersFunction),
       };
     },

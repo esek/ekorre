@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import { ParamsDictionary } from 'express-serve-static-core';
 
 import FilesAPI from '../../api/files.api';
 import { verifyToken } from '../../auth';
@@ -7,35 +8,68 @@ import { Logger } from '../../logger';
 
 const logger = Logger.getLogger('RestAuth');
 
-export const verifyAuthenticated: RequestHandler = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[0]; // Bearer abc....
+/**
+ * Express middleware to set a getUser helper method on res.locals.getUser
+ */
 
-  if (!token) {
-    res.status(401).send('Missing JWT token in Authorization header');
-    return;
+/* eslint-disable @typescript-eslint/indent */
+export type RequestHandlerWithLocals = RequestHandler<
+  ParamsDictionary,
+  any,
+  any,
+  { token?: string },
+  { user?: User; getUser: () => User }
+>;
+
+export const setUser: RequestHandlerWithLocals = (req, res, next) => {
+  let token = req.headers.authorization ?? req.query?.token?.toString() ?? '';
+
+  // Remove `Bearer ` from token string
+  if (token.includes('Bearer')) {
+    token = token.replace('Bearer ', '');
   }
 
+  res.locals.getUser = () => verifyToken<User>(token);
+
+  next();
+};
+
+/**
+ * Express middleware to verify that a user is authenticated
+ * also sets res.locals.user to the authenticated user on success
+ */
+
+export const verifyAuthenticated: RequestHandlerWithLocals = (_req, res, next) => {
   try {
-    const verifiedToken = verifyToken<User>(token);
-    if (!verifiedToken) {
+    const user: User = res.locals.getUser();
+    res.locals.user = user;
+
+    if (!user) {
       throw new Error();
     }
   } catch {
     res.status(401).send('Token could not be verified');
+    return;
   }
 
   next();
 };
 
-export const verifyFileReadAccess = (api: FilesAPI): RequestHandler => (req, res, next) => {
+/**
+ * Express middleware to ensure that a user has the correct read access for a specific file
+ * @param api Files API
+ */
+
+export const verifyFileReadAccess = (api: FilesAPI): RequestHandlerWithLocals => (
+  req,
+  res,
+  next,
+) => {
   // IIFE because .use does not expect a promise
   (async () => {
     const { url } = req;
     const id = url.substr(url.lastIndexOf('/') + 1).split('?')[0];
     const file = await api.getFileData(id);
-
-    const jwtToken: string =
-      req.headers.authorization?.split(' ')[0] ?? req.query?.token?.toString() ?? ''; // Get token from cookie, query-param or header
 
     if (!file) {
       logger.debug(`Could not find file '${id}' in DB`);
@@ -50,19 +84,15 @@ export const verifyFileReadAccess = (api: FilesAPI): RequestHandler => (req, res
     }
 
     try {
-      if (!jwtToken) {
-        throw new Error('Missing JWT token in access restricted file');
-      }
+      const user: User = res.locals.getUser();
 
-      const token = verifyToken<User>(jwtToken);
-
-      if (file.accessType === AccessType.Admin && token) {
+      if (file.accessType === AccessType.Admin && user) {
         // TODO: Verify that user is admin
         next();
         return;
       }
 
-      if (file.accessType === AccessType.Authenticated && token) {
+      if (file.accessType === AccessType.Authenticated && user) {
         next();
         return;
       }

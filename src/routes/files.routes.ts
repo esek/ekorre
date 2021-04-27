@@ -3,14 +3,18 @@ import upload, { UploadedFile } from 'express-fileupload';
 
 import FilesAPI from '../api/files.api';
 import config from '../config';
-import { AccessType, User } from '../graphql.generated';
-import { verifyAuthenticated, verifyFileReadAccess } from '../middlewares/rest/auth.middleware';
+import { AccessType } from '../graphql.generated';
+import {
+  setUser,
+  verifyAuthenticated,
+  verifyFileReadAccess,
+} from '../middlewares/rest/auth.middleware';
 
 const filesRoute = Router();
 
 const filesAPI = new FilesAPI();
 
-interface UploadFileRequest {
+export interface UploadFileRequest {
   body: {
     path?: string;
     accessType?: AccessType;
@@ -18,10 +22,10 @@ interface UploadFileRequest {
   files: {
     file?: UploadedFile[];
   };
-  params: {
-    user?: User;
-  };
 }
+
+// Sets res.locals.getUser as a helper function for getting the current user
+filesRoute.use(setUser);
 
 /**
  * HTTP POST endpoint for handling uploading of files
@@ -47,8 +51,7 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
-  // TODO: Fix ref
-  const dbFile = await filesAPI.saveFile(file, accessType, path, 'aa0000bb-s');
+  const dbFile = await filesAPI.saveFile(file, accessType, path, res.locals.user!.username);
 
   return res.send(dbFile);
 });
