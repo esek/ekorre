@@ -51,7 +51,7 @@ build:
   script:
     # Cachad node_modules from lint
     - npm run build
-    # Trimma till dockerzie steg
+    # Minska ner inför dockerize steg
     - npm prune --production
   artifacts:
     paths:
@@ -64,7 +64,7 @@ dockerize:
   only:
     - master
     - main
-    - /^release-[0-9]\.[0-9]\.[0-9]$/
+    - /^release-[0-9]+\.[0-9]+\.[0-9]+$/
   dependencies:
     - build
   script:
@@ -87,9 +87,9 @@ push latest:
     # that built the image in the previous step, we pull it again locally
     - docker pull $CONTAINER_TEST_IMAGE
     # Then we tag it "latest"
-    - docker tag $CONTAINER_TEST_IMAGE $CI_REGISTRY_IMAGE:latest
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
     # Annnd we push it.
-    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker push $CONTAINER_RELEASE_IMAGE
 
 # Finally, the goal here is to Docker tag any Git tag
 # GitLab will start a new pipeline everytime a Git tag is created, which is pretty awesome
@@ -102,7 +102,6 @@ push tag:
     # We want this job to be run on tags only.
     - tags
   script:
-    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
