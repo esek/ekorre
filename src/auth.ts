@@ -1,5 +1,5 @@
-import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 
 import { Logger } from './logger';
 
@@ -19,7 +19,7 @@ const SECRET = () => {
 };
 const EXPIRE_MINUTES = 10;
 const logger = Logger.getLogger('Auth');
-let invalidTokenStore: [token:string, time:number][] = [];
+let invalidTokenStore: [token: string, time: number][] = [];
 
 /**
  * Kollar ifall det finns en svartlistad token.
@@ -28,7 +28,9 @@ let invalidTokenStore: [token:string, time:number][] = [];
  */
 const checkTokenStore = (token: string): boolean => {
   const now = Date.now();
-  invalidTokenStore = invalidTokenStore.filter(([_, time]) => now - time < EXPIRE_MINUTES * 1000 * 60);
+  invalidTokenStore = invalidTokenStore.filter(
+    ([_, time]) => now - time < EXPIRE_MINUTES * 1000 * 60,
+  );
 
   if (invalidTokenStore.find(([t]) => t === token) != null) {
     logger.log('Blacklisted token was used.');
@@ -47,7 +49,7 @@ export const verifyToken = <T>(token: string): T => {
   if (checkTokenStore(token)) throw Error('JWT token is in blacklist!');
   const u = jwt.verify(token, SECRET());
   logger.debug(`Authorized a token with value: ${Logger.pretty(u)}`);
-  return u as unknown as T; // Kan bli problem senare...
+  return (u as unknown) as T; // Kan bli problem senare...
 };
 
 /**

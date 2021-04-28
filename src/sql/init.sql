@@ -85,4 +85,19 @@ INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags,
 INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('bb1111cc-s', 'aa0000bb-s', 'Nyhet 2', '<h1>Detta är också en nyhet</h1><p>Body för nyheten<i>italic!</i></p>', 'Hejsan', 'tag1,tag2','news');
 INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('no0000oh-s', 'no0000oh-s', 'Info 1', '<h1>Detta är information</h1><p>Body för infon<s>strikethrough!</s></p>', 'XX', '','information');
 
+CREATE TABLE IF NOT EXISTS "Files" (
+  "id" TEXT PRIMARY KEY,
+  "name" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "folderLocation" TEXT NOT NULL,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "accessType" TEXT NOT NULL,
+  "refuploader" TEXT NOT NULL,
+  FOREIGN KEY("refuploader") REFERENCES "Users"("username")
+);
+
+INSERT INTO Files (id, name, type, folderLocation, accessType, refUploader) VALUES ('c703198a20f148f392061060f651fdb3.png', 'esek.png', 'image', '/c703198a20f148f392061060f651fdb3.png', 'public', 'aa0000bb-s');
+INSERT INTO Files (id, name, type, folderLocation, accessType, refUploader) VALUES ('6f837f0400bd1eb70f3648fc31343ecc', 'textfiler', 'folder', '/6f837f0400bd1eb70f3648fc31343ecc', 'public', 'aa0000bb-s');
+INSERT INTO Files (id, name, type, folderLocation, accessType, refUploader) VALUES ('098f6bcd4621d373cade4e832627b4f6.txt', 'text.txt', 'text', '/6f837f0400bd1eb70f3648fc31343ecc/098f6bcd4621d373cade4e832627b4f6.txt', 'authenticated', 'aa0000bb-s');
+
 END TRANSACTION;
