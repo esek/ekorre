@@ -86,7 +86,7 @@ INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags,
 INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('no0000oh-s', 'no0000oh-s', 'Info 1', '<h1>Detta är information</h1><p>Body för infon<s>strikethrough!</s></p>', 'XX', '','information');
 
 CREATE TABLE IF NOT EXISTS "Files" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "id" TEXT PRIMARY KEY,
   "name" TEXT NOT NULL,
   "type" TEXT NOT NULL,
   "folderLocation" TEXT NOT NULL,
