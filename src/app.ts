@@ -4,10 +4,12 @@ import { DateResolver } from 'graphql-scalars';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import 'source-map-support/register';
 
-import auth from './auth';
-import type { Context } from './context';
+import { verifyToken } from './auth';
+import { createDataLoader } from './dataloaders';
+import { batchUsersFunction } from './dataloaders/user.dataloader';
 import type { User } from './graphql.generated';
 import { Logger } from './logger';
+import type { Context } from './models/context';
 import * as Resolvers from './resolvers/index';
 
 // Visa en referens till källfilen istället för den kompilerade
@@ -45,7 +47,6 @@ const resolvers = Object.entries(Resolvers)
   .map(([_, value]) => value);
 
 // Konstruera root schema. VIKTIGT! Det senaste schemat kommer skugga andra.
-// eslint-disable-next-line import/prefer-default-export
 export const schema = mergeSchemas({
   schemas,
   resolvers,
@@ -63,7 +64,8 @@ void (async () => {
 
       return {
         token,
-        getUser: () => auth.verifyToken(token) as User,
+        getUser: () => verifyToken<User>(token),
+        userDataLoader: createDataLoader(batchUsersFunction),
       };
     },
     debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
@@ -79,7 +81,7 @@ void (async () => {
   });
 
   const serverInfo = await server.listen({
-    port: process.env.port ?? 3000,
+    port: process.env.PORT ?? 5000,
     host: '0.0.0.0',
   });
   logger.log(`Server started at ${serverInfo.url}`);

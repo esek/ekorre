@@ -1,0 +1,54 @@
+#import User from 'user.graphql'
+
+scalar Date
+scalar DateTime
+
+type Query {
+  newsentries(creator: String, after: DateTime, before: DateTime, markdown: Boolean): [Article]!
+  latestnews(limit: Int, markdown: Boolean): [Article]!
+  article(id: ID!, markdown: Boolean): Article
+  articles(id: ID, creator: String, lastUpdateBy: String, title: String, createdAt: DateTime, lastUpdatedAt: DateTime, signature: String, tags: [String], articleType: String, markdown: Boolean): [Article]!
+}
+
+type Mutation {
+  addArticle(entry: NewArticle!): Article
+  modifyArticle(articleId: Int!, entry: ModifyArticle!): Boolean!
+}
+
+"Body is saved as HTML serverside, but edited in MarkDown"
+type Article {
+  id: ID
+  creator: User!
+  lastUpdatedBy: User!
+  title: String!
+  body: String!
+  createdAt: DateTime!
+  lastUpdatedAt: DateTime!
+  signature: String!
+  tags: [String!]!
+  articleType: ArticleType!
+}
+
+"News are the ones to be used by a website newsreel"
+enum ArticleType {
+  news
+  information
+}
+
+input NewArticle {
+  creator: String!
+  title: String!
+  body: String!
+  signature: String!
+  tags: [String!]
+  articleType: ArticleType!
+}
+
+"We don't need every part; It should already exist"
+input ModifyArticle {
+  title: String
+  body: String
+  signature: String
+  tags: [String!]
+  articleType: ArticleType
+}

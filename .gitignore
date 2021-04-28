@@ -4,3 +4,9 @@ build
 *.db
 *.swp
 *.swo
+
+#Mac files
+.DS_Store
+
+#Windows
+*.exe
