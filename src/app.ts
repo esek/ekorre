@@ -17,38 +17,22 @@ import * as Resolvers from './resolvers/index';
 Logger.logLevel = Logger.getLogLevelFromString(process.env.LOGLEVEL ?? 'normal');
 const logger = Logger.getLogger('App');
 
-/**
- * Alla moduler att ladda
- * En modul måste ha en schema och resolver.
- * De två filer som behövs är
- *  - src/schemas/<modul>.graphql
- *  - src/resolvers/<modul>.resolver.ts
- * och resolvers ska inkluderas i filen src/resolvers/index.ts
- */
-const modules = JSON.parse(process.env.MODULES ?? '[]') as string[];
-
 logger.log('Beginning startup...');
-logger.log(`I will load the following modules:\n\t\
-${modules.join('\n\t')}`);
 
 // Ladda alla scheman från .graphql filer
-const schemas = modules.map((module) =>
-  loadSchemaSync(`./src/schemas/${module}.graphql`, {
-    loaders: [new GraphQLFileLoader()],
-    resolvers: {
-      Date: DateResolver,
-    },
-  }),
-);
+const schemas = loadSchemaSync('./src/schemas/*.graphql', {
+  loaders: [new GraphQLFileLoader()],
+  resolvers: {
+    Date: DateResolver,
+  },
+});
 
 // Gör en map av alla resolvers
-const resolvers = Object.entries(Resolvers)
-  .filter(([key]) => modules.includes(key))
-  .map(([_, value]) => value);
+const resolvers = Object.entries(Resolvers).map(([_, value]) => value);
 
 // Konstruera root schema. VIKTIGT! Det senaste schemat kommer skugga andra.
 export const schema = mergeSchemas({
-  schemas,
+  schemas: [schemas],
   resolvers,
 });
 

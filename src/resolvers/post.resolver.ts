@@ -3,9 +3,7 @@ import { UserAPI } from '../api/user.api';
 import { Resolvers } from '../graphql.generated';
 import { postReduce, postReducer } from '../reducers/post.reducer';
 import { userReducer } from '../reducers/user.reducer';
-import { dependecyGuard } from '../util';
 
-dependecyGuard('post', ['user']);
 
 const api = new PostAPI();
 const userApi = new UserAPI();
