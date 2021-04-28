@@ -1,6 +1,6 @@
-import DataLoader from 'dataloader';
+import type DataLoader from 'dataloader';
 
-import type { User } from './graphql.generated';
+import type { User } from '../graphql.generated';
 
 export type Context = {
   token: string;

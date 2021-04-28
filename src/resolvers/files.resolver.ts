@@ -1,6 +1,6 @@
 import FilesAPI from '../api/files.api';
 import { useDataLoader } from '../dataloaders';
-import { Resolvers, User } from '../graphql.generated';
+import { Resolvers } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { fileReduce } from '../reducers/file.reducer';
 
@@ -44,7 +44,7 @@ const filesResolver: Resolvers = {
   Mutation: {
     deleteFile: async (_, { id }) => filesAPI.deleteFile(id),
     createFolder: async (_, { path, name }, { getUser }) => {
-      const user = getUser() as User;
+      const user = getUser();
       const created = filesAPI.createFolder(path, name, user.username);
       return created;
     },

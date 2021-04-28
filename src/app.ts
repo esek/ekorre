@@ -80,7 +80,7 @@ void (async () => {
 
       return {
         token,
-        getUser: () => verifyToken<User>(token), // varför fattar inte TS att detta är av typen () => User???
+        getUser: () => verifyToken<User>(token),
         userDataLoader: createDataLoader(batchUsersFunction),
       };
     },
@@ -100,6 +100,6 @@ void (async () => {
   server.applyMiddleware({ app, path: '/', cors: true });
 
   app.listen(PORT, HOST, () => {
-    logger.log(`Server started on ${HOST}:${PORT}`);
+    logger.log(`Server started on http://${HOST}:${PORT}`);
   });
 })();
