@@ -49,9 +49,10 @@ build:
     - main
     - /^release-[0-9]+\.[0-9]+\.[0-9]+$/
   script:
-    # Cachad node_modules from lint trimmas ner
-    - npm prune --production
+    # Cachad node_modules from lint
     - npm run build
+    # Trimma till dockerzie steg
+    - npm prune --production
   artifacts:
     paths:
       - node_modules
@@ -64,6 +65,8 @@ dockerize:
     - master
     - main
     - /^release-[0-9]\.[0-9]\.[0-9]$/
+  dependecies:
+    - build
   script:
     - docker build -f Dockerfile.ci -t $CONTAINER_TEST_IMAGE .
     - docker push $CONTAINER_TEST_IMAGE
