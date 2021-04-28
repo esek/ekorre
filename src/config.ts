@@ -7,6 +7,7 @@ const config = {
     ENDPOINT: process.env.FILES_ENDPOINT ?? '/files',
     ROOT: process.env.FILE_ROOT ?? `${path.dirname(__dirname)}/public`,
   },
+  EKOLLON: process.env.EKOLLON ?? 'https://eee.esek.se',
 };
 
 export default config;

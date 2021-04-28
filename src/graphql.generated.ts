@@ -115,6 +115,7 @@ export type Mutation = {
   addArticle?: Maybe<Article>;
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
+  casRegister?: Maybe<User>;
   createFolder: Scalars['Boolean'];
   createUser?: Maybe<User>;
   deleteFile: Scalars['Boolean'];
@@ -143,6 +144,11 @@ export type MutationAddUsersToPostArgs = {
   usernames: Array<Scalars['String']>;
   postname: Scalars['String'];
   period: Scalars['Int'];
+};
+
+
+export type MutationCasRegisterArgs = {
+  ticket: Scalars['String'];
 };
 
 
@@ -499,6 +505,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
+  casRegister?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCasRegisterArgs, 'ticket'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'path' | 'name'>>;
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;

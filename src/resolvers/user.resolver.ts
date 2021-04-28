@@ -1,9 +1,12 @@
+import axios from 'axios';
 import { graphql } from 'graphql';
+import { parseStringPromise } from 'xml2js';
 
 import { UserAPI } from '../api/user.api';
 import { schema } from '../app';
 import { invalidateToken, issueToken, verifyToken } from '../auth';
-import type { Resolvers, User } from '../graphql.generated';
+import config from '../config';
+import type { NewUser, Resolvers, User } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
 
@@ -58,6 +61,38 @@ const userResolver: Resolvers = {
 
       const user = await getUser(obj.username);
       return issueToken(user.data?.user);
+    },
+    casRegister: async (_, { ticket }) => {
+      const CB_URL = `${config.EKOLLON}/register`;
+      const LU_URL = `https://idpv3.lu.se/idp/profile/cas/serviceValidate?renew=false&service=${encodeURI(
+        CB_URL,
+      )}&ticket=${ticket}`;
+
+      const xml = await axios.get(LU_URL).then((res) => res.data);
+
+      const response = await parseStringPromise(xml);
+
+      const error = response['cas:serviceResponse']['cas:authenticationFailure'];
+
+      // Cas validering failed
+      if (error) {
+        console.log(error);
+        return null;
+      }
+
+      // TODO: Get correct fields from response
+
+      const input: NewUser = {
+        password: '',
+        username: '',
+        class: '',
+        name: '',
+        lastname: '',
+      };
+
+      const user = await api.createUser(input);
+
+      return user;
     },
   },
 };
