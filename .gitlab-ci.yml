@@ -65,7 +65,7 @@ dockerize:
     - master
     - main
     - /^release-[0-9]\.[0-9]\.[0-9]$/
-  dependecies:
+  dependencies:
     - build
   script:
     - docker build -f Dockerfile.ci -t $CONTAINER_TEST_IMAGE .
