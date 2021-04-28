@@ -1,0 +1,55 @@
+#import User from 'user.graphql'
+
+scalar Date
+scalar DateTime
+
+type Query {
+  files(type: FileType): [File!]!
+  file(id: ID!): File
+  fileSystem(folder: String!): FileSystemResponse!
+}
+
+
+type Mutation {
+  deleteFile(id: ID!): Boolean!
+  createFolder(path: String!, name: String!): Boolean!
+}
+
+type File {
+  id: ID!
+  name: String!
+  type: FileType!
+  folderLocation: String!
+  url: String
+  accessType: AccessType!
+  createdAt: DateTime!
+  createdBy: User
+  size: Int!
+}
+
+type FileSystemResponse {
+  files: [File!]!
+  path: [FileSystemResponsePath!]!
+}
+
+type FileSystemResponsePath {
+  id: ID!
+  name: String!
+}
+
+enum FileType {
+  image,
+  pdf,
+  text,
+  code,
+  powerpoint,
+  spreadsheet,
+  folder,
+  other,
+}
+
+enum AccessType {
+  public,
+  authenticated,
+  admin
+}

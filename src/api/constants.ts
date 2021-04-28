@@ -4,3 +4,4 @@ export const IND_ACCESS_TABLE = 'IndividualAccess';
 export const POSTS_TABLE = 'Posts';
 export const POSTS_HISTORY_TABLE = 'PostHistory';
 export const ARTICLE_TABLE = 'Articles';
+export const FILES_TABLE = 'Files';

@@ -1,16 +1,22 @@
-import { ApolloServer } from 'apollo-server';
+import { ApolloServer } from 'apollo-server-express';
+import cookieparser from 'cookie-parser';
+import cors from 'cors';
 import 'dotenv/config';
+import express from 'express';
 import { DateResolver } from 'graphql-scalars';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
-import 'source-map-support/register';
 
 import { verifyToken } from './auth';
+import config from './config';
 import { createDataLoader } from './dataloaders';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
 import type { User } from './graphql.generated';
 import { Logger } from './logger';
 import type { Context } from './models/context';
 import * as Resolvers from './resolvers/index';
+import filesRoute from './routes/files.routes';
+
+const { PORT, HOST, FILES } = config;
 
 // Visa en referens till källfilen istället för den kompilerade
 
@@ -56,7 +62,17 @@ export const schema = mergeSchemas({
 // eslint-disable-next-line no-void
 void (async () => {
   // Starta server.
+  const app = express();
+
+  app.use(cookieparser());
+
+  app.use(cors());
+
+  // Setup files endpoint for REST-file handling
+  app.use(FILES.ENDPOINT, filesRoute);
+
   const apolloLogger = Logger.getLogger('Apollo');
+
   const server = new ApolloServer({
     schema,
     context: ({ req }): Context => {
@@ -76,13 +92,14 @@ void (async () => {
         },
       },
     ],
-    cors: true,
     tracing: true,
   });
 
-  const serverInfo = await server.listen({
-    port: process.env.PORT ?? 5000,
-    host: '0.0.0.0',
+  await server.start();
+
+  server.applyMiddleware({ app, path: '/', cors: true });
+
+  app.listen(PORT, HOST, () => {
+    logger.log(`Server started on http://${HOST}:${PORT}`);
   });
-  logger.log(`Server started at ${serverInfo.url}`);
 })();

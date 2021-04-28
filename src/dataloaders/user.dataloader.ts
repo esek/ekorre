@@ -1,6 +1,7 @@
 import { UserAPI } from '../api/user.api';
 import { User } from '../graphql.generated';
-import { userReducer } from '../reducers/user.reducer';
+import { reduce } from '../reducers';
+import { userReduce } from '../reducers/user.reducer';
 
 const userApi = new UserAPI();
 
@@ -21,7 +22,7 @@ export const batchUsersFunction = async (
 
   const apiResponse = await userApi.getMultipleUsers(usernames);
   if (apiResponse === null) return [];
-  const users = await userReducer(apiResponse);
+  const users = reduce(apiResponse, userReduce);
 
   return users;
 };
