@@ -9,27 +9,24 @@ image: docker:19
 stages:
   - test
   - build
+  - dockerize
   - push
+  - deploy
 
 variables:
   CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
+cache:
+  paths:
+    - node_modules
+  key: ${CI_COMMIT_REF_SLUG}
 
 before_script:
   # docker login asks for the password to be passed through stdin for security
   # we use $CI_JOB_TOKEN here which is a special token provided by GitLab
   - echo -n $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
   - docker info
-
-build:
-  stage: build
-  only:
-    - master
-    - main
-    - /^release-[0-9]\.[0-9]\.[0-9]$/
-  script:
-    - docker build -t $CONTAINER_TEST_IMAGE .
-    - docker push $CONTAINER_TEST_IMAGE
 
 lint:
   stage: test
@@ -38,9 +35,38 @@ lint:
   before_script:
     - node --version
   script:
-    - npm ci
+    - npm install # Egentligen kanske man ska använda ci
     - npx eslint src
 
+build:
+  stage: build
+  image: node:15
+  # Make sure docker info is not run and get some node info
+  before_script:
+    - node --version
+  only:
+    - master
+    - main
+    - /^release-[0-9]+\.[0-9]+\.[0-9]+$/
+  script:
+    # Cachad node_modules from lint trimmas ner
+    - npm prune --production
+    - npm run build
+  artifacts:
+    paths:
+      - node_modules
+      - build
+      - package.json
+
+dockerize:
+  stage: dockerize
+  only:
+    - master
+    - main
+    - /^release-[0-9]\.[0-9]\.[0-9]$/
+  script:
+    - docker build -f Dockerfile.ci -t $CONTAINER_TEST_IMAGE .
+    - docker push $CONTAINER_TEST_IMAGE
 
 # # Here, the goal is to tag the "master" branch as "latest"
 push latest:
@@ -76,3 +102,4 @@ push tag:
     - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
     - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
