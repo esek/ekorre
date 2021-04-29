@@ -4,9 +4,6 @@ import { Resolvers } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { postReduce } from '../reducers/post.reducer';
 import { userReduce } from '../reducers/user.reducer';
-import { dependecyGuard } from '../util';
-
-dependecyGuard('post', ['user']);
 
 const api = new PostAPI();
 const userApi = new UserAPI();
