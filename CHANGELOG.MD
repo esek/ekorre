@@ -4,6 +4,15 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2021-05-02
+
+### Tillagt
+ - `Dockerfile.ci` för CI skript. Detta går även att använda lokalt
+ om man vill paketera sin nuvarande build
+### Ändrat
+ - Uppdaterat CI skript för att vara mer smidiga
+ - Flyttat `sqlite3` från devDependencies till vanlig
+
 ## [0.1.0] - 2021-04-27
 
 ### Tillagt
