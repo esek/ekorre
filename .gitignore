@@ -1,9 +1,11 @@
 node_modules
 build
+public
 .env
 *.db
 *.swp
 *.swo
+public.local
 
 #Mac files
 .DS_Store

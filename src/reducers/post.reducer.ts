@@ -15,13 +15,3 @@ export function postReduce(post: PostModel): Post {
 
   return p;
 }
-
-export async function postReducer(incoming: PostModel): Promise<Post>;
-export async function postReducer(incoming: PostModel[]): Promise<Post[]>;
-export async function postReducer(incoming: PostModel | PostModel[]): Promise<Post | Post[]> {
-  if (incoming instanceof Array) {
-    const posts = await Promise.all(incoming.map((e) => postReduce(e)));
-    return posts;
-  }
-  return postReduce(incoming);
-}

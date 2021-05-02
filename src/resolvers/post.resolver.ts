@@ -1,11 +1,9 @@
 import { PostAPI } from '../api/post.api';
 import { UserAPI } from '../api/user.api';
 import { Resolvers } from '../graphql.generated';
-import { postReduce, postReducer } from '../reducers/post.reducer';
-import { userReducer } from '../reducers/user.reducer';
-import { dependecyGuard } from '../util';
-
-dependecyGuard('post', ['user']);
+import { reduce } from '../reducers';
+import { postReduce } from '../reducers/post.reducer';
+import { userReduce } from '../reducers/user.reducer';
 
 const api = new PostAPI();
 const userApi = new UserAPI();
@@ -20,9 +18,9 @@ const postresolver: Resolvers = {
     },
     posts: async (_, { utskott }) => {
       if (utskott != null) {
-        return postReducer(await api.getPostsFromUtskott(utskott));
+        return reduce(await api.getPostsFromUtskott(utskott), postReduce);
       }
-      return postReducer(await api.getPosts());
+      return reduce(await api.getPosts(), postReduce);
     },
   },
   Mutation: {
@@ -33,7 +31,7 @@ const postresolver: Resolvers = {
       api.removeUsersFromPost(usernames, postname),
   },
   User: {
-    posts: async ({ username }) => postReducer(await api.getPostsForUser(username)),
+    posts: async ({ username }) => reduce(await api.getPostsForUser(username), postReduce),
   },
   Post: {
     history: async ({ postname }) => {
@@ -44,7 +42,7 @@ const postresolver: Resolvers = {
           // Null assertion används här för den bakomliggande databasen
           // Ska ha foregin key constraint
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const holder = await userReducer(h!);
+          const holder = reduce(h!, userReduce);
 
           return { ...e, holder, postname };
         }),
