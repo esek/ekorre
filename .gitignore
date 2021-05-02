@@ -5,6 +5,7 @@ public
 *.db
 *.swp
 *.swo
+public.local
 
 #Mac files
 .DS_Store
