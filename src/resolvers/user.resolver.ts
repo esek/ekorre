@@ -7,10 +7,13 @@ import { schema } from '../app';
 import { invalidateToken, issueToken, verifyToken } from '../auth';
 import config from '../config';
 import type { NewUser, Resolvers, User } from '../graphql.generated';
+import { Logger } from '../logger';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
 
 const api = new UserAPI();
+
+const logger = Logger.getLogger('UserReducer');
 
 const getUser = (username: string) => {
   // Detta är sinnessjukt osnyggt... dock nyttjar vi den modulära
@@ -74,25 +77,33 @@ const userResolver: Resolvers = {
 
       const error = response['cas:serviceResponse']['cas:authenticationFailure'];
 
-      // Cas validering failed
-      if (error) {
-        console.log(error);
+      try {
+        const stilId =
+          response['cas:serviceResponse']['cas:authenticationSuccess'][0]['cas:user'][0];
+
+        logger.info(`CAS Register for new member: ${stilId}`);
+
+        // Cas validering failed
+        if (error) {
+          throw Error(error);
+        }
+
+        // TODO: Get correct fields from response
+
+        const input: NewUser = {
+          password: '',
+          username: '',
+          class: '',
+          name: '',
+          lastname: '',
+        };
+
+        const user = await api.createUser(input);
+        return user;
+      } catch (err) {
+        logger.error(`Cas validation failed for token: ${err}`);
         return null;
       }
-
-      // TODO: Get correct fields from response
-
-      const input: NewUser = {
-        password: '',
-        username: '',
-        class: '',
-        name: '',
-        lastname: '',
-      };
-
-      const user = await api.createUser(input);
-
-      return user;
     },
   },
 };
