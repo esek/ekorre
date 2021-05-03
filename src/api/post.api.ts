@@ -21,7 +21,7 @@ export class PostAPI {
    * Hämta alla poster.
    */
   async getPosts(): Promise<PostModel[]> {
-    const posts = await knex<PostModel>(POSTS_TABLE);
+    const posts = await knex<PostModel>(POSTS_TABLE).orderBy('postname');
 
     return posts;
   }
@@ -37,7 +37,7 @@ export class PostAPI {
    * @param username användaren
    */
   async getPostsForUser(username: string): Promise<PostModel[]> {
-    const refposts = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
+    const refposts = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).orderBy('period', 'desc')
       .where({
         refuser: username,
         end: null,
@@ -57,7 +57,7 @@ export class PostAPI {
    * @param utskott utskottet
    */
   async getPostsFromUtskott(utskott: Utskott): Promise<PostModel[]> {
-    const posts = await knex<PostModel>(POSTS_TABLE).where({
+    const posts = await knex<PostModel>(POSTS_TABLE).orderBy('postname').where({
       utskott,
     });
 
@@ -115,7 +115,7 @@ export class PostAPI {
   }
 
   async getHistoryEntries(refpost: string) {
-    const entries = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).where({
+    const entries = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).orderBy('period', 'desc').where({
       refpost,
     });
 
