@@ -1,15 +1,13 @@
-import axios from 'axios';
 import { graphql } from 'graphql';
-import { parseStringPromise } from 'xml2js';
 
 import { UserAPI } from '../api/user.api';
 import { schema } from '../app';
-import { invalidateToken, issueToken, verifyToken } from '../auth';
-import config from '../config';
-import type { NewUser, Resolvers, User } from '../graphql.generated';
+import { hashWithSecret, invalidateToken, issueToken, verifyToken } from '../auth';
+import type { Resolvers, User } from '../graphql.generated';
 import { Logger } from '../logger';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
+import { validateCasTicket } from '../services/cas.service';
 
 const api = new UserAPI();
 
@@ -65,45 +63,33 @@ const userResolver: Resolvers = {
       const user = await getUser(obj.username);
       return issueToken(user.data?.user);
     },
-    casRegister: async (_, { ticket }) => {
-      const CB_URL = `${config.EKOLLON}/register`;
-      const LU_URL = `https://idpv3.lu.se/idp/profile/cas/serviceValidate?renew=false&service=${encodeURI(
-        CB_URL,
-      )}&ticket=${ticket}`;
-
-      const xml = await axios.get(LU_URL).then((res) => res.data);
-
-      const response = await parseStringPromise(xml);
-
-      const error = response['cas:serviceResponse']['cas:authenticationFailure'];
-
+    validateCasTicket: async (_, { ticket }) => {
       try {
-        const stilId =
-          response['cas:serviceResponse']['cas:authenticationSuccess'][0]['cas:user'][0];
+        const username = await validateCasTicket(ticket);
 
-        logger.info(`CAS Register for new member: ${stilId}`);
+        const exists = await api.userExists(username);
 
-        // Cas validering failed
-        if (error) {
-          throw Error(error);
+        if (exists) {
+          throw new Error('CAS_USER_EXISTS');
         }
 
-        // TODO: Get correct fields from response
+        logger.info(`CAS Register for new member: ${username}`);
 
-        const input: NewUser = {
-          password: '',
-          username: '',
-          class: '',
-          name: '',
-          lastname: '',
-        };
+        const hash = hashWithSecret(username);
 
-        const user = await api.createUser(input);
-        return user;
+        return { hash, username };
       } catch (err) {
-        logger.error(`Cas validation failed for token: ${err}`);
+        logger.error(`Cas validation failed ${err as string}`);
+        throw Error(err);
+      }
+    },
+    casCreateUser: (_, { input, hash }) => {
+      // Verifierar att det är korrekt STIL-ID som används
+      if (hashWithSecret(input.username) !== hash) {
         return null;
       }
+
+      return api.createUser(input);
     },
   },
 };

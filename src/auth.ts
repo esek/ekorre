@@ -73,3 +73,15 @@ export const invalidateToken = (token: string): boolean => {
   logger.debug('Invalidated a token.');
   return true;
 };
+
+/**
+ * Hashar en string tillsammans med dagens secret
+ * @param s Stringen att hasha
+ * @returns Hash
+ */
+
+export const hashWithSecret = (s: string) =>
+  crypto
+    .createHash('sha256')
+    .update(s + SECRET())
+    .digest('hex');

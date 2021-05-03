@@ -13,7 +13,8 @@ type Mutation {
   refreshToken(token: String!): String
   logout(token: String!): Boolean
   createUser(input: NewUser!): User
-  casRegister(ticket: String!): User
+  validateCasTicket(ticket: String!): CasRegisterResponse
+  casCreateUser(input: NewUser!, hash: String!): User
 }
 
 type User {
@@ -32,4 +33,9 @@ input NewUser {
   lastname: String!
   class: String!
   password: String!
+}
+
+type CasRegisterResponse {
+  hash: String!
+  username: String!
 }

@@ -15,7 +15,9 @@
         "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_"}],
         "import/prefer-default-export": "off",
         "import/extensions": "off",
-        "class-methods-use-this": "off"
+        "class-methods-use-this": "off",
+        "prefer-promise-reject-errors": "off",
+        "@typescript-eslint/no-use-before-define": "off"
     },
     "ignorePatterns": "src/**/*.generated.ts"
 }
