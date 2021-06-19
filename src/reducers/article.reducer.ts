@@ -52,7 +52,7 @@ const articleReduce = (article: ArticleModel, markdown: boolean): ArticleModel =
   const a: ArticleModel & { slug: string } = {
     ...reduced,
     body: sanatizedBody,
-    slug: generateSlug(`${reduced.title}-${reduced.id}`),
+    slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
     // Exteremely temporary fix for tags, as knex doesn't send them back as an array
     tags: ((reduced.tags as unknown) as string).split(','),
   };
