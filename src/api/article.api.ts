@@ -92,7 +92,10 @@ export class ArticleAPI {
     if (slug) {
       // Fetches the last number from a string, ex: `article-with-long-123-slug-7`, gives `7`
       const regex = RegExp(/(\d+)[^-]*$/).exec(slug);
-      dbId = regex?.[0];
+
+      if (regex?.length) {
+        dbId = regex[0];
+      }
     }
 
     if (dbId == null) {
