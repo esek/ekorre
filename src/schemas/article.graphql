@@ -6,7 +6,7 @@ scalar DateTime
 type Query {
   newsentries(creator: String, after: DateTime, before: DateTime, markdown: Boolean): [Article]!
   latestnews(limit: Int, markdown: Boolean): [Article]!
-  article(id: ID!, markdown: Boolean): Article
+  article(id: ID, slug: String, markdown: Boolean): Article
   articles(id: ID, creator: String, lastUpdateBy: String, title: String, createdAt: DateTime, lastUpdatedAt: DateTime, signature: String, tags: [String], articleType: String, markdown: Boolean): [Article]!
 }
 
@@ -18,6 +18,7 @@ type Mutation {
 "Body is saved as HTML serverside, but edited in MarkDown"
 type Article {
   id: ID
+  slug: String
   creator: User!
   lastUpdatedBy: User!
   title: String!

@@ -82,12 +82,12 @@ const articleResolver: Resolvers = {
       // Vi vill returnera en tom array, inte null
       return articleModels.map(hydrate);
     },
-    article: async (_, { id, markdown }) => {
+    article: async (_, { id, slug, markdown }) => {
       const safeMarkdown = markdown ?? false; // If markdown not passed, returns default (false)
 
       // Vi får tillbaka en ArticleModel som inte har en hel användare, bara unikt användarnamn.
       // Vi måste använda UserAPI:n för att få fram denna användare.
-      let articleModel = await articleApi.getArticle(id);
+      let articleModel = await articleApi.getArticle({ id, slug });
 
       // Om API::n returnerar null finns inte artikeln; returnera null
       if (articleModel == null) {

@@ -1,5 +1,7 @@
 /* eslint-disable class-methods-use-this */
 
+import { Maybe } from 'graphql/jsutils/Maybe';
+
 import { Article, ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
 import { toUTC } from '../util';
 import { ARTICLE_TABLE } from './constants';
@@ -8,9 +10,14 @@ import knex from './knex';
 // Refs används när en annan databas innehåller informationen,
 // så denna innehåller bara en referens för att kunna hitta
 // rätt i den
-export type ArticleModel = Omit<Article, 'creator' | 'lastUpdatedBy'> & {
+export type ArticleModel = Omit<Article, 'creator' | 'lastUpdatedBy' | 'slug'> & {
   refcreator: string; // Reference for use, i.e. username
   reflastupdateby: string;
+};
+
+type GetArticleParams = {
+  id: Maybe<string>;
+  slug: Maybe<string>;
 };
 
 /**
@@ -79,8 +86,24 @@ export class ArticleAPI {
    * Returns the article with the specified id
    * @param id article id
    */
-  async getArticle(id: string): Promise<ArticleModel | null> {
-    const article = await knex<ArticleModel>(ARTICLE_TABLE).where('id', id).first();
+  async getArticle({ id, slug }: GetArticleParams): Promise<ArticleModel | null> {
+    let dbId = id;
+
+    if (slug) {
+      // Fetches the last number from a string, ex: `article-with-long-123-slug-7`, gives `7`
+      const regex = RegExp(/(\d+)[^-]*$/).exec(slug);
+
+      if (regex?.length) {
+        const [match] = regex;
+        dbId = match;
+      }
+    }
+
+    if (dbId == null) {
+      return null;
+    }
+
+    const article = await knex<ArticleModel>(ARTICLE_TABLE).where('id', dbId).first();
 
     return article ?? null;
   }
@@ -132,6 +155,7 @@ export class ArticleAPI {
       refcreator: creator,
       reflastupdateby: creator,
     };
+
     const res = await knex<ArticleModel>(ARTICLE_TABLE).insert(article);
 
     return {
