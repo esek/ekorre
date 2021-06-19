@@ -94,7 +94,8 @@ export class ArticleAPI {
       const regex = RegExp(/(\d+)[^-]*$/).exec(slug);
 
       if (regex?.length) {
-        dbId = regex[0];
+        const [match] = regex;
+        dbId = match;
       }
     }
 
