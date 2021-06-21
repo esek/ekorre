@@ -69,6 +69,25 @@ const userResolver: Resolvers = {
       const user = await getUser(obj.username);
       return issueToken(user.data?.user);
     },
+    requestPasswordReset: async (_, { username }) => {
+      const user = await api.getSingleUser(username);
+
+      if (!user) {
+        return false;
+      }
+
+      const token = await api.requestPasswordReset(user.username);
+
+      if (!token) {
+        return false;
+      }
+
+      // TODO: Send token in email or something?
+
+      return true;
+    },
+    resetPassword: async (_, { token, username, password }) =>
+      api.resetPassword(token, username, password),
   },
 };
 

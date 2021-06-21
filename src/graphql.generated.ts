@@ -125,6 +125,8 @@ export type Mutation = {
   modifyArticle: Scalars['Boolean'];
   refreshToken?: Maybe<Scalars['String']>;
   removeUsersFromPost: Scalars['Boolean'];
+  requestPasswordReset: Scalars['Boolean'];
+  resetPassword: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
   updateUser?: Maybe<Scalars['Boolean']>;
@@ -189,6 +191,18 @@ export type MutationRefreshTokenArgs = {
 export type MutationRemoveUsersFromPostArgs = {
   usernames: Array<Scalars['String']>;
   postname: Scalars['String'];
+};
+
+
+export type MutationRequestPasswordResetArgs = {
+  username: Scalars['String'];
+};
+
+
+export type MutationResetPasswordArgs = {
+  username: Scalars['String'];
+  token: Scalars['String'];
+  password: Scalars['String'];
 };
 
 
@@ -533,6 +547,8 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   refreshToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationRefreshTokenArgs, 'token'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
+  requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
+  resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'username' | 'token' | 'password'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
   updateUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
