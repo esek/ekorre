@@ -116,6 +116,7 @@ export type Mutation = {
   addArticle?: Maybe<Article>;
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
+  casCreateUser?: Maybe<User>;
   createFolder: Scalars['Boolean'];
   createUser?: Maybe<User>;
   deleteFile: Scalars['Boolean'];
@@ -127,6 +128,7 @@ export type Mutation = {
   removeUsersFromPost: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
+  validateCasTicket?: Maybe<CasRegisterResponse>;
 };
 
 
@@ -144,6 +146,12 @@ export type MutationAddUsersToPostArgs = {
   usernames: Array<Scalars['String']>;
   postname: Scalars['String'];
   period: Scalars['Int'];
+};
+
+
+export type MutationCasCreateUserArgs = {
+  input: NewUser;
+  hash: Scalars['String'];
 };
 
 
@@ -200,6 +208,11 @@ export type MutationSetIndividualAccessArgs = {
 export type MutationSetPostAccessArgs = {
   postname: Scalars['String'];
   access: AccessInput;
+};
+
+
+export type MutationValidateCasTicketArgs = {
+  ticket: Scalars['String'];
 };
 
 /** Access will be treated as a immutable object! */
@@ -349,6 +362,11 @@ export type NewUser = {
   password: Scalars['String'];
 };
 
+export type CasRegisterResponse = {
+  hash: Scalars['String'];
+  username: Scalars['String'];
+};
+
 export type WithIndex<TObject> = TObject & Record<string, any>;
 export type ResolversObject<TObject> = WithIndex<TObject>;
 
@@ -454,6 +472,7 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   NewPost: NewPost;
   NewUser: NewUser;
+  CasRegisterResponse: ResolverTypeWrapper<CasRegisterResponse>;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -479,6 +498,7 @@ export type ResolversParentTypes = ResolversObject<{
   FileSystemResponsePath: FileSystemResponsePath;
   NewPost: NewPost;
   NewUser: NewUser;
+  CasRegisterResponse: CasRegisterResponse;
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
@@ -501,6 +521,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
+  casCreateUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'input' | 'hash'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'path' | 'name'>>;
   createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
@@ -511,6 +532,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
+  validateCasTicket?: Resolver<Maybe<ResolversTypes['CasRegisterResponse']>, ParentType, ContextType, RequireFields<MutationValidateCasTicketArgs, 'ticket'>>;
 }>;
 
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
@@ -593,6 +615,12 @@ export type FileSystemResponsePathResolvers<ContextType = Context, ParentType ex
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type CasRegisterResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CasRegisterResponse'] = ResolversParentTypes['CasRegisterResponse']> = ResolversObject<{
+  hash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Query?: QueryResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
@@ -606,6 +634,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;
+  CasRegisterResponse?: CasRegisterResponseResolvers<ContextType>;
 }>;
 
 

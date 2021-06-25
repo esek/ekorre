@@ -2,12 +2,16 @@ import { graphql } from 'graphql';
 
 import { UserAPI } from '../api/user.api';
 import { schema } from '../app';
-import { invalidateToken, issueToken, verifyToken } from '../auth';
+import { hashWithSecret, invalidateToken, issueToken, verifyToken } from '../auth';
 import type { Resolvers, User } from '../graphql.generated';
+import { Logger } from '../logger';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
+import { validateCasTicket } from '../services/cas.service';
 
 const api = new UserAPI();
+
+const logger = Logger.getLogger('UserReducer');
 
 const getUser = (username: string) => {
   // Detta är sinnessjukt osnyggt... dock nyttjar vi den modulära
@@ -58,6 +62,34 @@ const userResolver: Resolvers = {
 
       const user = await getUser(obj.username);
       return issueToken(user.data?.user);
+    },
+    validateCasTicket: async (_, { ticket }) => {
+      try {
+        const username = await validateCasTicket(ticket);
+
+        const exists = await api.userExists(username);
+
+        if (exists) {
+          throw new Error('CAS_USER_EXISTS');
+        }
+
+        logger.info(`CAS Register for new member: ${username}`);
+
+        const hash = hashWithSecret(username);
+
+        return { hash, username };
+      } catch (err) {
+        logger.error(`Cas validation failed ${err as string}`);
+        throw Error(err);
+      }
+    },
+    casCreateUser: (_, { input, hash }) => {
+      // Verifierar att det är korrekt STIL-ID som används
+      if (hashWithSecret(input.username) !== hash) {
+        return null;
+      }
+
+      return api.createUser(input);
     },
   },
 };

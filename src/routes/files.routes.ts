@@ -51,6 +51,8 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const dbFile = await filesAPI.saveFile(file, accessType, path, res.locals.user!.username);
 
   return res.send(dbFile);

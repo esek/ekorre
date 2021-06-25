@@ -147,4 +147,10 @@ export class UserAPI {
       posts: [],
     };
   }
+
+  async userExists(username: string): Promise<boolean> {
+    const user = await this.getSingleUser(username);
+
+    return user != null;
+  }
 }
