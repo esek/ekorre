@@ -6,6 +6,7 @@ import { invalidateToken, issueToken, verifyToken } from '../auth';
 import type { Resolvers, User } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
+import { sendEmail } from '../services/email.service';
 import { stripObject } from '../util';
 
 const api = new UserAPI();
@@ -82,10 +83,17 @@ const userResolver: Resolvers = {
         return false;
       }
 
-      // TODO: Send token in email or something?
+      await sendEmail(user.email, 'Glömt lösenord?', 'forgot-password', {
+        firstName: user.firstName,
+        resetLink: `https://esek.se/account/forgot-password?token=${token}&username=${user.username}`,
+        contactEmail: 'macapar@esek.se',
+        userEmail: user.email,
+      });
 
       return true;
     },
+    validatePasswordResetToken: async (_, { username, token }) =>
+      api.validateResetPasswordToken(username, token),
     resetPassword: async (_, { token, username, password }) =>
       api.resetPassword(token, username, password),
   },

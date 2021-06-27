@@ -1,6 +1,6 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse } from './models/mappers';
 import type { Context } from './models/context';
+import type { ArticleResponse, FileResponse } from './models/mappers';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
@@ -130,6 +130,7 @@ export type Mutation = {
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
   updateUser?: Maybe<Scalars['Boolean']>;
+  validatePasswordResetToken: Scalars['Boolean'];
 };
 
 
@@ -220,6 +221,11 @@ export type MutationSetPostAccessArgs = {
 
 export type MutationUpdateUserArgs = {
   input: UpdateUser;
+}
+
+export type MutationValidatePasswordResetTokenArgs = {
+  username: Scalars['String'];
+  token: Scalars['String'];
 };
 
 /** Access will be treated as a immutable object! */
@@ -552,6 +558,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
   updateUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
+  validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'username' | 'token'>>;
 }>;
 
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{

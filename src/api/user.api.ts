@@ -175,6 +175,19 @@ export class UserAPI {
     return token;
   }
 
+  async validateResetPasswordToken(username: string, token: string) {
+    const row = await knex<PasswordResetModel>(PASSWORD_RESET_TABLE)
+      .where('username', username)
+      .where('token', token)
+      .first();
+
+    if (!row) {
+      return false;
+    }
+
+    return this.validateResetPasswordRow(row);
+  }
+
   async resetPassword(token: string, username: string, password: string) {
     const q = knex<PasswordResetModel>(PASSWORD_RESET_TABLE)
       .where('token', token)
@@ -183,11 +196,8 @@ export class UserAPI {
 
     const dbEntry = await q;
 
-    // 1h
-    const EXPIRE_TIME = 60 * 60 * 1000;
-
     // If no entry or token expired
-    if (!dbEntry || dbEntry.time - Date.now() > EXPIRE_TIME) {
+    if (!this.validateResetPasswordRow(dbEntry)) {
       return false;
     }
 
@@ -200,6 +210,16 @@ export class UserAPI {
     await q.delete();
 
     return usersUpdated > 0;
+  }
+
+  private validateResetPasswordRow(row?: PasswordResetModel) {
+    const EXPIRE_MINUTES = 60; // 1h
+
+    if (!row) {
+      return false;
+    }
+
+    return Date.now() - row.time < EXPIRE_MINUTES * 60 * 1000;
   }
 
   private generateSaltAndHash(password: string) {

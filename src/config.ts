@@ -7,6 +7,10 @@ const config = {
     ENDPOINT: process.env.FILES_ENDPOINT ?? '/files',
     ROOT: process.env.FILE_ROOT ?? `${path.dirname(__dirname)}/public`,
   },
+  EBREV: {
+    URL: process.env.EBREV ?? 'localhost:8081',
+    API_TOKEN: process.env.EBREV_API_TOKEN ?? '',
+  },
 };
 
 export default config;
