@@ -15,8 +15,9 @@ const getUser = (username: string) => {
   const query = `{
     user(username: "${username}") {
       username
-      name
-      lastname
+      firstName
+      lastName
+      email
       class
       access {
         web

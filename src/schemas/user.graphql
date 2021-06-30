@@ -17,8 +17,18 @@ type Mutation {
 
 type User {
   username: String!
-  name: String!
-  lastname: String!
+
+  firstName: String!
+  lastName: String!
+
+  photoUrl: String
+  email: String!
+  phone: String
+
+  address: String
+  zipCode: String
+  website: String
+
   class: String!
   posts: [Post!]!
   "This will be all the access have concated from Posts and personal"
@@ -27,8 +37,8 @@ type User {
 
 input NewUser {
   username: String!
-  name: String!
-  lastname: String!
+  firstName: String!
+  lastName: String!
   class: String!
   password: String!
 }

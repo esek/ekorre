@@ -3,13 +3,9 @@ import crypto from 'crypto';
 
 import type { NewUser, User } from '../graphql.generated';
 import { Logger } from '../logger';
+import { DatabaseUser } from '../models/db/user';
 import { USER_TABLE } from './constants';
 import knex from './knex';
-
-export type DatabaseUser = Omit<User, 'posts' | 'access'> & {
-  passwordHash: string;
-  salt: string;
-};
 
 const logger = Logger.getLogger('UserAPI');
 
@@ -82,7 +78,7 @@ export class UserAPI {
       .first();
 
     if (u != null) {
-      if (this.verifyUser(password, u.passwordHash, u.salt)) {
+      if (this.verifyUser(password, u.passwordHash, u.passwordSalt)) {
         return u;
       }
     }
@@ -106,11 +102,11 @@ export class UserAPI {
     const u = await query.first();
 
     if (u != null) {
-      if (this.verifyUser(oldPassword, u.passwordHash, u.salt)) {
-        const salt = crypto.randomBytes(16).toString('base64');
-        const passwordHash = this.hashPassword(newPassword, salt);
+      if (this.verifyUser(oldPassword, u.passwordHash, u.passwordSalt)) {
+        const passwordSalt = crypto.randomBytes(16).toString('base64');
+        const passwordHash = this.hashPassword(newPassword, passwordSalt);
         query.update({
-          salt,
+          passwordSalt,
           passwordHash,
         });
         const logStr = `Changed password for user ${username}`;
@@ -129,13 +125,16 @@ export class UserAPI {
   async createUser(input: NewUser): Promise<User> {
     const { password, ...inputReduced } = input;
 
-    const salt = crypto.randomBytes(16).toString('base64');
-    const passwordHash = this.hashPassword(password, salt);
+    const passwordSalt = crypto.randomBytes(16).toString('base64');
+    const passwordHash = this.hashPassword(password, passwordSalt);
+
+    const email = `${input.username}@student.lu.se`;
 
     const u: DatabaseUser = {
       ...inputReduced,
+      email,
       passwordHash,
-      salt,
+      passwordSalt,
     };
 
     await knex<DatabaseUser>(USER_TABLE).insert(u);
@@ -143,6 +142,7 @@ export class UserAPI {
     logger.info(logStr);
     return {
       ...input,
+      email,
       access: { doors: [], web: [] }, // TODO: Kanske default access?
       posts: [],
     };
