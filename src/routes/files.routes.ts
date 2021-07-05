@@ -2,6 +2,7 @@ import { Router, static as staticFiles } from 'express';
 import upload, { UploadedFile } from 'express-fileupload';
 
 import FilesAPI from '../api/files.api';
+import { UserAPI } from '../api/user.api';
 import config from '../config';
 import { AccessType } from '../graphql.generated';
 import {
@@ -13,6 +14,7 @@ import {
 const filesRoute = Router();
 
 const filesAPI = new FilesAPI();
+const userApi = new UserAPI();
 
 export interface UploadFileRequest {
   body: {
@@ -52,6 +54,46 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
   const dbFile = await filesAPI.saveFile(file, accessType, path, res.locals.user!.username);
+
+  return res.send(dbFile);
+});
+
+filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res) => {
+  const { files } = req as UploadFileRequest;
+
+  if (!files?.file) {
+    // If no file is provided, send HTTP status 400
+    return res.status(400).send('File missing');
+  }
+
+  const username = res.locals.user?.username;
+
+  if (!username) {
+    return res.status(401).send();
+  }
+
+  let path = 'avatars';
+
+  if (!(await filesAPI.getFileData('avatars'))) {
+    const newPath = await filesAPI.createFolder('', path, username, path);
+
+    if (!newPath) {
+      return res.status(500).send('Could not create directory');
+    }
+
+    path = newPath;
+  }
+
+  const file = files.file instanceof Array ? files.file[0] : files.file;
+  const accessType = AccessType.Authenticated;
+
+  const dbFile = await filesAPI.saveFile(file, accessType, path, username);
+
+  const success = await userApi.updateProfileImage(username, dbFile.folderLocation);
+
+  if (!success) {
+    return res.status(500).send('Could not update user image');
+  }
 
   return res.send(dbFile);
 });

@@ -19,6 +19,7 @@ const getUser = (username: string) => {
       lastName
       email
       class
+      photoUrl
       access {
         web
         doors

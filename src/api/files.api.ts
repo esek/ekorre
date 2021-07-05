@@ -73,34 +73,36 @@ class FilesAPI {
    * @param folder The directory in which to save the folder
    * @param name Name of the folder
    * @param creator Username of the creator of the folder
-   * @returns `true` if folder was created, otherwise `false`
+   * @returns The location of the newly created folder
    */
-  async createFolder(folder: string, name: string, creator: string) {
+  async createFolder(folder: string, name: string, creator: string, customHash?: string) {
     const folderTrimmed = this.trimFolder(folder);
-    const hash = this.createHashedName(name);
+    const hash = customHash ?? this.createHashedName(name);
     const fullPath = `${ROOT}/${folderTrimmed}${hash}`;
 
     try {
       // Create folder in storage
       fs.mkdirSync(fullPath, { recursive: true });
 
+      const location = `${folderTrimmed}${hash}`;
+
       const dbData: FileModel = {
         id: hash,
         accessType: AccessType.Public,
         createdAt: new Date(),
-        folderLocation: `${folderTrimmed}${hash}`,
+        folderLocation: location,
         name,
         refuploader: creator,
         type: FileType.Folder,
       };
 
-      const res = await knex<FileModel>(FILES_TABLE).insert(dbData);
+      await knex<FileModel>(FILES_TABLE).insert(dbData);
 
       logger.info(`Created folder ${name} with hash ${hash}`);
 
-      return res.length > 0;
+      return location;
     } catch {
-      return false;
+      return null;
     }
   }
 
