@@ -148,8 +148,8 @@ export class UserAPI {
     };
   }
 
-  updateProfileImage = async (username: string, photoUrl: string): Promise<boolean> => {
-    const res = await knex<DatabaseUser>(USER_TABLE).where('username', username).update({photoUrl});
+  updateUser = async (username: string, partial: Partial<DatabaseUser>) => {
+    const res = await knex<DatabaseUser>(USER_TABLE).where('username', username).update(partial);
     return res > 0;
   }
 }

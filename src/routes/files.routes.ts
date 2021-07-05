@@ -89,7 +89,7 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
 
   const dbFile = await filesAPI.saveFile(file, accessType, path, username);
 
-  const success = await userApi.updateProfileImage(username, dbFile.folderLocation);
+  const success = await userApi.updateUser(username, { photoUrl: dbFile.folderLocation });
 
   if (!success) {
     return res.status(500).send('Could not update user image');

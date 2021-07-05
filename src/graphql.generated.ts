@@ -127,6 +127,7 @@ export type Mutation = {
   removeUsersFromPost: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
+  updateUser?: Maybe<Scalars['Boolean']>;
 };
 
 
@@ -200,6 +201,11 @@ export type MutationSetIndividualAccessArgs = {
 export type MutationSetPostAccessArgs = {
   postname: Scalars['String'];
   access: AccessInput;
+};
+
+
+export type MutationUpdateUserArgs = {
+  input: UpdateUser;
 };
 
 /** Access will be treated as a immutable object! */
@@ -355,6 +361,16 @@ export type NewUser = {
   password: Scalars['String'];
 };
 
+export type UpdateUser = {
+  firstName?: Maybe<Scalars['String']>;
+  lastName?: Maybe<Scalars['String']>;
+  phone?: Maybe<Scalars['String']>;
+  email?: Maybe<Scalars['String']>;
+  address?: Maybe<Scalars['String']>;
+  zipCode?: Maybe<Scalars['String']>;
+  website?: Maybe<Scalars['String']>;
+};
+
 export type WithIndex<TObject> = TObject & Record<string, any>;
 export type ResolversObject<TObject> = WithIndex<TObject>;
 
@@ -460,6 +476,7 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   NewPost: NewPost;
   NewUser: NewUser;
+  UpdateUser: UpdateUser;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -485,6 +502,7 @@ export type ResolversParentTypes = ResolversObject<{
   FileSystemResponsePath: FileSystemResponsePath;
   NewPost: NewPost;
   NewUser: NewUser;
+  UpdateUser: UpdateUser;
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
@@ -517,6 +535,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
+  updateUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
 }>;
 
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{

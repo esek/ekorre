@@ -3,7 +3,7 @@
 import { Maybe } from 'graphql/jsutils/Maybe';
 
 import { Article, ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
-import { toUTC } from '../util';
+import { stripObject, toUTC } from '../util';
 import { ARTICLE_TABLE } from './constants';
 import knex from './knex';
 
@@ -170,11 +170,7 @@ export class ArticleAPI {
    * @param entry Modifiering av existerande artikel
    */
   async modifyArticle(id: number, entry: ModifyArticle): Promise<boolean> {
-    const update: Record<string, unknown> = {};
-
-    (Object.keys(entry) as (keyof ModifyArticle)[]).forEach((k) => {
-      update[k] = entry[k] ?? undefined;
-    });
+    const update: Record<string, unknown> = stripObject(entry);
 
     // TODO: Add lastUpdatedBy using auth
 
