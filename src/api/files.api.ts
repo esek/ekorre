@@ -4,14 +4,11 @@ import fs from 'fs';
 import { extname } from 'path';
 
 import config from '../config';
-import { AccessType, File, FileSystemResponsePath, FileType } from '../graphql.generated';
+import { AccessType, FileSystemResponsePath, FileType } from '../graphql.generated';
 import { Logger } from '../logger';
+import type { DatabaseFile } from '../models/db/file';
 import { FILES_TABLE } from './constants';
 import knex from './knex';
-
-export type FileModel = Omit<File, 'createdBy' | 'url' | 'size'> & {
-  refuploader: string;
-};
 
 const {
   FILES: { ROOT },
@@ -26,14 +23,14 @@ class FilesAPI {
    * @param type What type of file it is
    * @param path Where to save the file
    * @param creator Username of the creator of the file
-   * @returns A `FileModel` object with the data of the saved file
+   * @returns A `DatabaseFile` object with the data of the saved file
    */
   async saveFile(
     file: UploadedFile,
     accessType: AccessType,
     path: string,
     creator: string,
-  ): Promise<FileModel> {
+  ): Promise<DatabaseFile> {
     const type = this.getFileType(file.name);
 
     const hashedName = this.createHashedName(file.name);
@@ -53,7 +50,7 @@ class FilesAPI {
 
     // Save file to DB with hashedName as id and folderLocation
     // pointing to the location in storage
-    const newFile: FileModel = {
+    const newFile: DatabaseFile = {
       id: hashedName,
       name: file.name,
       refuploader: creator,
@@ -63,7 +60,7 @@ class FilesAPI {
       type,
     };
 
-    await knex<FileModel>(FILES_TABLE).insert(newFile);
+    await knex<DatabaseFile>(FILES_TABLE).insert(newFile);
 
     return newFile;
   }
@@ -86,7 +83,7 @@ class FilesAPI {
 
       const location = `${folderTrimmed}${hash}`;
 
-      const dbData: FileModel = {
+      const dbData: DatabaseFile = {
         id: hash,
         accessType: AccessType.Public,
         createdAt: new Date(),
@@ -96,7 +93,7 @@ class FilesAPI {
         type: FileType.Folder,
       };
 
-      await knex<FileModel>(FILES_TABLE).insert(dbData);
+      await knex<DatabaseFile>(FILES_TABLE).insert(dbData);
 
       logger.info(`Created folder ${name} with hash ${hash}`);
 
@@ -125,7 +122,7 @@ class FilesAPI {
     fs.rmSync(location, { recursive: true });
 
     // Delete file from DB
-    await knex<FileModel>(FILES_TABLE).where('id', id).delete();
+    await knex<DatabaseFile>(FILES_TABLE).where('id', id).delete();
 
     logger.info(`Deleted ${file.type} ${file.name}`);
 
@@ -134,9 +131,9 @@ class FilesAPI {
 
   async getMultipleFiles(type?: FileType) {
     if (type) {
-      return knex<FileModel>(FILES_TABLE).where('type', type);
+      return knex<DatabaseFile>(FILES_TABLE).where('type', type);
     }
-    return knex<FileModel>(FILES_TABLE);
+    return knex<DatabaseFile>(FILES_TABLE);
   }
 
   /**
@@ -144,8 +141,8 @@ class FilesAPI {
    * @param id Id of the file to fetch
    * @returns FileData
    */
-  async getFileData(id: string): Promise<FileModel | null> {
-    const file = await knex<FileModel>(FILES_TABLE).where('id', id).first();
+  async getFileData(id: string): Promise<DatabaseFile | null> {
+    const file = await knex<DatabaseFile>(FILES_TABLE).where('id', id).first();
 
     if (!file) {
       return null;
@@ -185,7 +182,7 @@ class FilesAPI {
    * @param folder The path to the directory
    * @returns List of folder/files
    */
-  async getFolderData(folder: string): Promise<[FileModel[], FileSystemResponsePath[]]> {
+  async getFolderData(folder: string): Promise<[DatabaseFile[], FileSystemResponsePath[]]> {
     const folderTrimmed = this.trimFolder(folder);
 
     try {
@@ -196,7 +193,7 @@ class FilesAPI {
       const pathNames = folderTrimmed.split('/').filter((p) => p);
 
       // Get details for all folders from DB
-      const dbPaths = await knex<FileModel>(FILES_TABLE)
+      const dbPaths = await knex<DatabaseFile>(FILES_TABLE)
         .where('id', 'in', pathNames)
         .select('id', 'name');
 
@@ -209,7 +206,7 @@ class FilesAPI {
       }
 
       // Get details for all files in current directory from DB
-      const files = await knex<FileModel>(FILES_TABLE).where('id', 'in', fileIds);
+      const files = await knex<DatabaseFile>(FILES_TABLE).where('id', 'in', fileIds);
 
       return [files, dbPaths];
     } catch (err) {

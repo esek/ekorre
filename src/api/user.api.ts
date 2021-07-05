@@ -1,11 +1,11 @@
 /* eslint-disable class-methods-use-this */
 import crypto from 'crypto';
+
 import type { NewUser, User } from '../graphql.generated';
 import { Logger } from '../logger';
 import { DatabaseUser } from '../models/db/user';
 import { USER_TABLE } from './constants';
 import knex from './knex';
-
 
 const logger = Logger.getLogger('UserAPI');
 
@@ -148,7 +148,7 @@ export class UserAPI {
     };
   }
 
-  updateUser = async (username: string, partial: Partial<DatabaseUser>) => {
+  async updateUser(username: string, partial: Partial<DatabaseUser>) {
     const res = await knex<DatabaseUser>(USER_TABLE).where('username', username).update(partial);
     return res > 0;
   }

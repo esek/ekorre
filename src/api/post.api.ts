@@ -1,17 +1,11 @@
 /* eslint-disable class-methods-use-this */
-import type { Post, HistoryEntry, Utskott, NewPost } from '../graphql.generated';
+import type { NewPost, Utskott } from '../graphql.generated';
 import { Logger } from '../logger';
+import type { DatabasePost, DatabasePostHistory } from '../models/db/post';
 import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('PostAPI');
-
-export type PostModel = Omit<Post, 'history' | 'access'>;
-export type PostHistoryModel = Omit<HistoryEntry, 'holder' | 'postname'> & {
-  refpost: string;
-  refuser: string;
-  period: number;
-};
 
 /**
  * Det här är apin för att hantera poster.
@@ -20,14 +14,14 @@ export class PostAPI {
   /**
    * Hämta alla poster.
    */
-  async getPosts(): Promise<PostModel[]> {
-    const posts = await knex<PostModel>(POSTS_TABLE);
+  async getPosts(): Promise<DatabasePost[]> {
+    const posts = await knex<DatabasePost>(POSTS_TABLE);
 
     return posts;
   }
 
-  async getPost(postname: string): Promise<PostModel | null> {
-    const posts = await knex<PostModel>(POSTS_TABLE).where({ postname }).first();
+  async getPost(postname: string): Promise<DatabasePost | null> {
+    const posts = await knex<DatabasePost>(POSTS_TABLE).where({ postname }).first();
 
     return posts ?? null;
   }
@@ -36,15 +30,15 @@ export class PostAPI {
    * Hämta alla poster som en användare sitter på.
    * @param username användaren
    */
-  async getPostsForUser(username: string): Promise<PostModel[]> {
-    const refposts = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
+  async getPostsForUser(username: string): Promise<DatabasePost[]> {
+    const refposts = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .where({
         refuser: username,
         end: null,
       })
       .select('refpost');
 
-    const posts = await knex<PostModel>(POSTS_TABLE).whereIn(
+    const posts = await knex<DatabasePost>(POSTS_TABLE).whereIn(
       'postname',
       refposts.map((e) => e.refpost),
     );
@@ -56,8 +50,8 @@ export class PostAPI {
    * Hämta alla poster som tillhör ett utskott.
    * @param utskott utskottet
    */
-  async getPostsFromUtskott(utskott: Utskott): Promise<PostModel[]> {
-    const posts = await knex<PostModel>(POSTS_TABLE).where({
+  async getPostsFromUtskott(utskott: Utskott): Promise<DatabasePost[]> {
+    const posts = await knex<DatabasePost>(POSTS_TABLE).where({
       utskott,
     });
 
@@ -66,7 +60,7 @@ export class PostAPI {
 
   async addUsersToPost(usernames: string[], postname: string, period: number): Promise<boolean> {
     // Filter out already added users
-    const alreadyAdded = ((await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
+    const alreadyAdded = ((await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .select('refuser')
       .where({
         refpost: postname,
@@ -74,7 +68,7 @@ export class PostAPI {
       .whereIn('refuser', usernames)) as unknown) as string;
     const usernamesToUse = usernames.filter((e) => !alreadyAdded.includes(e));
 
-    const insert = usernamesToUse.map<PostHistoryModel>((e) => ({
+    const insert = usernamesToUse.map<DatabasePostHistory>((e) => ({
       refuser: e,
       refpost: postname,
       start: new Date(),
@@ -83,14 +77,14 @@ export class PostAPI {
     }));
 
     if (insert.length > 0) {
-      const res = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).insert(insert);
+      const res = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE).insert(insert);
       return res[0] > 0;
     }
     return false;
   }
 
   async createPost({ name, utskott }: NewPost): Promise<boolean> {
-    const res = await knex<PostModel>(POSTS_TABLE).insert({
+    const res = await knex<DatabasePost>(POSTS_TABLE).insert({
       postname: name,
       utskott,
     });
@@ -104,7 +98,7 @@ export class PostAPI {
   }
 
   async removeUsersFromPost(users: string[], postname: string): Promise<boolean> {
-    const res = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE)
+    const res = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .where({
         refpost: postname,
       })
@@ -115,7 +109,7 @@ export class PostAPI {
   }
 
   async getHistoryEntries(refpost: string) {
-    const entries = await knex<PostHistoryModel>(POSTS_HISTORY_TABLE).where({
+    const entries = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
       refpost,
     });
 

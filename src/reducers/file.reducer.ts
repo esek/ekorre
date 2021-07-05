@@ -1,7 +1,8 @@
 import { statSync } from 'fs';
 
-import { FileModel } from '../api/files.api';
 import config from '../config';
+import { DatabaseFile } from '../models/db/file';
+import { FileResponse } from '../models/mappers';
 
 const {
   FILES: { ENDPOINT, ROOT },
@@ -14,7 +15,7 @@ const {
  * @param file FileModel to map
  * @returns `FileResponse` object with reference to creator
  */
-export const fileReduce = (file: FileModel) => {
+export const fileReduce = (file: DatabaseFile): FileResponse => {
   const { size } = statSync(`${ROOT}/${file.folderLocation}`);
   return {
     ...file,

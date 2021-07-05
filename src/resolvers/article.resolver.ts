@@ -2,15 +2,16 @@
 // userLoader är ett sätt att cacha User, då dessa
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
-import { ArticleAPI, ArticleModel } from '../api/article.api';
+import { ArticleAPI } from '../api/article.api';
 import { useDataLoader } from '../dataloaders';
 import { Resolvers } from '../graphql.generated';
+import { DatabaseArticle } from '../models/db/article';
 import { ArticleResponse } from '../models/mappers';
 import { articleReducer } from '../reducers/article.reducer';
 
 const articleApi = new ArticleAPI();
 
-const hydrate = (partial: ArticleModel): ArticleResponse => {
+const hydrate = (partial: DatabaseArticle): ArticleResponse => {
   const { refcreator, reflastupdateby, ...reduced } = partial;
   return {
     ...reduced,
@@ -40,7 +41,7 @@ const articleResolver: Resolvers = {
   Query: {
     newsentries: async (_, { creator, after, before, markdown }) => {
       const safeMarkdown = markdown ?? false;
-      let articleModels: ArticleModel[];
+      let articleModels: DatabaseArticle[];
 
       if (!creator && !after && !before) {
         const apiResponse = await articleApi.getAllNewsArticles();
@@ -63,7 +64,7 @@ const articleResolver: Resolvers = {
     },
     latestnews: async (_, { limit, markdown }) => {
       const safeMarkdown = markdown ?? false;
-      let articleModels: ArticleModel[];
+      let articleModels: DatabaseArticle[];
 
       // Om vi inte gett en limit returnerar vi bara alla artiklar
       if (limit) {
@@ -85,7 +86,7 @@ const articleResolver: Resolvers = {
     article: async (_, { id, slug, markdown }) => {
       const safeMarkdown = markdown ?? false; // If markdown not passed, returns default (false)
 
-      // Vi får tillbaka en ArticleModel som inte har en hel användare, bara unikt användarnamn.
+      // Vi får tillbaka en DatabaseArticle som inte har en hel användare, bara unikt användarnamn.
       // Vi måste använda UserAPI:n för att få fram denna användare.
       let articleModel = await articleApi.getArticle({ id, slug });
 
@@ -102,11 +103,11 @@ const articleResolver: Resolvers = {
       const { creator, lastUpdateBy, markdown, ...reduced } = parameters;
 
       const safeMarkdown = markdown ?? false;
-      let articleModels: ArticleModel[] | null;
+      let articleModels: DatabaseArticle[] | null;
 
       // If all parameters are empty, we should just return all articles
       // We need to rebind creator and reflastupdater
-      // (string, not user) to refcreator and reflastupdater for ArticleModel
+      // (string, not user) to refcreator and reflastupdater for DatabaseArticle
 
       const params = {
         ...reduced,
@@ -118,7 +119,7 @@ const articleResolver: Resolvers = {
         // We have no entered paramters
         articleModels = await articleReducer(await articleApi.getAllArticles(), safeMarkdown);
       } else {
-        const apiResponse = await articleApi.getArticles(params as Partial<ArticleModel>);
+        const apiResponse = await articleApi.getArticles(params as Partial<DatabaseArticle>);
         if (apiResponse === null) return [];
         articleModels = await articleReducer(apiResponse, safeMarkdown);
       }
@@ -139,8 +140,8 @@ const articleResolver: Resolvers = {
 };
 
 /**
- * Maps an `ArticleModel` i.e. a partial of `Article` to an ArticleResponse object
- * @param partial ArticleModel to be mapped
+ * Maps an `DatabaseArticle` i.e. a partial of `Article` to an ArticleResponse object
+ * @param partial DatabaseArticle to be mapped
  * @returns ArticleResponse object with references to `creator` and
  * `lastUpdatedBy`
  */

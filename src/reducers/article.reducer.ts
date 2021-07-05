@@ -2,7 +2,7 @@ import { sanitize } from 'dompurify';
 import { JSDOM } from 'jsdom';
 import showdown from 'showdown';
 
-import { ArticleModel } from '../api/article.api';
+import type { DatabaseArticle } from '../models/db/article';
 import { SHOWDOWN_CONVERTER_OPTIONS } from './constants';
 
 const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
@@ -43,13 +43,13 @@ const generateSlug = (str: string) =>
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
 
-const articleReduce = (article: ArticleModel, markdown: boolean): ArticleModel => {
+const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArticle => {
   // Vi lagrar alltid HTML i databasen; vi gör om till markdown vid
   // förfrågan
   const sanatizedBody = !markdown ? article.body : convertHtmlToMarkdown(article.body);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { body, ...reduced } = article;
-  const a: ArticleModel & { slug: string } = {
+  const a: DatabaseArticle & { slug: string } = {
     ...reduced,
     body: sanatizedBody,
     slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
@@ -60,14 +60,20 @@ const articleReduce = (article: ArticleModel, markdown: boolean): ArticleModel =
   return a;
 };
 
-// Vi definierar Reducers för alla olika typer av ArticleModels
-// Vi returnerar ArticleModel; refuser -> User i resolvern
-export async function articleReducer(a: ArticleModel, markdown: boolean): Promise<ArticleModel>;
-export async function articleReducer(a: ArticleModel[], markdown: boolean): Promise<ArticleModel[]>;
+// Vi definierar Reducers för alla olika typer av DatabaseArticles
+// Vi returnerar DatabaseArticle; refuser -> User i resolvern
 export async function articleReducer(
-  a: ArticleModel | ArticleModel[],
+  a: DatabaseArticle,
   markdown: boolean,
-): Promise<ArticleModel | ArticleModel[]> {
+): Promise<DatabaseArticle>;
+export async function articleReducer(
+  a: DatabaseArticle[],
+  markdown: boolean,
+): Promise<DatabaseArticle[]>;
+export async function articleReducer(
+  a: DatabaseArticle | DatabaseArticle[],
+  markdown: boolean,
+): Promise<DatabaseArticle | DatabaseArticle[]> {
   // Är det en array, reducera varje för sig, annars skicka bara tillbaka en reducerad
   if (a instanceof Array) {
     const aa = await Promise.all(a.map((e) => articleReduce(e, markdown)));
