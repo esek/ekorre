@@ -50,10 +50,14 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
     return res.status(400).send('File missing');
   }
 
+  if (!res.locals.user) {
+    return res.status(401).send('User missing');
+  }
+
   const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
-  const dbFile = await filesAPI.saveFile(file, accessType, path, res.locals.user!.username);
+  const dbFile = await filesAPI.saveFile(file, accessType, path, res.locals.user.username);
 
   return res.send(dbFile);
 });

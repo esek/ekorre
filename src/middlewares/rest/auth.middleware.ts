@@ -15,8 +15,8 @@ const logger = Logger.getLogger('RestAuth');
 /* eslint-disable @typescript-eslint/indent */
 export type RequestHandlerWithLocals = RequestHandler<
   ParamsDictionary,
-  any,
-  any,
+  unknown,
+  unknown,
   { token?: string },
   { user?: User; getUser: () => User }
 >;
