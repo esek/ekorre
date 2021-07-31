@@ -1,16 +1,11 @@
 /* eslint-disable class-methods-use-this */
 import { Access, AccessInput, ResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
+import type { DatabaseAccess } from '../models/db/access';
 import { IND_ACCESS_TABLE, POST_ACCESS_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
-
-export type AccessModel = {
-  ref: string;
-  resourcetype: ResourceType;
-  resource: string;
-};
 
 /**
  * Det är api:n som hanterar access.
@@ -25,7 +20,7 @@ export class AccessAPI {
    * TODO: Gör en reducer istället
    * @param incoming databasraderna
    */
-  private accessReducer(incoming: AccessModel[]): Access {
+  private accessReducer(incoming: DatabaseAccess[]): Access {
     const initval: Access = {
       doors: [],
       web: [],
@@ -53,7 +48,7 @@ export class AccessAPI {
    * @param username användaren
    */
   async getIndividualAccess(username: string): Promise<Access> {
-    const res = await knex<AccessModel>(IND_ACCESS_TABLE).where({
+    const res = await knex<DatabaseAccess>(IND_ACCESS_TABLE).where({
       ref: username,
     });
 
@@ -65,7 +60,7 @@ export class AccessAPI {
    * @param postname posten
    */
   async getPostAccess(postname: string): Promise<Access> {
-    const res = await knex<AccessModel>(POST_ACCESS_TABLE).where({
+    const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE).where({
       ref: postname,
     });
 
@@ -79,18 +74,18 @@ export class AccessAPI {
    * @param newaccess den nya accessen
    */
   private async setAccess(table: string, ref: string, newaccess: AccessInput): Promise<boolean> {
-    await knex<AccessModel>(table)
+    await knex<DatabaseAccess>(table)
       .where({
         ref,
       })
       .delete();
 
-    const webEntries = newaccess.web.map<AccessModel>((e) => ({
+    const webEntries = newaccess.web.map<DatabaseAccess>((e) => ({
       ref,
       resourcetype: ResourceType.Web,
       resource: e,
     }));
-    const doorEntries = newaccess.doors.map<AccessModel>((e) => ({
+    const doorEntries = newaccess.doors.map<DatabaseAccess>((e) => ({
       ref,
       resourcetype: ResourceType.Door,
       resource: e,
@@ -99,7 +94,7 @@ export class AccessAPI {
     // Only do insert with actual values.
     const inserts = [...webEntries, ...doorEntries];
     if (inserts.length > 0) {
-      const status = await knex<AccessModel>(table).insert(inserts);
+      const status = await knex<DatabaseAccess>(table).insert(inserts);
       return status[0] > 0;
     }
     return true;
@@ -139,7 +134,7 @@ export class AccessAPI {
    * @param posts posterna
    */
   async getAccessForPosts(posts: string[]): Promise<Access> {
-    const res = await knex<AccessModel>(POST_ACCESS_TABLE).whereIn('ref', posts);
+    const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE).whereIn('ref', posts);
 
     return this.accessReducer(res);
   }

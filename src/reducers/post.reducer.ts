@@ -1,7 +1,7 @@
-import { PostModel } from '../api/post.api';
 import { Access, Post } from '../graphql.generated';
+import { DatabasePost } from '../models/db/post';
 
-export function postReduce(post: PostModel): Post {
+export function postReduce(post: DatabasePost): Post {
   const access: Access = {
     doors: [],
     web: [],

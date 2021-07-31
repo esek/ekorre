@@ -15,3 +15,13 @@ export const toUTC = (d: Date) =>
       d.getUTCSeconds(),
     ),
   );
+
+export const stripObject = <E, T extends E>(obj: E): Partial<T> => {
+  const update: Partial<T> = {};
+
+  (Object.keys(obj) as (keyof E)[]).forEach((k) => {
+    (update as Record<keyof E, unknown>)[k] = obj[k] ?? undefined;
+  });
+
+  return update;
+};

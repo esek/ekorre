@@ -127,6 +127,7 @@ export type Mutation = {
   removeUsersFromPost: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
+  updateUser?: Maybe<Scalars['Boolean']>;
 };
 
 
@@ -202,6 +203,11 @@ export type MutationSetPostAccessArgs = {
   access: AccessInput;
 };
 
+
+export type MutationUpdateUserArgs = {
+  input: UpdateUser;
+};
+
 /** Access will be treated as a immutable object! */
 export type Access = {
   doors: Array<Scalars['String']>;
@@ -263,11 +269,17 @@ export enum ArticleType {
 export type User = {
   /** This will be all the access have concated from Posts and personal */
   access: Access;
+  address?: Maybe<Scalars['String']>;
   class: Scalars['String'];
-  lastname: Scalars['String'];
-  name: Scalars['String'];
+  email: Scalars['String'];
+  firstName: Scalars['String'];
+  lastName: Scalars['String'];
+  phone?: Maybe<Scalars['String']>;
+  photoUrl?: Maybe<Scalars['String']>;
   posts: Array<Post>;
   username: Scalars['String'];
+  website?: Maybe<Scalars['String']>;
+  zipCode?: Maybe<Scalars['String']>;
 };
 
 export type Post = {
@@ -343,10 +355,20 @@ export type NewPost = {
 
 export type NewUser = {
   username: Scalars['String'];
-  name: Scalars['String'];
-  lastname: Scalars['String'];
+  firstName: Scalars['String'];
+  lastName: Scalars['String'];
   class: Scalars['String'];
   password: Scalars['String'];
+};
+
+export type UpdateUser = {
+  firstName?: Maybe<Scalars['String']>;
+  lastName?: Maybe<Scalars['String']>;
+  phone?: Maybe<Scalars['String']>;
+  email?: Maybe<Scalars['String']>;
+  address?: Maybe<Scalars['String']>;
+  zipCode?: Maybe<Scalars['String']>;
+  website?: Maybe<Scalars['String']>;
 };
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -454,6 +476,7 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   NewPost: NewPost;
   NewUser: NewUser;
+  UpdateUser: UpdateUser;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -479,6 +502,7 @@ export type ResolversParentTypes = ResolversObject<{
   FileSystemResponsePath: FileSystemResponsePath;
   NewPost: NewPost;
   NewUser: NewUser;
+  UpdateUser: UpdateUser;
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
@@ -511,6 +535,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
+  updateUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
 }>;
 
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
@@ -544,11 +569,17 @@ export type ArticleResolvers<ContextType = Context, ParentType extends Resolvers
 
 export type UserResolvers<ContextType = Context, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
+  address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   class?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  lastname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  photoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  zipCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

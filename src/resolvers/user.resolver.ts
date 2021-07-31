@@ -6,6 +6,7 @@ import { invalidateToken, issueToken, verifyToken } from '../auth';
 import type { Resolvers, User } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
+import { stripObject } from '../util';
 
 const api = new UserAPI();
 
@@ -15,9 +16,11 @@ const getUser = (username: string) => {
   const query = `{
     user(username: "${username}") {
       username
-      name
-      lastname
+      firstName
+      lastName
+      email
       class
+      photoUrl
       access {
         web
         doors
@@ -50,6 +53,13 @@ const userResolver: Resolvers = {
 
       const token = issueToken(data.data?.user);
       return token;
+    },
+    updateUser: async (_, { input }, ctx) => {
+      const user = ctx.getUser();
+
+      const success = api.updateUser(user.username, stripObject(input));
+
+      return success;
     },
     createUser: (_, { input }) => api.createUser(input),
     logout: (_, { token }) => invalidateToken(token),
