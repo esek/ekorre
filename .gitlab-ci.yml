@@ -9,27 +9,24 @@ image: docker:19
 stages:
   - test
   - build
+  - dockerize
   - push
+  - deploy
 
 variables:
   CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
+cache:
+  paths:
+    - node_modules
+  key: ${CI_COMMIT_REF_SLUG}
 
 before_script:
   # docker login asks for the password to be passed through stdin for security
   # we use $CI_JOB_TOKEN here which is a special token provided by GitLab
   - echo -n $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
   - docker info
-
-build:
-  stage: build
-  only:
-    - master
-    - main
-    - /^release-[0-9]\.[0-9]\.[0-9]$/
-  script:
-    - docker build -t $CONTAINER_TEST_IMAGE .
-    - docker push $CONTAINER_TEST_IMAGE
 
 lint:
   stage: test
@@ -38,9 +35,41 @@ lint:
   before_script:
     - node --version
   script:
-    - npm ci
+    - npm install # Egentligen kanske man ska använda ci
     - npx eslint src
 
+build:
+  stage: build
+  image: node:15
+  # Make sure docker info is not run and get some node info
+  before_script:
+    - node --version
+  only:
+    - master
+    - main
+    - /^release-[0-9]+\.[0-9]+\.[0-9]+$/
+  script:
+    # Cachad node_modules from lint
+    - npm run build
+    # Minska ner inför dockerize steg
+    - npm prune --production
+  artifacts:
+    paths:
+      - node_modules
+      - build
+      - package.json
+
+dockerize:
+  stage: dockerize
+  only:
+    - master
+    - main
+    - /^release-[0-9]+\.[0-9]+\.[0-9]+$/
+  dependencies:
+    - build
+  script:
+    - docker build -f Dockerfile.ci -t $CONTAINER_TEST_IMAGE .
+    - docker push $CONTAINER_TEST_IMAGE
 
 # # Here, the goal is to tag the "master" branch as "latest"
 push latest:
@@ -58,9 +87,9 @@ push latest:
     # that built the image in the previous step, we pull it again locally
     - docker pull $CONTAINER_TEST_IMAGE
     # Then we tag it "latest"
-    - docker tag $CONTAINER_TEST_IMAGE $CI_REGISTRY_IMAGE:latest
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
     # Annnd we push it.
-    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker push $CONTAINER_RELEASE_IMAGE
 
 # Finally, the goal here is to Docker tag any Git tag
 # GitLab will start a new pipeline everytime a Git tag is created, which is pretty awesome
@@ -73,6 +102,6 @@ push tag:
     # We want this job to be run on tags only.
     - tags
   script:
-    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
