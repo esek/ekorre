@@ -273,6 +273,7 @@ export type User = {
   class: Scalars['String'];
   email: Scalars['String'];
   firstName: Scalars['String'];
+  isFuncUser?: Maybe<Scalars['Boolean']>;
   lastName: Scalars['String'];
   phone?: Maybe<Scalars['String']>;
   photoUrl?: Maybe<Scalars['String']>;
@@ -359,6 +360,7 @@ export type NewUser = {
   lastName: Scalars['String'];
   class: Scalars['String'];
   password: Scalars['String'];
+  isFuncUser?: Maybe<Scalars['Boolean']>;
 };
 
 export type UpdateUser = {
@@ -573,6 +575,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   class?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  isFuncUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   photoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

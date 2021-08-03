@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import crypto from 'crypto';
+import { inputFieldToFieldConfig } from 'graphql-tools';
 
 import type { NewUser, User } from '../graphql.generated';
 import { Logger } from '../logger';
@@ -123,18 +124,37 @@ export class UserAPI {
    * @param input den nya användarinformationen
    */
   async createUser(input: NewUser): Promise<User> {
+    // Utgå från att det inte är en funktionell användare om inget annat ges
+    const isFuncUser = !!input.isFuncUser; // Trick för att konvertera till bool
+
     const { password, ...inputReduced } = input;
 
     const passwordSalt = crypto.randomBytes(16).toString('base64');
     const passwordHash = this.hashPassword(password, passwordSalt);
 
-    const email = `${input.username}@student.lu.se`;
+    let email;
+    let username;
+    if (isFuncUser) {
+      email = 'no-reply@esek.se';
+
+      // Alla funktionella användares användarnamn måste börja med func_
+      if (input.username.startsWith('funcUser_')) {
+        username = input.username;
+      } else {
+        username = `funcUser_${input.username}`;
+      }
+    } else {
+      email = `${input.username}@student.lu.se`;
+      username = input.username;
+    }
 
     const u: DatabaseUser = {
       ...inputReduced,
+      username,
       email,
       passwordHash,
       passwordSalt,
+      isFuncUser,
     };
 
     await knex<DatabaseUser>(USER_TABLE).insert(u);
@@ -142,6 +162,7 @@ export class UserAPI {
     logger.info(logStr);
     return {
       ...input,
+      username,
       email,
       access: { doors: [], web: [] }, // TODO: Kanske default access?
       posts: [],
