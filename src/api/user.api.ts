@@ -176,10 +176,6 @@ export class UserAPI {
       .where('token', token)
       .first();
 
-    if (!row) {
-      return false;
-    }
-
     return this.validateResetPasswordRow(row);
   }
 
@@ -214,7 +210,9 @@ export class UserAPI {
       return false;
     }
 
-    return Date.now() - row.time < EXPIRE_MINUTES * 60 * 1000;
+    const expirationTime = Date.now() - row.time;
+
+    return expirationTime < EXPIRE_MINUTES * 60 * 1000;
   }
 
   private generateSaltAndHash(password: string) {
