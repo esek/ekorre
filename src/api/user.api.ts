@@ -204,11 +204,11 @@ export class UserAPI {
   }
 
   private validateResetPasswordRow(row?: DatabaseForgotPassword) {
-    const EXPIRE_MINUTES = 60; // 1h
-
     if (!row) {
       return false;
     }
+
+    const EXPIRE_MINUTES = 60; // 1h
 
     const expirationTime = Date.now() - row.time;
 
