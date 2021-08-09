@@ -2,11 +2,18 @@ import axios from 'axios';
 
 import config from '../config';
 
-const { EBREV } = config;
+const {
+  EBREV: { URL, API_TOKEN },
+} = config;
+
+/*
+  Creates an axios-instance and sets the baseUrl and authorization header
+  to the corresponding values in the config
+*/
 
 const api = axios.create({
-  baseURL: EBREV.URL,
-  headers: { Authorization: EBREV.API_TOKEN },
+  baseURL: URL,
+  headers: { Authorization: API_TOKEN },
 });
 
 export const sendEmail = (
