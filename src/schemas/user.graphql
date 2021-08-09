@@ -34,6 +34,8 @@ type User {
   posts: [Post!]!
   "This will be all the access have concated from Posts and personal"
   access: Access!
+
+  isFuncUser: Boolean
 }
 
 input NewUser {
@@ -42,6 +44,7 @@ input NewUser {
   lastName: String!
   class: String!
   password: String!
+  isFuncUser: Boolean
 }
 
 input UpdateUser {
