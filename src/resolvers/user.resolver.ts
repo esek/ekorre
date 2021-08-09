@@ -21,6 +21,7 @@ const getUser = (username: string) => {
       email
       class
       photoUrl
+      isFuncUser
       access {
         web
         doors
