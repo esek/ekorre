@@ -60,9 +60,9 @@ Läs [semver](#SEMVER)
 
 TL;DR
 ```c
-npm run generate // Generera typescript från gql
-npm run dev // Kompilera kontiuerligt och öppna för debugger
-npm run prettier-format // Formatera kod, finns IDE intergration oftast
+npm run generate # Generera typescript från gql
+npm run dev # Kompilera kontiuerligt och öppna för debugger
+npm run prettier-format # Formatera kod, finns IDE intergration oftast
 ```
 
 ### Struktur

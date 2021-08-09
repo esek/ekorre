@@ -1,6 +1,5 @@
 /* eslint-disable class-methods-use-this */
 import crypto from 'crypto';
-import { inputFieldToFieldConfig } from 'graphql-tools';
 
 import type { NewUser, User } from '../graphql.generated';
 import { Logger } from '../logger';
@@ -132,20 +131,13 @@ export class UserAPI {
     const passwordSalt = crypto.randomBytes(16).toString('base64');
     const passwordHash = this.hashPassword(password, passwordSalt);
 
-    let email;
-    let username;
-    if (isFuncUser) {
-      email = 'no-reply@esek.se';
+    let { username = ''} = input;
+    let email = `${username}@student.lu.se`;
 
-      // Alla funktionella användares användarnamn måste börja med func_
-      if (input.username.startsWith('funcUser_')) {
-        username = input.username;
-      } else {
-        username = `funcUser_${input.username}`;
-      }
-    } else {
-      email = `${input.username}@student.lu.se`;
-      username = input.username;
+    if (isFuncUser) {
+      const prefix = 'funcUser_';
+      username = username.startsWith(prefix) ? username : `${prefix}${username}`;
+      email = 'no-reply@esek.se';
     }
 
     const u: DatabaseUser = {

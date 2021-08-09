@@ -12,5 +12,5 @@ export type DatabaseUser = {
   website?: string;
   class: string;
   dateJoined?: Date;
-  isFuncUser?: boolean;
+  isFuncUser: boolean;
 };
