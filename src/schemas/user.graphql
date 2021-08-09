@@ -14,6 +14,9 @@ type Mutation {
   logout(token: String!): Boolean
   createUser(input: NewUser!): User
   updateUser(input: UpdateUser!): Boolean
+  requestPasswordReset(username: String!): Boolean!
+  validatePasswordResetToken(username: String!, token: String!): Boolean!
+  resetPassword(username: String!, token: String!, password: String!): Boolean!
 }
 
 type User {

@@ -5,3 +5,4 @@ export const POSTS_TABLE = 'Posts';
 export const POSTS_HISTORY_TABLE = 'PostHistory';
 export const ARTICLE_TABLE = 'Articles';
 export const FILES_TABLE = 'Files';
+export const PASSWORD_RESET_TABLE = 'PasswordReset';

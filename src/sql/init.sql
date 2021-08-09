@@ -117,4 +117,12 @@ INSERT INTO Files (id, name, type, folderLocation, accessType, refUploader) VALU
 INSERT INTO Files (id, name, type, folderLocation, accessType, refUploader) VALUES ('6f837f0400bd1eb70f3648fc31343ecc', 'textfiler', 'folder', '/6f837f0400bd1eb70f3648fc31343ecc', 'public', 'aa0000bb-s');
 INSERT INTO Files (id, name, type, folderLocation, accessType, refUploader) VALUES ('098f6bcd4621d373cade4e832627b4f6.txt', 'text.txt', 'text', '/6f837f0400bd1eb70f3648fc31343ecc/098f6bcd4621d373cade4e832627b4f6.txt', 'authenticated', 'aa0000bb-s');
 
+CREATE TABLE
+IF NOT EXISTS "PasswordReset"
+(
+  "token" TEXT PRIMARY KEY,
+  "username" TEXT NOT NULL,
+  "time" NUMBER NOT NULL,
+);
+
 END TRANSACTION;
