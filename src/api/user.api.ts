@@ -3,15 +3,10 @@ import crypto from 'crypto';
 
 import type { NewUser, User } from '../graphql.generated';
 import { Logger } from '../logger';
+import { DatabaseForgotPassword } from '../models/db/forgotpassword';
 import { DatabaseUser } from '../models/db/user';
 import { PASSWORD_RESET_TABLE, USER_TABLE } from './constants';
 import knex from './knex';
-
-export type PasswordResetModel = {
-  username: string;
-  token: string;
-  time: number;
-};
 
 const logger = Logger.getLogger('UserAPI');
 
@@ -154,7 +149,7 @@ export class UserAPI {
   }
 
   async requestPasswordReset(username: string) {
-    const table = knex<PasswordResetModel>(PASSWORD_RESET_TABLE);
+    const table = knex<DatabaseForgotPassword>(PASSWORD_RESET_TABLE);
 
     const token = crypto.randomBytes(24).toString('hex');
 
@@ -176,7 +171,7 @@ export class UserAPI {
   }
 
   async validateResetPasswordToken(username: string, token: string) {
-    const row = await knex<PasswordResetModel>(PASSWORD_RESET_TABLE)
+    const row = await knex<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
       .where('username', username)
       .where('token', token)
       .first();
@@ -189,7 +184,7 @@ export class UserAPI {
   }
 
   async resetPassword(token: string, username: string, password: string) {
-    const q = knex<PasswordResetModel>(PASSWORD_RESET_TABLE)
+    const q = knex<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
       .where('token', token)
       .andWhere('username', username)
       .first();
@@ -212,7 +207,7 @@ export class UserAPI {
     return usersUpdated > 0;
   }
 
-  private validateResetPasswordRow(row?: PasswordResetModel) {
+  private validateResetPasswordRow(row?: DatabaseForgotPassword) {
     const EXPIRE_MINUTES = 60; // 1h
 
     if (!row) {
