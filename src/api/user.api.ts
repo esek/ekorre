@@ -3,8 +3,9 @@ import crypto from 'crypto';
 
 import type { NewUser, User } from '../graphql.generated';
 import { Logger } from '../logger';
+import { DatabaseForgotPassword } from '../models/db/forgotpassword';
 import { DatabaseUser } from '../models/db/user';
-import { USER_TABLE } from './constants';
+import { PASSWORD_RESET_TABLE, USER_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('UserAPI');
@@ -103,12 +104,7 @@ export class UserAPI {
 
     if (u != null) {
       if (this.verifyUser(oldPassword, u.passwordHash, u.passwordSalt)) {
-        const passwordSalt = crypto.randomBytes(16).toString('base64');
-        const passwordHash = this.hashPassword(newPassword, passwordSalt);
-        query.update({
-          passwordSalt,
-          passwordHash,
-        });
+        query.update(this.generateSaltAndHash(newPassword));
         const logStr = `Changed password for user ${username}`;
         logger.info(logStr);
         logger.debug(logStr);
@@ -128,8 +124,7 @@ export class UserAPI {
 
     const { password, ...inputReduced } = input;
 
-    const passwordSalt = crypto.randomBytes(16).toString('base64');
-    const passwordHash = this.hashPassword(password, passwordSalt);
+    const { passwordSalt, passwordHash } = this.generateSaltAndHash(password);
 
     let { username = ''} = input;
     let email = `${username}@student.lu.se`;
@@ -164,5 +159,79 @@ export class UserAPI {
   async updateUser(username: string, partial: Partial<DatabaseUser>) {
     const res = await knex<DatabaseUser>(USER_TABLE).where('username', username).update(partial);
     return res > 0;
+  }
+
+  async requestPasswordReset(username: string) {
+    const table = knex<DatabaseForgotPassword>(PASSWORD_RESET_TABLE);
+
+    const token = crypto.randomBytes(24).toString('hex');
+
+    const res = await table.insert({
+      time: Date.now(),
+      token,
+      username,
+    });
+
+    // If no row was inserted into the DB
+    if (res.length < 1) {
+      return null;
+    }
+
+    // Remove the other rows for this user
+    await table.where('username', username).whereNot('token', token).delete();
+
+    return token;
+  }
+
+  async validateResetPasswordToken(username: string, token: string) {
+    const row = await knex<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
+      .where('username', username)
+      .where('token', token)
+      .first();
+
+    return this.validateResetPasswordRow(row);
+  }
+
+  async resetPassword(token: string, username: string, password: string) {
+    const q = knex<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
+      .where('token', token)
+      .andWhere('username', username)
+      .first();
+
+    const dbEntry = await q;
+
+    // If no entry or token expired
+    if (!this.validateResetPasswordRow(dbEntry)) {
+      return false;
+    }
+
+    // Update password for user
+    const usersUpdated = await knex<DatabaseUser>(USER_TABLE)
+      .where('username', username)
+      .update(this.generateSaltAndHash(password));
+
+    // Delete row in password table
+    await q.delete();
+
+    return usersUpdated > 0;
+  }
+
+  private validateResetPasswordRow(row?: DatabaseForgotPassword) {
+    if (!row) {
+      return false;
+    }
+
+    const EXPIRE_MINUTES = 60; // 1h
+
+    const expirationTime = Date.now() - row.time;
+
+    return expirationTime < EXPIRE_MINUTES * 60 * 1000;
+  }
+
+  private generateSaltAndHash(password: string) {
+    const passwordSalt = crypto.randomBytes(16).toString('base64');
+    const passwordHash = this.hashPassword(password, passwordSalt);
+
+    return { passwordSalt, passwordHash };
   }
 }
