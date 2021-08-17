@@ -67,11 +67,11 @@ export const issueToken = <T extends Record<string, unknown>>(obj: T, type: Toke
  * @param token - Den token som kollas
  * @returns Sant ifall den givna tokenen finns annars falskt.
  */
-const isBlackListed = (token: string): boolean => {
+const isBlackListed = (token: string, type: TokenType): boolean => {
   const now = Date.now();
 
   tokenBlacklist = tokenBlacklist.filter(
-    ({ time }) => now - time < EXPIRE_MINUTES.accessToken * 1000 * 60,
+    ({ time, token }) => token && now - time < EXPIRE_MINUTES[type] * 1000 * 60,
   );
 
   if (tokenBlacklist.some(({ token: blacklistedToken }) => blacklistedToken === token)) {
@@ -90,7 +90,7 @@ const isBlackListed = (token: string): boolean => {
  * @returns JWT payload eller eller Error ifall tokenen är invaliderad eller har annat fel.
  */
 export const verifyToken = <T>(token: string, type: TokenType) => {
-  if (type === 'accessToken' && isBlackListed(token)) {
+  if (isBlackListed(token, type)) {
     throw new Error('This token is no longer valid');
   }
 

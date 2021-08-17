@@ -58,12 +58,13 @@ const authResolver: Resolvers = {
 
       return true;
     },
-    logout: (_, { token }) => {
+    logout: (_, { token }, { refreshToken }) => {
       if (!token) {
         return false;
       }
 
       invalidateToken(token);
+      invalidateToken(refreshToken);
       return true;
     },
   },
