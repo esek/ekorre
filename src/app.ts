@@ -12,7 +12,7 @@ import { createDataLoader } from './dataloaders';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
 import type { User } from './graphql.generated';
 import { Logger } from './logger';
-import type { Context } from './models/context';
+import type { Context, ContextParams } from './models/context';
 import * as Resolvers from './resolvers/index';
 import filesRoute from './routes/files.routes';
 
@@ -61,9 +61,8 @@ const apolloLogger = Logger.getLogger('Apollo');
 
 const server = new ApolloServer({
   schema,
-  context: ({ req, res }): Context => {
+  context: ({ req, res }: ContextParams): Context => {
     const accessToken = req.headers.authorization?.split(' ')[1] ?? '';
-
     const refreshToken = req.cookies[COOKIES.refreshToken] ?? '';
 
     return {
