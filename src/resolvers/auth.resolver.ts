@@ -13,7 +13,7 @@ const sendRefreshToken = (username: string, response: Response) => {
   response.cookie(COOKIES.refreshToken, refreshToken, {
     httpOnly: true,
     secure: true,
-    expires: new Date(Date.now() + 10 * 60 * 1000), // Expires in 15 min
+    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // Expires in 7d
   });
 };
 
