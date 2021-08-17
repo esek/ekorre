@@ -1,12 +1,12 @@
 import { ApolloServer } from 'apollo-server-express';
 import cookieparser from 'cookie-parser';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import 'dotenv/config';
 import express from 'express';
 import { DateResolver } from 'graphql-scalars';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 
-import { verifyToken } from './auth';
+import { COOKIES, verifyToken } from './auth';
 import config from './config';
 import { createDataLoader } from './dataloaders';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
@@ -16,7 +16,7 @@ import type { Context } from './models/context';
 import * as Resolvers from './resolvers/index';
 import filesRoute from './routes/files.routes';
 
-const { PORT, HOST, FILES } = config;
+const { PORT, HOST, FILES, CORS } = config;
 
 // Visa en referens till källfilen istället för den kompilerade
 
@@ -42,48 +42,51 @@ export const schema = mergeSchemas({
   resolvers,
 });
 
-// Kör detta async för att kunna använda await.
-// eslint-disable-next-line no-void
-void (async () => {
-  // Starta server.
-  const app = express();
+// Starta server.
+const app = express();
 
-  app.use(cookieparser());
+const corsOptions: CorsOptions = {
+  origin: ['http://localhost:3000', ...CORS.ALLOWED_ORIGINS],
+  credentials: true,
+};
 
-  app.use(cors());
+app.use(cookieparser());
 
-  // Setup files endpoint for REST-file handling
-  app.use(FILES.ENDPOINT, filesRoute);
+app.use(cors(corsOptions));
 
-  const apolloLogger = Logger.getLogger('Apollo');
+// Setup files endpoint for REST-file handling
+app.use(FILES.ENDPOINT, filesRoute);
 
-  const server = new ApolloServer({
-    schema,
-    context: ({ req }): Context => {
-      const token = req.headers.authorization?.split(' ')[1] ?? '';
+const apolloLogger = Logger.getLogger('Apollo');
 
-      return {
-        token,
-        getUser: () => verifyToken<User>(token),
-        userDataLoader: createDataLoader(batchUsersFunction),
-      };
-    },
-    debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
-    plugins: [
-      {
-        requestDidStart({ request }) {
-          apolloLogger.info(request);
-        },
+const server = new ApolloServer({
+  schema,
+  context: ({ req, res }): Context => {
+    const accessToken = req.headers.authorization?.split(' ')[1] ?? '';
+
+    const refreshToken = req.cookies[COOKIES.refreshToken] ?? '';
+
+    return {
+      accessToken,
+      refreshToken,
+      response: res,
+      getUser: () => verifyToken<User>(accessToken, 'accessToken'),
+      userDataLoader: createDataLoader(batchUsersFunction),
+    };
+  },
+  debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
+  plugins: [
+    {
+      requestDidStart({ request }) {
+        apolloLogger.info(request);
       },
-    ],
-    tracing: true,
-  });
+    },
+  ],
+  tracing: true,
+});
 
-  await server.start();
+server.applyMiddleware({ app, path: '/', cors: corsOptions });
 
-  server.applyMiddleware({ app, path: '/', cors: true });
-
-  app.listen(PORT, HOST, () => {
-    logger.log(`Server started on http://${HOST}:${PORT}`);
-  });
-})();
+app.listen(PORT, HOST, () => {
+  logger.log(`Server started on http://${HOST}:${PORT}`);
+});

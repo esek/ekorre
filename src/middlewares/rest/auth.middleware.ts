@@ -29,7 +29,7 @@ export const setUser: RequestHandlerWithLocals = (req, res, next) => {
     token = token.replace('Bearer ', '');
   }
 
-  res.locals.getUser = () => verifyToken<User>(token);
+  res.locals.getUser = () => verifyToken<User>(token, 'accessToken');
 
   next();
 };

@@ -2,8 +2,7 @@ import { graphql } from 'graphql';
 
 import { UserAPI } from '../api/user.api';
 import { schema } from '../app';
-import { invalidateToken, issueToken, verifyToken } from '../auth';
-import type { Resolvers, User } from '../graphql.generated';
+import type { Resolvers } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
 import { sendEmail } from '../services/email.service';
@@ -46,16 +45,6 @@ const userResolver: Resolvers = {
     },
   },
   Mutation: {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    login: async (_, { username, password }) => {
-      const partialUser = await api.loginUser(username, password);
-      if (partialUser == null) return null;
-
-      const data = await getUser(username);
-
-      const token = issueToken(data.data?.user);
-      return token;
-    },
     updateUser: async (_, { input }, ctx) => {
       const user = ctx.getUser();
 
@@ -64,13 +53,6 @@ const userResolver: Resolvers = {
       return success;
     },
     createUser: (_, { input }) => api.createUser(input),
-    logout: (_, { token }) => invalidateToken(token),
-    refreshToken: async (_, { token }) => {
-      const obj = verifyToken<User>(token);
-
-      const user = await getUser(obj.username);
-      return issueToken(user.data?.user);
-    },
     requestPasswordReset: async (_, { username }) => {
       const user = await api.getSingleUser(username);
 
