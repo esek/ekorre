@@ -40,7 +40,17 @@ lint:
   script:
     - npm ci
     - npx eslint src
+    - npx eslint test
 
+unit:
+  stage: test
+  image: node:15
+  # Make sure docker info is not run and get some node info
+  before_script:
+    - node --version
+  script:
+    - npm ci
+    - npm run test
 
 # # Here, the goal is to tag the "master" branch as "latest"
 push latest:
