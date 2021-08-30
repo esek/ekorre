@@ -12,7 +12,10 @@
     "generate": "graphql-codegen --config codegen.yml",
     "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" --write",
     "lint": "eslint src",
-    "test": "jest"
+    "test": "jest",
+    "unittest": "jest test/unit",
+    "regressiontest": "jest test/regression",
+    "integrationtest": "jest test/integration"
   },
   "author": "Emil Blennow",
   "contributors": [

@@ -50,7 +50,9 @@ unit:
     - node --version
   script:
     - npm ci
-    - npm run test
+    - npm run unittest
+
+# # TODO: Add regression and integration when implemented
 
 # # Here, the goal is to tag the "master" branch as "latest"
 push latest:
