@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 
 import { Logger } from './logger';
 import type { SecretStore, TokenBlacklistItem, TokenType } from './models/auth';
+import type { StrictObject } from './models/base';
 
 const logger = Logger.getLogger('Auth');
 
@@ -54,8 +55,10 @@ const SECRET = (type: TokenType) => {
  * @param type - Typen av token som skapas
  */
 
-export const issueToken = <T extends Record<string, unknown>>(obj: T, type: TokenType): string => {
-  const token = jwt.sign(obj, SECRET(type), { expiresIn: `${EXPIRE_MINUTES[type]}min` });
+export const issueToken = <T extends StrictObject>(obj: T, type: TokenType): string => {
+  const expiration = EXPIRE_MINUTES[type];
+
+  const token = jwt.sign(obj, SECRET(type), { expiresIn: `${expiration}min` });
 
   logger.debug(`Issued a ${type} for object: ${Logger.pretty(obj)}`);
 
@@ -71,7 +74,8 @@ const isBlackListed = (token: string, type: TokenType): boolean => {
   const now = Date.now();
 
   tokenBlacklist = tokenBlacklist.filter(
-    ({ time, token }) => token && now - time < EXPIRE_MINUTES[type] * 1000 * 60,
+    ({ time, token: blacklistedToken }) =>
+      blacklistedToken && now - time < EXPIRE_MINUTES[type] * 1000 * 60,
   );
 
   if (tokenBlacklist.some(({ token: blacklistedToken }) => blacklistedToken === token)) {

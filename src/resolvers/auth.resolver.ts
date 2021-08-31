@@ -3,13 +3,20 @@ import { Response } from 'express';
 import { UserAPI } from '../api/user.api';
 import { COOKIES, invalidateToken, issueToken, verifyToken } from '../auth';
 import { Resolvers } from '../graphql.generated';
+import type { VerifiedRefreshToken } from '../models/auth';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
 
 const api = new UserAPI();
 
-const sendRefreshToken = (username: string, response: Response) => {
+/**
+ * Helper to attach refresh token to the response object
+ * @param {string} username The username to issue the token with
+ * @param {Response} response Express response object to attach cookies to
+ */
+const attachRefreshToken = (username: string, response: Response) => {
   const refreshToken = issueToken({ username }, 'refreshToken');
+
   response.cookie(COOKIES.refreshToken, refreshToken, {
     httpOnly: true,
     secure: true,
@@ -24,20 +31,21 @@ const authResolver: Resolvers = {
         return null;
       }
 
-      const { username } = verifyToken<{ username: string }>(refreshToken, 'refreshToken');
+      // Try to verify token and fetch the username from it
+      const { username } = verifyToken<VerifiedRefreshToken>(refreshToken, 'refreshToken');
 
-      if (!username) {
-        return null;
-      }
-
+      // Fetch the entire user for that username
       const user = await api.getSingleUser(username);
 
+      // If no user is found, return null
       if (!user) {
         return null;
       }
 
-      sendRefreshToken(user.username, response);
+      // Attach a refresh token to the response object
+      attachRefreshToken(user.username, response);
 
+      // Reduce the user to get correct return type
       const fullUser = reduce(user, userReduce);
 
       return {
@@ -54,7 +62,8 @@ const authResolver: Resolvers = {
         return false;
       }
 
-      sendRefreshToken(user.username, response);
+      // Attach a refresh token to the response object
+      attachRefreshToken(user.username, response);
 
       return true;
     },
@@ -63,8 +72,10 @@ const authResolver: Resolvers = {
         return false;
       }
 
+      // Invalidate both access- and refreshtoken
       invalidateToken(token);
       invalidateToken(refreshToken);
+
       return true;
     },
   },
