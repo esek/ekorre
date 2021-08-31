@@ -11,7 +11,11 @@
     "dev": "nodemon -e ts,graphql --watch src --exec \"node --nolazy --inspect -r ts-node/register src/app.ts\"",
     "generate": "graphql-codegen --config codegen.yml",
     "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" --write",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "test": "jest",
+    "unittest": "jest test/unit",
+    "regressiontest": "jest test/regression",
+    "integrationtest": "jest test/integration"
   },
   "author": "Emil Blennow",
   "contributors": [
@@ -60,6 +64,7 @@
     "@types/dompurify": "^2.2.1",
     "@types/express": "^4.17.8",
     "@types/express-fileupload": "^1.1.6",
+    "@types/jest": "^27.0.1",
     "@types/jsdom": "^16.2.10",
     "@types/jsonwebtoken": "^8.5.0",
     "@types/showdown": "^1.9.3",
@@ -69,8 +74,10 @@
     "eslint-config-airbnb-typescript": "^10.0.0",
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-import": "^2.22.0",
+    "jest": "^27.1.0",
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2",
-    "sqlite3": "^5.0.0"
+    "sqlite3": "^5.0.0",
+    "ts-jest": "^27.0.5"
   }
 }
