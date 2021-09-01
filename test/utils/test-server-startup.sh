@@ -1,14 +1,12 @@
 #! /bin/bash
-# Detta är en fil som startar en dev-server, tänkt att
-# användas i CI-miljö (efter `npm ci`)
+# Detta är en fil som startar kollar efter en startad dev-server
+# i startup.tmp.log, tänkt att användas i CI-miljö
+# (efter `npm ci` och `./init.sh > startup.tmp.log 2>&1 &`)
 # Kör `./<detta script> <port definierad i .env>`
 
 PORT=$1
 TIMEOUT=1000
 counter=0
-
-# Starta devserver och logga output i tillfällig fil
-npm run dev > startup.tmp.log 2>&1 &
 
 # Greppa efter startad server tills dess adress hittas,
 # räkna upp till timeout
