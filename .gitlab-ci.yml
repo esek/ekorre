@@ -58,6 +58,7 @@ regressiontests:
   before_script:
     - node --version
     - npm ci
+    - ./init.sh
     - export PORT=$(cat .env | grep -oP '(?<=PORT=)(\d+)')
     - ./test/utils/test-server-startup.sh $PORT
   script:
