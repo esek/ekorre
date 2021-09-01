@@ -26,7 +26,7 @@ test('Check login with correct credentials', () => {
     if (res.data !== null) {
       expect(res.data.data.login).toBeTruthy();
     } else {
-      fail('Did not get proper response from server');
+      fail('Did not get proper response from the server');
     }
   });
 });
@@ -43,7 +43,7 @@ test('Check login with incorrect credentials', () => {
     if (res.data !== null) {
       expect(res.data.data.login).toBeFalsy();
     } else {
-      fail('Did not get proper response from server');
+      fail('Did not get proper response from the server');
     }
   });
 });
@@ -60,7 +60,7 @@ test('Check login with incorrect password', () => {
     if (res.data !== null) {
       expect(res.data.data.login).toBeFalsy();
     } else {
-      fail('Did not get proper response from server');
+      fail('Did not get proper response from the server');
     }
   });
 });
@@ -77,7 +77,7 @@ test('Check login with incorrect username', () => {
     if (res.data !== null) {
       expect(res.data.data.login).toBeFalsy();
     } else {
-      fail('Did not get proper response from server');
+      fail('Did not get proper response from the server');
     }
   });
 });
@@ -94,7 +94,7 @@ test('Check login with empty credentials', () => {
     if (res.data !== null) {
       expect(res.data.data.login).toBeFalsy();
     } else {
-      fail('Did not get proper response from server');
+      fail('Did not get proper response from the server');
     }
   });
 });
@@ -111,7 +111,7 @@ test('Check login with empty password', () => {
     if (res.data !== null) {
       expect(res.data.data.login).toBeFalsy();
     } else {
-      fail('Did not get proper response from server');
+      fail('Did not get proper response from the server');
     }
   });
 });
@@ -128,7 +128,7 @@ test('Check login with empty username', () => {
     if (res.data !== null) {
       expect(res.data.data.login).toBeFalsy();
     } else {
-      fail('Did not get proper response from server');
+      fail('Did not get proper response from the server');
     }
   });
 });
