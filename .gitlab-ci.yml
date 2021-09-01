@@ -42,7 +42,7 @@ lint:
     - npx eslint src
     - npx eslint test
 
-unit:
+unittests:
   stage: test
   image: node:15
   # Make sure docker info is not run and get some node info
@@ -52,6 +52,19 @@ unit:
     - npm ci
     - npm run unittest
 
+regressiontests:
+  stage: test
+  image: node:15
+  before_script:
+    - node --version
+    - npm ci
+    - export PORT=$(cat .env | grep -oP '(?<=PORT=)(\d+)')
+    - ./test/utils/test-server-startup.sh $PORT
+  script:
+    - npm run regressiontest
+  # Kill the node server
+  after_script:
+    - kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' )
 # # TODO: Add regression and integration when implemented
 
 # # Here, the goal is to tag the "master" branch as "latest"
