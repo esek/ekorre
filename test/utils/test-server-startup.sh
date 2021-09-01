@@ -10,7 +10,8 @@ counter=0
 # Starta devserver och logga output i tillfällig fil
 npm run dev > startup.tmp.log 2>&1 &
 
-# Greppa efter startad server tills den startup hittas
+# Greppa efter startad server tills dess adress hittas,
+# räkna upp till timeout
 while ! grep -q "http://.*:$PORT" startup.tmp.log
 do
   counter=$((counter + 1))
