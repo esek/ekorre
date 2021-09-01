@@ -58,10 +58,10 @@ regressiontests:
   before_script:
     - node --version
     - npm ci
-    - ./test/utils/install-sqlite3.sh
+    - apt install sqlite3
     - ./init.sh > startup.tmp.log 2>&1 &
-    - export PORT=$(cat .env | grep -oP '(?<=PORT=)(\d+)')
-    - ./test/utils/test-server-startup.sh $PORT
+    - export TEST_PORT=$(cat .env | grep -oP '(?<=PORT=)(\d+)')
+    - ./test/utils/test-server-startup.sh $TEST_PORT
   script:
     - npm run regressiontest
   # Kill the node server
