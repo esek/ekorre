@@ -1,0 +1,16 @@
+# import User from 'user.graphql'
+
+type Query {
+  refreshToken: RefreshResponse
+}
+
+type Mutation {
+  "Test user credentials and if valid get a jwt token"
+  login(username: String!, password: String!): Boolean!
+  logout(token: String!): Boolean
+}
+
+type RefreshResponse {
+  user: User!
+  accessToken: String!
+}

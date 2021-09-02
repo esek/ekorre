@@ -8,10 +8,6 @@ type Query {
 }
 
 type Mutation {
-  "Test user credentials and if valid get a jwt token"
-  login(username: String!, password: String!): String
-  refreshToken(token: String!): String
-  logout(token: String!): Boolean
   createUser(input: NewUser!): User
   updateUser(input: UpdateUser!): Boolean
   requestPasswordReset(username: String!): Boolean!

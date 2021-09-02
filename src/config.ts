@@ -21,11 +21,20 @@ const EBREV = {
   API_TOKEN: process.env.EBREV_API_TOKEN ?? '',
 };
 
+/**
+ * Cors options
+ * @param {string} ALLOWED_ORIGINS - Commaseparated list of origins that are allowed to make requests
+ */
+const CORS = {
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS?.split(',') ?? [],
+};
+
 const config = {
   PORT: parseInt(process.env.PORT ?? '5000', 10),
   HOST: process.env.HOST ?? '0.0.0.0',
   FILES,
   EBREV,
+  CORS,
 };
 
 export default config;

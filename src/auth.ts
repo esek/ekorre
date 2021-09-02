@@ -1,65 +1,108 @@
-import crypto from 'crypto';
+import { randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
 
 import { Logger } from './logger';
+import type { SecretStore, TokenBlacklistItem, TokenType } from './models/auth';
+import type { StrictObject } from './models/base';
 
-let currentSecret: string;
-let secretDate: Date;
+const logger = Logger.getLogger('Auth');
+
+const secrets: SecretStore = {
+  accessToken: {
+    value: '',
+    time: Date.now(),
+    refreshDays: 1,
+  },
+  refreshToken: {
+    value: '',
+    time: Date.now(),
+    refreshDays: 30,
+  },
+};
+
+let tokenBlacklist: TokenBlacklistItem[] = [];
+
+const EXPIRE_MINUTES: Record<TokenType, number> = {
+  accessToken: 60, // 60min
+  refreshToken: 60 * 24 * 15, // 15d
+};
+
+export const COOKIES: Record<TokenType, string> = {
+  accessToken: 'e-access-token',
+  refreshToken: 'e-refresh-token',
+};
 
 /**
- * Generera en ny secret varje ny dag.
+ * Generera en ny secret om det behövs
  */
-const SECRET = () => {
-  const now = new Date();
-  if (currentSecret == null || secretDate.getDay() !== new Date().getDay()) {
-    currentSecret = crypto.randomBytes(20).toString('hex');
-    secretDate = now;
+const SECRET = (type: TokenType) => {
+  const now = Date.now();
+  const { value, time, refreshDays } = secrets[type];
+
+  const inRange = now - time < refreshDays * 24 * 60 * 60 * 1000;
+
+  if (!value || !inRange) {
+    secrets[type].value = randomBytes(20).toString('hex');
+    secrets[type].time = now;
   }
-  return currentSecret;
+
+  return secrets[type].value;
 };
-const EXPIRE_MINUTES = 10;
-const logger = Logger.getLogger('Auth');
-let invalidTokenStore: [token: string, time: number][] = [];
+
+/**
+ * Skapa en token till ett objekt
+ * @param obj - Objektet som ska finnas i token
+ * @param type - Typen av token som skapas
+ */
+
+export const issueToken = <T extends StrictObject>(obj: T, type: TokenType): string => {
+  const expiration = EXPIRE_MINUTES[type];
+
+  const token = jwt.sign(obj, SECRET(type), { expiresIn: `${expiration}min` });
+
+  logger.debug(`Issued a ${type} for object: ${Logger.pretty(obj)}`);
+
+  return token;
+};
 
 /**
  * Kollar ifall det finns en svartlistad token.
  * @param token - Den token som kollas
  * @returns Sant ifall den givna tokenen finns annars falskt.
  */
-const checkTokenStore = (token: string): boolean => {
+const isBlackListed = (token: string, type: TokenType): boolean => {
   const now = Date.now();
-  invalidTokenStore = invalidTokenStore.filter(
-    ([_, time]) => now - time < EXPIRE_MINUTES * 1000 * 60,
+
+  tokenBlacklist = tokenBlacklist.filter(
+    ({ time, token: blacklistedToken }) =>
+      blacklistedToken && now - time < EXPIRE_MINUTES[type] * 1000 * 60,
   );
 
-  if (invalidTokenStore.find(([t]) => t === token) != null) {
-    logger.log('Blacklisted token was used.');
+  if (tokenBlacklist.some(({ token: blacklistedToken }) => blacklistedToken === token)) {
+    logger.warn('Blacklisted token was used.');
     return true;
   }
+
   return false;
 };
 
 /**
  * Verifiera inkommande token. Kommer kasta error ifall den är ogiltig!
  * Om tokenen är godkänd så kommer dess data att returneras.
- * @param token the jwt token
+ * @param token jwt token
+ * @param type typen av token, antingen `accessToken` eller `refreshToken`
  * @returns JWT payload eller eller Error ifall tokenen är invaliderad eller har annat fel.
  */
-export const verifyToken = <T>(token: string): T => {
-  if (checkTokenStore(token)) throw Error('JWT token is in blacklist!');
-  const u = jwt.verify(token, SECRET());
-  logger.debug(`Authorized a token with value: ${Logger.pretty(u)}`);
-  return (u as unknown) as T; // Kan bli problem senare...
-};
+export const verifyToken = <T>(token: string, type: TokenType) => {
+  if (isBlackListed(token, type)) {
+    throw new Error('This token is no longer valid');
+  }
 
-/**
- * Skapa en token till ett objekt
- * @param o - Ett objekt
- */
-export const issueToken = (o: Record<string, unknown>): string => {
-  const token = jwt.sign(o, SECRET(), { expiresIn: `${EXPIRE_MINUTES}min` });
-  logger.debug(`Issued a token for object: ${Logger.pretty(o)}`);
-  return token;
+  const obj = jwt.verify(token, SECRET(type));
+
+  logger.debug(`Verified a ${type} with value: ${Logger.pretty(obj)}`);
+
+  return (obj as unknown) as T;
 };
 
 /**
@@ -68,8 +111,7 @@ export const issueToken = (o: Record<string, unknown>): string => {
  * ifall servern startas om.
  * @param token - Den token som ska invalideras
  */
-export const invalidateToken = (token: string): boolean => {
-  invalidTokenStore.push([token, Date.now()]);
-  logger.debug('Invalidated a token.');
-  return true;
+export const invalidateToken = (token: string): void => {
+  tokenBlacklist.push({ token, time: Date.now() });
+  logger.debug(`Token ${token} was invalidated`);
 };
