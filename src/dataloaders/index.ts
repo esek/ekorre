@@ -1,5 +1,6 @@
 import DataLoader from 'dataloader';
 
+import type { StrictObject } from '../models/base';
 import { Context } from '../models/context';
 
 type DataLoaderCallback<T, E> = (
@@ -28,7 +29,7 @@ export const createDataLoader = <T, K = string>(
 
 export const useDataLoader = <T, E>(cb: DataLoaderCallback<T, E>) => (
   model: T,
-  _: Record<string, unknown>,
+  _: StrictObject,
   ctx: Context,
 ) => {
   const { key, dataLoader } = cb(model, ctx);
