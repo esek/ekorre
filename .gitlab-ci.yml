@@ -54,18 +54,19 @@ unittests:
 
 regressiontests:
   stage: test
-  image: node:15
+  image: node:16-bullseye
   before_script:
     - node --version
     - npm ci
-    - ./init.sh
-    - export PORT=$(cat .env | grep -oP '(?<=PORT=)(\d+)')
-    - ./test/utils/test-server-startup.sh $PORT
+    - apt-get update
+    - apt-get upgrade -y
+    - apt-get install sqlite3
+    - ./test/utils/test-server-startup.sh
   script:
     - npm run regressiontest
   # Kill the node server
   after_script:
-    - kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' )
+    - kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' ) && echo "Killed dev server"
 # # TODO: Add regression and integration when implemented
 
 # # Here, the goal is to tag the "master" branch as "latest"
