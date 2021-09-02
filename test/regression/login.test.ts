@@ -1,10 +1,31 @@
-import axios from 'axios';
-import { API_URL } from '../testvariables';
+import { RefreshResponse } from '../../src/graphql.generated';
+import { ApiRequest } from '../models/test';
+import { axiosInstance } from '../utils/axiosInstance';
+
+
+
+
+
 
 interface LoginResponse {
-  data: {
-    login: boolean,
+  headers: {
+    'set-cookie': string[] | undefined,
     [key: string]: any
+  },
+  data: {
+    data: {
+      login: boolean,
+      [key: string]: any
+    }
+  },
+}
+
+interface FullRefreshResponse {
+  headers: {
+    'set-cookie': string[] | undefined
+  },
+  data: {
+    data: RefreshResponse
   }
 }
 
@@ -14,6 +35,25 @@ const LOGIN_MUTATION = `
   }
 `;
 
+const REFRESH_TOKEN = `
+  {
+    refreshToken {
+      user {
+        name
+        username
+      }
+    }
+  }
+`;
+
+const extractRefreshToken = (s: string): string | null => {
+  const match = /e-refresh-token=(.*?);/g.exec(s);
+  if (match !== null) {
+    return match[0];
+  }
+  return null;
+};
+
 test('Check login with correct credentials', () => {
   const data = {
     'query': LOGIN_MUTATION,
@@ -22,9 +62,60 @@ test('Check login with correct credentials', () => {
       'password': 'test',
     },
   };
-  return axios.post<LoginResponse>(API_URL, data).then(res => {
-    if (res.data !== null) {
+  return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then(res => {
+    if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeTruthy();
+      if (res.headers['set-cookie'] === undefined) {
+        fail('Response cookies undefined');
+      }
+      expect(extractRefreshToken(res.headers['set-cookie'][0])).not.toBe(null);
+    } else {
+      fail('Did not get proper response from the server');
+    }
+  });
+});
+
+/**
+ * Med callbacks på detta sättet måste vi ha done som avgör när allt är klart,
+ * i vanliga fall kan man bara returnera en promise (testet är klart när
+ * promise är klart)
+ */
+test('Check authorization with e-refresh-cookie', (done) => {
+  const loginData = {
+    query: LOGIN_MUTATION,
+    variables: {
+      username: 'bb1111cc-s',
+      password: 'test',
+    },
+  };
+  axiosInstance.post<ApiRequest, LoginResponse>('/', loginData).then((res) => {
+    if (res.data !== null && res.headers !== null) {
+      if (res.headers['set-cookie'] === undefined) {
+        fail('Response cookies undefined');
+      }
+      const refreshToken = extractRefreshToken(res.headers['set-cookie'][0]);
+      if (refreshToken === null) {
+        fail('Response cookies did not contain e-refresh token');
+      }
+
+      // Vi ska nu testa om vi kan authorisera oss med token som vi fått
+      const authData = {
+        query: REFRESH_TOKEN,
+        headers: {
+          Cookie: `e-refresh-token=${refreshToken}; `,
+        },
+      };
+      axiosInstance.post<ApiRequest, FullRefreshResponse>('/', authData).then(res2 => {
+        if (res2.data !== null && res2.headers !== null) {
+          // REFRESH_TOKEN frågar bara om namn och användarnamn
+          expect(res2.data.data.user).toStrictEqual({
+            firstName: 'Leif',
+            username: 'bb1111cc-s',
+          });
+          expect(res.data.data.accessToken).not.toBe(undefined);
+        }
+      });
+      done();
     } else {
       fail('Did not get proper response from the server');
     }
@@ -33,15 +124,16 @@ test('Check login with correct credentials', () => {
 
 test('Check login with incorrect credentials', () => {
   const data = {
-    'query': LOGIN_MUTATION,
-    'variables': {
-      'username': 'En riktig fuling',
-      'password': 'hunter2',
+    query: LOGIN_MUTATION,
+    variables: {
+      username: 'En riktig fuling',
+      password: 'hunter2',
     },
   };
-  return axios.post<LoginResponse>(API_URL, data).then(res => {
-    if (res.data !== null) {
+  return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
+    if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
+      expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
     }
@@ -56,9 +148,10 @@ test('Check login with incorrect password', () => {
       'password': 'inte test',
     },
   };
-  return axios.post<LoginResponse>(API_URL, data).then(res => {
-    if (res.data !== null) {
+  return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then(res => {
+    if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
+      expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
     }
@@ -73,9 +166,10 @@ test('Check login with incorrect username', () => {
       'password': 'test',
     },
   };
-  return axios.post<LoginResponse>(API_URL, data).then(res => {
-    if (res.data !== null) {
+  return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then(res => {
+    if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
+      expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
     }
@@ -90,9 +184,10 @@ test('Check login with empty credentials', () => {
       'password': '',
     },
   };
-  return axios.post<LoginResponse>(API_URL, data).then(res => {
-    if (res.data !== null) {
+  return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then(res => {
+    if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
+      expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
     }
@@ -107,9 +202,10 @@ test('Check login with empty password', () => {
       'password': '',
     },
   };
-  return axios.post<LoginResponse>(API_URL, data).then(res => {
-    if (res.data !== null) {
+  return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then(res => {
+    if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
+      expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
     }
@@ -124,9 +220,10 @@ test('Check login with empty username', () => {
       'password': 'test',
     },
   };
-  return axios.post<LoginResponse>(API_URL, data).then(res => {
-    if (res.data !== null) {
+  return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then(res => {
+    if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
+      expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
     }
