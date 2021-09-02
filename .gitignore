@@ -6,6 +6,7 @@ public
 *.swp
 *.swo
 public.local
+startup.tmp.log
 
 #Mac files
 .DS_Store
