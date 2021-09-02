@@ -1,11 +1,7 @@
+import { AxiosRequestConfig } from 'axios';
 import { RefreshResponse } from '../../src/graphql.generated';
 import { ApiRequest } from '../models/test';
 import { axiosInstance } from '../utils/axiosInstance';
-
-
-
-
-
 
 interface LoginResponse {
   headers: {
@@ -25,7 +21,9 @@ interface FullRefreshResponse {
     'set-cookie': string[] | undefined
   },
   data: {
-    data: RefreshResponse
+    data: {
+      refreshToken: RefreshResponse,
+    }
   }
 }
 
@@ -35,19 +33,21 @@ const LOGIN_MUTATION = `
   }
 `;
 
-const REFRESH_TOKEN = `
+const REFRESH_TOKEN_QUERY = `
   {
     refreshToken {
       user {
-        name
+        firstName
         username
       }
+      accessToken
     }
   }
 `;
 
 const extractRefreshToken = (s: string): string | null => {
-  const match = /e-refresh-token=(.*?);/g.exec(s);
+  // Matcha något som innehåller A-z, ., _ och 0-9 fram till ;
+  const match = /(?<=e-refresh-token=)([A-z._0-9]+);/g.exec(s);
   if (match !== null) {
     return match[0];
   }
@@ -80,7 +80,7 @@ test('Check login with correct credentials', () => {
  * i vanliga fall kan man bara returnera en promise (testet är klart när
  * promise är klart)
  */
-test('Check authorization with e-refresh-cookie', (done) => {
+test('Check authorization with e-refresh-cookie', done => {
   const loginData = {
     query: LOGIN_MUTATION,
     variables: {
@@ -88,11 +88,12 @@ test('Check authorization with e-refresh-cookie', (done) => {
       password: 'test',
     },
   };
-  axiosInstance.post<ApiRequest, LoginResponse>('/', loginData).then((res) => {
+  axiosInstance.post<ApiRequest, LoginResponse>('/', loginData).then(res => {
     if (res.data !== null && res.headers !== null) {
       if (res.headers['set-cookie'] === undefined) {
         fail('Response cookies undefined');
       }
+
       const refreshToken = extractRefreshToken(res.headers['set-cookie'][0]);
       if (refreshToken === null) {
         fail('Response cookies did not contain e-refresh token');
@@ -100,22 +101,28 @@ test('Check authorization with e-refresh-cookie', (done) => {
 
       // Vi ska nu testa om vi kan authorisera oss med token som vi fått
       const authData = {
-        query: REFRESH_TOKEN,
-        headers: {
-          Cookie: `e-refresh-token=${refreshToken}; `,
-        },
+        query: REFRESH_TOKEN_QUERY,
       };
-      axiosInstance.post<ApiRequest, FullRefreshResponse>('/', authData).then(res2 => {
+
+      const authHeader: AxiosRequestConfig = {
+        headers: {
+          Cookie: `e-refresh-token=${refreshToken}; `
+        }
+      };
+
+      axiosInstance.post<ApiRequest, FullRefreshResponse>('/', authData, authHeader).then(res2 => {
         if (res2.data !== null && res2.headers !== null) {
-          // REFRESH_TOKEN frågar bara om namn och användarnamn
-          expect(res2.data.data.user).toStrictEqual({
+          // REFRESH_TOKEN_QUERY frågar bara om namn, användarnamn och accessToken
+          expect(res2.data.data.refreshToken.user).toStrictEqual({
             firstName: 'Leif',
             username: 'bb1111cc-s',
           });
-          expect(res.data.data.accessToken).not.toBe(undefined);
+          expect(res2.data.data.refreshToken.accessToken).not.toBe(undefined);
+          done();
+        } else {
+          fail('Did not get proper response from the server on second request');
         }
       });
-      done();
     } else {
       fail('Did not get proper response from the server');
     }
