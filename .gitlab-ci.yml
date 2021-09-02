@@ -54,6 +54,9 @@ unittests:
 
 regressiontests:
   stage: test
+  # Must be run on docker runner
+  tags:
+    - docker
   image: node:16-bullseye
   before_script:
     - node --version
@@ -67,7 +70,8 @@ regressiontests:
   # Kill the node server
   after_script:
     - kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' ) && echo "Killed dev server"
-# # TODO: Add regression and integration when implemented
+
+# # TODO: Add integration when implemented
 
 # # Here, the goal is to tag the "master" branch as "latest"
 push latest:
