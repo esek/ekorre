@@ -58,7 +58,9 @@ regressiontests:
   before_script:
     - node --version
     - npm ci
-    - apt install sqlite3
+    - apt-get update
+    - apt-get upgrade -y
+    - apt-get install sqlite3
     - ./init.sh > startup.tmp.log 2>&1 &
     - export TEST_PORT=$(cat .env | grep -oP '(?<=PORT=)(\d+)')
     - ./test/utils/test-server-startup.sh $TEST_PORT
