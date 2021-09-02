@@ -1,8 +1,7 @@
 #! /bin/bash
-# Detta är en fil som startar kollar efter en startad dev-server
-# i startup.tmp.log, tänkt att användas i CI-miljö
-# (efter `npm ci` och `./init.sh > startup.tmp.log 2>&1 &`)
-# Kör `./<detta script> <port definierad i .env>`
+# Detta är en fil som initierar default .env,
+# startar och kollar efter en startad dev-server
+# tänkt att användas i CI-miljö
 
 DATABASE_PATH=sqlite_database.db
 FILES_PATH=$PWD/public.local
