@@ -4,7 +4,22 @@
 # (efter `npm ci` och `./init.sh > startup.tmp.log 2>&1 &`)
 # Kör `./<detta script> <port definierad i .env>`
 
-PORT=$1
+DATABASE_PATH=sqlite_database.db
+FILES_PATH=$PWD/public.local
+
+echo "Creating database at path $DATABASE_PATH"
+sqlite3 -init src/sql/init.sql $DATABASE_PATH .exit
+cp .env.example.dev .env
+sed -i 's:DB_FILE=.*:DB_FILE='$DATABASE_PATH':' .env # Se nedan
+
+
+echo "Creating public dir"
+cp -r public $FILES_PATH
+sed -i 's:FILE_ROOT=.*:FILE_ROOT='$FILES_PATH':' .env # Använd alternativ separator :, $PWD innehåller /
+
+npm run dev > startup.tmp.log 2>&1 &
+
+PORT=$(cat .env | grep -oP '(?<=PORT=)(\d+)')
 TIMEOUT=1000
 counter=0
 

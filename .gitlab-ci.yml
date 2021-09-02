@@ -61,9 +61,7 @@ regressiontests:
     - apt-get update
     - apt-get upgrade -y
     - apt-get install sqlite3
-    - ./init.sh > startup.tmp.log 2>&1 &
-    - export TEST_PORT=$(cat .env | grep -oP '(?<=PORT=)(\d+)')
-    - ./test/utils/test-server-startup.sh $TEST_PORT
+    - ./test/utils/test-server-startup.sh
   script:
     - npm run regressiontest
   # Kill the node server
