@@ -3,6 +3,7 @@
 import { Maybe } from 'graphql/jsutils/Maybe';
 
 import { ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
+import { StrictObject } from '../models/base';
 import type { DatabaseArticle } from '../models/db/article';
 import { stripObject, toUTC } from '../util';
 import { ARTICLE_TABLE } from './constants';
@@ -113,7 +114,7 @@ export class ArticleAPI {
     // Ta bort undefined, de ogillas SKARPT  av Knex.js
 
     // Ts låter en inte indexera nycklar i params med foreach
-    const copy: Record<string, unknown> = { ...params };
+    const copy: StrictObject = { ...params };
     Object.keys(copy).forEach((key) => (copy[key] === undefined ? delete copy[key] : {}));
 
     const article = await knex<DatabaseArticle>(ARTICLE_TABLE).where(copy);
@@ -167,7 +168,7 @@ export class ArticleAPI {
    * @param entry Modifiering av existerande artikel
    */
   async modifyArticle(id: number, entry: ModifyArticle): Promise<boolean> {
-    const update: Record<string, unknown> = stripObject(entry);
+    const update: StrictObject = stripObject(entry);
 
     // TODO: Add lastUpdatedBy using auth
 
