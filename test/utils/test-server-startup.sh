@@ -1,4 +1,5 @@
-#! /bin/bash
+#!/bin/bash
+
 # Detta är en fil som initierar default .env,
 # startar och kollar efter en startad dev-server
 # tänkt att användas i CI-miljö
@@ -18,7 +19,7 @@ sed -i 's:FILE_ROOT=.*:FILE_ROOT='$FILES_PATH':' .env # Använd alternativ separ
 
 npm run dev > startup.tmp.log 2>&1 &
 
-PORT=$(cat .env | grep -oP '(?<=PORT=)(\d+)')
+PORT=$(cat .env | grep -o '(?<=PORT=)(\d+)')
 TIMEOUT=1000
 counter=0
 
