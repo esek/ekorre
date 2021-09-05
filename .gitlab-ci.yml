@@ -66,9 +66,9 @@ regressiontests:
     - ./test/utils/test-server-startup.sh
   script:
     - npm run regressiontest
-  # Kill the node server
+  # Kill the node server, bash not default shell on alpine
   after_script:
-    - kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' ) && echo "Killed dev server"
+    - bash kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' ) && echo "Killed dev server"
 
 # # TODO: Add integration when implemented
 
