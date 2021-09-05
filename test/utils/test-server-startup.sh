@@ -1,4 +1,5 @@
-#! /bin/bash
+#!/bin/bash
+
 # Detta är en fil som initierar default .env,
 # startar och kollar efter en startad dev-server
 # tänkt att användas i CI-miljö

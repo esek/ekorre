@@ -62,7 +62,7 @@ regressiontests:
     - node --version
     - npm ci
     - apk update
-    - apk add sqlite3
+    - apk add sqlite
     - ./test/utils/test-server-startup.sh
   script:
     - npm run regressiontest

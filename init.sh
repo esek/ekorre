@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 if ! command -v sqlite3 &> /dev/null
 then
