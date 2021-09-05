@@ -130,7 +130,7 @@ test('Check authorization with e-refresh-cookie', (done) => {
       fail('Did not get proper response from the server');
     }
   });
-});
+}, 7500);
 
 test('Check login with incorrect credentials', () => {
   const data = {
