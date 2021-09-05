@@ -1,4 +1,5 @@
 import axios from 'axios';
+
 import { API_URL } from '../testvariables';
 
 /**
@@ -10,7 +11,7 @@ export const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest'
+    Accept: 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
 });

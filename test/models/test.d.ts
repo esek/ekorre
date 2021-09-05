@@ -1,6 +1,6 @@
 export interface ApiRequest {
-  query: string,
+  query: string;
   variables: {
-    [key: string]: any
-  }
+    [key: string]: any;
+  };
 }
