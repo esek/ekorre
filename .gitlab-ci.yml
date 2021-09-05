@@ -57,13 +57,12 @@ regressiontests:
   # Must be run on docker runner
   tags:
     - docker
-  image: node:16-bullseye
+  image: node:15-alpine
   before_script:
     - node --version
     - npm ci
-    - apt-get update
-    - apt-get upgrade -y
-    - apt-get install sqlite3
+    - apk update
+    - apk add sqlite3
     - ./test/utils/test-server-startup.sh
   script:
     - npm run regressiontest
