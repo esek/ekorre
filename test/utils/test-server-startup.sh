@@ -19,7 +19,7 @@ sed -i 's:FILE_ROOT=.*:FILE_ROOT='$FILES_PATH':' .env # Använd alternativ separ
 
 npm run dev > startup.tmp.log 2>&1 &
 
-PORT=$(cat .env | grep -oP '(?<=PORT=)(\d+)')
+PORT=$(cat .env | grep -o '(?<=PORT=)(\d+)')
 TIMEOUT=1000
 counter=0
 
