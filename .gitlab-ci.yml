@@ -58,6 +58,8 @@ regressiontests:
   tags:
     - docker
   image: node:15-alpine
+    # bash not default shell on alpine
+    - entrypoint: bash
   before_script:
     - node --version
     - npm ci
@@ -66,7 +68,7 @@ regressiontests:
     - ./test/utils/test-server-startup.sh
   script:
     - npm run regressiontest
-  # Kill the node server, bash not default shell on alpine
+  # Kill the node server
   after_script:
     - bash kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' ) && echo "Killed dev server"
 
