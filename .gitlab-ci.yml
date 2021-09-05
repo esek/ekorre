@@ -58,9 +58,9 @@ regressiontests:
   tags:
     - docker
   image:
-    - name: node:15-alpine
+    name: node:15-alpine
     # bash not default shell on alpine
-    - entrypoint: bash
+    entrypoint: ["/bin/bash", "-c"]
   before_script:
     - node --version
     - npm ci
