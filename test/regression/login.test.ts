@@ -3,6 +3,7 @@ import { AxiosRequestConfig } from 'axios';
 import { RefreshResponse } from '../../src/graphql.generated';
 import { ApiRequest } from '../models/test';
 import { axiosInstance } from '../utils/axiosInstance';
+import { extractRefreshToken } from '../utils/utils';
 
 interface LoginResponse {
   headers: {
@@ -45,16 +46,6 @@ const REFRESH_TOKEN_QUERY = `
     }
   }
 `;
-
-const extractRefreshToken = (s: string): string | null => {
-  // Matcha base64url enl. JavaScript-specification, inclusive
-  // separator "."
-  const match = /(?<=e-refresh-token=)([-_.A-z0-9]+);/g.exec(s);
-  if (match !== null) {
-    return match[0];
-  }
-  return null;
-};
 
 test('Check login with correct credentials', () => {
   const data = {
