@@ -13,5 +13,9 @@ const config = readFileSync(join(__dirname, '../.env'), 'utf8');
 })(config);
 
 // Vi antar att en test-dev-server kör på localhost
-port = port ?? (() => { throw new Error('Port for test dev server not defined'); })();
+port =
+  port ??
+  (() => {
+    throw new Error('Port for test dev server not defined');
+  })();
 export const API_URL = `http://localhost:${port}`;

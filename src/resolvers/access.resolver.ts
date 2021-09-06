@@ -2,7 +2,6 @@ import { AccessAPI } from '../api/access.api';
 import { PostAPI } from '../api/post.api';
 import { Access, Resolvers } from '../graphql.generated';
 
-
 const accessApi = new AccessAPI();
 const postApi = new PostAPI();
 
