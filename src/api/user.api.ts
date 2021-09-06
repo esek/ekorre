@@ -126,7 +126,7 @@ export class UserAPI {
 
     const { passwordSalt, passwordHash } = this.generateSaltAndHash(password);
 
-    let { username = ''} = input;
+    let { username = '' } = input;
     let email = `${username}@student.lu.se`;
 
     if (isFuncUser) {
