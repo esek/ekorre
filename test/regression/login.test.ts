@@ -47,8 +47,9 @@ const REFRESH_TOKEN_QUERY = `
 `;
 
 const extractRefreshToken = (s: string): string | null => {
-  // Matcha något som innehåller A-z, ., _ och 0-9 fram till ;
-  const match = /(?<=e-refresh-token=)([A-z._0-9]+);/g.exec(s);
+  // Matcha base64url enl. JavaScript-specification, inclusive
+  // separator "."
+  const match = /(?<=e-refresh-token=)([-_.A-z0-9]+);/g.exec(s);
   if (match !== null) {
     return match[0];
   }
