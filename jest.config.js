@@ -2,4 +2,5 @@
 module.exports = {
   preset: 'ts-jest/presets/default',
   testEnvironment: 'node',
+  setupFiles: ["dotenv/config"], // Så jest kommer åt .env
 };
