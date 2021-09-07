@@ -37,6 +37,7 @@ const clearDb = () => {
   removeUser(newUser.username);
   removeUser(newFuncUser.username);
   removeUser('');
+  removeUser('funcUser_');
 };
 
 // Cleanup
@@ -123,6 +124,10 @@ test('Test creation of funcUser with wrong name', done => {
       done();
     });
   });
+});
+
+test('Test creation of funcUser without username suffix', () => {
+  return expect(api.createUser({ ...newFuncUser, username: 'funcUser_' })).rejects.toThrowError();
 });
 
 test('Test creation of duplicate users', done => {
