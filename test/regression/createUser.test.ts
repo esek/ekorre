@@ -1,6 +1,5 @@
 import { User, NewUser } from '../../src/graphql.generated';
 import { UserAPI } from '../../src/api/user.api';
-import { userReduce } from '../../src/reducers/user.reducer';
 import { USER_TABLE } from '../../src/api/constants';
 import knex  from '../../src/api/knex';
 
@@ -79,6 +78,11 @@ test('Test creation of user with empty username', done => {
   });
 });
 
+test('Test creation of normal user with funcUser prefix', () => {
+  // Unwrappar förväntat failat promise med rejects
+  return expect(api.createUser({ ...newUser, username: newFuncUser.username })).rejects.toThrowError();
+});
+
 test('Test creation of funcUser with proper name', done => {
   const expectedUser: User = {
     ...newFuncUser,
@@ -118,5 +122,13 @@ test('Test creation of funcUser with wrong name', done => {
       expect(userFromDb).not.toBe(null);
       done();
     });
+  });
+});
+
+test('Test creation of duplicate users', done => {
+  api.createUser(newUser).then(() => {
+    // Förväntar oss att promise rejectas och ger error
+    expect(api.createUser(newUser)).rejects.toThrowError();
+    done();
   });
 });
