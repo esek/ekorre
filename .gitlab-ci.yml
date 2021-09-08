@@ -51,6 +51,10 @@ unittests:
   script:
     - npm ci
     - npm run unittest
+  artifacts:
+    paths:
+      - coverage
+    expire_in: 2 weeks
 
 regressiontests:
   stage: test
@@ -67,6 +71,10 @@ regressiontests:
     - ./test/utils/test-server-startup.sh
   script:
     - npm run regressiontest
+  artifacts:
+    paths:
+      - coverage
+    expire_in: 2 weeks
   # Kill the node server
   after_script:
     # bash not default shell on alpine
