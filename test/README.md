@@ -7,6 +7,11 @@ Detta är mappen för tester som kan köras automatiskt. `ekorre` använder sig 
 och förväntar sig ett svar. Ett regressionstest garanterar inte att de underliggande funktionerna fungerar, utan antar att de gör det om regressionstestet fungerar.
 * `integration/` är tester som kontrollerar att helheten fungerar. Kräver att man bygger upp en miljö som är så nära produktionsmiljö som möjligt.
 
-Via `package.json:scripts` kan de olika testen köras via `npm run test` (alla), `npm run unittest`, `npm run regressiontest` respektive `npm run integrationtest`.
+Via `package.json:scripts` kan de olika testen köras via `npm test` (alla), `npm run unittest`, `npm run regressiontest` respektive `npm run integrationtest`.
 
 Alla test ska ha namn på formen `*.test.ts`, där `*` ska vara filnamnet alternativ beskrivninga av test(en) i filen.
+
+## Coverage
+
+`jest` är konfigurerat att skapa en bra översikt av coverage. Detta skrivs ut i terminalen, men genom att öppna `coverage/lcov-report/index.html` i webbläsaren
+kan du få en bra grafisk översikt.

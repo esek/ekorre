@@ -42,21 +42,7 @@ lint:
     - npx eslint src
     - npx eslint test
 
-unittests:
-  stage: test
-  image: node:15
-  # Make sure docker info is not run and get some node info
-  before_script:
-    - node --version
-  script:
-    - npm ci
-    - npm run unittest
-  artifacts:
-    paths:
-      - coverage
-    expire_in: 2 weeks
-
-regressiontests:
+tests:
   stage: test
   # Must be run on docker runner
   tags:
@@ -70,7 +56,7 @@ regressiontests:
     - apk add bash sqlite
     - ./test/utils/test-server-startup.sh
   script:
-    - npm run regressiontest
+    - npm test
   artifacts:
     paths:
       - coverage
@@ -79,8 +65,6 @@ regressiontests:
   after_script:
     # bash not default shell on alpine
     - bash -c kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' ) && echo "Killed dev server"
-
-# # TODO: Add integration when implemented
 
 # # Here, the goal is to tag the "master" branch as "latest"
 push latest:
