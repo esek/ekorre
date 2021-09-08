@@ -60,6 +60,7 @@ tests:
   artifacts:
     paths:
       - coverage
+    expire_in: 1 week
   # Kill the node server
   after_script:
     # bash not default shell on alpine
