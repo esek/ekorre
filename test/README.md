@@ -15,3 +15,5 @@ Alla test ska ha namn på formen `*.test.ts`, där `*` ska vara filnamnet altern
 
 `jest` är konfigurerat att skapa en bra översikt av coverage. Detta skrivs ut i terminalen, men genom att öppna `coverage/lcov-report/index.html` i webbläsaren
 kan du få en bra grafisk översikt.
+
+Dessa bildar också artefakter i GitLab som kan öppnas i webbläsaren, vilket är riktigt snitsigt.
