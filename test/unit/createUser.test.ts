@@ -59,29 +59,29 @@ test('Test creation of new valid user', done => {
 
     // Försäkra att användaren är i databasen, getSignleUser() testas
     // på annat håll
-    api.getSingleUser(newUser.username).then(userFromDb => {
-      expect(userFromDb).not.toBe(null);
-      done();
-    });
+    expect(api.getSingleUser(newUser.username)).resolves.not.toBeNull();
+    done();
   });
 });
 
 test('Test creation of user with empty username', done => {
   api.createUser({ ...newUser, username: '' }).then(user => {
-    expect(user).toBe(null); // TODO: Vad ska den faktiskt returnera?
+    expect(user).toBeNull(); // TODO: Vad ska den faktiskt returnera?
 
     // Försäkra att användaren är i databasen, getSignleUser() testas
     // på annat håll
-    api.getSingleUser(newUser.username).then(userFromDb => {
-      expect(userFromDb).toBe(null);
+    expect(api.getSingleUser('')).rejects.not.toBeNull();
+    done();
+  })
+    .catch(err => {
+      expect(err).toBeNull();
       done();
     });
-  });
 });
 
 test('Test creation of normal user with funcUser prefix', () => {
   // Unwrappar förväntat failat promise med rejects
-  return expect(api.createUser({ ...newUser, username: newFuncUser.username })).rejects.toThrowError();
+  return expect(api.createUser({ ...newUser, username: newFuncUser.username })).rejects.not.toBeNull();
 });
 
 test('Test creation of funcUser with proper name', done => {
@@ -97,10 +97,8 @@ test('Test creation of funcUser with proper name', done => {
 
     // Försäkra att användaren är i databasen, getSignleUser() testas
     // på annat håll
-    api.getSingleUser(newFuncUser.username).then(userFromDb => {
-      expect(userFromDb).not.toBe(null);
-      done();
-    });
+    expect(api.getSingleUser(newFuncUser.username)).resolves.not.toBeNull();
+    done();
   });
 });
 
@@ -119,21 +117,19 @@ test('Test creation of funcUser with wrong name', done => {
 
     // Försäkra att användaren är i databasen, getSignleUser() testas
     // på annat håll
-    api.getSingleUser(newFuncUser.username).then(userFromDb => {
-      expect(userFromDb).not.toBe(null);
-      done();
-    });
+    expect(api.getSingleUser(newFuncUser.username)).resolves.not.toBeNull();
+    done();
   });
 });
 
 test('Test creation of funcUser without username suffix', () => {
-  return expect(api.createUser({ ...newFuncUser, username: 'funcUser_' })).rejects.toThrowError();
+  return expect(api.createUser({ ...newFuncUser, username: 'funcUser_' })).resolves.toBeNull();
 });
 
 test('Test creation of duplicate users', done => {
   api.createUser(newUser).then(() => {
     // Förväntar oss att promise rejectas och ger error
-    expect(api.createUser(newUser)).rejects.toThrowError();
+    expect(api.createUser(newUser)).resolves.toBeNull();
     done();
   });
 });
