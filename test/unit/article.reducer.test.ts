@@ -40,7 +40,6 @@ const sanitizedDirtyHtml = '\
 
 const da: DatabaseArticle = {
   id: 'testid1337',
-  // Slug läggs till av reducern
   refcreator: 'aa0000bb-s',
   reflastupdateby: 'bb1111cc-s',
   title: 'Sju sjösjuka tester testade slugs--',
@@ -52,16 +51,35 @@ const da: DatabaseArticle = {
   articleType: ArticleType.News,
 };
 
+const expectedDaSlug = 'sju-sjosjuka-tester-testade-slugs-testid1337';
+
 test('Test converting OK MarkDown to HTML', () => {
   expect(convertMarkdownToHtml(okMarkdown)).toBe(okHtml);
 });
 
-test('Test sanitation of diry MarkDown to HTML', () => {
+test('Test sanitation of dirty MarkDown to HTML', () => {
   expect(convertMarkdownToHtml(dirtyMarkdown)).toBe(sanitizedDirtyHtml);
 });
 
 test('Test slug generation', () => {
   return articleReducer(da, false).then(reduced => {
-    expect(reduced.slug).toBe('sju-sjosjuka-tester-testade-slugs-testid1337');
+    expect(reduced.slug).toBe(expectedDaSlug);
+  });
+});
+
+test('Test reducing array of DatabaseArticles', () => {
+  const father = [da, da];
+  return articleReducer(father, false).then(reduced => {
+    expect(reduced.length).toBe(2);
+    expect(reduced).toStrictEqual([
+      {
+        ...da,
+        slug: expectedDaSlug
+      },
+      {
+        ...da,
+        slug: expectedDaSlug
+      },
+    ]);
   });
 });

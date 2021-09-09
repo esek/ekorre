@@ -52,12 +52,12 @@ const generateSlug = (str: string) =>
 const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArticle & { slug: string } => {
   // Vi lagrar alltid HTML i databasen; vi gör om till markdown vid
   // förfrågan
-  const sanatizedBody = !markdown ? article.body : convertHtmlToMarkdown(article.body);
+  const sanitizedBody = !markdown ? article.body : convertHtmlToMarkdown(article.body);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { body, ...reduced } = article;
   const a: DatabaseArticle & { slug: string } = {
     ...reduced,
-    body: sanatizedBody,
+    body: sanitizedBody,
     slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
     // Exteremely temporary fix for tags, as knex doesn't send them back as an array
     tags: ((reduced.tags as unknown) as string).toString().split(','),
