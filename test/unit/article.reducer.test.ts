@@ -67,6 +67,15 @@ test('Test slug generation', () => {
   });
 });
 
+test('Test slug generation with no id', () => {
+  const id = da.id ?? '';
+  const localExpectedDaSlug = expectedDaSlug.substring(0,
+    expectedDaSlug.indexOf(id));
+  return articleReducer({...da, id: undefined}, false).then(reduced => {
+    expect(reduced.slug).toBe(localExpectedDaSlug);
+  });
+});
+
 test('Test slug generation with crazy title', () => {
   const crazyTitle = 'hejØ€@@¡}{[]±±🍊🍊  -- ££';
   const expectedCrazySlug = 'hej-testid1337';
