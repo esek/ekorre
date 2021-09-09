@@ -1,4 +1,4 @@
-import { sanitize } from 'dompurify';
+import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import showdown from 'showdown';
 
@@ -8,13 +8,19 @@ import { SHOWDOWN_CONVERTER_OPTIONS } from './constants';
 const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
 const dom = new JSDOM();
 
+// DOMWindow och Window är i detta fallet kompatibla,
+// och detta testas i test/unit så borde vara fine
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const dompurify = DOMPurify(dom.window);
+
 /**
  * Converts MarkDown to HTML
  * @param md string formatted as Markdown
  */
 export const convertMarkdownToHtml = (md: string): string => {
   let html = converter.makeHtml(md);
-  html = sanitize(html); // Don't want any dirty XSS xD
+  html = dompurify.sanitize(html, {USE_PROFILES: {html: true}}); // Don't want any dirty XSS xD
   return html;
 };
 
