@@ -23,10 +23,23 @@ const okHtml = '\
 <h5>This is cool file yes</h5>\n\
 <p><a href="files/somefile.txt">Yes file</a></p>';
 
-const dirtyMarkdown = '<script src="http://example.com/xss"></script>';
+// eslint-disable-next-line no-multi-str
+const dirtyMarkdown = '\
+# Haxx\n\
+\n\
+nice XSS bro\n\
+\n\
+<script src="http://example.com/xss"></script>';
 
-const sanatizedDirtyHtml = '??'; 
+// eslint-disable-next-line no-multi-str
+const sanitizedDirtyHtml = '\
+<h2>Haxx</h2>\n\
+<p>nice XSS bro</p>'; 
 
 test('Test converting OK MarkDown to HTML', () => {
   expect(convertMarkdownToHtml(okMarkdown)).toBe(okHtml);
+});
+
+test('Test sanitation of diry MarkDown to HTML', () => {
+  expect(convertMarkdownToHtml(dirtyMarkdown)).toBe(sanitizedDirtyHtml);
 });
