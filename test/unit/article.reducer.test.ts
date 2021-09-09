@@ -34,7 +34,7 @@ nice XSS bro\n\
 // eslint-disable-next-line no-multi-str
 const sanitizedDirtyHtml = '\
 <h2>Haxx</h2>\n\
-<p>nice XSS bro</p>'; 
+<p>nice XSS bro</p>\n'; 
 
 test('Test converting OK MarkDown to HTML', () => {
   expect(convertMarkdownToHtml(okMarkdown)).toBe(okHtml);
