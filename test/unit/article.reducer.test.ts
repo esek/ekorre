@@ -4,25 +4,25 @@ import { convertMarkdownToHtml, articleReducer } from '../../src/reducers/articl
 
 // eslint-disable-next-line no-multi-str
 const okMarkdown = '\
-# Test\n\
+# Test🍍\n\
 \n\
-Hello guys and welcome to _my_ **testing** tutorial\n\
+Hello guys and welcome to *my* **testing** tutorial\n\
 \n\
 ## Help me I\'m stuck in a testcase\n\
 \n\
-jkjk is [cool](http://example.com)\n\
+jkjk is [cool](<http://example.com>)\n\
 \n\
 #### This is cool file yes\n\
 \n\
-[Yes file](files/somefile.txt)';
+[Yes file](<files/somefile.txt>)';
 
 // eslint-disable-next-line no-multi-str
 const okHtml = '\
-<h2>Test</h2>\n\
+<h1>Test🍍</h1>\n\
 <p>Hello guys and welcome to <em>my</em> <strong>testing</strong> tutorial</p>\n\
-<h3>Help me I\'m stuck in a testcase</h3>\n\
+<h2>Help me I\'m stuck in a testcase</h2>\n\
 <p>jkjk is <a href="http://example.com">cool</a></p>\n\
-<h5>This is cool file yes</h5>\n\
+<h4>This is cool file yes</h4>\n\
 <p><a href="files/somefile.txt">Yes file</a></p>';
 
 // eslint-disable-next-line no-multi-str
@@ -35,8 +35,8 @@ nice XSS bro\n\
 
 // eslint-disable-next-line no-multi-str
 const sanitizedDirtyHtml = '\
-<h2>Haxx</h2>\n\
-<p>nice XSS bro</p>\n';
+<h1>Haxx</h1>\n\
+<p>nice XSS bro</p>';
 
 const da: DatabaseArticle = {
   id: 'testid1337',
@@ -67,6 +67,14 @@ test('Test slug generation', () => {
   });
 });
 
+test('Test slug generation with crazy title', () => {
+  const crazyTitle = 'hejØ€@@¡}{[]±±🍊🍊  -- ££';
+  const expectedCrazySlug = 'hej-testid1337';
+  return articleReducer({...da, title: crazyTitle}, false).then(reduced => {
+    expect(reduced.slug).toBe(expectedCrazySlug);
+  });
+});
+
 test('Test reducing array of DatabaseArticles', () => {
   const father = [da, da];
   return articleReducer(father, false).then(reduced => {
@@ -79,6 +87,35 @@ test('Test reducing array of DatabaseArticles', () => {
       {
         ...da,
         slug: expectedDaSlug
+      },
+    ]);
+  });
+});
+
+test('Test full reduction of OK DatabaseArticle', () => {
+  return articleReducer(da, true).then(reduced => {
+    expect(reduced).toStrictEqual({
+      ...da,
+      body: okMarkdown,
+      slug: expectedDaSlug
+    });
+  });
+});
+
+test('Test full reduction of OK DatabaseArticle array', () => {
+  const father = [da, da];
+  return articleReducer(father, true).then(reduced => {
+    expect(reduced.length).toBe(2);
+    expect(reduced).toStrictEqual([
+      {
+        ...da,
+        body: okMarkdown,
+        slug: expectedDaSlug
+      },
+      {
+        ...da,
+        body: okMarkdown,
+        slug: expectedDaSlug,
       },
     ]);
   });

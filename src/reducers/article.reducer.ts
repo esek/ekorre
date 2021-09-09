@@ -21,7 +21,7 @@ const dompurify = DOMPurify(dom.window);
 export const convertMarkdownToHtml = (md: string): string => {
   let html = converter.makeHtml(md);
   html = dompurify.sanitize(html, {USE_PROFILES: {html: true}}); // Don't want any dirty XSS xD
-  return html;
+  return html.trim();
 };
 
 /**
@@ -57,7 +57,7 @@ const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArt
   const { body, ...reduced } = article;
   const a: DatabaseArticle & { slug: string } = {
     ...reduced,
-    body: sanitizedBody,
+    body: sanitizedBody.trim(),
     slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
     // Exteremely temporary fix for tags, as knex doesn't send them back as an array
     tags: ((reduced.tags as unknown) as string).toString().split(','),
