@@ -17,7 +17,7 @@ const expectedFileResponse: FileResponse = {
   ...testDbFile,
   url: `${process.env.FILES_ENDPOINT ?? '/files'}${testDbFile.folderLocation}`,
   createdBy: {
-    username: 'aa0000bb-s'
+    username: 'aa0000bb-s',
   },
   size: 37, // Bytes
 };
