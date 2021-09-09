@@ -15,7 +15,7 @@ const dom = new JSDOM();
 const dompurify = DOMPurify(dom.window);
 
 /**
- * Converts MarkDown to HTML
+ * Converts MarkDown to HTML and sanatizes MarkDown
  * @param md string formatted as Markdown
  */
 export const convertMarkdownToHtml = (md: string): string => {
@@ -49,7 +49,7 @@ const generateSlug = (str: string) =>
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
 
-const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArticle => {
+const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArticle & { slug: string } => {
   // Vi lagrar alltid HTML i databasen; vi gör om till markdown vid
   // förfrågan
   const sanatizedBody = !markdown ? article.body : convertHtmlToMarkdown(article.body);
@@ -60,7 +60,7 @@ const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArt
     body: sanatizedBody,
     slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
     // Exteremely temporary fix for tags, as knex doesn't send them back as an array
-    tags: ((reduced.tags as unknown) as string).split(','),
+    tags: ((reduced.tags as unknown) as string).toString().split(','),
   };
 
   return a;
@@ -71,15 +71,15 @@ const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArt
 export async function articleReducer(
   a: DatabaseArticle,
   markdown: boolean,
-): Promise<DatabaseArticle>;
+): Promise<DatabaseArticle & { slug: string }>;
 export async function articleReducer(
   a: DatabaseArticle[],
   markdown: boolean,
-): Promise<DatabaseArticle[]>;
+): Promise<(DatabaseArticle & { slug: string })[]>;
 export async function articleReducer(
   a: DatabaseArticle | DatabaseArticle[],
   markdown: boolean,
-): Promise<DatabaseArticle | DatabaseArticle[]> {
+): Promise<DatabaseArticle & { slug: string } | (DatabaseArticle & { slug: string })[]> {
   // Är det en array, reducera varje för sig, annars skicka bara tillbaka en reducerad
   if (a instanceof Array) {
     const aa = await Promise.all(a.map((e) => articleReduce(e, markdown)));

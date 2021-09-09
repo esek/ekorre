@@ -1,3 +1,5 @@
+import { DatabaseArticle } from '../../src/models/db/article';
+import { ArticleType } from '../../src/graphql.generated';
 import { convertMarkdownToHtml, articleReducer } from '../../src/reducers/article.reducer';
 
 // eslint-disable-next-line no-multi-str
@@ -34,7 +36,21 @@ nice XSS bro\n\
 // eslint-disable-next-line no-multi-str
 const sanitizedDirtyHtml = '\
 <h2>Haxx</h2>\n\
-<p>nice XSS bro</p>\n'; 
+<p>nice XSS bro</p>\n';
+
+const da: DatabaseArticle = {
+  id: 'testid1337',
+  // Slug läggs till av reducern
+  refcreator: 'aa0000bb-s',
+  reflastupdateby: 'bb1111cc-s',
+  title: 'Sju sjösjuka tester testade slugs--',
+  body: okHtml,
+  createdAt: new Date('1969-05-01'),
+  lastUpdatedAt: new Date('2001-09-10'),
+  signature: 'George Bush',
+  tags: ['Nollning', 'Memes', 'Øl'],
+  articleType: ArticleType.News,
+};
 
 test('Test converting OK MarkDown to HTML', () => {
   expect(convertMarkdownToHtml(okMarkdown)).toBe(okHtml);
@@ -42,4 +58,13 @@ test('Test converting OK MarkDown to HTML', () => {
 
 test('Test sanitation of diry MarkDown to HTML', () => {
   expect(convertMarkdownToHtml(dirtyMarkdown)).toBe(sanitizedDirtyHtml);
+});
+
+test('Test slug generation', () => {
+  return articleReducer(da, false).then(reduced => {
+    expect(reduced.slug).toBe('sju-sjosjuka-tester-testade-slugs-testid1337');
+  })
+    .catch(err => {
+      expect(err).toBeNull();
+    });
 });
