@@ -63,8 +63,5 @@ test('Test sanitation of diry MarkDown to HTML', () => {
 test('Test slug generation', () => {
   return articleReducer(da, false).then(reduced => {
     expect(reduced.slug).toBe('sju-sjosjuka-tester-testade-slugs-testid1337');
-  })
-    .catch(err => {
-      expect(err).toBeNull();
-    });
+  });
 });
