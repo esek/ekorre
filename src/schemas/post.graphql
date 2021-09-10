@@ -18,6 +18,8 @@ type Mutation {
 type Post {
     postname: String!
     utskott: Utskott!
+    type: PostType!
+    spots: Int!
     access: Access!
     history: [HistoryEntry!]!
 }
@@ -25,6 +27,8 @@ type Post {
 input NewPost {
     name: String!
     utskott: Utskott!
+    type: PostType!
+    spots: Int
 }
 
 type HistoryEntry {
@@ -32,4 +36,12 @@ type HistoryEntry {
     holder: User!
     start: Date!
     end: Date
+}
+
+"As defined by Reglementet"
+enum PostType {
+    U
+    EA
+    N
+    EXACT_N
 }

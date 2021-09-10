@@ -303,8 +303,18 @@ export type Post = {
   access: Access;
   history: Array<HistoryEntry>;
   postname: Scalars['String'];
+  spots: Scalars['Int'];
+  type: PostType;
   utskott: Utskott;
 };
+
+/** As defined by Reglementet */
+export enum PostType {
+  Ea = 'EA',
+  ExactN = 'EXACT_N',
+  N = 'N',
+  U = 'U'
+}
 
 export type HistoryEntry = {
   end?: Maybe<Scalars['Date']>;
@@ -373,6 +383,8 @@ export type FileSystemResponsePath = {
 export type NewPost = {
   name: Scalars['String'];
   utskott: Utskott;
+  type: PostType;
+  spots?: Maybe<Scalars['Int']>;
 };
 
 export type NewUser = {
@@ -490,6 +502,7 @@ export type ResolversTypes = ResolversObject<{
   ArticleType: ArticleType;
   User: ResolverTypeWrapper<User>;
   Post: ResolverTypeWrapper<Post>;
+  PostType: PostType;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
   RefreshResponse: ResolverTypeWrapper<RefreshResponse>;
@@ -616,6 +629,8 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
   history?: Resolver<Array<ResolversTypes['HistoryEntry']>, ParentType, ContextType>;
   postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  spots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['PostType'], ParentType, ContextType>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

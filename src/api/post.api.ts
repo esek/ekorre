@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import type { NewPost, Utskott } from '../graphql.generated';
+import { NewPost, PostType, Utskott } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabasePost, DatabasePostHistory } from '../models/db/post';
 import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
@@ -83,10 +83,29 @@ export class PostAPI {
     return false;
   }
 
-  async createPost({ name, utskott }: NewPost): Promise<boolean> {
+  async createPost({ name, utskott, type, spots }: NewPost): Promise<boolean> {
+    let s: number;
+    // u- och e.a.-poster har fördefinierade antal (-1 === godtyckligt)
+    if (type === PostType.U) {
+      s = 1;
+    } else if (type === PostType.Ea) {
+      s = -1;
+    } else if (type === PostType.N || type === PostType.ExactN) {
+      // Om posten ska ha n möjliga platser måste spots ha
+      // definierats
+      if (spots !== undefined && spots !== null) {
+        s = spots;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
     const res = await knex<DatabasePost>(POSTS_TABLE).insert({
       postname: name,
       utskott,
+      type,
+      spots: s,
     });
 
     // If post was added successfully.
