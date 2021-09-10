@@ -1,7 +1,9 @@
 /* eslint-disable class-methods-use-this */
-import { NewPost, PostType, Utskott } from '../graphql.generated';
+import { ModifyPost, NewPost, PostType, Utskott } from '../graphql.generated';
 import { Logger } from '../logger';
+import { StrictObject } from '../models/base';
 import type { DatabasePost, DatabasePostHistory } from '../models/db/post';
+import { stripObject } from '../util';
 import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
 import knex from './knex';
 
@@ -107,6 +109,7 @@ export class PostAPI {
       type,
       spots: s,
       description: description ?? 'Postbeskrivning saknas :/',
+      active: true,
     });
 
     // If post was added successfully.
@@ -115,6 +118,18 @@ export class PostAPI {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Modifierar en post
+   * @param entry Modifiering av existerande artikel
+   */
+  async modifyPost(entry: ModifyPost): Promise<boolean> {
+    const { name, ...update }: StrictObject = stripObject(entry);
+
+    const res = await knex<DatabasePost>(POSTS_TABLE).where('postname', name).update(update);
+
+    return res > 0;
   }
 
   async removeUsersFromPost(users: string[], postname: string): Promise<boolean> {

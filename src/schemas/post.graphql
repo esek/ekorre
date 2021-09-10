@@ -11,6 +11,7 @@ type Query {
 
 type Mutation {
     addPost(info: NewPost!): Boolean!
+    modifyPost(info: ModifyPost!): Boolean!
     addUsersToPost(usernames: [String!]!, postname: String!, period: Int!): Boolean!
     removeUsersFromPost(usernames: [String!]!, postname: String!): Boolean!
 }
@@ -21,6 +22,7 @@ type Post {
     type: PostType!
     spots: Int!
     description: String!
+    active: Boolean!
     access: Access!
     history: [HistoryEntry!]!
 }
@@ -31,6 +33,14 @@ input NewPost {
     type: PostType!
     spots: Int
     description: String
+}
+
+input ModifyPost {
+    name: String!,
+    utskott: Utskott,
+    type: PostType,
+    spots: Int,
+    description: String,
 }
 
 type HistoryEntry {

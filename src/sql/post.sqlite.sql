@@ -6,6 +6,7 @@ CREATE TABLE "Posts" (
 	"posttype" TEXT NOT NULL,
 	"spots" INT NOT NULL,
 	"description" TEXT NOT NULL,
+	"active" BOOLEAN NOT NULL,
 	PRIMARY KEY("postname")
 );
 
@@ -20,9 +21,9 @@ CREATE TABLE "PostHistory" (
 	FOREIGN KEY("refpost") REFERENCES "Posts"("postname")
 );
 
-INSERT INTO Posts (postname,utskott,posttype,spots) VALUES ('Macapär','INFU','N',2,'Informationschefsslav');
-INSERT INTO Posts (postname,utskott,posttype,spots) VALUES ('Teknokrat','INFU','N',3);
-INSERT INTO Posts (postname,utskott,posttype,spots) VALUES ('Cophös','NOLLU','N',5);
+INSERT INTO Posts (postname,utskott,posttype,spots) VALUES ('Macapär','INFU','N',2,'Informationschefsslav', True);
+INSERT INTO Posts (postname,utskott,posttype,spots) VALUES ('Teknokrat','INFU','N',3,'Ljudperson', True);
+INSERT INTO Posts (postname,utskott,posttype,spots) VALUES ('Cophös','NOLLU','N',5,'Stressad',True);
 INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär','aa0000bb-s','2020-12-29','2020-12-30',2020);
 INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär','aa0000bb-s','2020-12-29',null,2021);
 
