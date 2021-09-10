@@ -61,15 +61,29 @@ export class PostAPI {
   }
 
   async addUsersToPost(usernames: string[], postname: string, period: number): Promise<boolean> {
+    // Ta bort dubbletter
+    const uniqueUsernames = [...new Set(usernames)];
+
     // Filter out already added users
     const alreadyAdded = ((await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .select('refuser')
       .where({
         refpost: postname,
       })
-      .whereIn('refuser', usernames)) as unknown) as string;
-    const usernamesToUse = usernames.filter((e) => !alreadyAdded.includes(e));
+      .whereIn('refuser', uniqueUsernames)) as unknown) as [{'refuser': string}];
+    
+    // Knex ger oss svaren på formen [{'refuser': <username>}, {...}, ...]
+    // så vi tar ut dem
+    let usernamesToUse: string[];
+    if (alreadyAdded.length > 0) {
+      const alreadyAddedString = alreadyAdded.map((e) => e?.refuser);
+      usernamesToUse = uniqueUsernames.filter((e) => !alreadyAddedString.includes(e));
+    } else {
+      usernamesToUse = uniqueUsernames;
+    }
 
+    // spots sätter egentligen inte en limit, det
+    // är mer informativt och kan ignoreras
     const insert = usernamesToUse.map<DatabasePostHistory>((e) => ({
       refuser: e,
       refpost: postname,
@@ -166,7 +180,7 @@ export class PostAPI {
     return res > 0;
   }
 
-  async getHistoryEntries(refpost: string) {
+  async getHistoryEntries(refpost: string): Promise<DatabasePostHistory[]> {
     const entries = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
       refpost,
     });
