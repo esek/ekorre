@@ -70,7 +70,7 @@ export class PostAPI {
       .where({
         refpost: postname,
       })
-      .whereIn('refuser', uniqueUsernames)) as unknown) as [{'refuser': string}];
+      .whereIn('refuser', uniqueUsernames)) as unknown) as {'refuser': string}[];
     
     // Knex ger oss svaren på formen [{'refuser': <username>}, {...}, ...]
     // så vi tar ut dem
