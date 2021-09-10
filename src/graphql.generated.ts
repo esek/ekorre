@@ -301,6 +301,7 @@ export type User = {
 
 export type Post = {
   access: Access;
+  description: Scalars['String'];
   history: Array<HistoryEntry>;
   postname: Scalars['String'];
   spots: Scalars['Int'];
@@ -385,6 +386,7 @@ export type NewPost = {
   utskott: Utskott;
   type: PostType;
   spots?: Maybe<Scalars['Int']>;
+  description?: Maybe<Scalars['String']>;
 };
 
 export type NewUser = {
@@ -627,6 +629,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
 
 export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   history?: Resolver<Array<ResolversTypes['HistoryEntry']>, ParentType, ContextType>;
   postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   spots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
