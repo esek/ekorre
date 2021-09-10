@@ -170,6 +170,34 @@ test('Test adding post with n type and defined number', async () => {
   }
 });
 
+test('Test adding post with n type, defined number, and undefined description and intReq', async () => {
+  const localNp: NewPost = {
+    ...np,
+    postType: PostType.ExactN,
+    spots: 20,
+    description: undefined, // Borde defaulta till 'Postbeskrivning saknas :/'
+    interviewRequired: undefined, // Borde defaulta till false
+  };
+
+  const ok = await api.createPost(localNp);
+  expect(ok).toBe(true);
+
+  const res = await  api.getPost(localNp.name);
+  if (res !== null) {
+    const { active, interviewRequired, ...reducedRes } = postReduce(res);
+    expect(reducedRes).toStrictEqual({
+      ...p,
+      postType: PostType.ExactN,
+      spots: 20,
+      description: 'Postbeskrivning saknas :/',
+    });
+    expect(active).toBeTruthy();
+    expect(interviewRequired).toBeFalsy();
+  } else {
+    expect(res).not.toBeNull();
+  }
+});
+
 test('Test adding post with n type and undefined number', async () => {
   const localNp: NewPost = {
     ...np,
