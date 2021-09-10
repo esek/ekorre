@@ -310,6 +310,7 @@ export type Post = {
   active: Scalars['Boolean'];
   description: Scalars['String'];
   history: Array<HistoryEntry>;
+  interviewRequired?: Maybe<Scalars['Boolean']>;
   postname: Scalars['String'];
   spots: Scalars['Int'];
   type: PostType;
@@ -395,6 +396,7 @@ export type NewPost = {
   type: PostType;
   spots?: Maybe<Scalars['Int']>;
   description?: Maybe<Scalars['String']>;
+  interviewRequired?: Maybe<Scalars['Boolean']>;
 };
 
 export type ModifyPost = {
@@ -403,6 +405,7 @@ export type ModifyPost = {
   type?: Maybe<PostType>;
   spots?: Maybe<Scalars['Int']>;
   description?: Maybe<Scalars['String']>;
+  interviewRequired?: Maybe<Scalars['Boolean']>;
 };
 
 export type NewUser = {
@@ -651,6 +654,7 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   history?: Resolver<Array<ResolversTypes['HistoryEntry']>, ParentType, ContextType>;
+  interviewRequired?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   spots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['PostType'], ParentType, ContextType>;

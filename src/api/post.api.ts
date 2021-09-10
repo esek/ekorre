@@ -85,7 +85,7 @@ export class PostAPI {
     return false;
   }
 
-  async createPost({ name, utskott, type, spots, description }: NewPost): Promise<boolean> {
+  async createPost({ name, utskott, type, spots, description, interviewRequired }: NewPost): Promise<boolean> {
     let s: number;
     // u- och e.a.-poster har fördefinierade antal (-1 === godtyckligt)
     if (type === PostType.U) {
@@ -109,6 +109,7 @@ export class PostAPI {
       type,
       spots: s,
       description: description ?? 'Postbeskrivning saknas :/',
+      interviewRequired: interviewRequired ?? false,
       active: true,
     });
 

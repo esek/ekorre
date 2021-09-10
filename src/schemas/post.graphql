@@ -24,6 +24,7 @@ type Post {
     description: String!
     active: Boolean!
     access: Access!
+    interviewRequired: Boolean
     history: [HistoryEntry!]!
 }
 
@@ -33,6 +34,7 @@ input NewPost {
     type: PostType!
     spots: Int
     description: String
+    interviewRequired: Boolean
 }
 
 input ModifyPost {
@@ -41,6 +43,7 @@ input ModifyPost {
     type: PostType,
     spots: Int,
     description: String,
+    interviewRequired: Boolean
 }
 
 type HistoryEntry {
