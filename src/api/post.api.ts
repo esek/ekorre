@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { ModifyPost, NewPost, PostType, Utskott } from '../graphql.generated';
+import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '../graphql.generated';
 import { Logger } from '../logger';
 import { StrictObject } from '../models/base';
 import type { DatabasePost, DatabasePostHistory } from '../models/db/post';
@@ -8,6 +8,35 @@ import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('PostAPI');
+
+/**
+ * Kontrollerar att posttyp och antalet platser som
+ * definierades är kompatibla. Om de är det, eller ett
+ * defaultvärde kan sättas, returneras detta. Annars
+ * returneras null
+ * 
+ * @param postType 
+ * @param spots 
+ */
+const checkPostTypeAndSpots = (postType: Maybe<PostType>, spots: Maybe<number> | undefined): number | null => {
+  let s: number | null;
+  if (postType === PostType.U) {
+    s = 1;
+  } else if (postType === PostType.Ea) {
+    s = -1;
+  } else if (postType === PostType.N || postType === PostType.ExactN) {
+    // Om posten ska ha n möjliga platser måste spots ha
+    // definierats
+    if (spots !== undefined && spots !== null) {
+      s = spots;
+    } else {
+      s = null;
+    }
+  } else {
+    s = null;
+  }
+  return s;
+};
 
 /**
  * Det här är apin för att hantera poster.
@@ -100,23 +129,17 @@ export class PostAPI {
   }
 
   async createPost({ name, utskott, postType, spots, description, interviewRequired }: NewPost): Promise<boolean> {
-    let s: number;
-    // u- och e.a.-poster har fördefinierade antal (-1 === godtyckligt)
-    if (postType === PostType.U) {
-      s = 1;
-    } else if (postType === PostType.Ea) {
-      s = -1;
-    } else if (postType === PostType.N || postType === PostType.ExactN) {
-      // Om posten ska ha n möjliga platser måste spots ha
-      // definierats
-      if (spots !== undefined && spots !== null) {
-        s = spots;
-      } else {
-        return false;
-      }
-    } else {
+    const s = checkPostTypeAndSpots(postType, spots);
+    if (s === null) {
       return false;
     }
+
+    // Kolla efter dubbletter först
+    const doubles = await knex<DatabasePost>(POSTS_TABLE).select('*').where('postname', name);
+    if (doubles.length > 0) {
+      return false;
+    }
+
     const res = await knex<DatabasePost>(POSTS_TABLE).insert({
       postname: name,
       utskott,
@@ -127,8 +150,8 @@ export class PostAPI {
       active: true,
     });
 
-    // If post was added successfully.
     if (res[0] > 0) {
+      // If post was added successfully.
       logger.debug(`Created a post named ${name}`);
       return true;
     }
@@ -140,29 +163,34 @@ export class PostAPI {
    * @param entry Modifiering av existerande artikel
    */
   async modifyPost(entry: ModifyPost): Promise<boolean> {
+    const { name, ...update }: StrictObject = stripObject(entry);
     // Om vi ändrar posttyp eller antal måste detta kontrolleras
-    let s = entry.spots;
-    if (entry.postType !== undefined) {
-      if (entry.postType === PostType.U) {
-        s = 1;
-      } else if (entry.postType === PostType.Ea) {
-        s = -1;
-      } else if (entry.postType === PostType.N || entry.postType === PostType.ExactN) {
-        // Om posten ska ha n möjliga platser måste spots ha
-        // definierats
-        if (entry.spots !== undefined && entry.spots !== null) {
-          s = entry.spots;
-        } else {
-          return false;
-        }
+    // Får vi spots i `entry` jämför vi med det, annars måste
+    // vi kolla om det är kompatibelt med databasen
+    // Samma gäller åt andra hållet
+    let s: number | null = null;
+    if (entry.spots !== undefined) {
+      if (entry.postType !== undefined) {
+        s = checkPostTypeAndSpots(entry.postType, entry.spots);
       } else {
-        return false;
+        // Vi måste kolla i databasen vad denna post har för postType
+        const dbPostType = (await knex<PostType>(POSTS_TABLE).select('postType').where('postname', name))[0] as PostType;
+        s = checkPostTypeAndSpots(dbPostType, entry.spots);
       }
+    } else if (entry.postType !== undefined) {
+      // Vi har ingen ny spots, men vi har postType => kollar efter posts i DB
+      const dbSpots = (await knex<number>(POSTS_TABLE).select('postType').where('postname', name))[0] as number;
+      s = checkPostTypeAndSpots(entry.postType, dbSpots);
     } else {
-      return false;
+      // Vi vill inte uppdatera något av dem
+      const res = await knex<DatabasePost>(POSTS_TABLE).where('postname', name).update(update);
+      return res > 0;
     }
 
-    const { name, ...update }: StrictObject = stripObject(entry);
+    // Vi ville uppdatera, men vi hade inte en godkännd kombination
+    if (s === null) {
+      return false;
+    }
 
     const res = await knex<DatabasePost>(POSTS_TABLE).where('postname', name).update({...update, spots: s});
 

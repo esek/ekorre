@@ -107,6 +107,14 @@ test('Test adding post', async () => {
   }
 });
 
+test('Test adding duplicate post', async () => {
+  let ok = await api.createPost(np);
+  expect(ok).toBe(true);
+
+  ok = await api.createPost(np);
+  expect(ok).toBe(false);
+});
+
 test('Test adding post with ea type and defined number', async () => {
   const localNp: NewPost = {
     ...np,
@@ -300,6 +308,32 @@ test('Test modifying post in allowed way', async () => {
   }
 });
 
+test('Test modyfing post without touching neither PostType nor spots', async () => {
+  const localMp: ModifyPost = {
+    ...mp,
+    utskott: Utskott.Styrelsen,
+  };
+
+  let ok = await api.createPost(np);
+  expect(ok).toBe(true);
+
+  ok = await api.modifyPost(localMp);
+  expect(ok).toBe(true);
+
+  const res = await api.getPost(np.name);
+  if (res !== null) {
+    const { active, interviewRequired, ...reducedRes } = postReduce(res);
+    expect(reducedRes).toStrictEqual({
+      ...p,
+      utskott: Utskott.Styrelsen,
+    });
+    expect(active).toBeTruthy();
+    expect(interviewRequired).toBeFalsy();
+  } else {
+    expect(res).not.toBeNull();
+  }
+});
+
 test('Test increasing spots with postType set to u', async () => {
   const localMp: ModifyPost = {
     ...mp,
@@ -318,6 +352,30 @@ test('Test increasing spots with postType set to u', async () => {
   if (res !== null) {
     const { active, interviewRequired, ...reducedRes } = postReduce(res);
     expect(reducedRes).toStrictEqual(p);
+    expect(active).toBeTruthy();
+    expect(interviewRequired).toBeFalsy();
+  } else {
+    expect(res).not.toBeNull();
+  }
+});
+
+test('Test changing postType to e.a. from u without changing spots', async () => {
+  const localMp: ModifyPost = {
+    ...mp,
+    postType: PostType.Ea,
+  };
+
+  let ok = await api.createPost(np);
+  expect(ok).toBe(true);
+
+  ok = await api.modifyPost(localMp);
+  expect(ok).toBe(true);
+
+  const res = await api.getPost(np.name);
+  if (res !== null) {
+    const { active, interviewRequired, ...reducedRes } = postReduce(res);
+    // Borde ändra request till default, dvs. spots: -1
+    expect(reducedRes).toStrictEqual({...p, postType: PostType.Ea, spots: -1});
     expect(active).toBeTruthy();
     expect(interviewRequired).toBeFalsy();
   } else {
