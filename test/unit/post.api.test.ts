@@ -55,12 +55,74 @@ test('Test adding post', done => {
       if (res !== null) {
         const { active, interviewRequired, ...reducedRes } = postReduce(res);
         expect(reducedRes).toStrictEqual(p);
-        expect(active).toBe(1);
-        expect(interviewRequired).toBe(0);
+        expect(active).toBeTruthy();
+        expect(interviewRequired).toBeFalsy();
       } else {
         expect(res).not.toBeNull();
       }
       done();
+    });
+  });
+});
+
+test('Test modifying post in allowed way', done => {
+  const localMp: ModifyPost = {
+    ...mp,
+    utskott: Utskott.Styrelsen,
+    postType: PostType.ExactN,
+    spots: 2,
+    interviewRequired: true,
+  };
+
+  api.createPost(np).then(ok => {
+    expect(ok).toBe(true);
+    api.modifyPost(localMp).then(ok2 => {
+      expect(ok2).toBe(true);
+      api.getPost(np.name).then(res => {
+        if (res !== null) {
+          const { active, interviewRequired, ...reducedRes } = postReduce(res);
+          expect(reducedRes).toStrictEqual({
+            ...p,
+            utskott: Utskott.Styrelsen,
+            postType: PostType.ExactN,
+            spots: 2,
+          });
+          expect(active).toBeTruthy();
+          expect(interviewRequired).toBeTruthy();
+        } else {
+          expect(res).not.toBeNull();
+        }
+        done();
+      });
+    });
+  });
+});
+
+test('Test increasing spots with postType set to u', done => {
+  const localMp: ModifyPost = {
+    ...mp,
+    utskott: Utskott.Styrelsen,
+    spots: 2,
+    interviewRequired: true,
+  };
+
+  api.createPost(np).then(ok => {
+    expect(ok).toBe(true);
+    api.modifyPost(localMp).then(ok2 => {
+      expect(ok2).toBe(false);
+
+      // Kollar att den faktiskt inte blev modifierad
+      api.getPost(np.name).then(res => {
+        if (res !== null) {
+          const { active, interviewRequired, ...reducedRes } = postReduce(res);
+          expect(reducedRes).toStrictEqual(p);
+          expect(active).toBeTruthy();
+          expect(interviewRequired).toBeFalsy();
+        } else {
+          expect(res).not.toBeNull();
+        }
+        done();
+      });
     });
   });
 });

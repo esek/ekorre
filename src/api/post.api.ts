@@ -126,9 +126,31 @@ export class PostAPI {
    * @param entry Modifiering av existerande artikel
    */
   async modifyPost(entry: ModifyPost): Promise<boolean> {
+    // Om vi ändrar posttyp eller antal måste detta kontrolleras
+    let s = entry.spots;
+    if (entry.postType !== undefined) {
+      if (entry.postType === PostType.U) {
+        s = 1;
+      } else if (entry.postType === PostType.Ea) {
+        s = -1;
+      } else if (entry.postType === PostType.N || entry.postType === PostType.ExactN) {
+        // Om posten ska ha n möjliga platser måste spots ha
+        // definierats
+        if (entry.spots !== undefined && entry.spots !== null) {
+          s = entry.spots;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+
     const { name, ...update }: StrictObject = stripObject(entry);
 
-    const res = await knex<DatabasePost>(POSTS_TABLE).where('postname', name).update(update);
+    const res = await knex<DatabasePost>(POSTS_TABLE).where('postname', name).update({...update, spots: s});
 
     return res > 0;
   }
