@@ -19,7 +19,7 @@ type Mutation {
 type Post {
     postname: String!
     utskott: Utskott!
-    type: PostType!
+    postType: PostType!
     spots: Int!
     description: String!
     active: Boolean!
@@ -31,7 +31,7 @@ type Post {
 input NewPost {
     name: String!
     utskott: Utskott!
-    type: PostType!
+    postType: PostType!
     spots: Int
     description: String
     interviewRequired: Boolean
@@ -40,7 +40,7 @@ input NewPost {
 input ModifyPost {
     name: String!,
     utskott: Utskott,
-    type: PostType,
+    postType: PostType,
     spots: Int,
     description: String,
     interviewRequired: Boolean

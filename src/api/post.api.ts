@@ -85,14 +85,14 @@ export class PostAPI {
     return false;
   }
 
-  async createPost({ name, utskott, type, spots, description, interviewRequired }: NewPost): Promise<boolean> {
+  async createPost({ name, utskott, postType, spots, description, interviewRequired }: NewPost): Promise<boolean> {
     let s: number;
     // u- och e.a.-poster har fördefinierade antal (-1 === godtyckligt)
-    if (type === PostType.U) {
+    if (postType === PostType.U) {
       s = 1;
-    } else if (type === PostType.Ea) {
+    } else if (postType === PostType.Ea) {
       s = -1;
-    } else if (type === PostType.N || type === PostType.ExactN) {
+    } else if (postType === PostType.N || postType === PostType.ExactN) {
       // Om posten ska ha n möjliga platser måste spots ha
       // definierats
       if (spots !== undefined && spots !== null) {
@@ -106,7 +106,7 @@ export class PostAPI {
     const res = await knex<DatabasePost>(POSTS_TABLE).insert({
       postname: name,
       utskott,
-      type,
+      postType,
       spots: s,
       description: description ?? 'Postbeskrivning saknas :/',
       interviewRequired: interviewRequired ?? false,
