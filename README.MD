@@ -114,9 +114,12 @@ generas som innehåller typdefintioner för graphql frågor.
 Använd denna!
 
 För att generera:
+
 ```
 npm run generate
 ```
+
+Det kan hända att VScode eller annan IDE gnäller på dina typer även om du genererat nya. Då bör du i VScode köra `Ctrl+Shift+P` följt av `Reload Window`.
 #### Kodstil
 
 Eslint och prettier är konfigurerat och det

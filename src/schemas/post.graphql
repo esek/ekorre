@@ -11,6 +11,7 @@ type Query {
 
 type Mutation {
     addPost(info: NewPost!): Boolean!
+    modifyPost(info: ModifyPost!): Boolean!
     addUsersToPost(usernames: [String!]!, postname: String!, period: Int!): Boolean!
     removeUsersFromPost(usernames: [String!]!, postname: String!): Boolean!
 }
@@ -18,13 +19,58 @@ type Mutation {
 type Post {
     postname: String!
     utskott: Utskott!
+    postType: PostType!
+
+    """
+    Hur många platser en post har.
+    `-1` symboliserar godtyckligt antal
+    """
+    spots: Int!
+    description: String!
+    active: Boolean!
     access: Access!
+
+    """
+    Om sökande valbereds och kallas till intervju
+    """
+    interviewRequired: Boolean
     history: [HistoryEntry!]!
 }
 
 input NewPost {
     name: String!
     utskott: Utskott!
+    postType: PostType!
+
+    """
+    Hur många platser en post har.
+    `-1` symboliserar godtyckligt antal
+    """
+    spots: Int
+    description: String
+
+    """
+    Om sökande valbereds och kallas till intervju
+    """
+    interviewRequired: Boolean
+}
+
+input ModifyPost {
+    name: String!
+    utskott: Utskott
+    postType: PostType
+
+    """
+    Hur många platser en post har.
+    `-1` symboliserar godtyckligt antal
+    """
+    spots: Int
+    description: String
+
+    """
+    Om sökande valbereds och kallas till intervju
+    """
+    interviewRequired: Boolean
 }
 
 type HistoryEntry {
@@ -32,4 +78,28 @@ type HistoryEntry {
     holder: User!
     start: Date!
     end: Date
+}
+
+"Hur en post tillsätts enligt Reglementet"
+enum PostType {
+    """
+    Unik, finns bara 1, t.ex. utskottsordförande
+    """
+    U
+
+    """
+    Erfoderligt antal, dvs. så många som anses
+    passande
+    """
+    EA
+
+    """
+    Upp till _n_ stycken
+    """
+    N
+
+    """
+    Exakt _n_ stycken
+    """
+    EXACT_N
 }
