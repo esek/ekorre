@@ -124,6 +124,7 @@ export type Mutation = {
   login: Scalars['Boolean'];
   logout?: Maybe<Scalars['Boolean']>;
   modifyArticle: Scalars['Boolean'];
+  modifyPost: Scalars['Boolean'];
   removeUsersFromPost: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
@@ -181,6 +182,11 @@ export type MutationLogoutArgs = {
 export type MutationModifyArticleArgs = {
   articleId: Scalars['Int'];
   entry: ModifyArticle;
+};
+
+
+export type MutationModifyPostArgs = {
+  info: ModifyPost;
 };
 
 
@@ -301,10 +307,35 @@ export type User = {
 
 export type Post = {
   access: Access;
+  active: Scalars['Boolean'];
+  description: Scalars['String'];
   history: Array<HistoryEntry>;
+  /** Om sökande valbereds och kallas till intervju */
+  interviewRequired?: Maybe<Scalars['Boolean']>;
+  postType: PostType;
   postname: Scalars['String'];
+  /**
+   * Hur många platser en post har.
+   * `-1` symboliserar godtyckligt antal
+   */
+  spots: Scalars['Int'];
   utskott: Utskott;
 };
+
+/** Hur en post tillsätts enligt Reglementet */
+export enum PostType {
+  /**
+   * Erfoderligt antal, dvs. så många som anses
+   * passande
+   */
+  Ea = 'EA',
+  /** Exakt _n_ stycken */
+  ExactN = 'EXACT_N',
+  /** Upp till _n_ stycken */
+  N = 'N',
+  /** Unik, finns bara 1, t.ex. utskottsordförande */
+  U = 'U'
+}
 
 export type HistoryEntry = {
   end?: Maybe<Scalars['Date']>;
@@ -323,7 +354,8 @@ export enum Utskott {
   Noju = 'NOJU',
   Nollu = 'NOLLU',
   Other = 'OTHER',
-  Sre = 'SRE'
+  Sre = 'SRE',
+  Styrelsen = 'STYRELSEN'
 }
 
 export type RefreshResponse = {
@@ -373,6 +405,29 @@ export type FileSystemResponsePath = {
 export type NewPost = {
   name: Scalars['String'];
   utskott: Utskott;
+  postType: PostType;
+  /**
+   * Hur många platser en post har.
+   * `-1` symboliserar godtyckligt antal
+   */
+  spots?: Maybe<Scalars['Int']>;
+  description?: Maybe<Scalars['String']>;
+  /** Om sökande valbereds och kallas till intervju */
+  interviewRequired?: Maybe<Scalars['Boolean']>;
+};
+
+export type ModifyPost = {
+  name: Scalars['String'];
+  utskott?: Maybe<Utskott>;
+  postType?: Maybe<PostType>;
+  /**
+   * Hur många platser en post har.
+   * `-1` symboliserar godtyckligt antal
+   */
+  spots?: Maybe<Scalars['Int']>;
+  description?: Maybe<Scalars['String']>;
+  /** Om sökande valbereds och kallas till intervju */
+  interviewRequired?: Maybe<Scalars['Boolean']>;
 };
 
 export type NewUser = {
@@ -490,6 +545,7 @@ export type ResolversTypes = ResolversObject<{
   ArticleType: ArticleType;
   User: ResolverTypeWrapper<User>;
   Post: ResolverTypeWrapper<Post>;
+  PostType: PostType;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
   RefreshResponse: ResolverTypeWrapper<RefreshResponse>;
@@ -499,6 +555,7 @@ export type ResolversTypes = ResolversObject<{
   AccessType: AccessType;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   NewPost: NewPost;
+  ModifyPost: ModifyPost;
   NewUser: NewUser;
   UpdateUser: UpdateUser;
 }>;
@@ -526,6 +583,7 @@ export type ResolversParentTypes = ResolversObject<{
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
   NewPost: NewPost;
+  ModifyPost: ModifyPost;
   NewUser: NewUser;
   UpdateUser: UpdateUser;
 }>;
@@ -557,6 +615,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   login?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationLogoutArgs, 'token'>>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
+  modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'username' | 'token' | 'password'>>;
@@ -614,8 +673,13 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
 
 export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
+  active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   history?: Resolver<Array<ResolversTypes['HistoryEntry']>, ParentType, ContextType>;
+  interviewRequired?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  postType?: Resolver<ResolversTypes['PostType'], ParentType, ContextType>;
   postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  spots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

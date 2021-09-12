@@ -15,5 +15,6 @@ enum Utskott {
     SRE
     ENU
     FVU
+    STYRELSEN
     OTHER
 }
