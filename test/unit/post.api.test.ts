@@ -178,6 +178,20 @@ test('Test adding post with n type and defined number', async () => {
   }
 });
 
+test('Test adding post with n type and negative number', async () => {
+  const localNp: NewPost = {
+    ...np,
+    postType: PostType.N,
+    spots: -1,
+  };
+
+  const ok = await api.createPost(localNp);
+  expect(ok).toBe(false);
+
+  const res = await  api.getPost(localNp.name);
+  expect(res).toBeNull();
+});
+
 test('Test adding post with n type, defined number, and undefined description and intReq', async () => {
   const localNp: NewPost = {
     ...np,

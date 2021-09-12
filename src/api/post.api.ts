@@ -27,7 +27,7 @@ const checkPostTypeAndSpots = (postType: Maybe<PostType>, spots: Maybe<number> |
   } else if (postType === PostType.N || postType === PostType.ExactN) {
     // Om posten ska ha n möjliga platser måste spots ha
     // definierats
-    if (spots !== undefined && spots !== null) {
+    if (spots !== undefined && spots !== null && spots >= 0) {
       s = spots;
     } else {
       s = null;
