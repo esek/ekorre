@@ -25,6 +25,7 @@ const postresolver: Resolvers = {
   },
   Mutation: {
     addPost: (_, { info }) => api.createPost(info),
+    modifyPost: (_, { info }) => api.modifyPost(info),
     addUsersToPost: (_, { usernames, postname, period }) =>
       api.addUsersToPost(usernames, postname, period),
     removeUsersFromPost: (_, { usernames, postname }) =>
