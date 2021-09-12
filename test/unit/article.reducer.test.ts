@@ -1,6 +1,7 @@
 import { DatabaseArticle } from '../../src/models/db/article';
 import { ArticleType } from '../../src/graphql.generated';
 import { convertMarkdownToHtml, articleReducer } from '../../src/reducers/article.reducer';
+import { ArticleResponse } from '../../src/models/mappers';
 
 // eslint-disable-next-line no-multi-str
 const okMarkdown = '\
@@ -38,10 +39,8 @@ const sanitizedDirtyHtml = '\
 <h1>Haxx</h1>\n\
 <p>nice XSS bro</p>';
 
-const da: DatabaseArticle = {
+const oda: Omit<DatabaseArticle, 'refcreator' | 'reflastupdateby'> = {
   id: 'testid1337',
-  refcreator: 'aa0000bb-s',
-  reflastupdateby: 'bb1111cc-s',
   title: 'Sju sjösjuka tester testade slugs--',
   body: okHtml,
   createdAt: new Date('1969-05-01'),
@@ -51,7 +50,24 @@ const da: DatabaseArticle = {
   articleType: ArticleType.News,
 };
 
+const da: DatabaseArticle = {
+  ...oda,
+  refcreator: 'aa0000bb-s',
+  reflastupdateby: 'bb1111cc-s',
+};
+
 const expectedDaSlug = 'sju-sjosjuka-tester-testade-slugs-testid1337';
+
+const expectedDaRes: ArticleResponse = {
+  ...oda,
+  slug: expectedDaSlug,
+  creator: {
+    username: da.refcreator,
+  },
+  lastUpdatedBy: {
+    username: da.reflastupdateby,
+  },
+};
 
 test('Test converting OK MarkDown to HTML', () => {
   expect(convertMarkdownToHtml(okMarkdown)).toBe(okHtml);
@@ -88,25 +104,15 @@ test('Test reducing array of DatabaseArticles', () => {
   const father = [da, da];
   return articleReducer(father, false).then(reduced => {
     expect(reduced.length).toBe(2);
-    expect(reduced).toStrictEqual([
-      {
-        ...da,
-        slug: expectedDaSlug
-      },
-      {
-        ...da,
-        slug: expectedDaSlug
-      },
-    ]);
+    expect(reduced).toStrictEqual([expectedDaRes, expectedDaRes]);
   });
 });
 
 test('Test full reduction of OK DatabaseArticle', () => {
   return articleReducer(da, true).then(reduced => {
     expect(reduced).toStrictEqual({
-      ...da,
+      ...expectedDaRes,
       body: okMarkdown,
-      slug: expectedDaSlug
     });
   });
 });
@@ -117,14 +123,12 @@ test('Test full reduction of OK DatabaseArticle array', () => {
     expect(reduced.length).toBe(2);
     expect(reduced).toStrictEqual([
       {
-        ...da,
+        ...expectedDaRes,
         body: okMarkdown,
-        slug: expectedDaSlug
       },
       {
-        ...da,
+        ...expectedDaRes,
         body: okMarkdown,
-        slug: expectedDaSlug,
       },
     ]);
   });
