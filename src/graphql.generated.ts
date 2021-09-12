@@ -310,18 +310,30 @@ export type Post = {
   active: Scalars['Boolean'];
   description: Scalars['String'];
   history: Array<HistoryEntry>;
+  /** Om sökande valbereds och kallas till intervju */
   interviewRequired?: Maybe<Scalars['Boolean']>;
   postType: PostType;
   postname: Scalars['String'];
+  /**
+   * Hur många platser en post har.
+   * `-1` symboliserar godtyckligt antal
+   */
   spots: Scalars['Int'];
   utskott: Utskott;
 };
 
-/** As defined by Reglementet */
+/** Hur en post tillsätts enligt Reglementet */
 export enum PostType {
+  /**
+   * Erfoderligt antal, dvs. så många som anses
+   * passande
+   */
   Ea = 'EA',
+  /** Exakt _n_ stycken */
   ExactN = 'EXACT_N',
+  /** Upp till _n_ stycken */
   N = 'N',
+  /** Unik, finns bara 1, t.ex. utskottsordförande */
   U = 'U'
 }
 
@@ -394,8 +406,13 @@ export type NewPost = {
   name: Scalars['String'];
   utskott: Utskott;
   postType: PostType;
+  /**
+   * Hur många platser en post har.
+   * `-1` symboliserar godtyckligt antal
+   */
   spots?: Maybe<Scalars['Int']>;
   description?: Maybe<Scalars['String']>;
+  /** Om sökande valbereds och kallas till intervju */
   interviewRequired?: Maybe<Scalars['Boolean']>;
 };
 
@@ -403,8 +420,13 @@ export type ModifyPost = {
   name: Scalars['String'];
   utskott?: Maybe<Utskott>;
   postType?: Maybe<PostType>;
+  /**
+   * Hur många platser en post har.
+   * `-1` symboliserar godtyckligt antal
+   */
   spots?: Maybe<Scalars['Int']>;
   description?: Maybe<Scalars['String']>;
+  /** Om sökande valbereds och kallas till intervju */
   interviewRequired?: Maybe<Scalars['Boolean']>;
 };
 
