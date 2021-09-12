@@ -3,6 +3,7 @@ import { JSDOM } from 'jsdom';
 import showdown from 'showdown';
 
 import type { DatabaseArticle } from '../models/db/article';
+import { ArticleResponse } from '../models/mappers';
 import { SHOWDOWN_CONVERTER_OPTIONS } from './constants';
 
 const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
@@ -49,18 +50,24 @@ const generateSlug = (str: string) =>
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
 
-const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArticle & { slug: string } => {
+const articleReduce = (article: DatabaseArticle, markdown: boolean): ArticleResponse => {
   // Vi lagrar alltid HTML i databasen; vi gör om till markdown vid
   // förfrågan
   const sanitizedBody = !markdown ? article.body : convertHtmlToMarkdown(article.body);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { body, ...reduced } = article;
-  const a: DatabaseArticle & { slug: string } = {
+  const { body, refcreator, reflastupdateby, ...reduced } = article;
+  const a: ArticleResponse = {
     ...reduced,
     body: sanitizedBody.trim(),
     slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
     // Exteremely temporary fix for tags, as knex doesn't send them back as an array
     tags: ((reduced.tags as unknown) as string).toString().split(','),
+    creator: {
+      username: refcreator,
+    },
+    lastUpdatedBy: {
+      username: reflastupdateby,
+    },
   };
 
   return a;
@@ -71,15 +78,15 @@ const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArt
 export async function articleReducer(
   a: DatabaseArticle,
   markdown: boolean,
-): Promise<DatabaseArticle & { slug: string }>;
+): Promise<ArticleResponse>;
 export async function articleReducer(
   a: DatabaseArticle[],
   markdown: boolean,
-): Promise<(DatabaseArticle & { slug: string })[]>;
+): Promise<ArticleResponse[]>;
 export async function articleReducer(
   a: DatabaseArticle | DatabaseArticle[],
   markdown: boolean,
-): Promise<DatabaseArticle & { slug: string } | (DatabaseArticle & { slug: string })[]> {
+): Promise<ArticleResponse | ArticleResponse[]> {
   // Är det en array, reducera varje för sig, annars skicka bara tillbaka en reducerad
   if (a instanceof Array) {
     const aa = await Promise.all(a.map((e) => articleReduce(e, markdown)));
