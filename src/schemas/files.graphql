@@ -5,7 +5,7 @@ scalar DateTime
 
 type Query {
   files(type: FileType): [File!]!
-  file(id: ID!): File
+  file(id: ID!): File!
   fileSystem(folder: String!): FileSystemResponse!
 }
 
