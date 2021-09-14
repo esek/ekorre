@@ -11,19 +11,6 @@ import { articleReducer } from '../reducers/article.reducer';
 
 const articleApi = new ArticleAPI();
 
-const hydrate = (partial: DatabaseArticle): ArticleResponse => {
-  const { refcreator, reflastupdateby, ...reduced } = partial;
-  return {
-    ...reduced,
-    creator: {
-      username: refcreator,
-    },
-    lastUpdatedBy: {
-      username: reflastupdateby,
-    },
-  };
-};
-
 const articleResolver: Resolvers = {
   Article: {
     // Load creator & lastUpdateBy using dataloader for performace reasons
@@ -41,12 +28,12 @@ const articleResolver: Resolvers = {
   Query: {
     newsentries: async (_, { creator, after, before, markdown }) => {
       const safeMarkdown = markdown ?? false;
-      let articleModels: DatabaseArticle[];
+      let articleResponse: ArticleResponse[];
 
       if (!creator && !after && !before) {
         const apiResponse = await articleApi.getAllNewsArticles();
         if (apiResponse === null) return [];
-        articleModels = await articleReducer(apiResponse, safeMarkdown);
+        articleResponse = await articleReducer(apiResponse, safeMarkdown);
       } else {
         const beforeDate = new Date(before ?? Number.MAX_VALUE); // Set really high date if nothing is provided
         const afterDate = new Date(after ?? Number.MIN_VALUE); // Set really low date if nothing is provided
@@ -57,53 +44,53 @@ const articleResolver: Resolvers = {
           creator ?? undefined,
         );
 
-        articleModels = await articleReducer(apiResponse, safeMarkdown);
+        articleResponse = await articleReducer(apiResponse, safeMarkdown);
       }
 
-      return articleModels.map(hydrate);
+      return articleResponse;
     },
     latestnews: async (_, { limit, markdown }) => {
       const safeMarkdown = markdown ?? false;
-      let articleModels: DatabaseArticle[];
+      let articleResponse: ArticleResponse[];
 
       // Om vi inte gett en limit returnerar vi bara alla artiklar
       if (limit) {
         const apiResponse = await articleApi.getLatestNews(limit);
         if (apiResponse === null) return [];
-        articleModels = await articleReducer(apiResponse, safeMarkdown);
+        articleResponse = await articleReducer(apiResponse, safeMarkdown);
       } else {
-        articleModels = await articleReducer(await articleApi.getAllNewsArticles(), safeMarkdown);
+        articleResponse = await articleReducer(await articleApi.getAllNewsArticles(), safeMarkdown);
       }
 
       // If we get no articles, we should just return null directly.
-      if (articleModels.length === 0) {
+      if (articleResponse.length === 0) {
         return [];
       }
 
       // Vi vill returnera en tom array, inte null
-      return articleModels.map(hydrate);
+      return articleResponse;
     },
     article: async (_, { id, slug, markdown }) => {
       const safeMarkdown = markdown ?? false; // If markdown not passed, returns default (false)
 
       // Vi får tillbaka en DatabaseArticle som inte har en hel användare, bara unikt användarnamn.
       // Vi måste använda UserAPI:n för att få fram denna användare.
-      let articleModel = await articleApi.getArticle({ id, slug });
+      const apiResponse = await articleApi.getArticle({ id, slug });
 
       // Om API::n returnerar null finns inte artikeln; returnera null
-      if (articleModel == null) {
+      if (apiResponse == null) {
         return null;
       }
 
-      articleModel = await articleReducer(articleModel, safeMarkdown);
+      const articleResponse = await articleReducer(apiResponse, safeMarkdown);
 
-      return hydrate(articleModel);
+      return articleResponse;
     },
     articles: async (_, { ...parameters }) => {
       const { creator, lastUpdateBy, markdown, ...reduced } = parameters;
 
       const safeMarkdown = markdown ?? false;
-      let articleModels: DatabaseArticle[] | null;
+      let articleResponse: ArticleResponse[] | null;
 
       // If all parameters are empty, we should just return all articles
       // We need to rebind creator and reflastupdater
@@ -117,24 +104,38 @@ const articleResolver: Resolvers = {
 
       if (Object.values(params).filter((v) => v).length === 0) {
         // We have no entered paramters
-        articleModels = await articleReducer(await articleApi.getAllArticles(), safeMarkdown);
+        articleResponse = await articleReducer(await articleApi.getAllArticles(), safeMarkdown);
       } else {
         const apiResponse = await articleApi.getArticles(params as Partial<DatabaseArticle>);
         if (apiResponse === null) return [];
-        articleModels = await articleReducer(apiResponse, safeMarkdown);
+        articleResponse = await articleReducer(apiResponse, safeMarkdown);
       }
 
       // If we get no articles, we should just return null directly.
-      if (articleModels.length === 0) {
+      if (articleResponse.length === 0) {
         return [];
       }
 
       // Return raw data here, article-resolver will handle mapping of creator and lastupdatedby
-      return articleModels.map(hydrate);
+      return articleResponse;
     },
   },
   Mutation: {
-    addArticle: async (_, { entry }) => hydrate(await articleApi.newArticle(entry)),
+    addArticle: async (_, { entry }) => {
+      // Special type of reduce
+      const apiResponse = await articleApi.newArticle(entry);
+      const { refcreator, reflastupdateby, ...reduced } = apiResponse;
+      const a = {
+        ...reduced,
+        creator: {
+          username: refcreator,
+        },
+        lastUpdatedBy: {
+          username: reflastupdateby,
+        },
+      };
+      return a;
+    },
     modifyArticle: (_, { articleId, entry }) => articleApi.modifyArticle(articleId, entry),
   },
 };
