@@ -94,12 +94,12 @@ export class PostAPI {
     const uniqueUsernames = [...new Set(usernames)];
 
     // Filter out already added users
-    const alreadyAdded = ((await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
+    const alreadyAdded = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .select('refuser')
       .where({
         refpost: postname,
       })
-      .whereIn('refuser', uniqueUsernames)) as unknown) as {'refuser': string}[];
+      .whereIn('refuser', uniqueUsernames);
     
     // Knex ger oss svaren på formen [{'refuser': <username>}, {...}, ...]
     // så vi tar ut dem
@@ -135,8 +135,8 @@ export class PostAPI {
     }
 
     // Kolla efter dubbletter först
-    const doubles = await knex<DatabasePost>(POSTS_TABLE).select('*').where('postname', name);
-    if (doubles.length > 0) {
+    const doubles = await this.getPost(name);
+    if (doubles !== null) {
       return false;
     }
 
@@ -174,12 +174,18 @@ export class PostAPI {
         s = checkPostTypeAndSpots(entry.postType, entry.spots);
       } else {
         // Vi måste kolla i databasen vad denna post har för postType
-        const dbPostType = (await knex<PostType>(POSTS_TABLE).select('postType').where('postname', name))[0] as PostType;
+        const dbPostType = await knex<PostType>(POSTS_TABLE).select('postType').where('postname', name).returning('posttype').first();
+        
+        if (dbPostType === undefined) {
+          // Should not happen
+          return false;
+        }
+
         s = checkPostTypeAndSpots(dbPostType, entry.spots);
       }
     } else if (entry.postType !== undefined) {
       // Vi har ingen ny spots, men vi har postType => kollar efter posts i DB
-      const dbSpots = (await knex<number>(POSTS_TABLE).select('postType').where('postname', name))[0] as number;
+      const dbSpots = await knex<number>(POSTS_TABLE).select('postType').where('postname', name).returning('number').first();
       s = checkPostTypeAndSpots(entry.postType, dbSpots);
     } else {
       // Vi vill inte uppdatera något av dem
