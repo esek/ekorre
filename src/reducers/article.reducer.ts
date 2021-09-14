@@ -1,21 +1,28 @@
-import { sanitize } from 'dompurify';
+import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import showdown from 'showdown';
 
 import type { DatabaseArticle } from '../models/db/article';
+import { ArticleResponse } from '../models/mappers';
 import { SHOWDOWN_CONVERTER_OPTIONS } from './constants';
 
 const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
 const dom = new JSDOM();
 
+// DOMWindow och Window är i detta fallet kompatibla,
+// och detta testas i test/unit så borde vara fine
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+const dompurify = DOMPurify(dom.window);
+
 /**
- * Converts MarkDown to HTML
+ * Converts MarkDown to HTML and sanatizes MarkDown
  * @param md string formatted as Markdown
  */
 export const convertMarkdownToHtml = (md: string): string => {
   let html = converter.makeHtml(md);
-  html = sanitize(html); // Don't want any dirty XSS xD
-  return html;
+  html = dompurify.sanitize(html, {USE_PROFILES: {html: true}}); // Don't want any dirty XSS xD
+  return html.trim();
 };
 
 /**
@@ -43,18 +50,24 @@ const generateSlug = (str: string) =>
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
 
-const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArticle => {
+const articleReduce = (article: DatabaseArticle, markdown: boolean): ArticleResponse => {
   // Vi lagrar alltid HTML i databasen; vi gör om till markdown vid
   // förfrågan
-  const sanatizedBody = !markdown ? article.body : convertHtmlToMarkdown(article.body);
+  const sanitizedBody = !markdown ? article.body : convertHtmlToMarkdown(article.body);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { body, ...reduced } = article;
-  const a: DatabaseArticle & { slug: string } = {
+  const { body, refcreator, reflastupdateby, ...reduced } = article;
+  const a: ArticleResponse = {
     ...reduced,
-    body: sanatizedBody,
+    body: sanitizedBody.trim(),
     slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
     // Exteremely temporary fix for tags, as knex doesn't send them back as an array
-    tags: ((reduced.tags as unknown) as string).split(','),
+    tags: ((reduced.tags as unknown) as string).toString().split(','),
+    creator: {
+      username: refcreator,
+    },
+    lastUpdatedBy: {
+      username: reflastupdateby,
+    },
   };
 
   return a;
@@ -65,15 +78,15 @@ const articleReduce = (article: DatabaseArticle, markdown: boolean): DatabaseArt
 export async function articleReducer(
   a: DatabaseArticle,
   markdown: boolean,
-): Promise<DatabaseArticle>;
+): Promise<ArticleResponse>;
 export async function articleReducer(
   a: DatabaseArticle[],
   markdown: boolean,
-): Promise<DatabaseArticle[]>;
+): Promise<ArticleResponse[]>;
 export async function articleReducer(
   a: DatabaseArticle | DatabaseArticle[],
   markdown: boolean,
-): Promise<DatabaseArticle | DatabaseArticle[]> {
+): Promise<ArticleResponse | ArticleResponse[]> {
   // Är det en array, reducera varje för sig, annars skicka bara tillbaka en reducerad
   if (a instanceof Array) {
     const aa = await Promise.all(a.map((e) => articleReduce(e, markdown)));
