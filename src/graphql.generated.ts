@@ -146,7 +146,7 @@ export type Mutation = {
   deleteFile: Scalars['Boolean'];
   /** Test user credentials and if valid get a jwt token */
   login: Scalars['Boolean'];
-  logout?: Maybe<Scalars['Boolean']>;
+  logout: Scalars['Boolean'];
   modifyArticle: Scalars['Boolean'];
   modifyPost: Scalars['Boolean'];
   removeAccessResource: Scalars['Boolean'];
@@ -658,7 +658,11 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
   login?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
+<<<<<<< HEAD
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+=======
+  logout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationLogoutArgs, 'token'>>;
+>>>>>>> 879501e (remove unecessary nullchecks)
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
   removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'id'>>;

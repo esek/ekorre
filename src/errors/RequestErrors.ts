@@ -6,11 +6,12 @@ abstract class RequestError extends Error {
     this.message = message;
   }
 
-  public response() {
+  public response(stack?: string) {
     return {
       errorType: this.name,
       statusCode: this.code,
       message: this.message,
+      stack: stack ?? this.stack
     };
   }
 

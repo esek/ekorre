@@ -36,10 +36,6 @@ const attachCookie = (
 const authResolver: Resolvers = {
   Query: {
     refreshToken: async (_, _params, { response, refreshToken }) => {
-      if (!refreshToken) {
-        return null;
-      }
-
       // Try to verify token and fetch the username from it
       const { username } = verifyToken<VerifiedRefreshToken>(refreshToken, 'refreshToken');
 
@@ -53,6 +49,8 @@ const authResolver: Resolvers = {
 
       const access = issueToken<TokenValue>({ username }, 'accessToken');
       const refresh = issueToken({ username }, 'refreshToken');
+      // Attach a refresh token to the response object
+      attachRefreshToken(user.username, response);
 
       attachCookie(COOKIES.accessToken, access, 'accessToken', response);
       attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
@@ -75,7 +73,7 @@ const authResolver: Resolvers = {
 
       return true;
     },
-    logout: (_, __, { refreshToken, accessToken, response }) => {
+    logout: (_, { token }, { refreshToken }) => {
       // Invalidate both access- and refreshtoken
       invalidateToken(accessToken);
       invalidateToken(refreshToken);
