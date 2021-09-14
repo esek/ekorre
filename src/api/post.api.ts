@@ -136,7 +136,7 @@ export class PostAPI {
 
     // Kolla efter dubbletter först
     const doubles = this.getPost(name);
-    if (doubles !== null) {
+    if (doubles === null) {
       return false;
     }
 
