@@ -94,12 +94,12 @@ export class PostAPI {
     const uniqueUsernames = [...new Set(usernames)];
 
     // Filter out already added users
-    const alreadyAdded = ((await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
+    const alreadyAdded = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .select('refuser')
       .where({
         refpost: postname,
       })
-      .whereIn('refuser', uniqueUsernames)) as unknown) as {'refuser': string}[];
+      .whereIn('refuser', uniqueUsernames);
     
     // Knex ger oss svaren på formen [{'refuser': <username>}, {...}, ...]
     // så vi tar ut dem
