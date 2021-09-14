@@ -13,6 +13,7 @@ import { batchPostsFunction } from './dataloaders/post.dataloader';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
 import type { User } from './graphql.generated';
 import { Logger } from './logger';
+import { errorHandler } from './middlewares/graphql/errorhandler.middleware';
 import type { Context, ContextParams } from './models/context';
 import * as Resolvers from './resolvers/index';
 import doorsRoute from './routes/door.routes';
@@ -88,6 +89,7 @@ const server = new ApolloServer({
     },
   ],
   tracing: true,
+  formatError: errorHandler,
 });
 
 server.applyMiddleware({ app, path: '/', cors: corsOptions });

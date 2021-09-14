@@ -10,21 +10,23 @@ const api = new UserAPI();
 const userResolver: Resolvers = {
   Query: {
     user: async (_, { username }) => {
-      // ctx.getUser();
       const u = await api.getSingleUser(username);
-      if (u != null) return reduce(u, userReduce);
-      return null;
+      return reduce(u, userReduce);
     },
   },
   Mutation: {
     updateUser: async (_, { input }, ctx) => {
       const user = ctx.getUser();
 
-      const success = api.updateUser(user.username, stripObject(input));
+      await api.updateUser(user.username, stripObject(input));
 
-      return success;
+      return true;
     },
-    createUser: (_, { input }) => api.createUser(input),
+    createUser: async (_, { input }) => {
+      await api.createUser(input);
+
+      return true;
+    },
     requestPasswordReset: async (_, { username }) => {
       const user = await api.getSingleUser(username);
 
@@ -49,8 +51,10 @@ const userResolver: Resolvers = {
     },
     validatePasswordResetToken: async (_, { username, token }) =>
       api.validateResetPasswordToken(username, token),
-    resetPassword: async (_, { token, username, password }) =>
-      api.resetPassword(token, username, password),
+    resetPassword: async (_, { token, username, password }) => {
+      await api.resetPassword(token, username, password);
+      return true;
+    },
   },
 };
 

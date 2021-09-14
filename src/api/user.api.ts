@@ -1,7 +1,13 @@
 /* eslint-disable class-methods-use-this */
 import crypto from 'crypto';
 
-import type { NewUser, User } from '../graphql.generated';
+import {
+  BadRequestError,
+  NotFoundError,
+  ServerError,
+  UnauthenticatedError,
+} from '../errors/RequestErrors';
+import type { NewUser } from '../graphql.generated';
 import { Logger } from '../logger';
 import { DatabaseForgotPassword } from '../models/db/forgotpassword';
 import { DatabaseUser } from '../models/db/user';
@@ -50,19 +56,28 @@ export class UserAPI {
    * Hämta en användare.
    * @param username det unika användarnamnet
    */
-  async getSingleUser(username: string): Promise<DatabaseUser | null> {
+  async getSingleUser(username: string): Promise<DatabaseUser> {
     const u = await knex<DatabaseUser>(USER_TABLE).where({ username }).first();
-    if (u != null) return u;
-    return null;
+
+    if (u == null) {
+      throw new NotFoundError('Användaren kunde inte hittas');
+    }
+
+    return u;
   }
 
   /**
    * Hämta flera användare.
    * @param usernames användarnamnen
    */
-  async getMultipleUsers(usernames: string[] | readonly string[]): Promise<DatabaseUser[] | null> {
+  async getMultipleUsers(usernames: string[] | readonly string[]): Promise<DatabaseUser[]> {
     const u = await knex<DatabaseUser>(USER_TABLE).whereIn('username', usernames);
-    return u ?? null;
+
+    if (!u?.length) {
+      throw new NotFoundError('Inga användare hittades');
+    }
+
+    return u;
   }
 
   /**
@@ -70,7 +85,7 @@ export class UserAPI {
    * @param username användarnamnet
    * @param password lösenordet i plaintext
    */
-  async loginUser(username: string, password: string): Promise<DatabaseUser | null> {
+  async loginUser(username: string, password: string): Promise<DatabaseUser> {
     const u = await knex<DatabaseUser>(USER_TABLE)
       .select('*')
       .where({
@@ -78,12 +93,15 @@ export class UserAPI {
       })
       .first();
 
-    if (u != null) {
-      if (this.verifyUser(password, u.passwordHash, u.passwordSalt)) {
-        return u;
-      }
+    if (u == null) {
+      throw new NotFoundError('Användaren finns inte');
     }
-    return null;
+
+    if (!this.verifyUser(password, u.passwordHash, u.passwordSalt)) {
+      throw new UnauthenticatedError('Inloggningen misslyckades');
+    }
+
+    return u;
   }
 
   /**
@@ -92,33 +110,31 @@ export class UserAPI {
    * @param oldPassword det gamla lösenordet i plaintext
    * @param newPassword det nya lösenordet i plaintext
    */
-  async changePassword(
-    username: string,
-    oldPassword: string,
-    newPassword: string,
-  ): Promise<boolean> {
+  async changePassword(username: string, oldPassword: string, newPassword: string): Promise<void> {
     const query = knex<DatabaseUser>(USER_TABLE).select('*').where({
       username,
     });
     const u = await query.first();
 
-    if (u != null) {
-      if (this.verifyUser(oldPassword, u.passwordHash, u.passwordSalt)) {
-        query.update(this.generateSaltAndHash(newPassword));
-        const logStr = `Changed password for user ${username}`;
-        logger.info(logStr);
-        logger.debug(logStr);
-        return true;
-      }
+    if (u == null) {
+      throw new NotFoundError('Användaren finns inte');
     }
-    return false;
+
+    if (!this.verifyUser(oldPassword, u.passwordHash, u.passwordSalt)) {
+      throw new UnauthenticatedError('Lösenordet stämmer ej översens med det som redan är sparat');
+    }
+
+    await query.update(this.generateSaltAndHash(newPassword));
+
+    const logStr = `Changed password for user ${username}`;
+    logger.info(logStr);
   }
 
   /**
    * Skapa en ny anvädare. TODO: FIX, ska inte returnera User typ...
    * @param input den nya användarinformationen
    */
-  async createUser(input: NewUser): Promise<User> {
+  async createUser(input: NewUser): Promise<DatabaseUser> {
     // Utgå från att det inte är en funktionell användare om inget annat ges
     const isFuncUser = !!input.isFuncUser; // Trick för att konvertera till bool
 
@@ -135,7 +151,7 @@ export class UserAPI {
       email = 'no-reply@esek.se';
     }
 
-    const u: DatabaseUser = {
+    const user: DatabaseUser = {
       ...inputReduced,
       username,
       email,
@@ -144,25 +160,27 @@ export class UserAPI {
       isFuncUser,
     };
 
-    await knex<DatabaseUser>(USER_TABLE).insert(u);
+    await knex<DatabaseUser>(USER_TABLE)
+      .insert(user)
+      .catch(() => {
+        // If failed, it's 99% because the username exists
+        throw new BadRequestError('Användarnamnet finns redan');
+      });
+
     const logStr = `Created user ${Logger.pretty(inputReduced)}`;
     logger.info(logStr);
-    return {
-      ...input,
-      username,
-      email,
-      access: { doors: [], web: [] }, // TODO: Kanske default access?
-      posts: [],
-      userPostHistory: [],
-    };
+
+    return user;
   }
 
-  async updateUser(username: string, partial: Partial<DatabaseUser>) {
+  async updateUser(username: string, partial: Partial<DatabaseUser>): Promise<void> {
     const res = await knex<DatabaseUser>(USER_TABLE).where('username', username).update(partial);
-    return res > 0;
+    if (res <= 0) {
+      throw new BadRequestError('Något gick fel');
+    }
   }
 
-  async requestPasswordReset(username: string) {
+  async requestPasswordReset(username: string): Promise<string> {
     const table = knex<DatabaseForgotPassword>(PASSWORD_RESET_TABLE);
 
     const token = crypto.randomBytes(24).toString('hex');
@@ -175,7 +193,7 @@ export class UserAPI {
 
     // If no row was inserted into the DB
     if (res.length < 1) {
-      return null;
+      throw new ServerError('Något gick fel');
     }
 
     // Remove the other rows for this user
@@ -184,7 +202,7 @@ export class UserAPI {
     return token;
   }
 
-  async validateResetPasswordToken(username: string, token: string) {
+  async validateResetPasswordToken(username: string, token: string): Promise<boolean> {
     const row = await knex<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
       .where('username', username)
       .where('token', token)
@@ -193,7 +211,7 @@ export class UserAPI {
     return this.validateResetPasswordRow(row);
   }
 
-  async resetPassword(token: string, username: string, password: string) {
+  async resetPassword(token: string, username: string, password: string): Promise<void> {
     const q = knex<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
       .where('token', token)
       .andWhere('username', username)
@@ -203,21 +221,19 @@ export class UserAPI {
 
     // If no entry or token expired
     if (!this.validateResetPasswordRow(dbEntry)) {
-      return false;
+      throw new NotFoundError('Denna förfrågan finns inte eller har gått ut');
     }
 
     // Update password for user
-    const usersUpdated = await knex<DatabaseUser>(USER_TABLE)
+    await knex<DatabaseUser>(USER_TABLE)
       .where('username', username)
       .update(this.generateSaltAndHash(password));
 
     // Delete row in password table
     await q.delete();
-
-    return usersUpdated > 0;
   }
 
-  private validateResetPasswordRow(row?: DatabaseForgotPassword) {
+  private validateResetPasswordRow(row?: DatabaseForgotPassword): boolean {
     if (!row) {
       return false;
     }
@@ -229,7 +245,7 @@ export class UserAPI {
     return expirationTime < EXPIRE_MINUTES * 60 * 1000;
   }
 
-  private generateSaltAndHash(password: string) {
+  private generateSaltAndHash(password: string): { passwordSalt: string; passwordHash: string } {
     const passwordSalt = crypto.randomBytes(16).toString('base64');
     const passwordHash = this.hashPassword(password, passwordSalt);
 

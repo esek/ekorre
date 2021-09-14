@@ -8,15 +8,14 @@ abstract class RequestError extends Error {
 
   public response() {
     return {
-      success: false,
       errorType: this.name,
       statusCode: this.code,
-      message: this.print(),
+      message: this.message,
     };
   }
 
-  private print() {
-    return `Anropet misslyckades med statuskod ${this.code} - ${this.message}`;
+  public log() {
+    return `{${this.name}} Request failed with status ${this.code} - ${this.message}`;
   }
 }
 
@@ -33,6 +32,11 @@ export class UnauthenticatedError extends RequestError {
 export class ServerError extends RequestError {
   code = 500;
   name = 'ServerError';
+}
+
+export class NotFoundError extends RequestError {
+  code = 404;
+  name = 'NotFoundError';
 }
 
 export default RequestError;
