@@ -1,4 +1,6 @@
-abstract class RequestError extends Error {
+import { ApolloError } from 'apollo-server-errors';
+
+abstract class RequestError extends ApolloError {
   abstract code: number;
 
   constructor(message: string) {
