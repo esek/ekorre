@@ -10,6 +10,8 @@ import {
   verifyAuthenticated,
   verifyFileReadAccess,
 } from '../middlewares/rest/auth.middleware';
+import { reduce } from '../reducers';
+import { fileReduce } from '../reducers/file.reducer';
 
 const filesRoute = Router();
 
@@ -99,7 +101,7 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
     return res.status(500).send('Could not update user image');
   }
 
-  return res.send(dbFile);
+  return res.send(reduce(dbFile, fileReduce));
 });
 
 // Host static files
