@@ -22,7 +22,7 @@ const secrets: SecretStore = {
 
 let tokenBlacklist: TokenBlacklistItem[] = [];
 
-const EXPIRE_MINUTES: Record<TokenType, number> = {
+export const EXPIRE_MINUTES: Record<TokenType, number> = {
   accessToken: 60, // 60min
   refreshToken: 60 * 24 * 15, // 15d
 };

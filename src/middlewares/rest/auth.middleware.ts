@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 
 import FilesAPI from '../../api/files.api';
-import { verifyToken } from '../../auth';
+import { COOKIES, verifyToken } from '../../auth';
 import { AccessType, User } from '../../graphql.generated';
 import { Logger } from '../../logger';
 
@@ -22,7 +22,11 @@ export type RequestHandlerWithLocals = RequestHandler<
 >;
 
 export const setUser: RequestHandlerWithLocals = (req, res, next) => {
-  let token = req.headers.authorization ?? req.query?.token?.toString() ?? '';
+  let token =
+    req.cookies[COOKIES.accessToken] ??
+    req.headers.authorization ??
+    req.query?.token?.toString() ??
+    '';
 
   // Remove `Bearer ` from token string
   if (token.includes('Bearer')) {
