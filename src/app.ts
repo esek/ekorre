@@ -62,7 +62,7 @@ const apolloLogger = Logger.getLogger('Apollo');
 const server = new ApolloServer({
   schema,
   context: ({ req, res }: ContextParams): Context => {
-    const accessToken = req.headers.authorization?.split(' ')[1] ?? '';
+    const accessToken = req.cookies[COOKIES.accessToken] ?? '';
     const refreshToken = req.cookies[COOKIES.refreshToken] ?? '';
 
     return {
