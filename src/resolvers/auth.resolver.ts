@@ -1,26 +1,35 @@
 import { Response } from 'express';
 
 import { UserAPI } from '../api/user.api';
-import { COOKIES, invalidateToken, issueToken, verifyToken } from '../auth';
+import { COOKIES, EXPIRE_MINUTES, invalidateToken, issueToken, verifyToken } from '../auth';
 import { Resolvers } from '../graphql.generated';
-import type { VerifiedRefreshToken } from '../models/auth';
+import type { TokenType, TokenValue, VerifiedRefreshToken } from '../models/auth';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
 
 const api = new UserAPI();
 
+const baseCookie = {
+  httpOnly: true,
+  secure: true,
+};
+
 /**
  * Helper to attach refresh token to the response object
  * @param {string} username The username to issue the token with
+ * @param {string} cookieName Name of cookie to set
  * @param {Response} response Express response object to attach cookies to
  */
-const attachRefreshToken = (username: string, response: Response) => {
-  const refreshToken = issueToken({ username }, 'refreshToken');
-
-  response.cookie(COOKIES.refreshToken, refreshToken, {
+const attachCookie = (
+  cookieName: string,
+  value: unknown,
+  tokenType: TokenType,
+  response: Response,
+) => {
+  response.cookie(cookieName, value, {
     httpOnly: true,
-    secure: true,
-    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // Expires in 7d
+    secure: false,
+    expires: new Date(Date.now() + EXPIRE_MINUTES[tokenType] * 1000 * 60),
   });
 };
 
@@ -42,16 +51,13 @@ const authResolver: Resolvers = {
         return null;
       }
 
-      // Attach a refresh token to the response object
-      attachRefreshToken(user.username, response);
+      const access = issueToken<TokenValue>({ username }, 'accessToken');
+      const refresh = issueToken({ username }, 'refreshToken');
 
-      // Reduce the user to get correct return type
-      const fullUser = reduce(user, userReduce);
+      attachCookie(COOKIES.accessToken, access, 'accessToken', response);
+      attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
 
-      return {
-        accessToken: issueToken(fullUser, 'accessToken'),
-        user: fullUser,
-      };
+      return reduce(user, userReduce);
     },
   },
   Mutation: {
@@ -62,18 +68,16 @@ const authResolver: Resolvers = {
         return false;
       }
 
+      const refresh = issueToken({ username }, 'refreshToken');
+
       // Attach a refresh token to the response object
-      attachRefreshToken(user.username, response);
+      attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
 
       return true;
     },
-    logout: (_, { token }, { refreshToken }) => {
-      if (!token) {
-        return false;
-      }
-
+    logout: (_, {}, { refreshToken, accessToken, response }) => {
       // Invalidate both access- and refreshtoken
-      invalidateToken(token);
+      invalidateToken(accessToken);
       invalidateToken(refreshToken);
 
       return true;

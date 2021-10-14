@@ -9,6 +9,10 @@ export type TokenBlacklistItem = {
   time: number;
 };
 
+export type TokenValue = {
+  username: string;
+};
+
 export type VerifiedRefreshToken = {
   username: string;
 };
