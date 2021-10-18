@@ -20,13 +20,13 @@ interface Jam extends Avocado {
   liquid: boolean;
 }
 
-test('Check stripObject stripping', () => {
+test('stripObject stripping', () => {
   const b: Berry = { score: 10, color: 'brown' };
   const a: Partial<Avocado> = stripObject<Berry, Avocado>(b);
   expect(a).toStrictEqual(b);
 });
 
-test('Check stripObject double extention stripping', () => {
+test('stripObject double extention stripping', () => {
   const b: Berry = { score: 10, color: 'brown' };
   const j: Partial<Jam> = stripObject<Berry, Jam>(b);
   expect(j).toStrictEqual(b);

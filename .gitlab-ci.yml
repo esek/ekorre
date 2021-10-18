@@ -4,7 +4,7 @@
 # Mentioned here: https://blog.callr.tech/building-docker-images-with-gitlab-ci-best-practices/
 
 # do not use "latest" here, if you want this to work in the future
-image: docker:19
+image: docker:19-dind
 
 stages:
   - test
