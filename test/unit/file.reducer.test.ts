@@ -22,6 +22,6 @@ const expectedFileResponse: FileResponse = {
   size: 37, // Bytes
 };
 
-test('Test fileReducer with mocked DatabaseFile', () => {
+test('fileReducer with mocked DatabaseFile', () => {
   expect(fileReduce(testDbFile)).toStrictEqual(expectedFileResponse);
 });

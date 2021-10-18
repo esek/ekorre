@@ -56,7 +56,7 @@ beforeEach(clearDb);
 
 afterAll(clearDb);
 
-test('Test getting all posts', async () => {
+test('getting all posts', async () => {
   const ok = await api.createPost(np);
   expect(ok).toBe(true);
 
@@ -64,7 +64,7 @@ test('Test getting all posts', async () => {
   expect(allPosts.length).toBeGreaterThan(0);
 });
 
-test('Test getting all posts from utskott', async () => {
+test('getting all posts from utskott', async () => {
   const ok = await api.createPost(np);
   expect(ok).toBe(true);
 
@@ -72,7 +72,7 @@ test('Test getting all posts from utskott', async () => {
   expect(allPosts.length).toBeGreaterThan(0);
 });
 
-test('Test getting history entries for user', async () => {
+test('getting history entries for user', async () => {
   // Vi skapar först en post och lägger till en user på den
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
@@ -92,7 +92,7 @@ test('Test getting history entries for user', async () => {
   });
 });
 
-test('Test adding post', async () => {
+test('adding post', async () => {
   const ok = await api.createPost(np);
   expect(ok).toBe(true);
 
@@ -107,7 +107,7 @@ test('Test adding post', async () => {
   }
 });
 
-test('Test adding duplicate post', async () => {
+test('adding duplicate post', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
@@ -115,7 +115,7 @@ test('Test adding duplicate post', async () => {
   expect(ok).toBe(false);
 });
 
-test('Test adding post with ea type and defined number', async () => {
+test('adding post with ea type and defined number', async () => {
   const localNp: NewPost = {
     ...np,
     postType: PostType.Ea,
@@ -136,7 +136,7 @@ test('Test adding post with ea type and defined number', async () => {
   }
 });
 
-test('Test adding post with ea type and undefined number', async () => {
+test('adding post with ea type and undefined number', async () => {
   const localNp: NewPost = {
     ...np,
     postType: PostType.Ea,
@@ -157,7 +157,7 @@ test('Test adding post with ea type and undefined number', async () => {
   }
 });
 
-test('Test adding post with n type and defined number', async () => {
+test('adding post with n type and defined number', async () => {
   const localNp: NewPost = {
     ...np,
     postType: PostType.N,
@@ -178,7 +178,7 @@ test('Test adding post with n type and defined number', async () => {
   }
 });
 
-test('Test adding post with n type and negative number', async () => {
+test('adding post with n type and negative number', async () => {
   const localNp: NewPost = {
     ...np,
     postType: PostType.N,
@@ -192,7 +192,7 @@ test('Test adding post with n type and negative number', async () => {
   expect(res).toBeNull();
 });
 
-test('Test adding post with n type, defined number, and undefined description and intReq', async () => {
+test('adding post with n type, defined number, and undefined description and intReq', async () => {
   const localNp: NewPost = {
     ...np,
     postType: PostType.ExactN,
@@ -220,7 +220,7 @@ test('Test adding post with n type, defined number, and undefined description an
   }
 });
 
-test('Test adding post with n type and undefined number', async () => {
+test('adding post with n type and undefined number', async () => {
   const localNp: NewPost = {
     ...np,
     postType: PostType.N,
@@ -236,7 +236,7 @@ test('Test adding post with n type and undefined number', async () => {
 
 });
 
-test('Test adding user to post', async () => {
+test('adding user to post', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
@@ -254,7 +254,7 @@ test('Test adding user to post', async () => {
   }
 });
 
-test('Test adding user to post twice in the same period at the same time', async () => {
+test('adding user to post twice in the same period at the same time', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
@@ -262,7 +262,7 @@ test('Test adding user to post twice in the same period at the same time', async
   expect(ok).toBe(true);
 });
 
-test('Test adding user to post twice in the same period at different times', async () => {
+test('adding user to post twice in the same period at different times', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
@@ -273,7 +273,7 @@ test('Test adding user to post twice in the same period at different times', asy
   expect(ok).toBe(false);
 });
 
-test('Test deleting user from post', async () => {
+test('deleting user from post', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
@@ -291,7 +291,7 @@ test('Test deleting user from post', async () => {
   expect(res.length).toBe(0);
 });
 
-test('Test modifying post in allowed way', async () => {
+test('modifying post in allowed way', async () => {
   const localMp: ModifyPost = {
     ...mp,
     utskott: Utskott.Styrelsen,
@@ -322,7 +322,7 @@ test('Test modifying post in allowed way', async () => {
   }
 });
 
-test('Test modyfing post without touching neither PostType nor spots', async () => {
+test('modyfing post without touching neither PostType nor spots', async () => {
   const localMp: ModifyPost = {
     ...mp,
     utskott: Utskott.Styrelsen,
@@ -348,7 +348,7 @@ test('Test modyfing post without touching neither PostType nor spots', async () 
   }
 });
 
-test('Test increasing spots with postType set to u', async () => {
+test('increasing spots with postType set to u', async () => {
   const localMp: ModifyPost = {
     ...mp,
     utskott: Utskott.Styrelsen,
@@ -373,7 +373,7 @@ test('Test increasing spots with postType set to u', async () => {
   }
 });
 
-test('Test changing postType to e.a. from u without changing spots', async () => {
+test('changing postType to e.a. from u without changing spots', async () => {
   const localMp: ModifyPost = {
     ...mp,
     postType: PostType.Ea,

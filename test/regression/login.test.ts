@@ -47,7 +47,7 @@ const REFRESH_TOKEN_QUERY = `
   }
 `;
 
-test('Check login with correct credentials', () => {
+test('login with correct credentials', () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -73,7 +73,7 @@ test('Check login with correct credentials', () => {
  * i vanliga fall kan man bara returnera en promise (testet är klart när
  * promise är klart)
  */
-test('Check authorization with e-refresh-cookie', (done) => {
+test('authorization with e-refresh-cookie', (done) => {
   const loginData = {
     query: LOGIN_MUTATION,
     variables: {
@@ -124,7 +124,7 @@ test('Check authorization with e-refresh-cookie', (done) => {
   });
 }, 7500);
 
-test('Check login with incorrect credentials', () => {
+test('login with incorrect credentials', () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -142,7 +142,7 @@ test('Check login with incorrect credentials', () => {
   });
 });
 
-test('Check login with incorrect password', () => {
+test('login with incorrect password', () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -160,7 +160,7 @@ test('Check login with incorrect password', () => {
   });
 });
 
-test('Check login with incorrect username', () => {
+test('login with incorrect username', () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -178,7 +178,7 @@ test('Check login with incorrect username', () => {
   });
 });
 
-test('Check login with empty credentials', () => {
+test('login with empty credentials', () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -196,7 +196,7 @@ test('Check login with empty credentials', () => {
   });
 });
 
-test('Check login with empty password', () => {
+test('login with empty password', () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -214,7 +214,7 @@ test('Check login with empty password', () => {
   });
 });
 
-test('Check login with empty username', () => {
+test('login with empty username', () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {

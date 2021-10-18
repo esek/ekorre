@@ -15,7 +15,7 @@ const dummyDbUser: DatabaseUser = {
   isFuncUser: false,
 };
 
-test('Check that password is reduced properly', () => {
+test('that password is reduced properly', () => {
   expect(userReduce(dummyDbUser)).toStrictEqual({
     username: 'kk6969öö-s',
     firstName: 'Kalle',
