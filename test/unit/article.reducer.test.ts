@@ -69,21 +69,21 @@ const expectedDaRes: ArticleResponse = {
   },
 };
 
-test('Test converting OK MarkDown to HTML', () => {
+test('converting OK MarkDown to HTML', () => {
   expect(convertMarkdownToHtml(okMarkdown)).toBe(okHtml);
 });
 
-test('Test sanitation of dirty MarkDown to HTML', () => {
+test('sanitation of dirty MarkDown to HTML', () => {
   expect(convertMarkdownToHtml(dirtyMarkdown)).toBe(sanitizedDirtyHtml);
 });
 
-test('Test slug generation', () => {
+test('slug generation', () => {
   return articleReducer(da, false).then(reduced => {
     expect(reduced.slug).toBe(expectedDaSlug);
   });
 });
 
-test('Test slug generation with no id', () => {
+test('slug generation with no id', () => {
   const id = da.id ?? '';
   const localExpectedDaSlug = expectedDaSlug.substring(0,
     expectedDaSlug.indexOf(id));
@@ -92,7 +92,7 @@ test('Test slug generation with no id', () => {
   });
 });
 
-test('Test slug generation with crazy title', () => {
+test('slug generation with crazy title', () => {
   const crazyTitle = 'hejØ€@@¡}{[]±±🍊🍊  -- ££';
   const expectedCrazySlug = 'hej-testid1337';
   return articleReducer({...da, title: crazyTitle}, false).then(reduced => {
@@ -100,7 +100,7 @@ test('Test slug generation with crazy title', () => {
   });
 });
 
-test('Test reducing array of DatabaseArticles', () => {
+test('reducing array of DatabaseArticles', () => {
   const father = [da, da];
   return articleReducer(father, false).then(reduced => {
     expect(reduced.length).toBe(2);
@@ -108,7 +108,7 @@ test('Test reducing array of DatabaseArticles', () => {
   });
 });
 
-test('Test full reduction of OK DatabaseArticle', () => {
+test('full reduction of OK DatabaseArticle', () => {
   return articleReducer(da, true).then(reduced => {
     expect(reduced).toStrictEqual({
       ...expectedDaRes,
@@ -117,7 +117,7 @@ test('Test full reduction of OK DatabaseArticle', () => {
   });
 });
 
-test('Test full reduction of OK DatabaseArticle array', () => {
+test('full reduction of OK DatabaseArticle array', () => {
   const father = [da, da];
   return articleReducer(father, true).then(reduced => {
     expect(reduced.length).toBe(2);
