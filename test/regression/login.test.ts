@@ -1,9 +1,11 @@
-import { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 
-import { RefreshResponse } from '../../src/graphql.generated';
 import { ApiRequest } from '../models/test';
-import { axiosInstance } from '../utils/axiosInstance';
-import { extractRefreshToken } from '../utils/utils';
+import { AXIOS_CONFIG } from '../utils/axiosConfig';
+import { extractToken } from '../utils/utils';
+
+import { COOKIES } from '../../src/auth';
+import { User } from '../../src/graphql.generated';
 
 interface LoginResponse {
   headers: {
@@ -18,16 +20,17 @@ interface LoginResponse {
   };
 }
 
-interface FullRefreshResponse {
+interface RefreshResponse {
   headers: {
     'set-cookie': string[] | undefined;
   };
   data: {
     data: {
-      refreshToken: RefreshResponse;
+      refreshToken: User;
     };
   };
 }
+
 
 const LOGIN_MUTATION = `
   mutation login($username: String!, $password: String!) {
@@ -38,11 +41,8 @@ const LOGIN_MUTATION = `
 const REFRESH_TOKEN_QUERY = `
   {
     refreshToken {
-      user {
-        firstName
-        username
-      }
-      accessToken
+      firstName
+      username
     }
   }
 `;
@@ -55,13 +55,16 @@ test('login with correct credentials', () => {
       password: 'test',
     },
   };
+
+  const axiosInstance = axios.create(AXIOS_CONFIG);
+
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeTruthy();
       if (res.headers['set-cookie'] === undefined) {
         fail('Response cookies undefined');
       }
-      expect(extractRefreshToken(res.headers['set-cookie'][0])).not.toBe(null);
+      expect(extractToken(COOKIES.refreshToken, res.headers['set-cookie'][0])).not.toBe(null);
     } else {
       fail('Did not get proper response from the server');
     }
@@ -73,7 +76,7 @@ test('login with correct credentials', () => {
  * i vanliga fall kan man bara returnera en promise (testet är klart när
  * promise är klart)
  */
-test('authorization with e-refresh-cookie', (done) => {
+test('authorization with COOKIES.refreshToken', (done) => {
   const loginData = {
     query: LOGIN_MUTATION,
     variables: {
@@ -81,38 +84,39 @@ test('authorization with e-refresh-cookie', (done) => {
       password: 'test',
     },
   };
+
+  const axiosInstance = axios.create(AXIOS_CONFIG);
+
   axiosInstance.post<ApiRequest, LoginResponse>('/', loginData).then((res) => {
     if (res.data !== null && res.headers !== null) {
       if (res.headers['set-cookie'] === undefined) {
         fail('Response cookies undefined');
       }
 
-      const refreshToken = extractRefreshToken(res.headers['set-cookie'][0]);
-      if (refreshToken === null) {
-        fail('Response cookies did not contain e-refresh token');
-      }
+      const refreshToken = extractToken(COOKIES.refreshToken, res.headers['set-cookie'][0]);
+      expect(refreshToken).not.toBeNull();
 
       // Vi ska nu testa om vi kan authorisera oss med token som vi fått
+      // och få en accessToken
       const authData = {
         query: REFRESH_TOKEN_QUERY,
       };
 
+      // Add refresh token to headers
       const authHeader: AxiosRequestConfig = {
         headers: {
-          Cookie: `e-refresh-token=${refreshToken}; `,
-        },
+          Cookie: `${COOKIES.refreshToken}=${refreshToken ?? ''}`
+        }
       };
 
       axiosInstance
-        .post<ApiRequest, FullRefreshResponse>('/', authData, authHeader)
+        .post<ApiRequest, RefreshResponse>('/', authData, authHeader)
         .then((res2) => {
           if (res2.data !== null && res2.headers !== null) {
-            // REFRESH_TOKEN_QUERY frågar bara om namn, användarnamn och accessToken
-            expect(res2.data.data.refreshToken.user).toStrictEqual({
-              firstName: 'Leif',
-              username: 'bb1111cc-s',
-            });
-            expect(res2.data.data.refreshToken.accessToken).not.toBe(undefined);
+            const accessToken = extractToken(COOKIES.accessToken, (res2.headers['set-cookie'] ?? [])[0]);
+            expect(accessToken).not.toBeNull();
+            expect(res2.data.data.refreshToken).not.toBeNull();
+            expect(res2.data.data.refreshToken.username).toStrictEqual('bb1111cc-s');
             done();
           } else {
             fail('Did not get proper response from the server on second request');
@@ -124,6 +128,34 @@ test('authorization with e-refresh-cookie', (done) => {
   });
 }, 7500);
 
+test('refresh with incorrect refreshToken', (done) => {
+  const authData = {
+    query: REFRESH_TOKEN_QUERY,
+  };
+
+  // Add refresh token to headers
+  const authHeader: AxiosRequestConfig = {
+    headers: {
+      Cookie: `${COOKIES.refreshToken}=bedragare@esek.se`
+    }
+  };
+
+  const axiosInstance = axios.create(AXIOS_CONFIG);
+
+  axiosInstance
+    .post<ApiRequest, RefreshResponse>('/', authData, authHeader)
+    .then((res) => {
+      if (res.data !== null && res.headers !== null) {
+        const accessToken = extractToken(COOKIES.accessToken, (res.headers['set-cookie'] ?? [])[0]);
+        expect(accessToken).toBeNull();
+        expect(res.data.data.refreshToken).toBeNull();
+        done();
+      } else {
+        throw new Error('Did not get proper response from the server on second request');
+      }
+    });
+});
+
 test('login with incorrect credentials', () => {
   const data = {
     query: LOGIN_MUTATION,
@@ -132,6 +164,9 @@ test('login with incorrect credentials', () => {
       password: 'hunter2',
     },
   };
+
+  const axiosInstance = axios.create(AXIOS_CONFIG);
+
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
@@ -150,6 +185,9 @@ test('login with incorrect password', () => {
       password: 'inte test',
     },
   };
+
+  const axiosInstance = axios.create(AXIOS_CONFIG);
+
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
@@ -168,6 +206,9 @@ test('login with incorrect username', () => {
       password: 'test',
     },
   };
+
+  const axiosInstance = axios.create(AXIOS_CONFIG);
+
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
@@ -186,6 +227,9 @@ test('login with empty credentials', () => {
       password: '',
     },
   };
+
+  const axiosInstance = axios.create(AXIOS_CONFIG);
+
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
@@ -204,6 +248,9 @@ test('login with empty password', () => {
       password: '',
     },
   };
+
+  const axiosInstance = axios.create(AXIOS_CONFIG);
+
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
@@ -222,6 +269,9 @@ test('login with empty username', () => {
       password: 'test',
     },
   };
+
+  const axiosInstance = axios.create(AXIOS_CONFIG);
+
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
