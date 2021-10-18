@@ -1,12 +1,12 @@
 /**
- * Extrahera `e-refresh-cookie` ur en sträng, eller returnera
+ * Extrahera en token ur en set-cookie-sträng, eller returnera
  * `null` om ingen hittas
  * @param s `set-cookie`-string
  */
-export const extractRefreshToken = (s: string): string | null => {
+export const extractToken = (tokenName: string, s: string): string | null => {
   // Matcha base64url enl. JavaScript-specification, inclusive
   // separator "."
-  const match = /(?<=e-refresh-token=)([-_.A-z0-9]+);/g.exec(s);
+  const match = RegExp(`(?<=${tokenName}=)([-_.A-z0-9]+);`).exec(s);
   if (match !== null) {
     return match[0];
   }
