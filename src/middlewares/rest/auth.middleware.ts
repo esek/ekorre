@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { RequestHandler } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 
@@ -22,8 +23,9 @@ export type RequestHandlerWithLocals = RequestHandler<
 >;
 
 export const setUser: RequestHandlerWithLocals = (req, res, next) => {
-  let token =
-    req.cookies[COOKIES.accessToken] ??
+
+  let token = 
+    req.cookies[COOKIES.accessToken] as string ??
     req.headers.authorization ??
     req.query?.token?.toString() ??
     '';

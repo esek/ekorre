@@ -1,10 +1,10 @@
-import axios from 'axios';
+import { AxiosRequestConfig } from 'axios';
 
 /**
- * En instans av axios som är lämplig för att
- * göra requests till ekorre-API:n
+ * Inställningar till en axios-instans
+ * som gör att den sparar cookies
  */
-export const axiosInstance = axios.create({
+export const AXIOS_CONFIG: AxiosRequestConfig = {
   withCredentials: true, // To get cookies/jwt
   baseURL: `http://localhost:${process.env.PORT ?? ''}`,
   headers: {
@@ -12,4 +12,4 @@ export const axiosInstance = axios.create({
     Accept: 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
   },
-});
+};
