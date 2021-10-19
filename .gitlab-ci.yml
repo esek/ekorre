@@ -4,7 +4,7 @@
 # Mentioned here: https://blog.callr.tech/building-docker-images-with-gitlab-ci-best-practices/
 
 # do not use "latest" here, if you want this to work in the future
-image: docker:19-dind
+image: docker:19
 
 stages:
   - test
@@ -27,6 +27,22 @@ build:
     - master
     - main
     - /^release-[0-9]\.[0-9]\.[0-9]$/
+
+  # This will run a Docker daemon in a container (Docker-In-Docker), which will
+  # be available at thedockerhost:2375. If you make e.g. port 5000 public in Docker
+  # (`docker run -p 5000:5000 yourimage`) it will be exposed at thedockerhost:5000.
+  services:
+   - name: docker:19-dind
+     alias: thedockerhost
+
+  variables:
+    # Tell docker CLI how to talk to Docker daemon; see
+    # https://docs.gitlab.com/ee/ci/docker/using_docker_build.html#use-docker-in-docker-executor
+    DOCKER_HOST: tcp://thedockerhost:2375/
+    # Use the overlayfs driver for improved performance:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+    
   script:
     - docker build -t $CONTAINER_TEST_IMAGE .
     - docker push $CONTAINER_TEST_IMAGE
