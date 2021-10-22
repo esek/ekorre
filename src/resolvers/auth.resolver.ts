@@ -1,11 +1,12 @@
 import { Response } from 'express';
 
 import { UserAPI } from '../api/user.api';
-import { COOKIES, EXPIRE_MINUTES, invalidateTokens, issueToken } from '../auth';
+import { COOKIES, EXPIRE_MINUTES, hashWithSecret, issueToken } from '../auth';
 import { Resolvers } from '../graphql.generated';
 import type { TokenType } from '../models/auth';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
+import { validateCasTicket } from '../services/cas.service';
 
 const api = new UserAPI();
 
@@ -24,7 +25,8 @@ const attachCookie = (
   response.cookie(cookieName, value, {
     httpOnly: true,
     secure: true,
-    maxAge: EXPIRE_MINUTES[tokenType] * 60 * 1000,
+    sameSite: 'none',
+    expires: new Date(Date.now() + EXPIRE_MINUTES[tokenType] * 1000 * 60),
   });
 };
 
@@ -50,6 +52,33 @@ const authResolver: Resolvers = {
       // Invalidate both access- and refreshtoken
       invalidateTokens(accessToken, refreshToken);
       return true;
+    },
+    casLogin: async (_, { token }, { request, response }) => {
+      const referer = request.headers.referer;
+
+      const username = await validateCasTicket(token, referer ?? '');
+
+      if (!username) {
+        throw new Error();
+      }
+
+      const user = await api.getSingleUser(username);
+
+      let exists = user != null;
+
+      if (exists) {
+        const refresh = issueToken({ username }, 'refreshToken');
+        // Attach a refresh token to the response object
+        attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
+      }
+
+      const hash = hashWithSecret(username);
+
+      return {
+        username,
+        hash,
+        exists,
+      };
     },
   },
 };

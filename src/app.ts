@@ -78,6 +78,7 @@ const server = new ApolloServer({
       accessToken,
       refreshToken,
       response: res,
+      request: req,
       getUser: () => verifyToken<User>(accessToken, 'accessToken'),
       userDataLoader: createDataLoader(batchUsersFunction),
       postDataLoader: createDataLoader(batchPostsFunction),

@@ -29,12 +29,20 @@ const CORS = {
   ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS?.split(',') ?? [],
 };
 
+/** LU Options
+ * @param {string} CAS - The base URL for LU CAS
+ */
+const LU = {
+  CAS: (process.env.LU_CAS as string) ?? 'https://idpv4.lu.se',
+};
+
 const config = {
   PORT: parseInt(process.env.PORT ?? '5000', 10),
   HOST: process.env.HOST ?? '0.0.0.0',
   FILES,
   EBREV,
   CORS,
+  LU,
 };
 
 export default config;

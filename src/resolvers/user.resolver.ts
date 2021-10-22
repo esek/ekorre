@@ -1,5 +1,5 @@
 import { UserAPI } from '../api/user.api';
-import { verifyToken } from '../auth';
+import { hashWithSecret, verifyToken } from '../auth';
 import { userApi } from '../dataloaders/user.dataloader';
 import type { Resolvers } from '../graphql.generated';
 import { TokenValue } from '../models/auth';
@@ -78,9 +78,16 @@ const userResolver: Resolvers = {
     },
     validatePasswordResetToken: async (_, { username, token }) =>
       api.validateResetPasswordToken(username, token),
-    resetPassword: async (_, { token, username, password }) => {
-      await api.resetPassword(token, username, password);
-      return true;
+    resetPassword: async (_, { token, username, password }) =>
+      api.resetPassword(token, username, password),
+    casCreateUser: async (_, { input, hash }) => {
+      if (hashWithSecret(input.username) !== hash) {
+        return false;
+      }
+
+      const created = await api.createUser(input);
+
+      return created != null;
     },
   },
 };
