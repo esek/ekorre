@@ -26,7 +26,7 @@ const attachCookie = (
     httpOnly: true,
     secure: true,
     sameSite: 'none',
-    expires: new Date(Date.now() + EXPIRE_MINUTES[tokenType] * 1000 * 60),
+    maxAge: EXPIRE_MINUTES[tokenType] * 1000 * 60,
   });
 };
 

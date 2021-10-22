@@ -6,11 +6,11 @@ const BASE_URL = `${config.LU.CAS}/idp/profile/cas/serviceValidate`;
 
 export const validateCasTicket = async (
   ticket: string,
-  refferer: string,
+  referer: string,
 ): Promise<string | null> => {
   const params = new URLSearchParams();
   params.append('renew', 'false');
-  params.append('service', refferer);
+  params.append('service', referer);
   params.append('ticket', ticket);
 
   const url = `${BASE_URL}?${params.toString()}`;

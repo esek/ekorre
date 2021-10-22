@@ -26,7 +26,11 @@ const EBREV = {
  * @param {string} ALLOWED_ORIGINS - Commaseparated list of origins that are allowed to make requests
  */
 const CORS = {
-  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS?.split(',') ?? [],
+  ALLOWED_ORIGINS: [
+    'https://localhost',
+    'http://localhost:3000',
+    ...(process.env.ALLOWED_ORIGINS?.split(',') ?? []),
+  ],
 };
 
 /** LU Options
