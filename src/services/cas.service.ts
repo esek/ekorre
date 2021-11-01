@@ -22,8 +22,10 @@ export const validateCasTicket = async (
       throw new Error();
     }
 
+    // Regex to get user from inbetween <cas:user> tags
     const regex = /<cas:user>(.*?)<\/cas:user>/;
 
+    // Get matches from the response body
     const [, username] = RegExp(regex).exec(response) ?? [];
 
     return username;

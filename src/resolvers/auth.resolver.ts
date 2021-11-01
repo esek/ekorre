@@ -72,6 +72,7 @@ const authResolver: Resolvers = {
         attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
       }
 
+      // Create a hash so that the request can be validated later
       const hash = hashWithSecret(username);
 
       return {
