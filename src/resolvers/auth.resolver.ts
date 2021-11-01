@@ -1,7 +1,7 @@
 import { Response } from 'express';
 
 import { UserAPI } from '../api/user.api';
-import { COOKIES, EXPIRE_MINUTES, hashWithSecret, issueToken } from '../auth';
+import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '../auth';
 import { Resolvers } from '../graphql.generated';
 import type { TokenType } from '../models/auth';
 import { reduce } from '../reducers';
@@ -48,9 +48,14 @@ const authResolver: Resolvers = {
 
       return reduce(user, userReduce);
     },
-    logout: (_, __, { refreshToken, accessToken }) => {
+    logout: (_, __, { response, refreshToken, accessToken }) => {
       // Invalidate both access- and refreshtoken
       invalidateTokens(accessToken, refreshToken);
+
+      // Send back empty tokens
+      attachCookie(COOKIES.accessToken, '', 'accessToken', response);
+      attachCookie(COOKIES.refreshToken, '', 'refreshToken', response);
+
       return true;
     },
     casLogin: async (_, { token }, { request, response }) => {
