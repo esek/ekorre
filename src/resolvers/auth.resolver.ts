@@ -54,7 +54,7 @@ const authResolver: Resolvers = {
       return true;
     },
     casLogin: async (_, { token }, { request, response }) => {
-      const referer = request.headers.referer;
+      const { referer } = request.headers;
 
       const username = await validateCasTicket(token, referer ?? '');
 
@@ -64,7 +64,7 @@ const authResolver: Resolvers = {
 
       const user = await api.getSingleUser(username);
 
-      let exists = user != null;
+      const exists = user != null;
 
       if (exists) {
         const refresh = issueToken({ username }, 'refreshToken');
