@@ -1,13 +1,13 @@
 import { randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
 
-import type { StrictObject } from '../../src/models/base';
 import { issueToken, verifyToken, invalidateToken, EXPIRE_MINUTES } from '../../src/auth';
+import type { StrictObject } from '../../src/models/base';
 
 interface TestType extends StrictObject {
-  test: string,
-  daddy: string,
-  please: string
+  test: string;
+  daddy: string;
+  please: string;
 }
 
 const testObj: TestType = {
@@ -24,6 +24,7 @@ beforeEach(() => {
   // För att vi ska återställa räkningen
   // av anrop till jwt.sign() och jwt.verify()
   jest.clearAllMocks();
+  jest.useRealTimers();
 });
 
 test('issueToken for accessToken should use jwt to sign', () => {
@@ -35,7 +36,7 @@ test('issueToken for accessToken should use jwt to sign', () => {
 
 test('issueToken for refreshToken should use jwt to sign', () => {
   const token = issueToken(testObj, 'refreshToken');
-  
+
   expect(token).not.toBeNull();
   expect(signSpy).toHaveBeenCalledTimes(1);
 });
@@ -76,4 +77,38 @@ test('creating, verifying and invalidating refreshToken', () => {
 
   // jwt.verify() ska inte ha kallats en gång till
   expect(verifySpy).toHaveBeenCalledTimes(1);
+});
+
+test('invalidate accessToken after EXPIRE_MINUTES.accessToken minutes', () => {
+  const token = issueToken(testObj, 'accessToken');
+
+  // Verifiera att token fungerar
+  const decodedToken = verifyToken<TestType>(token, 'accessToken');
+  const { iat, exp, ...reducedDecodedToken } = decodedToken;
+  expect(reducedDecodedToken).toStrictEqual(testObj);
+
+  // Vi fejkar nu att system time är 60 minuter fram
+  const trueTime = new Date();
+  jest
+    .useFakeTimers()
+    .setSystemTime(new Date(trueTime.getTime() + EXPIRE_MINUTES.accessToken * 60000));
+
+  expect(() => verifyToken(token, 'refreshToken')).toThrowError();
+});
+
+test('invalidate refreshToken after EXPIRE_MINUTES.refreshToken minutes', () => {
+  const token = issueToken(testObj, 'refreshToken');
+
+  // Verifiera att token fungerar
+  const decodedToken = verifyToken<TestType>(token, 'refreshToken');
+  const { iat, exp, ...reducedDecodedToken } = decodedToken;
+  expect(reducedDecodedToken).toStrictEqual(testObj);
+
+  // Vi fejkar nu att system time är 15 dagar fram
+  const trueTime = new Date();
+  jest
+    .useFakeTimers()
+    .setSystemTime(new Date(trueTime.getTime() + EXPIRE_MINUTES.refreshToken * 60000));
+
+  expect(() => verifyToken(token, 'refreshToken')).toThrowError();
 });
