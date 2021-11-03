@@ -41,6 +41,9 @@ const SECRET = (type: TokenType) => {
 
   const inRange = now - time < refreshDays * 24 * 60 * 60 * 1000;
 
+  // Om vi inte redan har ett value på secret, eller
+  // att denna typ av token behöver en ny secret (vi har nått
+  // refreshdays) skapar vi en ny
   if (!value || !inRange) {
     secrets[type].value = randomBytes(20).toString('hex');
     secrets[type].time = now;

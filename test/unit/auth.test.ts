@@ -77,6 +77,26 @@ test('creating, verifying and invalidating accessToken', () => {
 test('creating, verifying and invalidating refreshToken', () => {
   const testObj = createRandomTestObj();
 
+  const token = issueToken(testObj, 'refreshToken');
+  const decodedToken = verifyToken<TestType>(token, 'refreshToken');
+
+  // decodedToken innehåller även info om tider
+  const { iat, exp, ...reducedDecodedToken } = decodedToken;
+  expect(reducedDecodedToken).toStrictEqual(testObj);
+
+  expect(signSpy).toHaveBeenCalledTimes(1);
+  expect(verifySpy).toHaveBeenCalledTimes(1);
+
+  invalidateToken(token);
+
+  expect(() => verifyToken(token, 'refreshToken')).toThrowError();
+
+  // jwt.verify() ska inte ha kallats en gång till
+  expect(verifySpy).toHaveBeenCalledTimes(1);
+});
+
+test('creating, verifying and invalidating refreshToken with empty obj', () => {
+  const testObj = {};
 
   const token = issueToken(testObj, 'refreshToken');
   const decodedToken = verifyToken<TestType>(token, 'refreshToken');
