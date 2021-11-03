@@ -35,7 +35,7 @@ INSERT INTO "Users" ("username","passwordHash","passwordSalt","firstName","lastN
 VALUES ('no0000oh-s','lQFpDvvCGSVywE3PTjpTUSzwWYfGwlE4MxJ/dGZp0YRe7N/U8zKUx6NWA2aGWD7p/c090lpWYDIEcuXnaiFz5Q==',
 'zXr+8b22sOLTvi/Zstu9Zw==','Lena','Handén','BME19','aa0000bb-s@student.lu.se');
 INSERT INTO "Users" ("username","passwordHash","passwordSalt","firstName","lastName","class", "email", "isFuncUser")
-VALUES ('funcUser_Coolkid','glowAU4b0/zhRpqCUiMc8CtRqxySFUxZLvPLiXPPMUS6RapfgACfSDGSqvjc5PLALmqH2IAX3omnr9JuH1NOfA==','Mr.','Test','E69',
+VALUES ('funcUser_Coolkid','glowAU4b0/zhRpqCUiMc8CtRqxySFUxZLvPLiXPPMUS6RapfgACfSDGSqvjc5PLALmqH2IAX3omnr9JuH1NOfA==','salt','Mr.','Test','E69',
 'no-reply@esek.se', 'True');
 
 END TRANSACTION;
@@ -63,11 +63,14 @@ CREATE TABLE "PostHistory" (
 	FOREIGN KEY("refpost") REFERENCES "Posts"("postname")
 );
 
-INSERT INTO Posts (postname,utskott,postType,spots,interviewRequired) VALUES ('Macapär','INFU','N',2,'Informationschefsslav',1,0);
+INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewRequired) VALUES ('Macapär','INFU','N',2,'Informationschefsslav',1,0);
+INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewRequired) VALUES ('Teknokrat','INFU','N',3,'Ljudperson',1,0);
+INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewRequired) VALUES ('Cophös','NOLLU','N',5,'Stressad',1,1);
 INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär','aa0000bb-s','2020-12-29','2020-12-30',2020);
 INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär','aa0000bb-s','2020-12-29',null,2021);
 
-END TRANSACTION;BEGIN TRANSACTION;
+END TRANSACTION;
+BEGIN TRANSACTION;
 
 CREATE TABLE "PostAccess" (
 	"ref"	TEXT,
@@ -127,7 +130,7 @@ IF NOT EXISTS "PasswordReset"
 (
   "token" TEXT PRIMARY KEY,
   "username" TEXT NOT NULL,
-  "time" NUMBER NOT NULL,
+  "time" NUMBER NOT NULL
 );
 
 END TRANSACTION;
