@@ -3,7 +3,7 @@ import { UserAPI } from '../api/user.api';
 import { createDataLoader, useDataLoader } from '../dataloaders';
 import { batchPostsFunction } from '../dataloaders/post.dataloader';
 import { batchUsersFunction } from '../dataloaders/user.dataloader';
-import { Post, Resolvers, UserPostHistoryEntry } from '../graphql.generated';
+import { Post, Resolvers, User, UserPostHistoryEntry } from '../graphql.generated';
 import { DatabasePostHistory } from '../models/db/post';
 import { reduce } from '../reducers';
 import { postReduce } from '../reducers/post.reducer';
@@ -43,8 +43,8 @@ const postresolver: Resolvers = {
       // Ta ut eller skapa en DataLoader för Post, så om fler post
       // efterfrågas i samma requests görs bara en stor batch-query till
       // databasen
-      const pdl = useDataLoader<DatabasePostHistory, Post>((model, ctx) => ({
-        key: model.refpost,
+      const pdl = useDataLoader<DatabasePostHistory, Post>((entry, ctx) => ({
+        key: entry.refpost,
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         dataLoader: ctx.postDataLoader,
       }));
@@ -64,13 +64,16 @@ const postresolver: Resolvers = {
     },
   },
   Post: {
-    history: async ({ postname }) => {
+    history: async ({ postname }, _, context) => {
       const entries = await api.getHistoryEntries(postname);
-      const udl = createDataLoader(batchUsersFunction);
+      const udl = useDataLoader<DatabasePostHistory, User>((entry, ctx) => ({
+        key: entry.refuser,
+        dataLoader: ctx.userDataLoader,
+      }));
 
       const a = Promise.all(
         entries.map(async (e) => {
-          const holder = await udl.load(e.refuser);
+          const holder = await udl(e, {}, context);
 
           return { ...e, holder, postname };
         }),
