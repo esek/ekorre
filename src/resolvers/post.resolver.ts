@@ -3,7 +3,8 @@ import { UserAPI } from '../api/user.api';
 import { createDataLoader, useDataLoader } from '../dataloaders';
 import { batchPostsFunction } from '../dataloaders/post.dataloader';
 import { batchUsersFunction } from '../dataloaders/user.dataloader';
-import { Resolvers } from '../graphql.generated';
+import { Post, Resolvers, UserPostHistoryEntry } from '../graphql.generated';
+import { DatabasePostHistory } from '../models/db/post';
 import { reduce } from '../reducers';
 import { postReduce } from '../reducers/post.reducer';
 import { userReduce } from '../reducers/user.reducer';
@@ -36,16 +37,24 @@ const postresolver: Resolvers = {
   },
   User: {
     posts: async ({ username }) => reduce(await api.getPostsForUser(username), postReduce),
-    userPostHistory: async ({ username }) => {
+    userPostHistory: async ({ username }, _, context) => {
       const entries = await api.getHistoryEntriesForUser(username);
-      const pdl = createDataLoader(batchPostsFunction);
+
+      // Ta ut eller skapa en DataLoader för Post, så om fler post
+      // efterfrågas i samma requests görs bara en stor batch-query till
+      // databasen
+      const pdl = useDataLoader<DatabasePostHistory, Post>((model, ctx) => ({
+        key: model.refpost,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        dataLoader: ctx.postDataLoader,
+      }));
 
       // Vi omvandlar från DatabaseHistoryEntry user history entries
       // genom att hämta ut Posts. Vi använder dataloader
       // då en Post kan hämtas ut flera gånger
       const a = Promise.all(
         entries.map(async (e) => {
-          const p = await pdl.load(e.refpost);
+          const p = await pdl(e, {}, context);
 
           const post = reduce(p, postReduce);
           return {...e, post };

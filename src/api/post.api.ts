@@ -57,7 +57,7 @@ export class PostAPI {
     return post ?? null;
   }
 
-  async getMultiplePosts(postnames: readonly string[]): Promise<DatabasePost[] | null> {
+  async getMultiplePosts(postnames: string[] | readonly string[]): Promise<DatabasePost[] | null> {
     const posts = await knex<DatabasePost>(POSTS_TABLE).whereIn('postname', postnames);
 
     return posts ?? null;
