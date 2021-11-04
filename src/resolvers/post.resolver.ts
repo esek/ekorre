@@ -40,7 +40,7 @@ const postresolver: Resolvers = {
     userPostHistory: async ({ username }, _, context) => {
       const entries = await api.getHistoryEntriesForUser(username);
 
-      // Ta ut eller skapa en DataLoader för Post, så om fler post
+      // Ta ut DataLoadern som finns i denna requestens context för Post, så om fler post
       // efterfrågas i samma requests görs bara en stor batch-query till
       // databasen
       const pdl = useDataLoader<DatabasePostHistory, Post>((entry, ctx) => ({
