@@ -10,6 +10,7 @@ import { COOKIES, verifyToken } from './auth';
 import config from './config';
 import { createDataLoader } from './dataloaders';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
+import { batchPostsFunction } from './dataloaders/post.dataloader';
 import type { User } from './graphql.generated';
 import { Logger } from './logger';
 import type { Context, ContextParams } from './models/context';
@@ -71,6 +72,7 @@ const server = new ApolloServer({
       response: res,
       getUser: () => verifyToken<User>(accessToken, 'accessToken'),
       userDataLoader: createDataLoader(batchUsersFunction),
+      postDataLoader: createDataLoader(batchPostsFunction),
     };
   },
   debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),

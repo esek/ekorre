@@ -10,6 +10,7 @@ export type Context = {
   response: Response;
   getUser: () => User;
   userDataLoader: DataLoader<string, User>;
+  postDataLoader: DataLoader<string, Post>;
 };
 
 export type ContextParams = Omit<ExpressContext, 'req'> & {
