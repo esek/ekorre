@@ -153,7 +153,7 @@ export class UserAPI {
       email,
       access: { doors: [], web: [] }, // TODO: Kanske default access?
       posts: [],
-      userPostHistory: []
+      userPostHistory: [],
     };
   }
 
