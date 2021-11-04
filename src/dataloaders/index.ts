@@ -26,7 +26,6 @@ export const createDataLoader = <T, K = string>(
  * @returns A promise of type E
  * @throws Error if key is undefiend
  */
-
 export const useDataLoader = <T, E>(cb: DataLoaderCallback<T, E>) => (
   model: T,
   _: StrictObject,

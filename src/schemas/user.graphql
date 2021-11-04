@@ -1,4 +1,4 @@
-# import Post from 'post.graphql'
+# import Post, UserPostHistoryEntry from 'post.graphql'
 # import Access from 'access.graphql'
 
 scalar Date
@@ -30,8 +30,20 @@ type User {
   website: String
 
   class: String!
+
+  """
+  Currents posts held by this user
+  """
   posts: [Post!]!
-  "This will be all the access have concated from Posts and personal"
+
+  """
+  Past and current posts held by this user
+  """
+  userPostHistory: [UserPostHistoryEntry]!
+
+  """
+  This will be all the access have concated from Posts and personal
+  """
   access: Access!
 
   isFuncUser: Boolean
