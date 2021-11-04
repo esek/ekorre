@@ -1,16 +1,11 @@
 import { PostAPI } from '../api/post.api';
-import { UserAPI } from '../api/user.api';
-import { createDataLoader, useDataLoader } from '../dataloaders';
-import { batchPostsFunction } from '../dataloaders/post.dataloader';
-import { batchUsersFunction } from '../dataloaders/user.dataloader';
-import { Post, Resolvers, User, UserPostHistoryEntry } from '../graphql.generated';
+import { useDataLoader } from '../dataloaders';
+import { Post, Resolvers, User } from '../graphql.generated';
 import { DatabasePostHistory } from '../models/db/post';
 import { reduce } from '../reducers';
 import { postReduce } from '../reducers/post.reducer';
-import { userReduce } from '../reducers/user.reducer';
 
 const api = new PostAPI();
-const userApi = new UserAPI();
 
 // TODO: Lägg till auth
 const postresolver: Resolvers = {
@@ -57,7 +52,7 @@ const postresolver: Resolvers = {
           const p = await pdl(e, {}, context);
 
           const post = reduce(p, postReduce);
-          return {...e, post };
+          return { ...e, post };
         }),
       );
       return a;

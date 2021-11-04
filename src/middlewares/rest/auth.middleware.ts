@@ -23,9 +23,8 @@ export type RequestHandlerWithLocals = RequestHandler<
 >;
 
 export const setUser: RequestHandlerWithLocals = (req, res, next) => {
-
-  let token = 
-    req.cookies[COOKIES.accessToken] as string ??
+  let token =
+    (req.cookies[COOKIES.accessToken] as string) ??
     req.headers.authorization ??
     req.query?.token?.toString() ??
     '';

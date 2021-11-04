@@ -14,11 +14,14 @@ const logger = Logger.getLogger('PostAPI');
  * definierades är kompatibla. Om de är det, eller ett
  * defaultvärde kan sättas, returneras detta. Annars
  * returneras null
- * 
- * @param postType 
- * @param spots 
+ *
+ * @param postType
+ * @param spots
  */
-const checkPostTypeAndSpots = (postType: Maybe<PostType>, spots: Maybe<number> | undefined): number | null => {
+const checkPostTypeAndSpots = (
+  postType: Maybe<PostType>,
+  spots: Maybe<number> | undefined,
+): number | null => {
   let s: number | null;
   if (postType === PostType.U) {
     s = 1;
@@ -106,7 +109,7 @@ export class PostAPI {
         refpost: postname,
       })
       .whereIn('refuser', uniqueUsernames);
-    
+
     // Knex ger oss svaren på formen [{'refuser': <username>}, {...}, ...]
     // så vi tar ut dem
     let usernamesToUse: string[];
@@ -134,7 +137,14 @@ export class PostAPI {
     return false;
   }
 
-  async createPost({ name, utskott, postType, spots, description, interviewRequired }: NewPost): Promise<boolean> {
+  async createPost({
+    name,
+    utskott,
+    postType,
+    spots,
+    description,
+    interviewRequired,
+  }: NewPost): Promise<boolean> {
     const s = checkPostTypeAndSpots(postType, spots);
     if (s === null) {
       return false;
@@ -180,8 +190,12 @@ export class PostAPI {
         s = checkPostTypeAndSpots(entry.postType, entry.spots);
       } else {
         // Vi måste kolla i databasen vad denna post har för postType
-        const dbPostType = await knex<PostType>(POSTS_TABLE).select('postType').where('postname', name).returning('posttype').first();
-        
+        const dbPostType = await knex<PostType>(POSTS_TABLE)
+          .select('postType')
+          .where('postname', name)
+          .returning('posttype')
+          .first();
+
         if (dbPostType === undefined) {
           // Should not happen
           return false;
@@ -191,7 +205,11 @@ export class PostAPI {
       }
     } else if (entry.postType !== undefined) {
       // Vi har ingen ny spots, men vi har postType => kollar efter posts i DB
-      const dbSpots = await knex<number>(POSTS_TABLE).select('postType').where('postname', name).returning('number').first();
+      const dbSpots = await knex<number>(POSTS_TABLE)
+        .select('postType')
+        .where('postname', name)
+        .returning('number')
+        .first();
       s = checkPostTypeAndSpots(entry.postType, dbSpots);
     } else {
       // Vi vill inte uppdatera något av dem
@@ -204,7 +222,9 @@ export class PostAPI {
       return false;
     }
 
-    const res = await knex<DatabasePost>(POSTS_TABLE).where('postname', name).update({...update, spots: s});
+    const res = await knex<DatabasePost>(POSTS_TABLE)
+      .where('postname', name)
+      .update({ ...update, spots: s });
 
     return res > 0;
   }

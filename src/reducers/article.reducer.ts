@@ -21,7 +21,7 @@ const dompurify = DOMPurify(dom.window);
  */
 export const convertMarkdownToHtml = (md: string): string => {
   let html = converter.makeHtml(md);
-  html = dompurify.sanitize(html, {USE_PROFILES: {html: true}}); // Don't want any dirty XSS xD
+  html = dompurify.sanitize(html, { USE_PROFILES: { html: true } }); // Don't want any dirty XSS xD
   return html.trim();
 };
 
