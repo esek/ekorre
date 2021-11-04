@@ -294,7 +294,10 @@ export type User = {
   lastName: Scalars['String'];
   phone?: Maybe<Scalars['String']>;
   photoUrl?: Maybe<Scalars['String']>;
+  /** Currents posts held by this user */
   posts: Array<Post>;
+  /** Past and current posts held by this user */
+  userPostHistory: Array<Maybe<UserPostHistoryEntry>>;
   username: Scalars['String'];
   website?: Maybe<Scalars['String']>;
   zipCode?: Maybe<Scalars['String']>;
@@ -352,6 +355,12 @@ export enum Utskott {
   Sre = 'SRE',
   Styrelsen = 'STYRELSEN'
 }
+
+export type UserPostHistoryEntry = {
+  end?: Maybe<Scalars['Date']>;
+  post: Post;
+  start: Scalars['Date'];
+};
 
 export enum FileType {
   Image = 'image',
@@ -538,6 +547,7 @@ export type ResolversTypes = ResolversObject<{
   PostType: PostType;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
+  UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
@@ -567,6 +577,7 @@ export type ResolversParentTypes = ResolversObject<{
   User: User;
   Post: Post;
   HistoryEntry: HistoryEntry;
+  UserPostHistoryEntry: UserPostHistoryEntry;
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
@@ -653,6 +664,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   photoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
+  userPostHistory?: Resolver<Array<Maybe<ResolversTypes['UserPostHistoryEntry']>>, ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   zipCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -676,6 +688,13 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
   end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   holder?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserPostHistoryEntry'] = ResolversParentTypes['UserPostHistoryEntry']> = ResolversObject<{
+  end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
   start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -715,6 +734,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   User?: UserResolvers<ContextType>;
   Post?: PostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
+  UserPostHistoryEntry?: UserPostHistoryEntryResolvers<ContextType>;
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;

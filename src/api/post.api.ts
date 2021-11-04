@@ -52,7 +52,13 @@ export class PostAPI {
   }
 
   async getPost(postname: string): Promise<DatabasePost | null> {
-    const posts = await knex<DatabasePost>(POSTS_TABLE).where({ postname }).first();
+    const post = await knex<DatabasePost>(POSTS_TABLE).where({ postname }).first();
+
+    return post ?? null;
+  }
+
+  async getMultiplePosts(postnames: readonly string[]): Promise<DatabasePost[] | null> {
+    const posts = await knex<DatabasePost>(POSTS_TABLE).whereIn('postname', postnames);
 
     return posts ?? null;
   }
@@ -217,6 +223,14 @@ export class PostAPI {
   async getHistoryEntries(refpost: string): Promise<DatabasePostHistory[]> {
     const entries = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
       refpost,
+    });
+
+    return entries;
+  }
+
+  async getHistoryEntriesForUser(refuser: string): Promise<DatabasePostHistory[]> {
+    const entries = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
+      refuser,
     });
 
     return entries;

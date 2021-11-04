@@ -1,5 +1,8 @@
 import { PostAPI } from '../api/post.api';
 import { UserAPI } from '../api/user.api';
+import { createDataLoader, useDataLoader } from '../dataloaders';
+import { batchPostsFunction } from '../dataloaders/post.dataloader';
+import { batchUsersFunction } from '../dataloaders/user.dataloader';
 import { Resolvers } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { postReduce } from '../reducers/post.reducer';
@@ -33,17 +36,32 @@ const postresolver: Resolvers = {
   },
   User: {
     posts: async ({ username }) => reduce(await api.getPostsForUser(username), postReduce),
+    userPostHistory: async ({ username }) => {
+      const entries = await api.getHistoryEntriesForUser(username);
+      const pdl = createDataLoader(batchPostsFunction);
+
+      // Vi omvandlar från DatabaseHistoryEntry user history entries
+      // genom att hämta ut Posts. Vi använder dataloader
+      // då en Post kan hämtas ut flera gånger
+      const a = Promise.all(
+        entries.map(async (e) => {
+          const p = await pdl.load(e.refpost);
+
+          const post = reduce(p, postReduce);
+          return {...e, post };
+        }),
+      );
+      return a;
+    },
   },
   Post: {
     history: async ({ postname }) => {
       const entries = await api.getHistoryEntries(postname);
+      const udl = createDataLoader(batchUsersFunction);
+
       const a = Promise.all(
         entries.map(async (e) => {
-          const h = await userApi.getSingleUser(e.refuser);
-          // Null assertion används här för den bakomliggande databasen
-          // Ska ha foregin key constraint
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const holder = reduce(h!, userReduce);
+          const holder = await udl.load(e.refuser);
 
           return { ...e, holder, postname };
         }),
