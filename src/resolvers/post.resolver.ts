@@ -31,7 +31,15 @@ const postresolver: Resolvers = {
       api.removeUsersFromPost(usernames, postname),
   },
   User: {
-    posts: async ({ username }) => reduce(await api.getPostsForUser(username), postReduce),
+    posts: async ({ username }, _, context) => {
+      const posts = reduce(await api.getPostsForUser(username), postReduce);
+      posts.forEach(p => {
+        // Vi vill inte ladda in dessa fler gånger
+        // i samma request, så vi sparar dem i vår dataloader
+        context.postDataLoader.prime(p.postname, p);
+      });
+      return posts;
+    },
     userPostHistory: async ({ username }, _, context) => {
       const entries = await api.getHistoryEntriesForUser(username);
 
@@ -49,9 +57,8 @@ const postresolver: Resolvers = {
       // då en Post kan hämtas ut flera gånger
       const a = Promise.all(
         entries.map(async (e) => {
-          const p = await pdl(e, {}, context);
+          const post = await pdl(e, {}, context);
 
-          const post = reduce(p, postReduce);
           return { ...e, post };
         }),
       );
