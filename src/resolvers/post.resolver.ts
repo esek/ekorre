@@ -33,7 +33,7 @@ const postresolver: Resolvers = {
   User: {
     posts: async ({ username }, _, context) => {
       const posts = reduce(await api.getPostsForUser(username), postReduce);
-      posts.forEach(p => {
+      posts.forEach((p) => {
         // Vi vill inte ladda in dessa fler gånger
         // i samma request, så vi sparar dem i vår dataloader
         context.postDataLoader.prime(p.postname, p);
@@ -48,7 +48,6 @@ const postresolver: Resolvers = {
       // databasen
       const pdl = useDataLoader<DatabasePostHistory, Post>((entry, ctx) => ({
         key: entry.refpost,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         dataLoader: ctx.postDataLoader,
       }));
 
