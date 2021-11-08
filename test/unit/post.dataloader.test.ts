@@ -1,8 +1,9 @@
 import { POSTS_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
-import { createDataLoader } from '../../src/dataloaders';
+import { createDataLoader, useDataLoader } from '../../src/dataloaders';
 import { batchPostsFunction, postApi } from '../../src/dataloaders/post.dataloader';
-import { PostType, Utskott } from '../../src/graphql.generated';
+import { Post, PostType, Utskott } from '../../src/graphql.generated';
+import { Context } from '../../src/models/context';
 import { DatabasePost } from '../../src/models/db/post';
 import { reduce } from '../../src/reducers';
 import { postReduce } from '../../src/reducers/post.reducer';
@@ -117,4 +118,25 @@ test('loading non-existant post', async () => {
   const pl = createDataLoader(batchPostsFunction);
   await expect(pl.load(fakePostname)).rejects.toThrow(`No result for postname ${fakePostname}`);
   expect(apiSpy).toHaveBeenCalledTimes(1);
+});
+
+test('load post using useDataloader', async () => {
+  const postDataLoader = createDataLoader(batchPostsFunction);
+  const pl = useDataLoader<string, Post>((key, ctx) => ({
+    key,
+    dataLoader: ctx.postDataLoader,
+  }));
+
+  // To ignore context error
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const post = await pl('Testmästare', {}, { postDataLoader });
+
+  post.active = !!post.active;
+  post.interviewRequired = !!post.interviewRequired;
+
+  const mockPost = reduce(mockPosts.filter((p) => p.postname === 'Testmästare')[0], postReduce);
+        
+  // We don't care about date and such, but the result should contain mockPost
+  expect(post).toMatchObject(mockPost);
 });
