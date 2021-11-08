@@ -4,7 +4,9 @@ import { DatabaseUser } from '../models/db/user';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
 
-const userApi = new UserAPI();
+// Om vi kör tester beh;ver vi denna konstant
+// för att kunna spionera på den
+export const userApi = new UserAPI();
 
 /**
  * Funktion som används för att skapa en DataLoader
@@ -33,6 +35,8 @@ export const batchUsersFunction = async (
     userMap.set(u.username, u);
   });
 
+  // All keys need a value; usernames without value
+  // in map are replaced by error
   const results = usernames.map((name): User | Error => {
     return userMap.get(name) || new Error(`No result for username ${name}`);
   });
