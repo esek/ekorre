@@ -80,6 +80,12 @@ type HistoryEntry {
     end: Date
 }
 
+type UserPostHistoryEntry {
+  post: Post!
+  start: Date!
+  end: Date
+}
+
 "Hur en post tillsätts enligt Reglementet"
 enum PostType {
     """

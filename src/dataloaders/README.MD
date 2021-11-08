@@ -31,3 +31,7 @@ DataLoaders should primarily be used in fieldresolvers.
 ```typescript
 useDataLoader(callback: <T,E>(model: T, context: Context) => {key?: string, dataLoader: DataLoader<string, E>});
 ```
+
+The context is used to make sure that a single request (having its' own `context`) will not make queries for
+the same resource in the database twice, instead the database will make all requests for this resource (for
+example `User`) in one batch.
