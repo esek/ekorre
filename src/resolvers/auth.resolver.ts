@@ -9,11 +9,6 @@ import { userReduce } from '../reducers/user.reducer';
 
 const api = new UserAPI();
 
-const baseCookie = {
-  httpOnly: true,
-  secure: true,
-};
-
 /**
  * Helper to attach refresh token to the response object
  * @param {string} username The username to issue the token with
@@ -49,8 +44,6 @@ const authResolver: Resolvers = {
 
       const access = issueToken<TokenValue>({ username }, 'accessToken');
       const refresh = issueToken({ username }, 'refreshToken');
-      // Attach a refresh token to the response object
-      attachRefreshToken(user.username, response);
 
       attachCookie(COOKIES.accessToken, access, 'accessToken', response);
       attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
@@ -73,7 +66,7 @@ const authResolver: Resolvers = {
 
       return true;
     },
-    logout: (_, { token }, { refreshToken }) => {
+    logout: (_, __, { refreshToken, accessToken }) => {
       // Invalidate both access- and refreshtoken
       invalidateToken(accessToken);
       invalidateToken(refreshToken);
