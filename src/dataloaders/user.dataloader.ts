@@ -1,6 +1,5 @@
 import { UserAPI } from '../api/user.api';
 import { User } from '../graphql.generated';
-import { DatabaseUser } from '../models/db/user';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
 

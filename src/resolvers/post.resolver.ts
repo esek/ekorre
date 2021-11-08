@@ -1,7 +1,5 @@
 import { PostAPI } from '../api/post.api';
-import { useDataLoader } from '../dataloaders';
-import { Post, Resolvers, User } from '../graphql.generated';
-import { DatabasePostHistory } from '../models/db/post';
+import { Resolvers } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { postReduce } from '../reducers/post.reducer';
 
@@ -31,32 +29,24 @@ const postresolver: Resolvers = {
       api.removeUsersFromPost(usernames, postname),
   },
   User: {
-    posts: async ({ username }, _, context) => {
+    posts: async ({ username }, _, ctx) => {
       const posts = reduce(await api.getPostsForUser(username), postReduce);
       posts.forEach((p) => {
         // Vi vill inte ladda in dessa fler gånger
         // i samma request, så vi sparar dem i vår dataloader
-        context.postDataLoader.prime(p.postname, p);
+        ctx.postDataLoader.prime(p.postname, p);
       });
       return posts;
     },
-    userPostHistory: async ({ username }, _, context) => {
+    userPostHistory: async ({ username }, _, ctx) => {
       const entries = await api.getHistoryEntriesForUser(username);
-
-      // Ta ut DataLoadern som finns i denna requestens context för Post, så om fler post
-      // efterfrågas i samma requests görs bara en stor batch-query till
-      // databasen
-      const pdl = useDataLoader<DatabasePostHistory, Post>((entry, ctx) => ({
-        key: entry.refpost,
-        dataLoader: ctx.postDataLoader,
-      }));
 
       // Vi omvandlar från DatabaseHistoryEntry user history entries
       // genom att hämta ut Posts. Vi använder dataloader
       // då en Post kan hämtas ut flera gånger
       const a = Promise.all(
         entries.map(async (e) => {
-          const post = await pdl(e, {}, context);
+          const post = await ctx.postDataLoader.load(e.refpost);
 
           return { ...e, post };
         }),
@@ -65,16 +55,12 @@ const postresolver: Resolvers = {
     },
   },
   Post: {
-    history: async ({ postname }, _, context) => {
+    history: async ({ postname }, _, ctx) => {
       const entries = await api.getHistoryEntries(postname);
-      const udl = useDataLoader<DatabasePostHistory, User>((entry, ctx) => ({
-        key: entry.refuser,
-        dataLoader: ctx.userDataLoader,
-      }));
 
       const a = Promise.all(
         entries.map(async (e) => {
-          const holder = await udl(e, {}, context);
+          const holder = await ctx.userDataLoader.load(e.refuser);
 
           return { ...e, holder, postname };
         }),
