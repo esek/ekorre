@@ -1,8 +1,10 @@
 /* eslint-disable class-methods-use-this */
+import { BadRequestError, NotFoundError, ServerError } from '../errors/RequestErrors';
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '../graphql.generated';
 import { Logger } from '../logger';
 import { StrictObject } from '../models/base';
 import type { DatabasePost, DatabasePostHistory } from '../models/db/post';
+import { validateNonEmptyArray } from '../services/validation.service';
 import { stripObject } from '../util';
 import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
 import knex from './knex';
@@ -51,19 +53,26 @@ export class PostAPI {
   async getPosts(): Promise<DatabasePost[]> {
     const posts = await knex<DatabasePost>(POSTS_TABLE);
 
+    validateNonEmptyArray(posts, 'Inga poster hittades');
+
     return posts;
   }
 
   async getPost(postname: string): Promise<DatabasePost | null> {
     const post = await knex<DatabasePost>(POSTS_TABLE).where({ postname }).first();
+    if (!post) {
+      throw new NotFoundError('Posten kunde inte hittas');
+    }
 
-    return post ?? null;
+    return post;
   }
 
-  async getMultiplePosts(postnames: string[] | readonly string[]): Promise<DatabasePost[] | null> {
+  async getMultiplePosts(postnames: string[] | readonly string[]): Promise<DatabasePost[]> {
     const posts = await knex<DatabasePost>(POSTS_TABLE).whereIn('postname', postnames);
 
-    return posts ?? null;
+    validateNonEmptyArray(posts, 'Inga poster hittades');
+
+    return posts;
   }
 
   /**
@@ -83,6 +92,8 @@ export class PostAPI {
       refposts.map((e) => e.refpost),
     );
 
+    validateNonEmptyArray(posts, 'Inga poster hittades');
+
     return posts;
   }
 
@@ -94,6 +105,8 @@ export class PostAPI {
     const posts = await knex<DatabasePost>(POSTS_TABLE).where({
       utskott,
     });
+
+    validateNonEmptyArray(posts, 'Inga poster hittades');
 
     return posts;
   }
@@ -113,6 +126,7 @@ export class PostAPI {
     // Knex ger oss svaren på formen [{'refuser': <username>}, {...}, ...]
     // så vi tar ut dem
     let usernamesToUse: string[];
+
     if (alreadyAdded.length > 0) {
       const alreadyAddedString = alreadyAdded.map((e) => e?.refuser);
       usernamesToUse = uniqueUsernames.filter((e) => !alreadyAddedString.includes(e));
@@ -130,11 +144,12 @@ export class PostAPI {
       period,
     }));
 
-    if (insert.length > 0) {
-      const res = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE).insert(insert);
-      return res[0] > 0;
+    if (!insert.length) {
+      throw new ServerError('Användaren kunde inte läggas till');
     }
-    return false;
+
+    const res = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE).insert(insert);
+    return res[0] > 0;
   }
 
   async createPost({
@@ -146,14 +161,16 @@ export class PostAPI {
     interviewRequired,
   }: NewPost): Promise<boolean> {
     const s = checkPostTypeAndSpots(postType, spots);
+
     if (s === null) {
       return false;
     }
 
     // Kolla efter dubbletter först
     const doubles = await this.getPost(name);
+
     if (doubles !== null) {
-      return false;
+      throw new BadRequestError('Denna posten finns redan');
     }
 
     const res = await knex<DatabasePost>(POSTS_TABLE).insert({
@@ -171,7 +188,8 @@ export class PostAPI {
       logger.debug(`Created a post named ${name}`);
       return true;
     }
-    return false;
+
+    throw new ServerError('Posten kunde inte skapas');
   }
 
   /**
@@ -185,6 +203,7 @@ export class PostAPI {
     // vi kolla om det är kompatibelt med databasen
     // Samma gäller åt andra hållet
     let s: number | null = null;
+
     if (entry.spots !== undefined) {
       if (entry.postType !== undefined) {
         s = checkPostTypeAndSpots(entry.postType, entry.spots);
@@ -219,7 +238,7 @@ export class PostAPI {
 
     // Vi ville uppdatera, men vi hade inte en godkännd kombination
     if (s === null) {
-      return false;
+      throw new BadRequestError('Ogiltig kombination av post och antal platser');
     }
 
     const res = await knex<DatabasePost>(POSTS_TABLE)
@@ -244,6 +263,8 @@ export class PostAPI {
     const entries = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
       refpost,
     });
+
+    validateNonEmptyArray(entries, 'Ingen posthistorik hittades');
 
     return entries;
   }

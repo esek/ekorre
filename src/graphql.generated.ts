@@ -30,13 +30,8 @@ export type Query = {
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
   posts?: Maybe<Array<Maybe<Post>>>;
-<<<<<<< HEAD
   refreshToken?: Maybe<User>;
-  user?: Maybe<User>;
-=======
-  refreshToken?: Maybe<RefreshResponse>;
   user: User;
->>>>>>> 4a8d72d (Modified user.api to use errors)
   utskott?: Maybe<Utskott>;
 };
 
@@ -203,6 +198,11 @@ export type MutationDeleteFileArgs = {
 export type MutationLoginArgs = {
   username: Scalars['String'];
   password: Scalars['String'];
+};
+
+
+export type MutationLogoutArgs = {
+  token: Scalars['String'];
 };
 
 
@@ -388,10 +388,16 @@ export enum Utskott {
   Styrelsen = 'STYRELSEN'
 }
 
+<<<<<<< HEAD
 export type UserPostHistoryEntry = {
   end?: Maybe<Scalars['Date']>;
   post: Post;
   start: Scalars['Date'];
+=======
+export type RefreshResponse = {
+  user: User;
+  accessToken: Scalars['String'];
+>>>>>>> 2b13ca5 (add errors to posts api)
 };
 
 export enum FileType {
@@ -579,7 +585,11 @@ export type ResolversTypes = ResolversObject<{
   PostType: PostType;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
+<<<<<<< HEAD
   UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
+=======
+  RefreshResponse: ResolverTypeWrapper<RefreshResponse>;
+>>>>>>> 2b13ca5 (add errors to posts api)
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
@@ -609,7 +619,11 @@ export type ResolversParentTypes = ResolversObject<{
   User: User;
   Post: Post;
   HistoryEntry: HistoryEntry;
+<<<<<<< HEAD
   UserPostHistoryEntry: UserPostHistoryEntry;
+=======
+  RefreshResponse: RefreshResponse;
+>>>>>>> 2b13ca5 (add errors to posts api)
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
@@ -633,13 +647,8 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
   posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, never>>;
-<<<<<<< HEAD
   refreshToken?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
-=======
-  refreshToken?: Resolver<Maybe<ResolversTypes['RefreshResponse']>, ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
->>>>>>> 4a8d72d (Modified user.api to use errors)
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
 
@@ -658,11 +667,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
   login?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
-<<<<<<< HEAD
-  logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-=======
   logout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationLogoutArgs, 'token'>>;
->>>>>>> 879501e (remove unecessary nullchecks)
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
   removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'id'>>;
@@ -745,10 +750,16 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+<<<<<<< HEAD
 export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserPostHistoryEntry'] = ResolversParentTypes['UserPostHistoryEntry']> = ResolversObject<{
   end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
   start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+=======
+export type RefreshResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['RefreshResponse'] = ResolversParentTypes['RefreshResponse']> = ResolversObject<{
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+>>>>>>> 2b13ca5 (add errors to posts api)
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -788,7 +799,11 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   User?: UserResolvers<ContextType>;
   Post?: PostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
+<<<<<<< HEAD
   UserPostHistoryEntry?: UserPostHistoryEntryResolvers<ContextType>;
+=======
+  RefreshResponse?: RefreshResponseResolvers<ContextType>;
+>>>>>>> 2b13ca5 (add errors to posts api)
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;

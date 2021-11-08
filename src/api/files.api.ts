@@ -33,38 +33,43 @@ class FilesAPI {
     path: string,
     creator: string,
   ): Promise<DatabaseFile> {
-    const type = this.getFileType(file.name);
+    try {
+      const type = this.getFileType(file.name);
 
-    const hashedName = this.createHashedName(file.name);
+      const hashedName = this.createHashedName(file.name);
 
-    const trimmedPath = this.trimFolder(path);
+      const trimmedPath = this.trimFolder(path);
 
-    const folder = `${ROOT}/${trimmedPath}`;
-    const location = `${folder}${hashedName}`;
+      const folder = `${ROOT}/${trimmedPath}`;
+      const location = `${folder}${hashedName}`;
 
-    // Create folder(s) if it doesn't exist
-    if (!fs.existsSync(folder)) {
-      fs.mkdirSync(folder, { recursive: true });
+      // Create folder(s) if it doesn't exist
+      if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder, { recursive: true });
+      }
+
+      // Move file to correct location
+      await file.mv(location);
+
+      // Save file to DB with hashedName as id and folderLocation
+      // pointing to the location in storage
+      const newFile: DatabaseFile = {
+        id: hashedName,
+        name: file.name,
+        refuploader: creator,
+        folderLocation: `${trimmedPath}${hashedName}`,
+        accessType,
+        createdAt: new Date(),
+        type,
+      };
+
+      await knex<DatabaseFile>(FILES_TABLE).insert(newFile);
+
+      return newFile;
+    } catch (err) {
+      logger.error(err);
+      throw new ServerError('Kunde inte spara filen');
     }
-
-    // Move file to correct location
-    await file.mv(location);
-
-    // Save file to DB with hashedName as id and folderLocation
-    // pointing to the location in storage
-    const newFile: DatabaseFile = {
-      id: hashedName,
-      name: file.name,
-      refuploader: creator,
-      folderLocation: `${trimmedPath}${hashedName}`,
-      accessType,
-      createdAt: new Date(),
-      type,
-    };
-
-    await knex<DatabaseFile>(FILES_TABLE).insert(newFile);
-
-    return newFile;
   }
 
   /**
@@ -227,7 +232,7 @@ class FilesAPI {
 
       return [files, dbPaths];
     } catch (err) {
-      return [[], []];
+      throw new ServerError('Kunde inte hämta filer');
     }
   }
 
