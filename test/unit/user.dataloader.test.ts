@@ -3,10 +3,43 @@ import knex from '../../src/api/knex';
 import { useDataLoader, createDataLoader } from '../../src/dataloaders';
 import { batchUsersFunction, userApi } from '../../src/dataloaders/user.dataloader';
 import { DatabaseUser } from '../../src/models/db/user';
+import { reduce } from '../../src/reducers';
+import { userReduce } from '../../src/reducers/user.reducer';
 
 // Vi kontrollerar antal anrop till API:n
 const apiSpy = jest.spyOn(userApi, 'getMultipleUsers');
-const mockUsernames = ['dataloaderTestUser0', 'dataloaderTestUser1', 'dataloaderTestUser2'];
+const mockUsers: DatabaseUser[] = [
+  {
+    username: 'dataloaderTestUser0',
+    passwordHash: 'ddddddddddddddddddddddd',
+    passwordSalt: 'duvetvad', // E-votes salt för samtliga valkoder före 2021
+    firstName: 'Falle',
+    lastName: 'Testsson',
+    email: 'no-reply@esek.se',
+    class: 'E18',
+    isFuncUser: false,
+  },
+  {
+    username: 'dataloaderTestUser1',
+    passwordHash: 'hhhhhhhh',
+    passwordSalt: 'duvetvad',
+    firstName: 'Jalle',
+    lastName: 'Testsson',
+    email: 'no-reply@esek.se',
+    class: 'E18',
+    isFuncUser: false,
+  },
+  {
+    username: 'dataloaderTestUser2',
+    passwordHash: 'kkkkkkkk',
+    passwordSalt: 'duvetvad',
+    firstName: 'Balle',
+    lastName: 'Testsson',
+    email: 'no-reply@esek.se',
+    class: 'C18',
+    isFuncUser: false,
+  },
+];
 
 beforeEach(() => {
   // För att vi ska återställa räkningen
@@ -16,51 +49,63 @@ beforeEach(() => {
 
 beforeAll(async () => {
   // Insert fake users
-  await knex<DatabaseUser>(USER_TABLE).insert({
-    username: 'dataloaderTestUser0',
-    passwordHash: 'ddddddddddddddddddddddd',
-    passwordSalt: 'duvetvad', // E-votes salt för samtliga valkoder före 2021
-    firstName: 'Falle',
-    lastName: 'Testsson',
-    email: 'no-reply@esek.se',
-    class: 'E18',
-    isFuncUser: false,
-  });
-  await knex<DatabaseUser>(USER_TABLE).insert({
-    username: 'dataloaderTestUser1',
-    passwordHash: 'ddddddddddddddddddddddd',
-    passwordSalt: 'duvetvad',
-    firstName: 'Jalle',
-    lastName: 'Testsson',
-    email: 'no-reply@esek.se',
-    class: 'E18',
-    isFuncUser: false,
-  });
-  await knex<DatabaseUser>(USER_TABLE).insert({
-    username: 'dataloaderTestUser2',
-    passwordHash: 'ddddddddddddddddddddddd',
-    passwordSalt: 'duvetvad',
-    firstName: 'Balle',
-    lastName: 'Testsson',
-    email: 'no-reply@esek.se',
-    class: 'E18',
-    isFuncUser: false,
-  });
+  await knex<DatabaseUser>(USER_TABLE).insert(mockUsers);
 });
 
 afterAll(async () => {
-  await knex<DatabaseUser>(USER_TABLE).delete().whereIn('username', mockUsernames);
+  await knex<DatabaseUser>(USER_TABLE)
+    .delete()
+    .whereIn(
+      'username',
+      mockUsers.map((u) => u.username),
+    );
+});
+
+test('load single user', async () => {
+  const dl = createDataLoader(batchUsersFunction);
+  expect(await dl.load('dataloaderTestUser0')).not.toBeNull();
 });
 
 test('load multiple users', async () => {
   const dl = createDataLoader(batchUsersFunction);
   await Promise.all(
-    mockUsernames.map(async (name) => {
-      const user = await dl.load(name);
-      expect(user).not.toBeNull();
+    mockUsers.map(async (u) => {
+      const user = await dl.load(u.username);
+      // SQLite converts false to 0, true to 1,
+      // this reconverts
+      user.isFuncUser = !!user.isFuncUser;
+      
+      const mockUser = reduce(u, userReduce);
+      expect(user).toMatchObject(mockUser);
     }),
   );
   expect(apiSpy).toHaveBeenCalledTimes(1);
+});
+
+test('loading multiple existant and non-existant users', async () => {
+  const usernames = ['Obv. fake username lol', ...mockUsers.map((u) => u.username)];
+  const dl = createDataLoader(batchUsersFunction);
+  await Promise.all(
+    usernames.map(async (name) => {
+      // If mockUsers contain a user with this username,
+      // expect the load of that name to be that user
+      if (mockUsers.map((u) => u.username).includes(name)) {
+        const user = await dl.load(name);
+        
+        // SQLite converts false to 0, true to 1,
+        // this reconverts
+        user.isFuncUser = !!user.isFuncUser;
+
+        const mockUser = reduce(mockUsers.filter((u) => u.username === name)[0], userReduce);
+        
+        // We don't care about date and such, but the result should contain mockUser
+        expect(user).toMatchObject(mockUser);
+      } else {
+        // We expect an error for the fake one
+        await expect(dl.load(name)).rejects.toThrow(`No result for username ${name}`);
+      }
+    }),
+  );
 });
 
 test('loading non-existant user', async () => {
