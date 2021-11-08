@@ -10,8 +10,7 @@ export function reduce<T, E>(obj: T[], cb: (obj: T) => E): E[];
 export function reduce<T, E>(obj: T | T[], cb: (obj: T) => E): E | E[] {
   if (Array.isArray(obj)) {
     // We don't want to reduce empty array objects,
-    // [] istanceof Array returns false
-    if (obj.length !== 0 && obj instanceof Array) {
+    if (obj.length !== 0 || obj instanceof Array) {
       return obj.map(cb);
     }
     return [];
