@@ -1,9 +1,9 @@
+import { POSTS_HISTORY_TABLE, POSTS_TABLE } from '../../src/api/constants';
+import knex from '../../src/api/knex';
+import { PostAPI } from '../../src/api/post.api';
 import { Post, NewPost, ModifyPost, Utskott, PostType, Access } from '../../src/graphql.generated';
 import { DatabasePost } from '../../src/models/db/post';
-import { PostAPI } from '../../src/api/post.api';
-import { POSTS_HISTORY_TABLE, POSTS_TABLE } from '../../src/api/constants';
 import { postReduce } from '../../src/reducers/post.reducer';
-import knex from '../../src/api/knex';
 
 const api = new PostAPI();
 
@@ -40,11 +40,11 @@ const mp: ModifyPost = {
 };
 
 const removePost = async (postname: string) => {
-  await knex(POSTS_TABLE).delete().where({postname});
+  await knex(POSTS_TABLE).delete().where({ postname });
 };
 
 const removePostHistory = async (username: string) => {
-  await knex(POSTS_HISTORY_TABLE).delete().where({refuser: uname});
+  await knex(POSTS_HISTORY_TABLE).delete().where({ refuser: uname });
 };
 
 const clearDb = () => {
@@ -125,10 +125,10 @@ test('adding post with ea type and defined number', async () => {
   const ok = await api.createPost(localNp);
   expect(ok).toBe(true);
 
-  const res = await  api.getPost(localNp.name);
+  const res = await api.getPost(localNp.name);
   if (res !== null) {
     const { active, interviewRequired, ...reducedRes } = postReduce(res);
-    expect(reducedRes).toStrictEqual({...p, postType: PostType.Ea, spots: -1});
+    expect(reducedRes).toStrictEqual({ ...p, postType: PostType.Ea, spots: -1 });
     expect(active).toBeTruthy();
     expect(interviewRequired).toBeFalsy();
   } else {
@@ -146,10 +146,10 @@ test('adding post with ea type and undefined number', async () => {
   const ok = await api.createPost(localNp);
   expect(ok).toBe(true);
 
-  const res = await  api.getPost(localNp.name);
+  const res = await api.getPost(localNp.name);
   if (res !== null) {
     const { active, interviewRequired, ...reducedRes } = postReduce(res);
-    expect(reducedRes).toStrictEqual({...p, postType: PostType.Ea, spots: -1});
+    expect(reducedRes).toStrictEqual({ ...p, postType: PostType.Ea, spots: -1 });
     expect(active).toBeTruthy();
     expect(interviewRequired).toBeFalsy();
   } else {
@@ -167,10 +167,10 @@ test('adding post with n type and defined number', async () => {
   const ok = await api.createPost(localNp);
   expect(ok).toBe(true);
 
-  const res = await  api.getPost(localNp.name);
+  const res = await api.getPost(localNp.name);
   if (res !== null) {
     const { active, interviewRequired, ...reducedRes } = postReduce(res);
-    expect(reducedRes).toStrictEqual({...p, postType: PostType.N, spots: 20});
+    expect(reducedRes).toStrictEqual({ ...p, postType: PostType.N, spots: 20 });
     expect(active).toBeTruthy();
     expect(interviewRequired).toBeFalsy();
   } else {
@@ -188,7 +188,7 @@ test('adding post with n type and negative number', async () => {
   const ok = await api.createPost(localNp);
   expect(ok).toBe(false);
 
-  const res = await  api.getPost(localNp.name);
+  const res = await api.getPost(localNp.name);
   expect(res).toBeNull();
 });
 
@@ -204,7 +204,7 @@ test('adding post with n type, defined number, and undefined description and int
   const ok = await api.createPost(localNp);
   expect(ok).toBe(true);
 
-  const res = await  api.getPost(localNp.name);
+  const res = await api.getPost(localNp.name);
   if (res !== null) {
     const { active, interviewRequired, ...reducedRes } = postReduce(res);
     expect(reducedRes).toStrictEqual({
@@ -231,9 +231,8 @@ test('adding post with n type and undefined number', async () => {
   expect(ok).toBe(false);
 
   // Kolla att den faktiskt inte lades till i databasen också
-  const res = await  api.getPost(localNp.name);
+  const res = await api.getPost(localNp.name);
   expect(res).toBeNull();
-
 });
 
 test('adding user to post', async () => {
@@ -283,7 +282,7 @@ test('deleting user from post', async () => {
   // Nu borde uname ha en post
   let res = await api.getPostsForUser(uname);
   expect(res.length).not.toBe(0);
-  
+
   const removed = await api.removeUsersFromPost([uname], np.name);
   expect(removed).toBe(true);
 
@@ -389,7 +388,7 @@ test('changing postType to e.a. from u without changing spots', async () => {
   if (res !== null) {
     const { active, interviewRequired, ...reducedRes } = postReduce(res);
     // Borde ändra request till default, dvs. spots: -1
-    expect(reducedRes).toStrictEqual({...p, postType: PostType.Ea, spots: -1});
+    expect(reducedRes).toStrictEqual({ ...p, postType: PostType.Ea, spots: -1 });
     expect(active).toBeTruthy();
     expect(interviewRequired).toBeFalsy();
   } else {

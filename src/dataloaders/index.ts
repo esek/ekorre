@@ -25,8 +25,18 @@ export const createDataLoader = <T, K = string>(
  * @param cb Callback function that takes the value to load as well as the type of dataloader to use
  * @returns A promise of type E
  * @throws Error if key is undefiend
+ *
+ * @example
+ * // Use the userDataLoader for this request (context)
+ * // using DataBasePostHistory as a model
+ * const udl = useDataLoader<DatabasePostHistory, User>((entry, context) => ({
+ *      key: entry.refuser,
+ *      dataLoader: context.userDataLoader,
+ *    }));
+ * // userDataLoader uses batchUsersFunction internally,
+ * // so no reduce needed
+ * const u: User = await udl(e, {}, ctx);
  */
-
 export const useDataLoader = <T, E>(cb: DataLoaderCallback<T, E>) => (
   model: T,
   _: StrictObject,
