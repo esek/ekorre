@@ -4,6 +4,7 @@ import { ParamsDictionary } from 'express-serve-static-core';
 
 import FilesAPI from '../../api/files.api';
 import { COOKIES, verifyToken } from '../../auth';
+import { UnauthenticatedError } from '../../errors/RequestErrors';
 import { AccessType, User } from '../../graphql.generated';
 import { Logger } from '../../logger';
 
@@ -50,10 +51,10 @@ export const verifyAuthenticated: RequestHandlerWithLocals = (_req, res, next) =
     res.locals.user = user;
 
     if (!user) {
-      throw new Error();
+      throw new UnauthenticatedError('Inlogging krävs');
     }
   } catch {
-    res.status(401).send('Token could not be verified');
+    res.status(401).send('Din token kunde inte valideras');
     return;
   }
 
@@ -103,7 +104,7 @@ export const verifyFileReadAccess = (api: FilesAPI): RequestHandlerWithLocals =>
       }
 
       // If none of the above verifications succeeded, user is not authorized
-      throw new Error('Verification for file restriction failed');
+      throw new UnauthenticatedError('Du har inte access');
     } catch (error) {
       // Return 403 if no token was provided or it verification failed
       logger.error(`Error in verification middleware - ${error as string}`);

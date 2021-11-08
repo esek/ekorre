@@ -1,5 +1,6 @@
 import DataLoader from 'dataloader';
 
+import { NotFoundError } from '../errors/RequestErrors';
 import type { StrictObject } from '../models/base';
 import { Context } from '../models/context';
 
@@ -44,7 +45,7 @@ export const useDataLoader = <T, E>(cb: DataLoaderCallback<T, E>) => (
 ) => {
   const { key, dataLoader } = cb(model, ctx);
   if (!key) {
-    throw new Error('Missing key in DataLoader');
+    throw new NotFoundError(`Nyckeln kunde inte hittas`);
   }
   return dataLoader.load(key);
 };
