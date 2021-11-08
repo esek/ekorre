@@ -3,7 +3,9 @@ import { Post } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { postReduce } from '../reducers/post.reducer';
 
-const postApi = new PostAPI();
+// Om vi kör tester beh;ver vi denna konstant
+// för att kunna spionera på den
+export const postApi = new PostAPI();
 
 /**
  * Funktion som används för att skapa en DataLoader
@@ -23,5 +25,18 @@ export const batchPostsFunction = async (
   if (apiResponse === null) return [];
   const posts = reduce(apiResponse, postReduce);
 
-  return posts;
+  // We want array as Map of username to Post object
+  const postMap = new Map<string, Post>();
+    
+  posts.forEach(p => {
+    postMap.set(p.postname, p);
+  });
+
+  // All keys need a value; postnames without value
+  // in map are replaced by error
+  const results = postnames.map((name): Post | Error => {
+    return postMap.get(name) || new Error(`No result for postname ${name}`);
+  });
+
+  return results;
 };
