@@ -1,6 +1,6 @@
 import { USER_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
-import { useDataLoader, createDataLoader } from '../../src/dataloaders';
+import { createDataLoader } from '../../src/dataloaders';
 import { batchUsersFunction, userApi } from '../../src/dataloaders/user.dataloader';
 import { DatabaseUser } from '../../src/models/db/user';
 import { reduce } from '../../src/reducers';
@@ -63,7 +63,11 @@ afterAll(async () => {
 
 test('load single user', async () => {
   const dl = createDataLoader(batchUsersFunction);
-  expect(await dl.load('dataloaderTestUser0')).not.toBeNull();
+  const user = await dl.load('dataloaderTestUser0');
+  user.isFuncUser = !!user.isFuncUser;
+  const mockUser = reduce(mockUsers.filter((u) => u.username === 'dataloaderTestUser0')[0], userReduce);
+  expect(user).toMatchObject(mockUser);
+  expect(apiSpy).toHaveBeenCalledTimes(1);
 });
 
 test('load multiple users', async () => {
@@ -74,7 +78,7 @@ test('load multiple users', async () => {
       // SQLite converts false to 0, true to 1,
       // this reconverts
       user.isFuncUser = !!user.isFuncUser;
-      
+
       const mockUser = reduce(u, userReduce);
       expect(user).toMatchObject(mockUser);
     }),
@@ -106,6 +110,7 @@ test('loading multiple existant and non-existant users', async () => {
       }
     }),
   );
+  expect(apiSpy).toHaveBeenCalledTimes(1);
 });
 
 test('loading non-existant user', async () => {
