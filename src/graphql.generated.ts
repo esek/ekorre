@@ -396,17 +396,16 @@ export enum Utskott {
   Styrelsen = 'STYRELSEN'
 }
 
-<<<<<<< HEAD
 export type UserPostHistoryEntry = {
   end?: Maybe<Scalars['Date']>;
   post: Post;
   start: Scalars['Date'];
-=======
+};
+
 export type CasLoginResponse = {
   username: Scalars['String'];
   hash?: Maybe<Scalars['String']>;
   exists: Scalars['Boolean'];
->>>>>>> 3319d7e (added cas register/login functionality)
 };
 
 export enum FileType {
@@ -601,11 +600,8 @@ export type ResolversTypes = ResolversObject<{
   PostType: PostType;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
-<<<<<<< HEAD
   UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
-=======
   CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
->>>>>>> 3319d7e (added cas register/login functionality)
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
@@ -637,11 +633,8 @@ export type ResolversParentTypes = ResolversObject<{
   User: User;
   Post: Post;
   HistoryEntry: HistoryEntry;
-<<<<<<< HEAD
   UserPostHistoryEntry: UserPostHistoryEntry;
-=======
   CasLoginResponse: CasLoginResponse;
->>>>>>> 3319d7e (added cas register/login functionality)
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
@@ -772,17 +765,17 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-<<<<<<< HEAD
 export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserPostHistoryEntry'] = ResolversParentTypes['UserPostHistoryEntry']> = ResolversObject<{
   end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
   start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
-=======
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type CasLoginResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CasLoginResponse'] = ResolversParentTypes['CasLoginResponse']> = ResolversObject<{
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   hash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   exists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
->>>>>>> 3319d7e (added cas register/login functionality)
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -829,11 +822,8 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   User?: UserResolvers<ContextType>;
   Post?: PostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
-<<<<<<< HEAD
   UserPostHistoryEntry?: UserPostHistoryEntryResolvers<ContextType>;
-=======
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
->>>>>>> 3319d7e (added cas register/login functionality)
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;
