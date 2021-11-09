@@ -1,0 +1,21 @@
+type Query {
+	accessResources(type: AccessResourceType): [AccessResource!]!
+	accessResource(id: Int!): AccessResource!
+}
+
+type Mutation {
+	addAccessResource(name: String!, description: String!, resourceType: AccessResourceType!): AccessResource!
+	removeAccessResource(id: Int!): Boolean!
+}
+
+type AccessResource {
+	id: Int!
+	name: String!
+	description: String!
+	resourceType: AccessResourceType!
+}
+
+enum AccessResourceType {
+    DOOR,
+    WEB
+}
