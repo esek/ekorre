@@ -23,7 +23,7 @@ export class AccessAPI {
   async getIndividualAccess(username: string): Promise<DatabaseJoinedAccess[]> {
     const res = await knex<DatabaseAccess>(IND_ACCESS_TABLE)
       .where({
-        ref: username,
+        refname: username,
       })
       .join<DatabaseResource>(RESOURCES_TABLE, 'refResource', 'id');
 
@@ -37,7 +37,7 @@ export class AccessAPI {
   async getPostAccess(postname: string): Promise<DatabaseJoinedAccess[]> {
     const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE)
       .where({
-        ref: postname,
+        refname: postname,
       })
       .join<DatabaseResource>(RESOURCES_TABLE, 'refResource', 'id');
 
@@ -53,14 +53,14 @@ export class AccessAPI {
   private async setAccess(table: string, ref: string, newaccess: number[]): Promise<boolean> {
     await knex<DatabaseAccess>(table)
       .where({
-        ref,
+        refname: ref,
       })
       .delete();
 
     // Only do insert with actual values.
     const inserts = newaccess.map<DatabaseAccess>((id) => ({
-      ref,
-      refResource: id,
+      refname: ref,
+      refresource: id,
     }));
 
     if (inserts.length > 0) {
