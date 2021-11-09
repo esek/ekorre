@@ -46,7 +46,7 @@ const authResolver: Resolvers = {
 
       return reduce(user, userReduce);
     },
-    logout: (_, __, { refreshToken, accessToken, response }) => {
+    logout: (_, __, { refreshToken, accessToken }) => {
       // Invalidate both access- and refreshtoken
       invalidateTokens(accessToken, refreshToken);
       return true;
