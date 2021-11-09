@@ -1,16 +1,16 @@
 import { Router } from 'express';
 
-import ResourcesAPI from '../api/resources.api';
-import { ResourceType } from '../graphql.generated';
+import AccessResourcesAPI from '../api/accessresources.api';
+import { AccessResourceType } from '../graphql.generated';
 
 const doorsRoute = Router();
-const resourcesAPI = new ResourcesAPI();
+const resourcesAPI = new AccessResourcesAPI();
 
 // TODO: Does this need the usernames as well for every user?
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 doorsRoute.get('/', async (_req, res) => {
   try {
-    const doors = await resourcesAPI.getResources(ResourceType.Door);
+    const doors = await resourcesAPI.getResources(AccessResourceType.Door);
 
     return res.send({
       status: 'success',

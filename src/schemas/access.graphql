@@ -1,4 +1,4 @@
-#import Resource from 'resources.graphql'
+#import AccessResource from 'accessresources.graphql'
 
 type Query {
     individualAccess(username: String!): Access
@@ -12,6 +12,6 @@ type Mutation {
 
 "Access will be treated as a immutable object!"
 type Access {
-    doors: [Resource!]!
-    web: [Resource!]!
+    doors: [AccessResource!]!
+    web: [AccessResource!]!
 }

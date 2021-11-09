@@ -1,12 +1,12 @@
 import { Logger } from '../logger';
 import type { DatabaseAccess } from '../models/db/access';
-import { DatabaseResource } from '../models/db/resource';
-import { IND_ACCESS_TABLE, POST_ACCESS_TABLE, RESOURCES_TABLE } from './constants';
+import { DatabaseAccessResource } from '../models/db/resource';
+import { ACCESS_RESOURCES_TABLE, IND_ACCESS_TABLE, POST_ACCESS_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
 
-export type DatabaseJoinedAccess = DatabaseAccess & DatabaseResource;
+export type DatabaseJoinedAccess = DatabaseAccess & DatabaseAccessResource;
 
 /**
  * Det är api:n som hanterar access.
@@ -25,7 +25,7 @@ export class AccessAPI {
       .where({
         refname: username,
       })
-      .join<DatabaseResource>(RESOURCES_TABLE, 'refResource', 'id');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
 
     return res;
   }
@@ -39,7 +39,7 @@ export class AccessAPI {
       .where({
         refname: postname,
       })
-      .join<DatabaseResource>(RESOURCES_TABLE, 'refResource', 'id');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
 
     return res;
   }
@@ -108,8 +108,8 @@ export class AccessAPI {
    */
   async getAccessForPosts(posts: string[]): Promise<DatabaseJoinedAccess[]> {
     const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE)
-      .whereIn('ref', posts)
-      .join<DatabaseResource>(RESOURCES_TABLE, 'refResource', 'id');
+      .whereIn('refname', posts)
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
 
     return res;
   }

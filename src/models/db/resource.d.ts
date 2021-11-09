@@ -1,8 +1,8 @@
-import { ResourceType } from '../../graphql.generated';
+import { AccessResourceType } from '../../graphql.generated';
 
-export type DatabaseResource = {
+export type DatabaseAccessResource = {
   id: number;
   name: string;
   description: string;
-  resourceType: ResourceType;
+  resourceType: AccessResourceType;
 };
