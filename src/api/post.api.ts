@@ -59,7 +59,7 @@ export class PostAPI {
   }
 
   async getPost(postname: string): Promise<DatabasePost | null> {
-    const post = await knex<DatabasePost>(POSTS_TABLE).where({ postname }).first();
+    const post = await knex<DatabasePost>(POSTS_TABLE).where('postname', postname).first();
     if (!post) {
       throw new NotFoundError('Posten kunde inte hittas');
     }
@@ -166,10 +166,10 @@ export class PostAPI {
       return false;
     }
 
-    // Kolla efter dubbletter först
-    const doubles = await this.getPost(name);
+    // Kolla efter dubbletter först, fånga 404-felet och sätt doubles till false
+    const doubles = await this.getPost(name).catch(() => false);
 
-    if (doubles !== null) {
+    if (doubles) {
       throw new BadRequestError('Denna posten finns redan');
     }
 
