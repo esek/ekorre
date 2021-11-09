@@ -1,14 +1,14 @@
-import { ResourceType } from '../graphql.generated';
+import { AccessResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
-import { DatabaseResource } from '../models/db/resource';
-import { RESOURCES_TABLE } from './constants';
+import { DatabaseAccessResource } from '../models/db/resource';
+import { ACCESS_RESOURCES_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('ResourcesAPI');
 
 class ResourcesAPI {
-  async getResources(type?: ResourceType): Promise<DatabaseResource[]> {
-    const q = knex<DatabaseResource>(RESOURCES_TABLE);
+  async getResources(type?: AccessResourceType): Promise<DatabaseAccessResource[]> {
+    const q = knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE);
 
     if (type) {
       return q.where('resourceType', type);
@@ -17,8 +17,10 @@ class ResourcesAPI {
     return q;
   }
 
-  async getResource(id: number): Promise<DatabaseResource> {
-    const resouce = await knex<DatabaseResource>(RESOURCES_TABLE).where('id', id).first();
+  async getResource(id: number): Promise<DatabaseAccessResource> {
+    const resouce = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
+      .where('id', id)
+      .first();
 
     if (!resouce) {
       logger.error(`Resource with id ${id} not found`);
@@ -31,9 +33,9 @@ class ResourcesAPI {
   async addResource(
     name: string,
     description: string,
-    resourceType: ResourceType,
-  ): Promise<DatabaseResource> {
-    const [id] = await knex<DatabaseResource>(RESOURCES_TABLE).insert({
+    resourceType: AccessResourceType,
+  ): Promise<DatabaseAccessResource> {
+    const [id] = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).insert({
       description,
       name,
       resourceType,
@@ -53,7 +55,7 @@ class ResourcesAPI {
   }
 
   async removeResouce(id: number): Promise<boolean> {
-    const res = await knex<DatabaseResource>(RESOURCES_TABLE).where('id', id).delete();
+    const res = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).where('id', id).delete();
 
     if (!res) {
       logger.error(`Failed to remove resource with id ${id}`);

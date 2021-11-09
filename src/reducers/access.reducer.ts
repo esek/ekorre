@@ -1,5 +1,5 @@
 import { DatabaseJoinedAccess } from '../api/access.api';
-import { Access, ResourceType } from '../graphql.generated';
+import { Access, AccessResourceType } from '../graphql.generated';
 
 /**
  * Reduce database access arrays to an access object
@@ -17,13 +17,13 @@ export const accessReducer = (dbAccess: DatabaseJoinedAccess[]): Access => {
     const { refname, refresource, ...resource } = curr;
 
     switch (resource.resourceType) {
-      case ResourceType.Web:
+      case AccessResourceType.Web:
         if (acc.web.some((web) => web.id === resource.id)) {
           break;
         }
         acc.web.push(resource);
         break;
-      case ResourceType.Door:
+      case AccessResourceType.Door:
         if (acc.doors.some((door) => door.id === resource.id)) {
           break;
         }

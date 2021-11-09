@@ -1,12 +1,12 @@
-import ResourcesAPI from '../api/resources.api';
+import AccessResourcesAPI from '../api/accessresources.api';
 import { Resolvers } from '../graphql.generated';
 
-const resourcesAPI = new ResourcesAPI();
+const resourcesAPI = new AccessResourcesAPI();
 
 const doorResolver: Resolvers = {
   Query: {
-    resource: async (_, { id }) => resourcesAPI.getResource(id),
-    resources: async (_, { type }) => {
+    accessResource: async (_, { id }) => resourcesAPI.getResource(id),
+    accessResources: async (_, { type }) => {
       const safeType = type ?? undefined;
       const resources = await resourcesAPI.getResources(safeType);
 
@@ -14,11 +14,11 @@ const doorResolver: Resolvers = {
     },
   },
   Mutation: {
-    addResource: async (_, { name, description, resourceType }) => {
+    addAccessResource: async (_, { name, description, resourceType }) => {
       const door = await resourcesAPI.addResource(name, description, resourceType);
       return door;
     },
-    removeResource: async (_, { id }) => resourcesAPI.removeResouce(id),
+    removeAccessResource: async (_, { id }) => resourcesAPI.removeResouce(id),
   },
 };
 
