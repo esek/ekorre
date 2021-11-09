@@ -1,19 +1,19 @@
 BEGIN TRANSACTION;
 
 CREATE TABLE "PostAccess" (
-	"ref"	TEXT,
-	"refResource"	INTEGER,
-	PRIMARY KEY("ref","refResource"),
-	FOREIGN KEY("ref") REFERENCES "Posts"("postname"),
-	FOREIGN KEY("refResource") REFERENCES "Resources"("id")
+	"refname"	TEXT,
+	"refresource"	INTEGER,
+	PRIMARY KEY("refname","refresource"),
+	FOREIGN KEY("refname") REFERENCES "Posts"("postname"),
+	FOREIGN KEY("refresource") REFERENCES "Resources"("id")
 );
 
 CREATE TABLE "IndividualAccess" (
-	"ref"	TEXT,
-	"refResource"	INTEGER,
-	PRIMARY KEY("ref","refResource"),
-	FOREIGN KEY("ref") REFERENCES "Users"("username"),
-	FOREIGN KEY("refResource") REFERENCES "Resources"("id")
+	"refname"	TEXT,
+	"refresource"	INTEGER,
+	PRIMARY KEY("refname","refresource"),
+	FOREIGN KEY("refname") REFERENCES "Users"("username"),
+	FOREIGN KEY("refresource") REFERENCES "Resources"("id")
 );
 
 INSERT INTO PostAccess VALUES('Macapär', 1);
