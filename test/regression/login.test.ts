@@ -105,13 +105,10 @@ test('authorization with COOKIES.refreshToken', (done) => {
               (res2.headers['set-cookie'] ?? [])[0],
             );
 
-            const refreshToken = extractToken(
-              COOKIES.refreshToken,
-              (res2.headers['set-cookie'] ?? [])[1],
-            );
+            const rt = extractToken(COOKIES.refreshToken, (res2.headers['set-cookie'] ?? [])[1]);
 
             expect(accessToken).not.toBeNull();
-            expect(refreshToken).not.toBeNull();
+            expect(rt).not.toBeNull();
             done();
           } else {
             fail('Did not get proper response from the server on second request');
