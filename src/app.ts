@@ -15,6 +15,7 @@ import type { User } from './graphql.generated';
 import { Logger } from './logger';
 import type { Context, ContextParams } from './models/context';
 import * as Resolvers from './resolvers/index';
+import authRoute from './routes/auth.routes';
 import doorsRoute from './routes/door.routes';
 import filesRoute from './routes/files.routes';
 
@@ -61,6 +62,8 @@ app.use(FILES.ENDPOINT, filesRoute);
 
 // Doors endpoint used by LU to give access
 app.use('/doors', doorsRoute);
+
+app.use('/auth', authRoute);
 
 const apolloLogger = Logger.getLogger('Apollo');
 

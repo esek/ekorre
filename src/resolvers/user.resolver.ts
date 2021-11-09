@@ -1,5 +1,8 @@
 import { UserAPI } from '../api/user.api';
+import { verifyToken } from '../auth';
+import { userApi } from '../dataloaders/user.dataloader';
 import type { Resolvers } from '../graphql.generated';
+import { TokenValue } from '../models/auth';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
 import { sendEmail } from '../services/email.service';
@@ -9,6 +12,30 @@ const api = new UserAPI();
 
 const userResolver: Resolvers = {
   Query: {
+    me: async (_, __, { accessToken, refreshToken }) => {
+      const access = verifyToken<TokenValue>(accessToken, 'accessToken');
+      const refresh = verifyToken<TokenValue>(refreshToken, 'refreshToken');
+
+      const accessExpiry = access.exp * 1000;
+      const refreshExpiry = refresh.exp * 1000;
+
+      const user = await userApi.getSingleUser(access.username);
+
+      if (!user) {
+        return {
+          accessExpiry,
+          refreshExpiry,
+        };
+      }
+
+      const reduced = reduce(user, userReduce);
+
+      return {
+        user: reduced,
+        accessExpiry: access.exp * 1000,
+        refreshExpiry: refresh.exp * 1000,
+      };
+    },
     user: async (_, { username }) => {
       // ctx.getUser();
       const u = await api.getSingleUser(username);
