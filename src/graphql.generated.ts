@@ -383,16 +383,15 @@ export enum Utskott {
   Styrelsen = 'STYRELSEN'
 }
 
-<<<<<<< HEAD
 export type UserPostHistoryEntry = {
   end?: Maybe<Scalars['Date']>;
   post: Post;
   start: Scalars['Date'];
-=======
+};
+
 export type RefreshResponse = {
   user: User;
   accessToken: Scalars['String'];
->>>>>>> 2b13ca5 (add errors to posts api)
 };
 
 export enum FileType {
@@ -580,11 +579,8 @@ export type ResolversTypes = ResolversObject<{
   PostType: PostType;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
-<<<<<<< HEAD
   UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
-=======
   RefreshResponse: ResolverTypeWrapper<RefreshResponse>;
->>>>>>> 2b13ca5 (add errors to posts api)
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
@@ -614,11 +610,8 @@ export type ResolversParentTypes = ResolversObject<{
   User: User;
   Post: Post;
   HistoryEntry: HistoryEntry;
-<<<<<<< HEAD
   UserPostHistoryEntry: UserPostHistoryEntry;
-=======
   RefreshResponse: RefreshResponse;
->>>>>>> 2b13ca5 (add errors to posts api)
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
@@ -745,16 +738,16 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-<<<<<<< HEAD
 export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UserPostHistoryEntry'] = ResolversParentTypes['UserPostHistoryEntry']> = ResolversObject<{
   end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
   start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
-=======
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type RefreshResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['RefreshResponse'] = ResolversParentTypes['RefreshResponse']> = ResolversObject<{
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
->>>>>>> 2b13ca5 (add errors to posts api)
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -794,11 +787,8 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   User?: UserResolvers<ContextType>;
   Post?: PostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
-<<<<<<< HEAD
   UserPostHistoryEntry?: UserPostHistoryEntryResolvers<ContextType>;
-=======
   RefreshResponse?: RefreshResponseResolvers<ContextType>;
->>>>>>> 2b13ca5 (add errors to posts api)
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;

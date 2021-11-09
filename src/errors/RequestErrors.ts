@@ -1,5 +1,12 @@
 import { ApolloError } from 'apollo-server-errors';
 
+export type RequestErrorResponse = {
+  errorType: string;
+  statusCode: number;
+  message: string;
+  stack?: string;
+}
+
 abstract class RequestError extends ApolloError {
   abstract code: number;
 
@@ -8,7 +15,7 @@ abstract class RequestError extends ApolloError {
     this.message = message;
   }
 
-  public response(stack?: string) {
+  public response(stack?: string): RequestErrorResponse {
     return {
       errorType: this.name,
       statusCode: this.code,
