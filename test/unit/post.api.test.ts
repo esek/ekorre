@@ -110,7 +110,7 @@ test('adding duplicate post', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
-  expect(api.createPost(np)).rejects.toThrowError('Denna posten finns redan');
+  await expect(api.createPost(np)).rejects.toThrowError('Denna posten finns redan');
 });
 
 test('adding post with ea type and defined number', async () => {
@@ -186,7 +186,7 @@ test('adding post with n type and negative number', async () => {
   const ok = await api.createPost(localNp);
   expect(ok).toBe(false);
 
-  expect(api.getPost(localNp.name)).rejects.toThrowError('Posten kunde inte hittas');
+  await expect(api.getPost(localNp.name)).rejects.toThrowError('Posten kunde inte hittas');
 });
 
 test('adding post with n type, defined number, and undefined description and intReq', async () => {
@@ -228,7 +228,7 @@ test('adding post with n type and undefined number', async () => {
   expect(ok).toBe(false);
 
   // Kolla att den faktiskt inte lades till i databasen också
-  expect(api.getPost(localNp.name)).rejects.toThrowError('Posten kunde inte hittas');
+  await expect(api.getPost(localNp.name)).rejects.toThrowError('Posten kunde inte hittas');
 });
 
 test('adding user to post', async () => {
@@ -264,7 +264,7 @@ test('adding user to post twice in the same period at different times', async ()
   ok = await api.addUsersToPost([uname], np.name, period);
   expect(ok).toBe(true);
 
-  expect(api.addUsersToPost([uname], np.name, period)).rejects.toThrowError(
+  await expect(api.addUsersToPost([uname], np.name, period)).rejects.toThrowError(
     'Användaren kunde inte läggas till',
   );
 });
@@ -283,7 +283,7 @@ test('deleting user from post', async () => {
   const removed = await api.removeUsersFromPost([uname], np.name);
   expect(removed).toBe(true);
 
-  expect(api.getPostsForUser(uname)).rejects.toThrowError('Inga poster hittades');
+  await expect(api.getPostsForUser(uname)).rejects.toThrowError('Inga poster hittades');
 });
 
 test('modifying post in allowed way', async () => {
@@ -354,7 +354,7 @@ test('increasing spots with postType set to u', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
-  expect(api.modifyPost(localMp)).rejects.toThrowError(
+  await expect(api.modifyPost(localMp)).rejects.toThrowError(
     'Ogiltig kombination av post och antal platser',
   );
 
