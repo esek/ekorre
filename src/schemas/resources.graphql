@@ -1,0 +1,21 @@
+type Query {
+	resources(type: ResourceType): [Resource!]!
+	resource(id: Int!): Resource!
+}
+
+type Mutation {
+	addResource(name: String!, description: String!, resourceType: ResourceType!): Resource!
+	removeResource(id: Int!): Boolean!
+}
+
+type Resource {
+	id: Int!
+	name: String!
+	description: String!
+	resourceType: ResourceType!
+}
+
+enum ResourceType {
+    DOOR,
+    WEB
+}
