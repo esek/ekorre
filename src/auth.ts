@@ -61,7 +61,10 @@ const SECRET = (type: TokenType) => {
 export const issueToken = <T extends StrictObject>(obj: T, type: TokenType): string => {
   const expiration = EXPIRE_MINUTES[type];
 
-  const token = jwt.sign(obj, SECRET(type), { expiresIn: `${expiration}min` });
+  // Add the current date as an `issued` prop to ensure it's always a new token being issued
+  const token = jwt.sign({ ...obj, issued: Date.now() }, SECRET(type), {
+    expiresIn: `${expiration}min`,
+  });
 
   logger.debug(`Issued a ${type} for object: ${Logger.pretty(obj)}`);
 
@@ -105,7 +108,7 @@ export const verifyToken = <T>(token: string, type: TokenType) => {
 
   logger.debug(`Verified a ${type} with value: ${Logger.pretty(obj)}`);
 
-  return (obj as unknown) as T;
+  return (obj as unknown) as T & { exp: number };
 };
 
 /**
@@ -117,4 +120,12 @@ export const verifyToken = <T>(token: string, type: TokenType) => {
 export const invalidateToken = (token: string): void => {
   tokenBlacklist.push({ token, time: Date.now() });
   logger.debug(`Token ${token} was invalidated`);
+};
+
+/**
+ * Invaliderar flera tokens på en gång
+ * @param tokens - En array med tokens som ska invalideras
+ */
+export const invalidateTokens = (...tokens: string[]) => {
+  tokens.forEach(invalidateToken);
 };
