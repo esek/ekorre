@@ -1,26 +1,17 @@
+#import AccessResource from 'accessresources.graphql'
+
 type Query {
     individualAccess(username: String!): Access
     postAccess(postname: String!): Access
 }
 
 type Mutation {
-    setIndividualAccess(username: String!, access:AccessInput!): Boolean!
-    setPostAccess(postname: String!, access:AccessInput!): Boolean!
+    setIndividualAccess(username: String!, access:[Int!]!): Boolean!
+    setPostAccess(postname: String!, access:[Int!]!): Boolean!
 }
 
 "Access will be treated as a immutable object!"
 type Access {
-    doors: [String!]!
-    web: [String!]!
-}
-
-"Access input is the entire set of access that resource will have"
-input AccessInput {
-    doors: [String!]!
-    web: [String!]!
-}
-
-enum ResourceType {
-    DOOR,
-    WEB
+    doors: [AccessResource!]!
+    web: [AccessResource!]!
 }

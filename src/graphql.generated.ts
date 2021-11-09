@@ -17,6 +17,8 @@ export type Scalars = {
 };
 
 export type Query = {
+  accessResource: AccessResource;
+  accessResources: Array<AccessResource>;
   article?: Maybe<Article>;
   articles: Array<Maybe<Article>>;
   file?: Maybe<File>;
@@ -31,6 +33,16 @@ export type Query = {
   refreshToken?: Maybe<User>;
   user?: Maybe<User>;
   utskott?: Maybe<Utskott>;
+};
+
+
+export type QueryAccessResourceArgs = {
+  id: Scalars['Int'];
+};
+
+
+export type QueryAccessResourcesArgs = {
+  type?: Maybe<AccessResourceType>;
 };
 
 
@@ -113,7 +125,14 @@ export type QueryUtskottArgs = {
   name?: Maybe<Scalars['String']>;
 };
 
+/** Access will be treated as a immutable object! */
+export type Access = {
+  doors: Array<AccessResource>;
+  web: Array<AccessResource>;
+};
+
 export type Mutation = {
+  addAccessResource: AccessResource;
   addArticle?: Maybe<Article>;
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
@@ -125,6 +144,7 @@ export type Mutation = {
   logout?: Maybe<Scalars['Boolean']>;
   modifyArticle: Scalars['Boolean'];
   modifyPost: Scalars['Boolean'];
+  removeAccessResource: Scalars['Boolean'];
   removeUsersFromPost: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
@@ -132,6 +152,13 @@ export type Mutation = {
   setPostAccess: Scalars['Boolean'];
   updateUser?: Maybe<Scalars['Boolean']>;
   validatePasswordResetToken: Scalars['Boolean'];
+};
+
+
+export type MutationAddAccessResourceArgs = {
+  name: Scalars['String'];
+  description: Scalars['String'];
+  resourceType: AccessResourceType;
 };
 
 
@@ -185,6 +212,11 @@ export type MutationModifyPostArgs = {
 };
 
 
+export type MutationRemoveAccessResourceArgs = {
+  id: Scalars['Int'];
+};
+
+
 export type MutationRemoveUsersFromPostArgs = {
   usernames: Array<Scalars['String']>;
   postname: Scalars['String'];
@@ -205,13 +237,13 @@ export type MutationResetPasswordArgs = {
 
 export type MutationSetIndividualAccessArgs = {
   username: Scalars['String'];
-  access: AccessInput;
+  access: Array<Scalars['Int']>;
 };
 
 
 export type MutationSetPostAccessArgs = {
   postname: Scalars['String'];
-  access: AccessInput;
+  access: Array<Scalars['Int']>;
 };
 
 
@@ -225,19 +257,14 @@ export type MutationValidatePasswordResetTokenArgs = {
   token: Scalars['String'];
 };
 
-/** Access will be treated as a immutable object! */
-export type Access = {
-  doors: Array<Scalars['String']>;
-  web: Array<Scalars['String']>;
+export type AccessResource = {
+  description: Scalars['String'];
+  id: Scalars['Int'];
+  name: Scalars['String'];
+  resourceType: AccessResourceType;
 };
 
-/** Access input is the entire set of access that resource will have */
-export type AccessInput = {
-  doors: Array<Scalars['String']>;
-  web: Array<Scalars['String']>;
-};
-
-export enum ResourceType {
+export enum AccessResourceType {
   Door = 'DOOR',
   Web = 'WEB'
 }
@@ -528,14 +555,14 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Query: ResolverTypeWrapper<{}>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   String: ResolverTypeWrapper<Scalars['String']>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
-  Mutation: ResolverTypeWrapper<{}>;
   Access: ResolverTypeWrapper<Access>;
-  AccessInput: AccessInput;
-  ResourceType: ResourceType;
+  Mutation: ResolverTypeWrapper<{}>;
+  AccessResource: ResolverTypeWrapper<AccessResource>;
+  AccessResourceType: AccessResourceType;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Article: ResolverTypeWrapper<ArticleResponse>;
@@ -562,13 +589,13 @@ export type ResolversTypes = ResolversObject<{
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Query: {};
+  Int: Scalars['Int'];
   ID: Scalars['ID'];
   String: Scalars['String'];
   Boolean: Scalars['Boolean'];
-  Int: Scalars['Int'];
-  Mutation: {};
   Access: Access;
-  AccessInput: AccessInput;
+  Mutation: {};
+  AccessResource: AccessResource;
   Date: Scalars['Date'];
   DateTime: Scalars['DateTime'];
   Article: ArticleResponse;
@@ -588,6 +615,8 @@ export type ResolversParentTypes = ResolversObject<{
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
+  accessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<QueryAccessResourceArgs, 'id'>>;
+  accessResources?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType, RequireFields<QueryAccessResourcesArgs, never>>;
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
   file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
@@ -604,7 +633,14 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
 
+export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
+  doors?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType>;
+  web?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  addAccessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType'>>;
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
@@ -615,6 +651,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
+  removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'id'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'username' | 'token' | 'password'>>;
@@ -624,9 +661,11 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'username' | 'token'>>;
 }>;
 
-export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
-  doors?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  web?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+export type AccessResourceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessResource'] = ResolversParentTypes['AccessResource']> = ResolversObject<{
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  resourceType?: Resolver<ResolversTypes['AccessResourceType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -726,8 +765,9 @@ export type FileSystemResponsePathResolvers<ContextType = Context, ParentType ex
 
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Query?: QueryResolvers<ContextType>;
-  Mutation?: MutationResolvers<ContextType>;
   Access?: AccessResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
+  AccessResource?: AccessResourceResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
   Article?: ArticleResolvers<ContextType>;

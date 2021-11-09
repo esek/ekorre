@@ -72,24 +72,45 @@ INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär
 END TRANSACTION;
 BEGIN TRANSACTION;
 
+CREATE TABLE IF NOT EXISTS "AccessResources" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "description" TEXT,
+  "resourceType" TEXT NOT NULL
+);
+
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("Sikrit", "Rummet med en massa skräp", "DOOR");
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("BD", "Coolaste rummet i edekvata", "DOOR");
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("EKEA", "Här finns bord och skor", "DOOR");
+
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("SUPER_ADMIN", "Får göra allt", "WEB");
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("AHS", "Alkoholhanteringssystemet", "WEB");
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("NEWS_EDITOR", "Kan skapa och redigera nyheter", "WEB");
+
+
 CREATE TABLE "PostAccess" (
-	"ref"	TEXT,
-	"resourcetype"	TEXT,
-	"resource"	TEXT,
-	PRIMARY KEY("ref","resource"),
-	FOREIGN KEY("ref") REFERENCES "Posts"("postname")
+	"refname"	TEXT,
+	"refresource"	INTEGER,
+	PRIMARY KEY("refname","refresource"),
+	FOREIGN KEY("refname") REFERENCES "Posts"("postname"),
+	FOREIGN KEY("refresource") REFERENCES "Resources"("id")
 );
 
 CREATE TABLE "IndividualAccess" (
-	"ref"	TEXT,
-	"resourcetype"	TEXT,
-	"resource"	TEXT,
-	PRIMARY KEY("ref","resource")
-	FOREIGN KEY("ref") REFERENCES "Users"("username")
+	"refname"	TEXT,
+	"refresource"	INTEGER,
+	PRIMARY KEY("refname","refresource"),
+	FOREIGN KEY("refname") REFERENCES "Users"("username"),
+	FOREIGN KEY("refresource") REFERENCES "Resources"("id")
 );
 
-INSERT INTO IndividualAccess ("ref",resourcetype,resource) VALUES ('aa0000bb-s','DOOR','pump');
-INSERT INTO PostAccess ("ref",resourcetype,resource) VALUES ('Macapär','DOOR','hk');
+INSERT INTO PostAccess VALUES('Macapär', 1);
+INSERT INTO PostAccess VALUES('Macapär', 2);
+INSERT INTO PostAccess VALUES('Macapär', 4);
+INSERT INTO PostAccess VALUES('Ordförande', 1);
+
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 1);
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 3);
 
 CREATE TABLE IF NOT EXISTS "Articles" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,

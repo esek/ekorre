@@ -1,5 +1,4 @@
 export type DatabaseAccess = {
-  ref: string;
-  resourcetype: ResourceType;
-  resource: string;
+  refname: string;
+  refresource: number;
 };
