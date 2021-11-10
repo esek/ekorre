@@ -65,7 +65,10 @@ test('load single user', async () => {
   const dl = createDataLoader(batchUsersFunction);
   const user = await dl.load('dataloaderTestUser0');
   user.isFuncUser = !!user.isFuncUser;
-  const mockUser = reduce(mockUsers.filter((u) => u.username === 'dataloaderTestUser0')[0], userReduce);
+  const mockUser = reduce(
+    mockUsers.filter((u) => u.username === 'dataloaderTestUser0')[0],
+    userReduce,
+  );
   expect(user).toMatchObject(mockUser);
   expect(apiSpy).toHaveBeenCalledTimes(1);
 });
@@ -95,13 +98,13 @@ test('loading multiple existant and non-existant users', async () => {
       // expect the load of that name to be that user
       if (mockUsers.map((u) => u.username).includes(name)) {
         const user = await dl.load(name);
-        
+
         // SQLite converts false to 0, true to 1,
         // this reconverts
         user.isFuncUser = !!user.isFuncUser;
 
         const mockUser = reduce(mockUsers.filter((u) => u.username === name)[0], userReduce);
-        
+
         // We don't care about date and such, but the result should contain mockUser
         expect(user).toMatchObject(mockUser);
       } else {
@@ -116,6 +119,6 @@ test('loading multiple existant and non-existant users', async () => {
 test('loading non-existant user', async () => {
   const fakeUsername = 'This is not a valid username.com!';
   const dl = createDataLoader(batchUsersFunction);
-  await expect(dl.load(fakeUsername)).rejects.toThrow(`No result for username ${fakeUsername}`);
+  await expect(dl.load(fakeUsername)).rejects.toThrow(`Inga användare hittades`);
   expect(apiSpy).toHaveBeenCalledTimes(1);
 });

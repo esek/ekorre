@@ -26,10 +26,6 @@ const filesResolver: Resolvers = {
     file: async (_, { id }) => {
       const filedata = await filesAPI.getFileData(id);
 
-      if (!filedata) {
-        return null;
-      }
-
       return reduce(filedata, fileReduce);
     },
     fileSystem: async (_, { folder }) => {
@@ -42,7 +38,10 @@ const filesResolver: Resolvers = {
     },
   },
   Mutation: {
-    deleteFile: async (_, { id }) => filesAPI.deleteFile(id),
+    deleteFile: async (_, { id }) => {
+      await filesAPI.deleteFile(id);
+      return true;
+    },
     createFolder: async (_, { path, name }, { getUser }) => {
       const user = getUser();
       const created = await filesAPI.createFolder(path, name, user.username);

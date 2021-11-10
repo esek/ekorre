@@ -1,4 +1,5 @@
 import { PostAPI } from '../api/post.api';
+import { NotFoundError } from '../errors/RequestErrors';
 import { Post } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { postReduce } from '../reducers/post.reducer';
@@ -27,15 +28,15 @@ export const batchPostsFunction = async (
 
   // We want array as Map of username to Post object
   const postMap = new Map<string, Post>();
-    
-  posts.forEach(p => {
+
+  posts.forEach((p) => {
     postMap.set(p.postname, p);
   });
 
   // All keys need a value; postnames without value
   // in map are replaced by error
   const results = postnames.map((name): Post | Error => {
-    return postMap.get(name) || new Error(`No result for postname ${name}`);
+    return postMap.get(name) || new NotFoundError(`No result for postname ${name}`);
   });
 
   return results;

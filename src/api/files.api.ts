@@ -4,9 +4,11 @@ import fs from 'fs';
 import { extname } from 'path';
 
 import config from '../config';
+import { NotFoundError, ServerError } from '../errors/RequestErrors';
 import { AccessType, FileSystemResponsePath, FileType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseFile } from '../models/db/file';
+import { validateNonEmptyArray } from '../services/validation.service';
 import { FILES_TABLE } from './constants';
 import knex from './knex';
 
@@ -31,38 +33,43 @@ class FilesAPI {
     path: string,
     creator: string,
   ): Promise<DatabaseFile> {
-    const type = this.getFileType(file.name);
+    try {
+      const type = this.getFileType(file.name);
 
-    const hashedName = this.createHashedName(file.name);
+      const hashedName = this.createHashedName(file.name);
 
-    const trimmedPath = this.trimFolder(path);
+      const trimmedPath = this.trimFolder(path);
 
-    const folder = `${ROOT}/${trimmedPath}`;
-    const location = `${folder}${hashedName}`;
+      const folder = `${ROOT}/${trimmedPath}`;
+      const location = `${folder}${hashedName}`;
 
-    // Create folder(s) if it doesn't exist
-    if (!fs.existsSync(folder)) {
-      fs.mkdirSync(folder, { recursive: true });
+      // Create folder(s) if it doesn't exist
+      if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder, { recursive: true });
+      }
+
+      // Move file to correct location
+      await file.mv(location);
+
+      // Save file to DB with hashedName as id and folderLocation
+      // pointing to the location in storage
+      const newFile: DatabaseFile = {
+        id: hashedName,
+        name: file.name,
+        refuploader: creator,
+        folderLocation: `${trimmedPath}${hashedName}`,
+        accessType,
+        createdAt: new Date(),
+        type,
+      };
+
+      await knex<DatabaseFile>(FILES_TABLE).insert(newFile);
+
+      return newFile;
+    } catch (err) {
+      logger.error(err);
+      throw new ServerError('Kunde inte spara filen');
     }
-
-    // Move file to correct location
-    await file.mv(location);
-
-    // Save file to DB with hashedName as id and folderLocation
-    // pointing to the location in storage
-    const newFile: DatabaseFile = {
-      id: hashedName,
-      name: file.name,
-      refuploader: creator,
-      folderLocation: `${trimmedPath}${hashedName}`,
-      accessType,
-      createdAt: new Date(),
-      type,
-    };
-
-    await knex<DatabaseFile>(FILES_TABLE).insert(newFile);
-
-    return newFile;
   }
 
   /**
@@ -72,7 +79,12 @@ class FilesAPI {
    * @param creator Username of the creator of the folder
    * @returns The location of the newly created folder
    */
-  async createFolder(folder: string, name: string, creator: string, customHash?: string) {
+  async createFolder(
+    folder: string,
+    name: string,
+    creator: string,
+    customHash?: string,
+  ): Promise<string> {
     const folderTrimmed = this.trimFolder(folder);
     const hash = customHash ?? this.createHashedName(name);
     const fullPath = `${ROOT}/${folderTrimmed}${hash}`;
@@ -99,7 +111,7 @@ class FilesAPI {
 
       return location;
     } catch {
-      return null;
+      throw new ServerError('Mappen kunde inte skapas');
     }
   }
 
@@ -108,12 +120,12 @@ class FilesAPI {
    * @param id File id
    * @returns A boolean indicating if the deletion was a success
    */
-  async deleteFile(id: string) {
+  async deleteFile(id: string): Promise<void> {
     // Get file from DB
     const file = await this.getFileData(id);
 
     if (!file) {
-      return false;
+      throw new NotFoundError('Filen kunde inte hittas');
     }
 
     const location = `${ROOT}/${file.folderLocation}`;
@@ -122,18 +134,28 @@ class FilesAPI {
     fs.rmSync(location, { recursive: true });
 
     // Delete file from DB
-    await knex<DatabaseFile>(FILES_TABLE).where('id', id).delete();
+    await knex<DatabaseFile>(FILES_TABLE)
+      .where('id', id)
+      .delete()
+      .catch(() => {
+        throw new ServerError('Kunde inte ta bort filen');
+      });
 
     logger.info(`Deleted ${file.type} ${file.name}`);
-
-    return true;
   }
 
   async getMultipleFiles(type?: FileType) {
+    let files: DatabaseFile[];
+
     if (type) {
-      return knex<DatabaseFile>(FILES_TABLE).where('type', type);
+      files = await knex<DatabaseFile>(FILES_TABLE).where('type', type);
     }
-    return knex<DatabaseFile>(FILES_TABLE);
+
+    files = await knex<DatabaseFile>(FILES_TABLE);
+
+    validateNonEmptyArray(files, 'Inga filer hittades');
+
+    return files;
   }
 
   /**
@@ -141,11 +163,11 @@ class FilesAPI {
    * @param id Id of the file to fetch
    * @returns FileData
    */
-  async getFileData(id: string): Promise<DatabaseFile | null> {
+  async getFileData(id: string): Promise<DatabaseFile> {
     const file = await knex<DatabaseFile>(FILES_TABLE).where('id', id).first();
 
     if (!file) {
-      return null;
+      throw new NotFoundError('Filen kunde inte hittas');
     }
 
     return file;
@@ -156,7 +178,7 @@ class FilesAPI {
    * @param name Name of the file, including extension
    * @returns Enumvalue for filetype
    */
-  getFileType(name: string) {
+  getFileType(name: string): FileType {
     const ext = extname(name);
 
     const REGEX: Record<string, RegExp> = {
@@ -210,7 +232,7 @@ class FilesAPI {
 
       return [files, dbPaths];
     } catch (err) {
-      return [[], []];
+      throw new ServerError('Kunde inte hämta filer');
     }
   }
 
@@ -222,7 +244,7 @@ class FilesAPI {
    * @param folder folder to format
    * @returns Correctly formatted foldername
    */
-  private trimFolder(folder: string) {
+  private trimFolder(folder: string): string {
     let trimmed = folder.replace('..', '').trim();
 
     if (trimmed.charAt(0) !== '/') {
@@ -242,7 +264,7 @@ class FilesAPI {
    * @param name The string to hash
    * @returns Random unique md5 hash
    */
-  private createHashedName(name: string) {
+  private createHashedName(name: string): string {
     const date = new Date();
 
     const hashedName =

@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
 import { COOKIES } from '../../src/auth';
+import { RequestErrorResponse } from '../../src/errors/RequestErrors';
 import { User } from '../../src/graphql.generated';
 import { ApiRequest } from '../models/test';
 import { AXIOS_CONFIG } from '../utils/axiosConfig';
@@ -16,6 +17,7 @@ interface LoginResponse {
       login: boolean;
       [key: string]: any;
     };
+    errors?: RequestErrorResponse[];
   };
 }
 
@@ -40,7 +42,7 @@ const LOGIN_MUTATION = `
   }
 `;
 
-test('login with correct credentials', () => {
+test('login with correct credentials', async () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -135,7 +137,7 @@ test('refresh with incorrect refreshToken', async () => {
   ).rejects.toThrow();
 });
 
-test('login with incorrect credentials', () => {
+test('login with incorrect credentials', async () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -148,7 +150,9 @@ test('login with incorrect credentials', () => {
 
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
-      expect(res.data.data.login).toBeFalsy();
+      expect(res.data.data).toBeFalsy();
+      expect(res.data.errors).not.toBeNull();
+      expect(res.data.errors?.[0].statusCode).toBe(404);
       expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
@@ -156,7 +160,7 @@ test('login with incorrect credentials', () => {
   });
 });
 
-test('login with incorrect password', () => {
+test('login with incorrect password', async () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -169,7 +173,9 @@ test('login with incorrect password', () => {
 
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
-      expect(res.data.data.login).toBeFalsy();
+      expect(res.data.data).toBeFalsy();
+      expect(res.data.errors).not.toBeNull();
+      expect(res.data.errors?.[0].statusCode).toBe(401);
       expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
@@ -177,7 +183,7 @@ test('login with incorrect password', () => {
   });
 });
 
-test('login with incorrect username', () => {
+test('login with incorrect username', async () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -190,7 +196,9 @@ test('login with incorrect username', () => {
 
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
-      expect(res.data.data.login).toBeFalsy();
+      expect(res.data.data).toBeFalsy();
+      expect(res.data.errors).not.toBeNull();
+      expect(res.data.errors?.[0].statusCode).toBe(404);
       expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
@@ -198,7 +206,7 @@ test('login with incorrect username', () => {
   });
 });
 
-test('login with empty credentials', () => {
+test('login with empty credentials', async () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -211,7 +219,9 @@ test('login with empty credentials', () => {
 
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
-      expect(res.data.data.login).toBeFalsy();
+      expect(res.data.data).toBeFalsy();
+      expect(res.data.errors).not.toBeNull();
+      expect(res.data.errors?.[0].statusCode).toBe(404);
       expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
@@ -219,7 +229,7 @@ test('login with empty credentials', () => {
   });
 });
 
-test('login with empty password', () => {
+test('login with empty password', async () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -232,7 +242,9 @@ test('login with empty password', () => {
 
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
-      expect(res.data.data.login).toBeFalsy();
+      expect(res.data.data).toBeFalsy();
+      expect(res.data.errors).not.toBeNull();
+      expect(res.data.errors?.[0].statusCode).toBe(401);
       expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
@@ -240,7 +252,7 @@ test('login with empty password', () => {
   });
 });
 
-test('login with empty username', () => {
+test('login with empty username', async () => {
   const data = {
     query: LOGIN_MUTATION,
     variables: {
@@ -253,7 +265,9 @@ test('login with empty username', () => {
 
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
-      expect(res.data.data.login).toBeFalsy();
+      expect(res.data.data).toBeFalsy();
+      expect(res.data.errors).not.toBeNull();
+      expect(res.data.errors?.[0].statusCode).toBe(404);
       expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');

@@ -1,4 +1,5 @@
 import { UserAPI } from '../api/user.api';
+import { NotFoundError } from '../errors/RequestErrors';
 import { User } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
@@ -23,21 +24,22 @@ export const batchUsersFunction = async (
    */
 
   const apiResponse = await userApi.getMultipleUsers(usernames);
-  if (apiResponse === null) return new Array<Error>(usernames.length).fill(new Error('User not found'));
+  if (apiResponse === null)
+    return new Array<Error>(usernames.length).fill(new Error('User not found'));
 
   const users: Array<User> = reduce(apiResponse, userReduce);
 
   // We want array as Map of username to User object
   const userMap = new Map<string, User>();
-  
-  users.forEach(u => {
+
+  users.forEach((u) => {
     userMap.set(u.username, u);
   });
 
   // All keys need a value; usernames without value
   // in map are replaced by error
   const results = usernames.map((name): User | Error => {
-    return userMap.get(name) || new Error(`No result for username ${name}`);
+    return userMap.get(name) || new NotFoundError(`No result for username ${name}`);
   });
 
   return results;
