@@ -43,7 +43,7 @@ const removePost = async (postname: string) => {
 };
 
 const removePostHistory = async (username: string) => {
-  await knex(POSTS_HISTORY_TABLE).delete().where({ refuser: uname });
+  await knex(POSTS_HISTORY_TABLE).delete().where({ refuser: username });
 };
 
 const clearDb = () => {
@@ -107,7 +107,7 @@ test('adding post', async () => {
 });
 
 test('adding duplicate post', async () => {
-  let ok = await api.createPost(np);
+  const ok = await api.createPost(np);
   expect(ok).toBe(true);
 
   await expect(api.createPost(np)).rejects.toThrowError('Denna posten finns redan');
@@ -277,7 +277,7 @@ test('deleting user from post', async () => {
   expect(ok).toBe(true);
 
   // Nu borde uname ha en post
-  let res = await api.getPostsForUser(uname);
+  const res = await api.getPostsForUser(uname);
   expect(res.length).not.toBe(0);
 
   const removed = await api.removeUsersFromPost([uname], np.name);
@@ -351,7 +351,7 @@ test('increasing spots with postType set to u', async () => {
     interviewRequired: true,
   };
 
-  let ok = await api.createPost(np);
+  const ok = await api.createPost(np);
   expect(ok).toBe(true);
 
   await expect(api.modifyPost(localMp)).rejects.toThrowError(

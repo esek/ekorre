@@ -119,6 +119,6 @@ test('loading multiple existant and non-existant users', async () => {
 test('loading non-existant user', async () => {
   const fakeUsername = 'This is not a valid username.com!';
   const dl = createDataLoader(batchUsersFunction);
-  await expect(dl.load(fakeUsername)).rejects.toThrow(`Inga användare hittades`);
+  await expect(dl.load(fakeUsername)).rejects.toThrow('Inga användare hittades');
   expect(apiSpy).toHaveBeenCalledTimes(1);
 });
