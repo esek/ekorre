@@ -43,7 +43,7 @@ const removePost = async (postname: string) => {
 };
 
 const removePostHistory = async (username: string) => {
-  await knex(POSTS_HISTORY_TABLE).delete().where({ refuser: uname });
+  await knex(POSTS_HISTORY_TABLE).delete().where({ refuser: username });
 };
 
 const clearDb = () => {
