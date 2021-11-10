@@ -3,7 +3,6 @@ import knex from '../../src/api/knex';
 import { createDataLoader, useDataLoader } from '../../src/dataloaders';
 import { batchPostsFunction, postApi } from '../../src/dataloaders/post.dataloader';
 import { Post, PostType, Utskott } from '../../src/graphql.generated';
-import { Context } from '../../src/models/context';
 import { DatabasePost } from '../../src/models/db/post';
 import { reduce } from '../../src/reducers';
 import { postReduce } from '../../src/reducers/post.reducer';
@@ -80,7 +79,7 @@ test('load multiple posts', async () => {
       const post = await dl.load(p.postname);
       post.active = !!post.active;
       post.interviewRequired = !!post.interviewRequired;
-      
+
       const mockPost = reduce(p, postReduce);
       expect(post).toMatchObject(mockPost);
     }),
@@ -97,12 +96,12 @@ test('loading multiple existant and non-existant posts', async () => {
       // expect the load of that name to be that user
       if (mockPosts.map((p) => p.postname).includes(name)) {
         const post = await pl.load(name);
-        
+
         post.active = !!post.active;
         post.interviewRequired = !!post.interviewRequired;
 
         const mockPost = reduce(mockPosts.filter((p) => p.postname === name)[0], postReduce);
-        
+
         // We don't care about date and such, but the result should contain mockPost
         expect(post).toMatchObject(mockPost);
       } else {
@@ -116,7 +115,7 @@ test('loading multiple existant and non-existant posts', async () => {
 test('loading non-existant post', async () => {
   const fakePostname = 'This is not a valid username.com!';
   const pl = createDataLoader(batchPostsFunction);
-  await expect(pl.load(fakePostname)).rejects.toThrow(`No result for postname ${fakePostname}`);
+  await expect(pl.load(fakePostname)).rejects.toThrow('Inga poster hittades');
   expect(apiSpy).toHaveBeenCalledTimes(1);
 });
 
@@ -136,7 +135,7 @@ test('load post using useDataloader', async () => {
   post.interviewRequired = !!post.interviewRequired;
 
   const mockPost = reduce(mockPosts.filter((p) => p.postname === 'Testmästare')[0], postReduce);
-        
+
   // We don't care about date and such, but the result should contain mockPost
   expect(post).toMatchObject(mockPost);
 });

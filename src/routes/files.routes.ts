@@ -4,6 +4,7 @@ import upload, { UploadedFile } from 'express-fileupload';
 import FilesAPI from '../api/files.api';
 import { UserAPI } from '../api/user.api';
 import config from '../config';
+import RequestError from '../errors/RequestErrors';
 import { AccessType } from '../graphql.generated';
 import {
   setUser,
@@ -95,10 +96,12 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
 
   const dbFile = await filesAPI.saveFile(file, accessType, path, username);
 
-  const success = await userApi.updateUser(username, { photoUrl: dbFile.folderLocation });
-
-  if (!success) {
-    return res.status(500).send('Could not update user image');
+  try {
+    await userApi.updateUser(username, { photoUrl: dbFile.folderLocation });
+    return res.send(dbFile);
+  } catch (e) {
+    const error = e as RequestError;
+    return res.status(error.code).send(error.message);
   }
 
   return res.send(reduce(dbFile, fileReduce));

@@ -1,6 +1,7 @@
 import { randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
 
+import { UnauthenticatedError } from './errors/RequestErrors';
 import { Logger } from './logger';
 import type { SecretStore, TokenBlacklistItem, TokenType } from './models/auth';
 import type { StrictObject } from './models/base';
@@ -95,7 +96,7 @@ const isBlackListed = (token: string, type: TokenType): boolean => {
  */
 export const verifyToken = <T>(token: string, type: TokenType) => {
   if (isBlackListed(token, type)) {
-    throw new Error('This token is no longer valid');
+    throw new UnauthenticatedError('This token is no longer valid');
   }
 
   const obj = jwt.verify(token, SECRET(type));

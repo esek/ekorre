@@ -9,11 +9,6 @@ import { userReduce } from '../reducers/user.reducer';
 
 const api = new UserAPI();
 
-const baseCookie = {
-  httpOnly: true,
-  secure: true,
-};
-
 /**
  * Helper to attach refresh token to the response object
  * @param {string} username The username to issue the token with
@@ -36,10 +31,6 @@ const attachCookie = (
 const authResolver: Resolvers = {
   Query: {
     refreshToken: async (_, _params, { response, refreshToken }) => {
-      if (!refreshToken) {
-        return null;
-      }
-
       // Try to verify token and fetch the username from it
       const { username } = verifyToken<VerifiedRefreshToken>(refreshToken, 'refreshToken');
 
@@ -75,7 +66,7 @@ const authResolver: Resolvers = {
 
       return true;
     },
-    logout: (_, __, { refreshToken, accessToken, response }) => {
+    logout: (_, __, { refreshToken, accessToken }) => {
       // Invalidate both access- and refreshtoken
       invalidateToken(accessToken);
       invalidateToken(refreshToken);
