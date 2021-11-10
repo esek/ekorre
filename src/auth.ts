@@ -42,6 +42,9 @@ const SECRET = (type: TokenType) => {
 
   const inRange = now - time < refreshDays * 24 * 60 * 60 * 1000;
 
+  // Om vi inte redan har ett value på secret, eller
+  // att denna typ av token behöver en ny secret (vi har nått
+  // refreshdays) skapar vi en ny
   if (!value || !inRange) {
     secrets[type].value = randomBytes(20).toString('hex');
     secrets[type].time = now;
@@ -59,7 +62,10 @@ const SECRET = (type: TokenType) => {
 export const issueToken = <T extends StrictObject>(obj: T, type: TokenType): string => {
   const expiration = EXPIRE_MINUTES[type];
 
-  const token = jwt.sign(obj, SECRET(type), { expiresIn: `${expiration}min` });
+  // Add the current date as an `issued` prop to ensure it's always a new token being issued
+  const token = jwt.sign({ ...obj, issued: Date.now() }, SECRET(type), {
+    expiresIn: `${expiration}min`,
+  });
 
   logger.debug(`Issued a ${type} for object: ${Logger.pretty(obj)}`);
 
@@ -103,7 +109,7 @@ export const verifyToken = <T>(token: string, type: TokenType) => {
 
   logger.debug(`Verified a ${type} with value: ${Logger.pretty(obj)}`);
 
-  return (obj as unknown) as T;
+  return (obj as unknown) as T & { exp: number; issued: number };
 };
 
 /**
@@ -115,4 +121,12 @@ export const verifyToken = <T>(token: string, type: TokenType) => {
 export const invalidateToken = (token: string): void => {
   tokenBlacklist.push({ token, time: Date.now() });
   logger.debug(`Token ${token} was invalidated`);
+};
+
+/**
+ * Invaliderar flera tokens på en gång
+ * @param tokens - En array med tokens som ska invalideras
+ */
+export const invalidateTokens = (...tokens: string[]) => {
+  tokens.forEach(invalidateToken);
 };

@@ -4,7 +4,8 @@
 scalar Date
 
 type Query {
-  user(username: String!): User!
+  user(username: String!): User
+  me: Me
 }
 
 type Mutation {
@@ -66,4 +67,10 @@ input UpdateUser {
   address: String
   zipCode: String
   website: String
+}
+
+type Me {
+  user: User
+  accessExpiry: Float!
+  refreshExpiry: Float!
 }
