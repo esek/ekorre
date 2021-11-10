@@ -29,6 +29,7 @@
   "license": "ISC",
   "dependencies": {
     "apollo-server": "^2.18.2",
+    "apollo-server-errors": "^3.3.0",
     "apollo-server-express": "^2.22.2",
     "axios": "^0.21.1",
     "body-parser": "^1.19.0",
