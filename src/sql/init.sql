@@ -35,7 +35,7 @@ INSERT INTO "Users" ("username","passwordHash","passwordSalt","firstName","lastN
 VALUES ('no0000oh-s','lQFpDvvCGSVywE3PTjpTUSzwWYfGwlE4MxJ/dGZp0YRe7N/U8zKUx6NWA2aGWD7p/c090lpWYDIEcuXnaiFz5Q==',
 'zXr+8b22sOLTvi/Zstu9Zw==','Lena','Handén','BME19','aa0000bb-s@student.lu.se');
 INSERT INTO "Users" ("username","passwordHash","passwordSalt","firstName","lastName","class", "email", "isFuncUser")
-VALUES ('funcUser_Coolkid','glowAU4b0/zhRpqCUiMc8CtRqxySFUxZLvPLiXPPMUS6RapfgACfSDGSqvjc5PLALmqH2IAX3omnr9JuH1NOfA==','Mr.','Test','E69',
+VALUES ('funcUser_Coolkid','glowAU4b0/zhRpqCUiMc8CtRqxySFUxZLvPLiXPPMUS6RapfgACfSDGSqvjc5PLALmqH2IAX3omnr9JuH1NOfA==','salt','Mr.','Test','E69',
 'no-reply@esek.se', 'True');
 
 END TRANSACTION;
@@ -63,30 +63,54 @@ CREATE TABLE "PostHistory" (
 	FOREIGN KEY("refpost") REFERENCES "Posts"("postname")
 );
 
-INSERT INTO Posts (postname,utskott,postType,spots,interviewRequired) VALUES ('Macapär','INFU','N',2,'Informationschefsslav',1,0);
+INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewRequired) VALUES ('Macapär','INFU','N',2,'Informationschefsslav',1,0);
+INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewRequired) VALUES ('Teknokrat','INFU','N',3,'Ljudperson',1,0);
+INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewRequired) VALUES ('Cophös','NOLLU','N',5,'Stressad',1,1);
 INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär','aa0000bb-s','2020-12-29','2020-12-30',2020);
 INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär','aa0000bb-s','2020-12-29',null,2021);
 
-END TRANSACTION;BEGIN TRANSACTION;
+END TRANSACTION;
+BEGIN TRANSACTION;
+
+CREATE TABLE IF NOT EXISTS "AccessResources" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "description" TEXT,
+  "resourceType" TEXT NOT NULL
+);
+
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("Sikrit", "Rummet med en massa skräp", "DOOR");
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("BD", "Coolaste rummet i edekvata", "DOOR");
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("EKEA", "Här finns bord och skor", "DOOR");
+
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("SUPER_ADMIN", "Får göra allt", "WEB");
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("AHS", "Alkoholhanteringssystemet", "WEB");
+INSERT INTO AccessResources (name, description, resourceType) VALUES ("NEWS_EDITOR", "Kan skapa och redigera nyheter", "WEB");
+
 
 CREATE TABLE "PostAccess" (
-	"ref"	TEXT,
-	"resourcetype"	TEXT,
-	"resource"	TEXT,
-	PRIMARY KEY("ref","resource"),
-	FOREIGN KEY("ref") REFERENCES "Posts"("postname")
+	"refname"	TEXT,
+	"refresource"	INTEGER,
+	PRIMARY KEY("refname","refresource"),
+	FOREIGN KEY("refname") REFERENCES "Posts"("postname"),
+	FOREIGN KEY("refresource") REFERENCES "Resources"("id")
 );
 
 CREATE TABLE "IndividualAccess" (
-	"ref"	TEXT,
-	"resourcetype"	TEXT,
-	"resource"	TEXT,
-	PRIMARY KEY("ref","resource")
-	FOREIGN KEY("ref") REFERENCES "Users"("username")
+	"refname"	TEXT,
+	"refresource"	INTEGER,
+	PRIMARY KEY("refname","refresource"),
+	FOREIGN KEY("refname") REFERENCES "Users"("username"),
+	FOREIGN KEY("refresource") REFERENCES "Resources"("id")
 );
 
-INSERT INTO IndividualAccess ("ref",resourcetype,resource) VALUES ('aa0000bb-s','DOOR','pump');
-INSERT INTO PostAccess ("ref",resourcetype,resource) VALUES ('Macapär','DOOR','hk');
+INSERT INTO PostAccess VALUES('Macapär', 1);
+INSERT INTO PostAccess VALUES('Macapär', 2);
+INSERT INTO PostAccess VALUES('Macapär', 4);
+INSERT INTO PostAccess VALUES('Ordförande', 1);
+
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 1);
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 3);
 
 CREATE TABLE IF NOT EXISTS "Articles" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -127,7 +151,7 @@ IF NOT EXISTS "PasswordReset"
 (
   "token" TEXT PRIMARY KEY,
   "username" TEXT NOT NULL,
-  "time" NUMBER NOT NULL,
+  "time" NUMBER NOT NULL
 );
 
 END TRANSACTION;

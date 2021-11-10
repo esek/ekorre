@@ -1,12 +1,9 @@
 import { PostAPI } from '../api/post.api';
-import { UserAPI } from '../api/user.api';
 import { Resolvers } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { postReduce } from '../reducers/post.reducer';
-import { userReduce } from '../reducers/user.reducer';
 
 const api = new PostAPI();
-const userApi = new UserAPI();
 
 // TODO: Lägg till auth
 const postresolver: Resolvers = {
@@ -32,18 +29,38 @@ const postresolver: Resolvers = {
       api.removeUsersFromPost(usernames, postname),
   },
   User: {
-    posts: async ({ username }) => reduce(await api.getPostsForUser(username), postReduce),
-  },
-  Post: {
-    history: async ({ postname }) => {
-      const entries = await api.getHistoryEntries(postname);
+    posts: async ({ username }, _, ctx) => {
+      const posts = reduce(await api.getPostsForUser(username), postReduce);
+      posts.forEach((p) => {
+        // Vi vill inte ladda in dessa fler gånger
+        // i samma request, så vi sparar dem i vår dataloader
+        ctx.postDataLoader.prime(p.postname, p);
+      });
+      return posts;
+    },
+    userPostHistory: async ({ username }, _, ctx) => {
+      const entries = await api.getHistoryEntriesForUser(username);
+
+      // Vi omvandlar från DatabaseHistoryEntry user history entries
+      // genom att hämta ut Posts. Vi använder dataloader
+      // då en Post kan hämtas ut flera gånger
       const a = Promise.all(
         entries.map(async (e) => {
-          const h = await userApi.getSingleUser(e.refuser);
-          // Null assertion används här för den bakomliggande databasen
-          // Ska ha foregin key constraint
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          const holder = reduce(h!, userReduce);
+          const post = await ctx.postDataLoader.load(e.refpost);
+
+          return { ...e, post };
+        }),
+      );
+      return a;
+    },
+  },
+  Post: {
+    history: async ({ postname }, _, ctx) => {
+      const entries = await api.getHistoryEntries(postname);
+
+      const a = Promise.all(
+        entries.map(async (e) => {
+          const holder = await ctx.userDataLoader.load(e.refuser);
 
           return { ...e, holder, postname };
         }),

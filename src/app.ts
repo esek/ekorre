@@ -9,11 +9,14 @@ import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import { COOKIES, verifyToken } from './auth';
 import config from './config';
 import { createDataLoader } from './dataloaders';
+import { batchPostsFunction } from './dataloaders/post.dataloader';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
 import type { User } from './graphql.generated';
 import { Logger } from './logger';
 import type { Context, ContextParams } from './models/context';
 import * as Resolvers from './resolvers/index';
+import authRoute from './routes/auth.routes';
+import doorsRoute from './routes/door.routes';
 import filesRoute from './routes/files.routes';
 
 const { PORT, HOST, FILES, CORS } = config;
@@ -57,6 +60,11 @@ app.use(cors(corsOptions));
 // Setup files endpoint for REST-file handling
 app.use(FILES.ENDPOINT, filesRoute);
 
+// Doors endpoint used by LU to give access
+app.use('/doors', doorsRoute);
+
+app.use('/auth', authRoute);
+
 const apolloLogger = Logger.getLogger('Apollo');
 
 const server = new ApolloServer({
@@ -71,6 +79,7 @@ const server = new ApolloServer({
       response: res,
       getUser: () => verifyToken<User>(accessToken, 'accessToken'),
       userDataLoader: createDataLoader(batchUsersFunction),
+      postDataLoader: createDataLoader(batchPostsFunction),
     };
   },
   debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),

@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
 
-import { issueToken, verifyToken, invalidateToken, EXPIRE_MINUTES } from '../../src/auth';
+import { EXPIRE_MINUTES, invalidateToken, issueToken, verifyToken } from '../../src/auth';
 import type { StrictObject } from '../../src/models/base';
 
 interface TestType extends StrictObject {
@@ -60,7 +60,7 @@ test('creating, verifying and invalidating accessToken', () => {
   const decodedToken = verifyToken<TestType>(token, 'accessToken');
 
   // decodedToken innehåller även info om tider
-  const { iat, exp, ...reducedDecodedToken } = decodedToken;
+  const { iat, exp, issued, ...reducedDecodedToken } = decodedToken;
   expect(reducedDecodedToken).toStrictEqual(testObj);
 
   expect(signSpy).toHaveBeenCalledTimes(1);
@@ -81,7 +81,7 @@ test('creating, verifying and invalidating refreshToken', () => {
   const decodedToken = verifyToken<TestType>(token, 'refreshToken');
 
   // decodedToken innehåller även info om tider
-  const { iat, exp, ...reducedDecodedToken } = decodedToken;
+  const { iat, exp, issued, ...reducedDecodedToken } = decodedToken;
   expect(reducedDecodedToken).toStrictEqual(testObj);
 
   expect(signSpy).toHaveBeenCalledTimes(1);
@@ -102,7 +102,7 @@ test('creating, verifying and invalidating refreshToken with empty obj', () => {
   const decodedToken = verifyToken<TestType>(token, 'refreshToken');
 
   // decodedToken innehåller även info om tider
-  const { iat, exp, ...reducedDecodedToken } = decodedToken;
+  const { iat, exp, issued, ...reducedDecodedToken } = decodedToken;
   expect(reducedDecodedToken).toStrictEqual(testObj);
 
   expect(signSpy).toHaveBeenCalledTimes(1);
@@ -123,7 +123,7 @@ test('invalidate accessToken after EXPIRE_MINUTES.accessToken minutes', () => {
 
   // Verifiera att token fungerar
   const decodedToken = verifyToken<TestType>(token, 'accessToken');
-  const { iat, exp, ...reducedDecodedToken } = decodedToken;
+  const { iat, exp, issued, ...reducedDecodedToken } = decodedToken;
   expect(reducedDecodedToken).toStrictEqual(testObj);
 
   // Vi fejkar nu att system time är 60 minuter fram
@@ -142,7 +142,7 @@ test('invalidate refreshToken after EXPIRE_MINUTES.refreshToken minutes', () => 
 
   // Verifiera att token fungerar
   const decodedToken = verifyToken<TestType>(token, 'refreshToken');
-  const { iat, exp, ...reducedDecodedToken } = decodedToken;
+  const { iat, exp, issued, ...reducedDecodedToken } = decodedToken;
   expect(reducedDecodedToken).toStrictEqual(testObj);
 
   // Vi fejkar nu att system time är 15 dagar fram
@@ -161,7 +161,7 @@ test('valid accessToken is invalid refreshToken', () => {
 
   // Verifiera att token fungerar
   const decodedToken = verifyToken<TestType>(token, 'accessToken');
-  const { iat, exp, ...reducedDecodedToken } = decodedToken;
+  const { iat, exp, issued, ...reducedDecodedToken } = decodedToken;
   expect(reducedDecodedToken).toStrictEqual(testObj);
 
   expect(() => verifyToken(token, 'refreshToken')).toThrowError();
@@ -174,7 +174,7 @@ test('valid refreshToken is invalid accessToken', () => {
 
   // Verifiera att token fungerar
   const decodedToken = verifyToken<TestType>(token, 'refreshToken');
-  const { iat, exp, ...reducedDecodedToken } = decodedToken;
+  const { iat, exp, issued, ...reducedDecodedToken } = decodedToken;
   expect(reducedDecodedToken).toStrictEqual(testObj);
 
   expect(() => verifyToken(token, 'accessToken')).toThrowError();
