@@ -1,7 +1,11 @@
 import { USER_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
 import { UserAPI } from '../../src/api/user.api';
-import { BadRequestError, NotFoundError, UnauthenticatedError } from '../../src/errors/RequestErrors';
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthenticatedError,
+} from '../../src/errors/RequestErrors';
 import { NewUser, UpdateUser } from '../../src/graphql.generated';
 import { DatabaseUser } from '../../src/models/db/user';
 
@@ -142,13 +146,15 @@ test('create new funcUser user without funcUser prefix', async () => {
 
 test('valid login', async () => {
   const res = await api.loginUser(mockNewUser0.username, mockNewUser0.password);
-  const { password, ...expectedPartialRes }= mockNewUser0;
+  const { password, ...expectedPartialRes } = mockNewUser0;
   expect(res).toMatchObject(expectedPartialRes);
 });
 
 test('login with other users password', async () => {
   await api.createUser(mockNewUser1);
-  await expect(api.loginUser(mockNewUser0.username, mockNewUser1.password)).rejects.toThrowError(UnauthenticatedError);
+  await expect(api.loginUser(mockNewUser0.username, mockNewUser1.password)).rejects.toThrowError(
+    UnauthenticatedError,
+  );
 });
 
 test('get one user', async () => {
@@ -158,7 +164,9 @@ test('get one user', async () => {
 
 test('get multiple users', async () => {
   await api.createUser(mockNewUser1);
-  expect((await api.getMultipleUsers([mockNewUser0.username, mockNewUser1.username])).length).toBe(2);
+  expect((await api.getMultipleUsers([mockNewUser0.username, mockNewUser1.username])).length).toBe(
+    2,
+  );
 });
 
 test('get all users', async () => {
@@ -166,9 +174,13 @@ test('get all users', async () => {
 });
 
 test('get non-existat user', async () => {
-  await expect(api.getSingleUser('Inte ett verkligt användarnamn')).rejects.toThrowError(NotFoundError);
+  await expect(api.getSingleUser('Inte ett verkligt användarnamn')).rejects.toThrowError(
+    NotFoundError,
+  );
 });
 
 test('get multiple non-existant users', async () => {
-  await expect(api.getMultipleUsers(['fake as shit username', 'and another one here'])).rejects.toThrowError(NotFoundError);
+  await expect(
+    api.getMultipleUsers(['fake as shit username', 'and another one here']),
+  ).rejects.toThrowError(NotFoundError);
 });
