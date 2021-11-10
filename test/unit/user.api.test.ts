@@ -211,7 +211,7 @@ test('updating username', async () => {
   await api.createUser(mockNewUser1);
   await expect(
     api.updateUser(mockNewUser1.username, { username: 'Not a good username' }),
-  ).rejects.toThrowError(BadRequestError);
+  ).rejects.toThrowError(new BadRequestError('Användarnamn kan inte uppdateras'));
 });
 
 test('updating non-existant user', async () => {
