@@ -96,6 +96,7 @@ test('authorization with COOKIES.refreshToken', (done) => {
         },
       };
 
+<<<<<<< HEAD
       axiosInstance
         .post<ApiRequest, RefreshResponse>('/auth/refresh', undefined, authHeader)
         .then((res2) => {
@@ -114,6 +115,22 @@ test('authorization with COOKIES.refreshToken', (done) => {
             fail('Did not get proper response from the server on second request');
           }
         });
+=======
+      axiosInstance.post<ApiRequest, RefreshResponse>('/', authData, authHeader).then((res2) => {
+        if (res2.data !== null && res2.headers !== null) {
+          const accessToken = extractToken(
+            COOKIES.accessToken,
+            (res2.headers['set-cookie'] ?? [])[0],
+          );
+          expect(accessToken).not.toBeNull();
+          expect(res2.data.data.refreshToken).not.toBeNull();
+          expect(res2.data.data.refreshToken.username).toStrictEqual('bb1111cc-s');
+          done();
+        } else {
+          fail('Did not get proper response from the server on second request');
+        }
+      });
+>>>>>>> 1a51a8a0987153005ba7e437637766231073ed94
     } else {
       fail('Did not get proper response from the server');
     }
@@ -130,9 +147,22 @@ test('refresh with incorrect refreshToken', async () => {
 
   const axiosInstance = axios.create(AXIOS_CONFIG);
 
+<<<<<<< HEAD
   await expect(
     axiosInstance.post<ApiRequest, RefreshResponse>('/auth/refresh', undefined, authHeader),
   ).rejects.toThrow();
+=======
+  axiosInstance.post<ApiRequest, RefreshResponse>('/', authData, authHeader).then((res) => {
+    if (res.data !== null && res.headers !== null) {
+      const accessToken = extractToken(COOKIES.accessToken, (res.headers['set-cookie'] ?? [])[0]);
+      expect(accessToken).toBeNull();
+      expect(res.data.data.refreshToken).toBeNull();
+      done();
+    } else {
+      throw new Error('Did not get proper response from the server on second request');
+    }
+  });
+>>>>>>> 1a51a8a0987153005ba7e437637766231073ed94
 });
 
 test('login with incorrect credentials', () => {
