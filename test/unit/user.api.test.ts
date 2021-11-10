@@ -150,3 +150,25 @@ test('login with other users password', async () => {
   await api.createUser(mockNewUser1);
   await expect(api.loginUser(mockNewUser0.username, mockNewUser1.password)).rejects.toThrowError(UnauthenticatedError);
 });
+
+test('get one user', async () => {
+  const { password, ...expectedResult } = mockNewUser0;
+  expect(await api.getSingleUser(mockNewUser0.username)).toMatchObject(expectedResult);
+});
+
+test('get multiple users', async () => {
+  await api.createUser(mockNewUser1);
+  expect((await api.getMultipleUsers([mockNewUser0.username, mockNewUser1.username])).length).toBe(2);
+});
+
+test('get all users', async () => {
+  expect((await api.getAllUsers()).length).toBeGreaterThan(0);
+});
+
+test('get non-existat user', async () => {
+  await expect(api.getSingleUser('Inte ett verkligt användarnamn')).rejects.toThrowError(NotFoundError);
+});
+
+test('get multiple non-existant users', async () => {
+  await expect(api.getMultipleUsers(['fake as shit username', 'and another one here'])).rejects.toThrowError(NotFoundError);
+});
