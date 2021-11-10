@@ -6,7 +6,7 @@ import {
   NotFoundError,
   UnauthenticatedError,
 } from '../../src/errors/RequestErrors';
-import { NewUser, UpdateUser } from '../../src/graphql.generated';
+import { NewUser } from '../../src/graphql.generated';
 import { DatabaseUser } from '../../src/models/db/user';
 
 const api = new UserAPI();
@@ -183,4 +183,39 @@ test('get multiple non-existant users', async () => {
   await expect(
     api.getMultipleUsers(['fake as shit username', 'and another one here']),
   ).rejects.toThrowError(NotFoundError);
+});
+
+test('updating existing user', async () => {
+  const uu: Partial<DatabaseUser> = {
+    firstName: 'Adolf',
+    phone: '1234657890',
+    address: 'Kämnärsvägen 22F',
+    zipCode: '22645',
+    website: 'apkollen.se',
+  };
+
+  await api.createUser(mockNewUser1);
+  const dbRes = await api.getSingleUser(mockNewUser1.username);
+
+  dbRes.isFuncUser = !!dbRes.isFuncUser;
+
+  expect(dbRes).toMatchObject(dbRes);
+
+  await api.updateUser(mockNewUser1.username, uu);
+  const uDbRes = await api.getSingleUser(mockNewUser1.username);
+
+  expect(uDbRes).toMatchObject(uu);
+});
+
+test('updating username', async () => {
+  await api.createUser(mockNewUser1);
+  await expect(
+    api.updateUser(mockNewUser1.username, { username: 'Not a good username' }),
+  ).rejects.toThrowError(BadRequestError);
+});
+
+test('updating non-existant user', async () => {
+  await expect(api.updateUser('Obv. fake username', { firstName: 'Adolf' })).rejects.toThrowError(
+    BadRequestError,
+  );
 });

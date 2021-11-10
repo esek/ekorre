@@ -187,7 +187,12 @@ export class UserAPI {
   }
 
   async updateUser(username: string, partial: Partial<DatabaseUser>): Promise<void> {
+    if (partial.username) {
+      throw new BadRequestError('Användarnamn kan inte uppdateras');
+    }
+
     const res = await knex<DatabaseUser>(USER_TABLE).where('username', username).update(partial);
+    
     if (res <= 0) {
       throw new BadRequestError('Något gick fel');
     }
