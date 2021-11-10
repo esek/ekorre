@@ -5,10 +5,11 @@ export type RequestErrorResponse = {
   statusCode: number;
   message: string;
   stack?: string;
-}
+};
 
 abstract class RequestError extends ApolloError {
   abstract code: number;
+  abstract name: string;
 
   constructor(message: string) {
     super(message);

@@ -1,3 +1,4 @@
+import { NotFoundError, ServerError } from '../errors/RequestErrors';
 import { AccessResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
 import { DatabaseAccessResource } from '../models/db/resource';
@@ -24,7 +25,7 @@ class ResourcesAPI {
 
     if (!resouce) {
       logger.error(`Resource with id ${id} not found`);
-      throw new Error(`Resource with id ${id} not found`);
+      throw new NotFoundError(`Resource with id ${id} not found`);
     }
 
     return resouce;
@@ -42,8 +43,9 @@ class ResourcesAPI {
     });
 
     if (!id) {
-      logger.error(`Failed to add resource with name ${name}`);
-      throw new Error();
+      const errStr = `Failed to add resource with name ${name}`;
+      logger.error(errStr);
+      throw new ServerError(errStr);
     }
 
     return {

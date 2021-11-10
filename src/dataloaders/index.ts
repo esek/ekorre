@@ -45,7 +45,7 @@ export const useDataLoader = <T, E>(cb: DataLoaderCallback<T, E>) => (
 ) => {
   const { key, dataLoader } = cb(model, ctx);
   if (!key) {
-    throw new NotFoundError(`Nyckeln kunde inte hittas`);
+    throw new NotFoundError('Nyckeln kunde inte hittas');
   }
   return dataLoader.load(key);
 };
