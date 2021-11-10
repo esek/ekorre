@@ -1,7 +1,7 @@
 import { USER_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
 import { UserAPI } from '../../src/api/user.api';
-import { BadRequestError, NotFoundError } from '../../src/errors/RequestErrors';
+import { BadRequestError, NotFoundError, UnauthenticatedError } from '../../src/errors/RequestErrors';
 import { NewUser, UpdateUser } from '../../src/graphql.generated';
 import { DatabaseUser } from '../../src/models/db/user';
 
@@ -140,6 +140,13 @@ test('create new funcUser user without funcUser prefix', async () => {
   expect(dbUser.isFuncUser).toBeTruthy();
 });
 
-test('valid login', async () => {});
+test('valid login', async () => {
+  const res = await api.loginUser(mockNewUser0.username, mockNewUser0.password);
+  const { password, ...expectedPartialRes }= mockNewUser0;
+  expect(res).toMatchObject(expectedPartialRes);
+});
 
-test('login with other users password', async () => {});
+test('login with other users password', async () => {
+  await api.createUser(mockNewUser1);
+  await expect(api.loginUser(mockNewUser0.username, mockNewUser1.password)).rejects.toThrowError(UnauthenticatedError);
+});
