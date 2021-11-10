@@ -1,11 +1,10 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
+import { COOKIES } from '../../src/auth';
+import { User } from '../../src/graphql.generated';
 import { ApiRequest } from '../models/test';
 import { AXIOS_CONFIG } from '../utils/axiosConfig';
 import { extractToken } from '../utils/utils';
-
-import { COOKIES } from '../../src/auth';
-import { User } from '../../src/graphql.generated';
 
 interface LoginResponse {
   headers: {
@@ -31,18 +30,12 @@ interface RefreshResponse {
   };
 }
 
-
 const LOGIN_MUTATION = `
   mutation login($username: String!, $password: String!) {
-    login(username: $username, password: $password)
-  }
-`;
-
-const REFRESH_TOKEN_QUERY = `
-  {
-    refreshToken {
-      firstName
+    login(username: $username, password: $password) {
       username
+      firstName
+      lastName
     }
   }
 `;
@@ -96,27 +89,26 @@ test('authorization with COOKIES.refreshToken', (done) => {
       const refreshToken = extractToken(COOKIES.refreshToken, res.headers['set-cookie'][0]);
       expect(refreshToken).not.toBeNull();
 
-      // Vi ska nu testa om vi kan authorisera oss med token som vi fått
-      // och få en accessToken
-      const authData = {
-        query: REFRESH_TOKEN_QUERY,
-      };
-
       // Add refresh token to headers
       const authHeader: AxiosRequestConfig = {
         headers: {
-          Cookie: `${COOKIES.refreshToken}=${refreshToken ?? ''}`
-        }
+          Cookie: `${COOKIES.refreshToken}=${refreshToken ?? ''}`,
+        },
       };
 
       axiosInstance
-        .post<ApiRequest, RefreshResponse>('/', authData, authHeader)
+        .post<ApiRequest, RefreshResponse>('/auth/refresh', undefined, authHeader)
         .then((res2) => {
-          if (res2.data !== null && res2.headers !== null) {
-            const accessToken = extractToken(COOKIES.accessToken, (res2.headers['set-cookie'] ?? [])[0]);
+          if (res2.headers !== null) {
+            const accessToken = extractToken(
+              COOKIES.accessToken,
+              (res2.headers['set-cookie'] ?? [])[0],
+            );
+
+            const rt = extractToken(COOKIES.refreshToken, (res2.headers['set-cookie'] ?? [])[1]);
+
             expect(accessToken).not.toBeNull();
-            expect(res2.data.data.refreshToken).not.toBeNull();
-            expect(res2.data.data.refreshToken.username).toStrictEqual('bb1111cc-s');
+            expect(rt).not.toBeNull();
             done();
           } else {
             fail('Did not get proper response from the server on second request');
@@ -128,32 +120,19 @@ test('authorization with COOKIES.refreshToken', (done) => {
   });
 }, 7500);
 
-test('refresh with incorrect refreshToken', (done) => {
-  const authData = {
-    query: REFRESH_TOKEN_QUERY,
-  };
-
+test('refresh with incorrect refreshToken', async () => {
   // Add refresh token to headers
   const authHeader: AxiosRequestConfig = {
     headers: {
-      Cookie: `${COOKIES.refreshToken}=bedragare@esek.se`
-    }
+      Cookie: `${COOKIES.refreshToken}=bedragare@esek.se`,
+    },
   };
 
   const axiosInstance = axios.create(AXIOS_CONFIG);
 
-  axiosInstance
-    .post<ApiRequest, RefreshResponse>('/', authData, authHeader)
-    .then((res) => {
-      if (res.data !== null && res.headers !== null) {
-        const accessToken = extractToken(COOKIES.accessToken, (res.headers['set-cookie'] ?? [])[0]);
-        expect(accessToken).toBeNull();
-        expect(res.data.data.refreshToken).toBeNull();
-        done();
-      } else {
-        throw new Error('Did not get proper response from the server on second request');
-      }
-    });
+  await expect(
+    axiosInstance.post<ApiRequest, RefreshResponse>('/auth/refresh', undefined, authHeader),
+  ).rejects.toThrow();
 });
 
 test('login with incorrect credentials', () => {

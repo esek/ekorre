@@ -29,5 +29,6 @@ test('that password is reduced properly', () => {
       doors: [],
     },
     posts: [],
+    userPostHistory: [],
   });
 });

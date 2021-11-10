@@ -2,7 +2,7 @@ import { ExpressContext } from 'apollo-server-express';
 import type DataLoader from 'dataloader';
 import { Request, Response } from 'express';
 
-import type { User } from '../graphql.generated';
+import type { User, Post } from '../graphql.generated';
 
 export type Context = {
   accessToken: string;
@@ -10,6 +10,7 @@ export type Context = {
   response: Response;
   getUser: () => User;
   userDataLoader: DataLoader<string, User>;
+  postDataLoader: DataLoader<string, Post>;
 };
 
 export type ContextParams = Omit<ExpressContext, 'req'> & {

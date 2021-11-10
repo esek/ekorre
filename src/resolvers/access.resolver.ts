@@ -1,14 +1,23 @@
 import { AccessAPI } from '../api/access.api';
 import { PostAPI } from '../api/post.api';
-import { Access, Resolvers } from '../graphql.generated';
+import { Resolvers } from '../graphql.generated';
+import { accessReducer } from '../reducers/access.reducer';
 
 const accessApi = new AccessAPI();
 const postApi = new PostAPI();
 
 const accessresolver: Resolvers = {
   Query: {
-    individualAccess: (_, { username }) => accessApi.getIndividualAccess(username),
-    postAccess: (_, { postname }) => accessApi.getPostAccess(postname),
+    individualAccess: async (_, { username }) => {
+      const access = await accessApi.getIndividualAccess(username);
+
+      return accessReducer(access);
+    },
+    postAccess: async (_, { postname }) => {
+      const access = await accessApi.getPostAccess(postname);
+
+      return accessReducer(access);
+    },
   },
   Mutation: {
     setIndividualAccess: (_, { username, access }) =>
@@ -22,25 +31,14 @@ const accessresolver: Resolvers = {
       const postNames = posts.map((e) => e.postname);
       const postAccess = await accessApi.getAccessForPosts(postNames);
 
-      const access: Access = {
-        web: [...indAccess.web, ...postAccess.web],
-        doors: [...indAccess.doors, ...postAccess.doors],
-      };
-
-      return access;
+      return accessReducer([...indAccess, ...postAccess]);
     },
   },
   Post: {
     access: async ({ postname }) => {
       // Maybe implement API method that takes single postname.
       const postAccess = await accessApi.getAccessForPosts([postname]);
-
-      const access: Access = {
-        web: [...postAccess.web],
-        doors: [...postAccess.doors],
-      };
-
-      return access;
+      return accessReducer(postAccess);
     },
   },
 };

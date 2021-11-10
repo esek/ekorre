@@ -35,7 +35,7 @@ INSERT INTO "Users" ("username","passwordHash","passwordSalt","firstName","lastN
 VALUES ('no0000oh-s','lQFpDvvCGSVywE3PTjpTUSzwWYfGwlE4MxJ/dGZp0YRe7N/U8zKUx6NWA2aGWD7p/c090lpWYDIEcuXnaiFz5Q==',
 'zXr+8b22sOLTvi/Zstu9Zw==','Lena','Handén','BME19','aa0000bb-s@student.lu.se');
 INSERT INTO "Users" ("username","passwordHash","passwordSalt","firstName","lastName","class", "email", "isFuncUser")
-VALUES ('funcUser_Coolkid','glowAU4b0/zhRpqCUiMc8CtRqxySFUxZLvPLiXPPMUS6RapfgACfSDGSqvjc5PLALmqH2IAX3omnr9JuH1NOfA==','Mr.','Test','E69',
+VALUES ('funcUser_Coolkid','glowAU4b0/zhRpqCUiMc8CtRqxySFUxZLvPLiXPPMUS6RapfgACfSDGSqvjc5PLALmqH2IAX3omnr9JuH1NOfA==','salt','Mr.','Test','E69',
 'no-reply@esek.se', 'True');
 
 
