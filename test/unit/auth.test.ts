@@ -56,8 +56,8 @@ test('issueToken for refreshToken should use jwt to sign', () => {
 test('creating, verifying and invalidating accessToken', () => {
   const testObj = createRandomTestObj();
 
-  const token = issueToken(testObj, 'accessToken');
-  const decodedToken = verifyToken<TestType>(token, 'accessToken');
+  let token = issueToken(testObj, 'accessToken');
+  let decodedToken = verifyToken<TestType>(token, 'accessToken');
 
   // decodedToken innehåller även info om tider
   const { iat, exp, issued, ...reducedDecodedToken } = decodedToken;
@@ -72,13 +72,19 @@ test('creating, verifying and invalidating accessToken', () => {
 
   // jwt.verify() ska inte ha kallats en gång till
   expect(verifySpy).toHaveBeenCalledTimes(1);
+
+  // Om vi skapar en ny token för detta objektet ska det nu funka igen
+  token = issueToken(testObj, 'accessToken');
+  decodedToken = verifyToken<TestType>(token, 'accessToken');
+  expect(decodedToken).toMatchObject(testObj);
+  invalidateToken(token);
 });
 
 test('creating, verifying and invalidating refreshToken', () => {
   const testObj = createRandomTestObj();
 
-  const token = issueToken(testObj, 'refreshToken');
-  const decodedToken = verifyToken<TestType>(token, 'refreshToken');
+  let token = issueToken(testObj, 'refreshToken');
+  let decodedToken = verifyToken<TestType>(token, 'refreshToken');
 
   // decodedToken innehåller även info om tider
   const { iat, exp, issued, ...reducedDecodedToken } = decodedToken;
@@ -91,8 +97,15 @@ test('creating, verifying and invalidating refreshToken', () => {
 
   expect(() => verifyToken(token, 'refreshToken')).toThrowError();
 
+
   // jwt.verify() ska inte ha kallats en gång till
   expect(verifySpy).toHaveBeenCalledTimes(1);
+
+  // Om vi skapar en ny token för detta objektet ska det nu funka igen
+  token = issueToken(testObj, 'refreshToken');
+  decodedToken = verifyToken<TestType>(token, 'refreshToken');
+  expect(decodedToken).toMatchObject(testObj);
+  invalidateToken(token);
 });
 
 test('creating, verifying and invalidating refreshToken with empty obj', () => {
