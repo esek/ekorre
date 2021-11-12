@@ -139,10 +139,24 @@ export class UserAPI {
 
     const { password, ...inputReduced } = input;
 
+    if (password === '') {
+      throw new BadRequestError('Ogiltigt lösenord');
+    }
+
     const { passwordSalt, passwordHash } = this.generateSaltAndHash(password);
 
     let { username = '' } = input;
-    let email = `${username}@student.lu.se`;
+
+    // Inga tomma användarnamn och får inte starta med funcUser om de inte är det
+    if (username === '' || (username.startsWith('funcUser_') && !isFuncUser)) {
+      throw new BadRequestError('Ogiltigt användarnamn');
+    }
+
+    // We cannot be sure what email is
+    let { email } = input;
+    if (!email || email === '') {
+      email = `${username}@student.lu.se`;
+    }
 
     if (isFuncUser) {
       const prefix = 'funcUser_';
@@ -173,7 +187,12 @@ export class UserAPI {
   }
 
   async updateUser(username: string, partial: Partial<DatabaseUser>): Promise<void> {
+    if (partial.username) {
+      throw new BadRequestError('Användarnamn kan inte uppdateras');
+    }
+
     const res = await knex<DatabaseUser>(USER_TABLE).where('username', username).update(partial);
+    
     if (res <= 0) {
       throw new BadRequestError('Något gick fel');
     }

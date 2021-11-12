@@ -467,6 +467,7 @@ export type NewUser = {
   firstName: Scalars['String'];
   lastName: Scalars['String'];
   class: Scalars['String'];
+  email?: Maybe<Scalars['String']>;
   password: Scalars['String'];
   isFuncUser?: Maybe<Scalars['Boolean']>;
 };

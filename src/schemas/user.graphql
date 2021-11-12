@@ -55,6 +55,7 @@ input NewUser {
   firstName: String!
   lastName: String!
   class: String!
+  email: String
   password: String!
   isFuncUser: Boolean
 }
