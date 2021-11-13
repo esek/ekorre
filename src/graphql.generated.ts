@@ -25,7 +25,7 @@ export type Query = {
   fileSystem: FileSystemResponse;
   files: Array<File>;
   individualAccess?: Maybe<Access>;
-  latestBoardMeetings: Array<Maybe<Meeting>>;
+  latestBoardMeetings?: Maybe<Array<Maybe<Meeting>>>;
   latestnews: Array<Maybe<Article>>;
   me?: Maybe<Me>;
   meeting?: Maybe<Meeting>;
@@ -192,13 +192,15 @@ export type MutationAddArticleArgs = {
 
 export type MutationAddFileToMeetingArgs = {
   id: Scalars['ID'];
-  file: File;
+  fileId: Scalars['ID'];
   fileType?: Maybe<MeetingDocumentType>;
 };
 
 
 export type MutationAddMeetingArgs = {
-  type?: Maybe<MeetingType>;
+  type: MeetingType;
+  year?: Maybe<Scalars['Int']>;
+  number?: Maybe<Scalars['Int']>;
 };
 
 
@@ -718,7 +720,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
-  latestBoardMeetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryLatestBoardMeetingsArgs, never>>;
+  latestBoardMeetings?: Resolver<Maybe<Array<Maybe<ResolversTypes['Meeting']>>>, ParentType, ContextType, RequireFields<QueryLatestBoardMeetingsArgs, never>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
@@ -740,8 +742,8 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   addAccessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType'>>;
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
-  addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'id' | 'file'>>;
-  addMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, never>>;
+  addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'id' | 'fileId'>>;
+  addMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'path' | 'name'>>;

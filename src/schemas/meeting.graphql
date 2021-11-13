@@ -3,11 +3,11 @@
 type Query {
   meeting(id: ID!): Meeting
   meetings(type: MeetingType, number: Int, year: Int): [Meeting]!
-  latestBoardMeetings(limit: Int): [Meeting]!
+  latestBoardMeetings(limit: Int): [Meeting]
 }
 
 type Mutation {
-  addMeeting(type: MeetingType): Boolean!
+  addMeeting(type: MeetingType!, number: Int, year: Int): Boolean!
   addFileToMeeting(id: ID!, fileId: ID!, fileType: MeetingDocumentType): Boolean!
   removeFileFromMeeting(id: ID!, fileType: MeetingDocumentType): Boolean!
 }
