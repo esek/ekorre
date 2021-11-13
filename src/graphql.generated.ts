@@ -25,8 +25,11 @@ export type Query = {
   fileSystem: FileSystemResponse;
   files: Array<File>;
   individualAccess?: Maybe<Access>;
+  latestBoardMeetings: Array<Maybe<Meeting>>;
   latestnews: Array<Maybe<Article>>;
   me?: Maybe<Me>;
+  meeting?: Maybe<Meeting>;
+  meetings: Array<Maybe<Meeting>>;
   newsentries: Array<Maybe<Article>>;
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
@@ -87,9 +90,26 @@ export type QueryIndividualAccessArgs = {
 };
 
 
+export type QueryLatestBoardMeetingsArgs = {
+  limit?: Maybe<Scalars['Int']>;
+};
+
+
 export type QueryLatestnewsArgs = {
   limit?: Maybe<Scalars['Int']>;
   markdown?: Maybe<Scalars['Boolean']>;
+};
+
+
+export type QueryMeetingArgs = {
+  id: Scalars['ID'];
+};
+
+
+export type QueryMeetingsArgs = {
+  type?: Maybe<MeetingType>;
+  number?: Maybe<Scalars['Int']>;
+  year?: Maybe<Scalars['Int']>;
 };
 
 
@@ -134,6 +154,8 @@ export type Access = {
 export type Mutation = {
   addAccessResource: AccessResource;
   addArticle?: Maybe<Article>;
+  addFileToMeeting: Scalars['Boolean'];
+  addMeeting: Scalars['Boolean'];
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
   createFolder: Scalars['Boolean'];
@@ -145,6 +167,7 @@ export type Mutation = {
   modifyArticle: Scalars['Boolean'];
   modifyPost: Scalars['Boolean'];
   removeAccessResource: Scalars['Boolean'];
+  removeFileFromMeeting: Scalars['Boolean'];
   removeUsersFromPost: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
@@ -164,6 +187,18 @@ export type MutationAddAccessResourceArgs = {
 
 export type MutationAddArticleArgs = {
   entry: NewArticle;
+};
+
+
+export type MutationAddFileToMeetingArgs = {
+  id: Scalars['ID'];
+  file: File;
+  fileType?: Maybe<MeetingDocumentType>;
+};
+
+
+export type MutationAddMeetingArgs = {
+  type?: Maybe<MeetingType>;
 };
 
 
@@ -214,6 +249,12 @@ export type MutationModifyPostArgs = {
 
 export type MutationRemoveAccessResourceArgs = {
   id: Scalars['Int'];
+};
+
+
+export type MutationRemoveFileFromMeetingArgs = {
+  id: Scalars['ID'];
+  fileType?: Maybe<MeetingDocumentType>;
 };
 
 
@@ -390,26 +431,26 @@ export type UserPostHistoryEntry = {
 };
 
 export enum FileType {
-  Image = 'image',
-  Pdf = 'pdf',
-  Text = 'text',
   Code = 'code',
+  Folder = 'folder',
+  Image = 'image',
+  Other = 'other',
+  Pdf = 'pdf',
   Powerpoint = 'powerpoint',
   Spreadsheet = 'spreadsheet',
-  Folder = 'folder',
-  Other = 'other'
+  Text = 'text'
 }
 
 export type File = {
-  id: Scalars['ID'];
-  name: Scalars['String'];
-  type: FileType;
-  folderLocation: Scalars['String'];
-  url?: Maybe<Scalars['String']>;
   accessType: AccessType;
   createdAt: Scalars['DateTime'];
   createdBy?: Maybe<User>;
+  folderLocation: Scalars['String'];
+  id: Scalars['ID'];
+  name: Scalars['String'];
   size: Scalars['Int'];
+  type: FileType;
+  url?: Maybe<Scalars['String']>;
 };
 
 export type FileSystemResponse = {
@@ -418,15 +459,54 @@ export type FileSystemResponse = {
 };
 
 export enum AccessType {
-  Public = 'public',
+  Admin = 'admin',
   Authenticated = 'authenticated',
-  Admin = 'admin'
+  Public = 'public'
 }
 
 export type FileSystemResponsePath = {
   id: Scalars['ID'];
   name: Scalars['String'];
 };
+
+export type Meeting = {
+  id: Scalars['ID'];
+  type: MeetingType;
+  /**
+   * Styrelse- och extrainsatta möten har nummer efter hur många
+   * som varit det året (börjar på 1)
+   */
+  number?: Maybe<Scalars['Int']>;
+  year: Scalars['Int'];
+  /** Kallelse */
+  summons?: Maybe<File>;
+  /** Handlingar */
+  documents?: Maybe<File>;
+  lateDocuments?: Maybe<File>;
+  protocol?: Maybe<File>;
+};
+
+export enum MeetingType {
+  /** Styrelsemöte */
+  Sm = 'SM',
+  /** Höstterminsmöte */
+  Htm = 'HTM',
+  /** Valmöte */
+  Vm = 'VM',
+  /** Vårterminsmöte */
+  Vtm = 'VTM',
+  /** Extrainsatt Sektionsmöte */
+  Extra = 'Extra'
+}
+
+export enum MeetingDocumentType {
+  /** Kallelse */
+  Summons = 'summons',
+  /** Handlingar */
+  Documents = 'documents',
+  LateDocuments = 'lateDocuments',
+  Protocol = 'protocol'
+}
 
 export type NewPost = {
   name: Scalars['String'];
@@ -587,6 +667,9 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   AccessType: AccessType;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
+  Meeting: ResolverTypeWrapper<Omit<Meeting, 'summons' | 'documents' | 'lateDocuments' | 'protocol'> & { summons?: Maybe<ResolversTypes['File']>, documents?: Maybe<ResolversTypes['File']>, lateDocuments?: Maybe<ResolversTypes['File']>, protocol?: Maybe<ResolversTypes['File']> }>;
+  MeetingType: MeetingType;
+  MeetingDocumentType: MeetingDocumentType;
   NewPost: NewPost;
   ModifyPost: ModifyPost;
   Me: ResolverTypeWrapper<Me>;
@@ -617,6 +700,7 @@ export type ResolversParentTypes = ResolversObject<{
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
+  Meeting: Omit<Meeting, 'summons' | 'documents' | 'lateDocuments' | 'protocol'> & { summons?: Maybe<ResolversParentTypes['File']>, documents?: Maybe<ResolversParentTypes['File']>, lateDocuments?: Maybe<ResolversParentTypes['File']>, protocol?: Maybe<ResolversParentTypes['File']> };
   NewPost: NewPost;
   ModifyPost: ModifyPost;
   Me: Me;
@@ -634,8 +718,11 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
+  latestBoardMeetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryLatestBoardMeetingsArgs, never>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
+  meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
+  meetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryMeetingsArgs, never>>;
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
@@ -653,6 +740,8 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   addAccessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType'>>;
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
+  addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'id' | 'file'>>;
+  addMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, never>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'path' | 'name'>>;
@@ -663,6 +752,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
   removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'id'>>;
+  removeFileFromMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveFileFromMeetingArgs, 'id'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'username' | 'token' | 'password'>>;
@@ -750,15 +840,15 @@ export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType exte
 }>;
 
 export type FileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = ResolversObject<{
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  type?: Resolver<ResolversTypes['FileType'], ParentType, ContextType>;
-  folderLocation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   accessType?: Resolver<ResolversTypes['AccessType'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  folderLocation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['FileType'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -771,6 +861,18 @@ export type FileSystemResponseResolvers<ContextType = Context, ParentType extend
 export type FileSystemResponsePathResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FileSystemResponsePath'] = ResolversParentTypes['FileSystemResponsePath']> = ResolversObject<{
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type MeetingResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Meeting'] = ResolversParentTypes['Meeting']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['MeetingType'], ParentType, ContextType>;
+  number?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  summons?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
+  documents?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
+  lateDocuments?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
+  protocol?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -796,6 +898,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;
+  Meeting?: MeetingResolvers<ContextType>;
   Me?: MeResolvers<ContextType>;
 }>;
 

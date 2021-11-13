@@ -1,9 +1,9 @@
-# import File fom 'files.graphql'
+# import File from 'files.graphql'
 
 type Query {
   meeting(id: ID!): Meeting
-  meetings(type: MeetingType, number: Int, year: year): [Meeting]!
-  latestBoardMeeting(limit: Int): [Meeting]!
+  meetings(type: MeetingType, number: Int, year: Int): [Meeting]!
+  latestBoardMeetings(limit: Int): [Meeting]!
 }
 
 type Mutation {
