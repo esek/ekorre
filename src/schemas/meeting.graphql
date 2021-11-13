@@ -1,0 +1,61 @@
+# import File fom 'files.graphql'
+
+type Query {
+  meeting(id: ID!): Meeting
+  meetings(type: MeetingType, number: Int, year: year): [Meeting]!
+  latestBoardMeeting(limit: Int): [Meeting]!
+}
+
+type Mutation {
+  addMeeting(type: MeetingType): Boolean!
+  addFileToMeeting(id: ID!, file: File!, fileType: MeetingDocumentType): Boolean!
+  removeFileFromMeeting(id: ID!, fileType: MeetingDocumentType): Boolean!
+}
+
+type Meeting {
+  id: ID!
+  type: MeetingType!
+
+  """
+  Styrelse- och extrainsatta möten har nummer efter hur många
+  som varit det året (börjar på 1)
+  """
+  number: Int
+  year: Int!
+
+  "Kallelse"
+  summons: File
+
+  "Handlingar"
+  documents: File
+  lateDocuments: File
+  protocol: File
+}
+
+enum MeetingType {
+  
+  "Styrelsemöte"
+  SM
+
+  "Höstterminsmöte"
+  HTM
+
+  "Valmöte"
+  VM
+
+  "Vårterminsmöte"
+  VTM
+
+  "Extrainsatt Sektionsmöte"
+  Extra
+}
+
+enum MeetingDocumentType {
+    "Kallelse"
+  summons
+
+  "Handlingar"
+  documents
+  lateDocuments
+  protocol
+}
