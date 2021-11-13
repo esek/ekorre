@@ -57,7 +57,7 @@ export class MeetingAPI {
     const m = await knex<DatabaseMeeting>(MEETING_TABLE).where(copy);
 
     if (m === null) {
-      throw new NotFoundError('Inga möten kunde hittas');
+      throw new ServerError('Mötessökningen misslyckades');
     }
 
     return m;
@@ -75,12 +75,18 @@ export class MeetingAPI {
       .limit(limit);
 
     if (m === null) {
-      throw new NotFoundError('Inga styrelsemöten kunde hittas. Oops?');
+      throw new ServerError('Mötessökningen misslyckades');
     }
 
     return m;
   }
 
+  /**
+   * Skapar ett nytt möte. Misslyckas om mötet redan existerar
+   * @param type
+   * @param number
+   * @param year
+   */
   async createMeeting(
     type: MeetingType,
     number: Maybe<number>,
@@ -92,8 +98,8 @@ export class MeetingAPI {
     // Om det är ett Styrelsemöte eller extrainsatt sektionsmöte
     // måste det ha ett nummer. Om det inte är definierat hämtar
     // vi det från databasen
-    let safeNbr;
-    if ((type === MeetingType.Sm || type === MeetingType.Extra) && Number.isNaN(number)) {
+    let safeNbr = number;
+    if (!Number.isSafeInteger(safeNbr)) {
       const lastNbr = await knex<DatabaseMeeting>(MEETING_TABLE)
         .select('number')
         .where({ type, year: safeYear })
@@ -106,7 +112,7 @@ export class MeetingAPI {
         // så detta är första
         safeNbr = 1;
       } else {
-        safeNbr = (lastNbr as number) + 1;
+        safeNbr = (lastNbr.number as number) + 1;
       }
     }
 
@@ -119,19 +125,25 @@ export class MeetingAPI {
       })
       .first();
 
-    if (possibleDouble !== null) {
+    if (possibleDouble !== undefined) {
       throw new BadRequestError('Mötet finns redan!');
     }
 
-    await knex<DatabaseMeeting>(MEETING_TABLE).insert({
-      type,
-      number: safeNbr,
-      year: safeYear,
-    }).catch(() => {
-      const logStr = `Failed to create meeting with values: ${Logger.pretty({type, number, year})}`;
-      logger.error(logStr);
-      throw new ServerError('Attans! Mötet kunde inte skapas!');
-    });
+    await knex<DatabaseMeeting>(MEETING_TABLE)
+      .insert({
+        type,
+        number: safeNbr,
+        year: safeYear,
+      })
+      .catch(() => {
+        const logStr = `Failed to create meeting with values: ${Logger.pretty({
+          type,
+          number,
+          year,
+        })}`;
+        logger.error(logStr);
+        throw new ServerError('Attans! Mötet kunde inte skapas!');
+      });
 
     return true;
   }
