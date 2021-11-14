@@ -2,7 +2,7 @@ import { MEETING_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
 import { MeetingAPI } from '../../src/api/meeting.api';
 import { BadRequestError, NotFoundError, ServerError } from '../../src/errors/RequestErrors';
-import { MeetingType } from '../../src/graphql.generated';
+import { MeetingDocumentType, MeetingType } from '../../src/graphql.generated';
 import { DatabaseMeeting } from '../../src/models/db/meeting';
 
 const api = new MeetingAPI();
@@ -24,7 +24,7 @@ afterAll(async () => {
 });
 
 test('creating valid VTM/HTM/VM specifying year but not number', async () => {
-  const success = await api.createMeeting(MeetingType.Vtm, null, 2008);
+  const success = await api.createMeeting(MeetingType.Vtm, undefined, 2008);
   expect(success).toBeTruthy();
 
   // Vi behöver inte bry oss om år, det där är det enda
@@ -42,7 +42,7 @@ test('creating valid VTM/HTM/VM specifying year but not number', async () => {
 });
 
 test('creating valid VTM/HTM/VM specifying number but not year', async () => {
-  const success = await api.createMeeting(MeetingType.Htm, 3, null);
+  const success = await api.createMeeting(MeetingType.Htm, 3, undefined);
   expect(success).toBeTruthy();
 
   // Vi behöver inte bry oss om år, det där är det enda
@@ -62,7 +62,7 @@ test('creating valid VTM/HTM/VM specifying number but not year', async () => {
 test('creating two concurrent board meetings', async () => {
   await api.createMeeting(MeetingType.Sm, 1, 2021);
   await api.createMeeting(MeetingType.Sm, 4, 2021);
-  await api.createMeeting(MeetingType.Sm, null, 2021);
+  await api.createMeeting(MeetingType.Sm, undefined, 2021);
   const lastMeetings = await api.getLatestBoardMeetings(1);
   expect(lastMeetings.length).toBe(1);
   expect(lastMeetings[0]).toMatchObject({
@@ -95,7 +95,7 @@ test('getting single meeting', async () => {
 
 test('get multiple meetings', async () => {
   await api.createMeeting(MeetingType.Vm, 4, 1667);
-  await api.createMeeting(MeetingType.Sm, null, 2021);
+  await api.createMeeting(MeetingType.Sm, undefined, 2021);
   await api.createMeeting(MeetingType.Htm, 1, 1999);
   await api.createMeeting(MeetingType.Sm, 5, 1667);
 
@@ -116,6 +116,25 @@ test('finding non-existant meeting', async () => {
 
 test('finding multiple non-existant meetings', async () => {
   expect(
-    (await api.getMultipleMeetings({ type: MeetingType.Sm, number: 5000, year: 0 })).length
+    (await api.getMultipleMeetings({ type: MeetingType.Sm, number: 5000, year: 0 })).length,
   ).toBe(0);
+});
+
+test('add file to meeting', async () => {
+  await api.createMeeting(MeetingType.Extra, 1, 2021);
+  const { id } = (await api.getAllMeetings())[0];
+  await expect(
+    api.addFileToMeeting(id, 'fakeFileId', MeetingDocumentType.Summons),
+  ).resolves.toBeTruthy();
+  const { refsummons } = await api.getSingleMeeting(id);
+  expect(refsummons).toStrictEqual('fakeFileId');
+});
+
+test('add duplicate file to meeting', async () => {
+  await api.createMeeting(MeetingType.Sm, 1, 2021);
+  const { id } = (await api.getAllMeetings())[0];
+  await api.addFileToMeeting(id, 'fakeFileId', MeetingDocumentType.Protocol);
+  await expect(
+    api.addFileToMeeting(id, 'fakeFileId2', MeetingDocumentType.Protocol),
+  ).rejects.toThrowError(ServerError);
 });

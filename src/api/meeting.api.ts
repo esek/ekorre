@@ -7,7 +7,7 @@ import {
   ServerError,
   UnauthenticatedError,
 } from '../errors/RequestErrors';
-import { MeetingType } from '../graphql.generated';
+import { MeetingDocumentType, MeetingType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseMeeting } from '../models/db/meeting';
 import { stripObject } from '../util';
@@ -86,11 +86,7 @@ export class MeetingAPI {
    * @param number
    * @param year
    */
-  async createMeeting(
-    type: MeetingType,
-    number: Maybe<number>,
-    year: Maybe<number>,
-  ): Promise<boolean> {
+  async createMeeting(type: MeetingType, number?: number, year?: number): Promise<boolean> {
     // Vi tar i år om inget år ges
     const safeYear = (Number.isSafeInteger(year) ? year : new Date().getFullYear()) as number;
 
@@ -111,7 +107,7 @@ export class MeetingAPI {
         // så detta är första
         safeNbr = 1;
       } else {
-        safeNbr = (lastNbr.number as number) + 1;
+        safeNbr = lastNbr.number + 1;
       }
     }
 
@@ -143,6 +139,26 @@ export class MeetingAPI {
       logger.error(logStr);
       throw new ServerError('Attans! Mötet kunde inte skapas!');
     }
+    return true;
+  }
+
+  async addFileToMeeting(
+    meetingId: string,
+    fileId: string,
+    fileType: MeetingDocumentType,
+  ): Promise<boolean> {
+    const ref = `ref${fileType}`;
+
+    // Uppdaterar mötesdokumentet för ett möte,
+    // om detta dokument inte redan finns
+    const res = await knex<DatabaseMeeting>(MEETING_TABLE)
+      .where('id', meetingId)
+      .whereNull(ref)
+      .update(ref, fileId);
+    if (res === 0) {
+      throw new ServerError(`Dokument av typen ${fileType} finns redan på detta möte!`);
+    }
+
     return true;
   }
 }
