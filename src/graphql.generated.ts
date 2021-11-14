@@ -199,8 +199,8 @@ export type MutationAddFileToMeetingArgs = {
 
 export type MutationAddMeetingArgs = {
   type: MeetingType;
-  year?: Maybe<Scalars['Int']>;
   number?: Maybe<Scalars['Int']>;
+  year?: Maybe<Scalars['Int']>;
 };
 
 
@@ -473,12 +473,14 @@ export type FileSystemResponsePath = {
 
 export type Meeting = {
   id: Scalars['ID'];
+  name: Scalars['String'];
   type: MeetingType;
   /**
    * Styrelse- och extrainsatta möten har nummer efter hur många
-   * som varit det året (börjar på 1)
+   * som varit det året (börjar på 1). VM/VTM/HTM får också
+   * för enkelhetens skull
    */
-  number?: Maybe<Scalars['Int']>;
+  number: Scalars['Int'];
   year: Scalars['Int'];
   /** Kallelse */
   summons?: Maybe<File>;
@@ -868,8 +870,9 @@ export type FileSystemResponsePathResolvers<ContextType = Context, ParentType ex
 
 export type MeetingResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Meeting'] = ResolversParentTypes['Meeting']> = ResolversObject<{
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['MeetingType'], ParentType, ContextType>;
-  number?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   summons?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   documents?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;

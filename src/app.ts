@@ -9,6 +9,7 @@ import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import { COOKIES, verifyToken } from './auth';
 import config from './config';
 import { createDataLoader } from './dataloaders';
+import { batchFilesFunction } from './dataloaders/file.dataloader';
 import { batchPostsFunction } from './dataloaders/post.dataloader';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
 import type { User } from './graphql.generated';
@@ -81,6 +82,7 @@ const server = new ApolloServer({
       getUser: () => verifyToken<User>(accessToken, 'accessToken'),
       userDataLoader: createDataLoader(batchUsersFunction),
       postDataLoader: createDataLoader(batchPostsFunction),
+      fileDataLoader: createDataLoader(batchFilesFunction),
     };
   },
   debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),

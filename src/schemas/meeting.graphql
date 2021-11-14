@@ -19,7 +19,7 @@ type Meeting {
 
   """
   Styrelse- och extrainsatta möten har nummer efter hur många
-  som varit det året (börjar på 1). VM/VTM/HTM får ocksp
+  som varit det året (börjar på 1). VM/VTM/HTM får också
   för enkelhetens skull
   """
   number: Int!
