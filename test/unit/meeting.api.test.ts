@@ -120,7 +120,7 @@ test('finding multiple non-existant meetings', async () => {
   ).toBe(0);
 });
 
-test('add file to meeting', async () => {
+test('adding file to meeting', async () => {
   await api.createMeeting(MeetingType.Extra, 1, 2021);
   const { id } = (await api.getAllMeetings())[0];
   await expect(
@@ -130,11 +130,35 @@ test('add file to meeting', async () => {
   expect(refsummons).toStrictEqual('fakeFileId');
 });
 
-test('add duplicate file to meeting', async () => {
+test('adding duplicate file to meeting', async () => {
   await api.createMeeting(MeetingType.Sm, 1, 2021);
   const { id } = (await api.getAllMeetings())[0];
   await api.addFileToMeeting(id, 'fakeFileId', MeetingDocumentType.Protocol);
   await expect(
     api.addFileToMeeting(id, 'fakeFileId2', MeetingDocumentType.Protocol),
+  ).rejects.toThrowError(ServerError);
+});
+
+test('removing document from meeting', async () => {
+  await api.createMeeting(MeetingType.Extra, 1, 2021);
+  const { id } = (await api.getAllMeetings())[0];
+  await api.addFileToMeeting(id, 'fakeFileId', MeetingDocumentType.Summons);
+  expect((await api.getSingleMeeting(id)).refsummons).toStrictEqual('fakeFileId');
+
+  // Remove it again
+  await expect(api.removeFileFromMeeting(id, MeetingDocumentType.Summons)).resolves.toBeTruthy();
+  expect((await api.getSingleMeeting(id)).refsummons).toBeNull();
+});
+
+test('removing non-existant document', async () => {
+  await api.createMeeting(MeetingType.Extra, 1, 2021);
+  const { id } = (await api.getAllMeetings())[0];
+  await expect(api.removeFileFromMeeting(id, MeetingDocumentType.Protocol)).resolves.toBeTruthy();
+});
+
+test('removing file from non-existant meeting', async () => {
+  // Vilket ID som helst fungerar, databasen ska vara tom just nu
+  await expect(
+    api.removeFileFromMeeting('420', MeetingDocumentType.LateDocuments),
   ).rejects.toThrowError(ServerError);
 });

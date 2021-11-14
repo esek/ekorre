@@ -9,7 +9,7 @@ type Query {
 type Mutation {
   addMeeting(type: MeetingType!, number: Int, year: Int): Boolean!
   addFileToMeeting(id: ID!, fileId: ID!, fileType: MeetingDocumentType): Boolean!
-  removeFileFromMeeting(id: ID!, fileType: MeetingDocumentType): Boolean!
+  removeFileFromMeeting(id: ID!, fileType: MeetingDocumentType!): Boolean!
 }
 
 type Meeting {

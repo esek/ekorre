@@ -142,6 +142,14 @@ export class MeetingAPI {
     return true;
   }
 
+  /**
+   * Försöker lägga till en fil till ett möte.
+   * Ger `ServerError` om filen redan finns för detta mötet
+   * @param meetingId
+   * @param fileId
+   * @param fileType
+   * @throws `ServerError`
+   */
   async addFileToMeeting(
     meetingId: string,
     fileId: string,
@@ -156,7 +164,33 @@ export class MeetingAPI {
       .whereNull(ref)
       .update(ref, fileId);
     if (res === 0) {
-      throw new ServerError(`Dokument av typen ${fileType} finns redan på detta möte!`);
+      throw new ServerError(
+        `Antingen finns detta möte inte, eller så finns dokument av typen ${fileType} redan på detta möte!`,
+      );
+    }
+
+    return true;
+  }
+
+  /**
+   * Försöker ta bort ett dokument från ett möte. Returnerar true
+   * om mötet hittades och referensen till denna dokumenttypen garanterat
+   * är `null` i databasen.
+   *
+   * Även kännt som _Annas Metod_, denna skapades specifikt för att
+   * Ordförande 2021 Anna Hollsten älskade att ladda upp handlingar
+   * som protokoll och vice versa, och den gamla hemsidan hade ingen
+   * funktion för att ta bort dokument...
+   * @param meetingId
+   * @param fileType
+   */
+  async removeFileFromMeeting(meetingId: string, fileType: MeetingDocumentType): Promise<boolean> {
+    const ref = `ref${fileType}`;
+    const res = await knex<DatabaseMeeting>(MEETING_TABLE).where('id', meetingId).update(ref, null);
+    if (res === 0) {
+      throw new ServerError(
+        `Kunde inte ta bort mötesdokument, troligen existerar inte mötet med id ${meetingId}`,
+      );
     }
 
     return true;
