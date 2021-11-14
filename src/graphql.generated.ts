@@ -25,7 +25,7 @@ export type Query = {
   fileSystem: FileSystemResponse;
   files: Array<File>;
   individualAccess?: Maybe<Access>;
-  latestBoardMeetings?: Maybe<Array<Maybe<Meeting>>>;
+  latestBoardMeetings: Array<Maybe<Meeting>>;
   latestnews: Array<Maybe<Article>>;
   me?: Maybe<Me>;
   meeting?: Maybe<Meeting>;
@@ -722,7 +722,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
-  latestBoardMeetings?: Resolver<Maybe<Array<Maybe<ResolversTypes['Meeting']>>>, ParentType, ContextType, RequireFields<QueryLatestBoardMeetingsArgs, never>>;
+  latestBoardMeetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryLatestBoardMeetingsArgs, never>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;

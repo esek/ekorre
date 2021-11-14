@@ -3,7 +3,7 @@
 type Query {
   meeting(id: ID!): Meeting
   meetings(type: MeetingType, number: Int, year: Int): [Meeting]!
-  latestBoardMeetings(limit: Int): [Meeting]
+  latestBoardMeetings(limit: Int): [Meeting]!
 }
 
 type Mutation {
