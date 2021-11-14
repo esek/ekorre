@@ -9,26 +9,30 @@ import {
 } from '../errors/RequestErrors';
 import { MeetingType } from '../graphql.generated';
 import { Logger } from '../logger';
-import { StrictObject } from '../models/base';
 import type { DatabaseMeeting } from '../models/db/meeting';
-import { validateNonEmptyArray } from '../services/validation.service';
+import { stripObject } from '../util';
 import { MEETING_TABLE } from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('MeetingAPI');
 
 type GetMeetingParams = {
-  type: Maybe<MeetingType>;
-  number: Maybe<number>;
-  year: Maybe<number>;
+  type?: MeetingType;
+  number?: number;
+  year?: number;
 };
 
 export class MeetingAPI {
   /**
-   * Returnerar alla lagarade möten.
+   *
+   * @param limit
+   * @param sortOrder
    */
-  async getAllMeetings(): Promise<DatabaseMeeting[]> {
-    const m = await knex<DatabaseMeeting>(MEETING_TABLE).select('*');
+  async getAllMeetings(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<DatabaseMeeting[]> {
+    const m = await knex<DatabaseMeeting>(MEETING_TABLE)
+      .select('*')
+      .orderBy('id', sortOrder)
+      .limit(limit);
     return m;
   }
 
@@ -48,13 +52,8 @@ export class MeetingAPI {
   }
 
   async getMultipleMeetings(params: GetMeetingParams): Promise<DatabaseMeeting[]> {
-    // Ta bort undefined, de ogillas SKARPT  av Knex.js
-
-    // Ts låter en inte indexera nycklar i params med foreach
-    const copy: StrictObject = { ...params };
-    Object.keys(copy).forEach((key) => (copy[key] === undefined ? delete copy[key] : {}));
-
-    const m = await knex<DatabaseMeeting>(MEETING_TABLE).where(copy);
+    const safeParams = stripObject(params);
+    const m = await knex<DatabaseMeeting>(MEETING_TABLE).where(safeParams);
 
     if (m === null) {
       throw new ServerError('Mötessökningen misslyckades');
@@ -129,22 +128,21 @@ export class MeetingAPI {
       throw new BadRequestError('Mötet finns redan!');
     }
 
-    await knex<DatabaseMeeting>(MEETING_TABLE)
-      .insert({
+    try {
+      await knex<DatabaseMeeting>(MEETING_TABLE).insert({
         type,
         number: safeNbr,
         year: safeYear,
-      })
-      .catch(() => {
-        const logStr = `Failed to create meeting with values: ${Logger.pretty({
-          type,
-          number,
-          year,
-        })}`;
-        logger.error(logStr);
-        throw new ServerError('Attans! Mötet kunde inte skapas!');
       });
-
+    } catch (err) {
+      const logStr = `Failed to create meeting with values: ${Logger.pretty({
+        type,
+        number,
+        year,
+      })}`;
+      logger.error(logStr);
+      throw new ServerError('Attans! Mötet kunde inte skapas!');
+    }
     return true;
   }
 }
