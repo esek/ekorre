@@ -1,11 +1,12 @@
 import { Response } from 'express';
 
 import { UserAPI } from '../api/user.api';
-import { COOKIES, EXPIRE_MINUTES, invalidateTokens, issueToken } from '../auth';
+import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '../auth';
 import { Resolvers } from '../graphql.generated';
 import type { TokenType } from '../models/auth';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
+import { validateCasTicket } from '../services/cas.service';
 
 const api = new UserAPI();
 
@@ -24,7 +25,8 @@ const attachCookie = (
   response.cookie(cookieName, value, {
     httpOnly: true,
     secure: true,
-    maxAge: EXPIRE_MINUTES[tokenType] * 60 * 1000,
+    sameSite: 'none',
+    maxAge: EXPIRE_MINUTES[tokenType] * 1000 * 60,
   });
 };
 
@@ -46,10 +48,43 @@ const authResolver: Resolvers = {
 
       return reduce(user, userReduce);
     },
-    logout: (_, __, { refreshToken, accessToken }) => {
+    logout: (_, __, { response, refreshToken, accessToken }) => {
       // Invalidate both access- and refreshtoken
       invalidateTokens(accessToken, refreshToken);
+
+      // Send back empty tokens
+      attachCookie(COOKIES.accessToken, '', 'accessToken', response);
+      attachCookie(COOKIES.refreshToken, '', 'refreshToken', response);
+
       return true;
+    },
+    casLogin: async (_, { token }, { request, response }) => {
+      const { referer } = request.headers;
+
+      const username = await validateCasTicket(token, referer ?? '');
+
+      if (!username) {
+        throw new Error();
+      }
+
+      const user = await api.getSingleUser(username);
+
+      const exists = user != null;
+
+      if (exists) {
+        const refresh = issueToken({ username }, 'refreshToken');
+        // Attach a refresh token to the response object
+        attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
+      }
+
+      // Create a hash so that the request can be validated later
+      const hash = hashWithSecret(username);
+
+      return {
+        username,
+        hash,
+        exists,
+      };
     },
   },
 };
