@@ -15,7 +15,11 @@ export type FileResponse = Partial<Omit<File, 'createdBy'>> & {
 };
 
 export type MeetingResponse = Partial<
-  Omit<Meeting, 'summons' | 'documents' | 'lateDocuments' | 'protocol'>
+// Här vill ESlint ha 0 indents, men prettier 2. Jag
+// håller iförsig med prettier, men fan om inte ESlint får en stroke och
+// dödar CI då...
+// prettier-ignore
+Omit<Meeting, 'summons' | 'documents' | 'lateDocuments' | 'protocol'>
 > & {
   summons?: Partial<File>;
   documents?: Partial<File>;
