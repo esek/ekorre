@@ -1,3 +1,8 @@
+/**
+ * Typer som definieras här måste även skrivas in i
+ * `codegen.yml`!
+ */
+
 import { Article, File, User, Meeting } from '../graphql.generated';
 
 export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {

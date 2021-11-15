@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse } from './models/mappers';
+import type { ArticleResponse, FileResponse, MeetingResponse } from './models/mappers';
 import type { Context } from './models/context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -671,7 +671,7 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   AccessType: AccessType;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
-  Meeting: ResolverTypeWrapper<Omit<Meeting, 'summons' | 'documents' | 'lateDocuments' | 'protocol'> & { summons?: Maybe<ResolversTypes['File']>, documents?: Maybe<ResolversTypes['File']>, lateDocuments?: Maybe<ResolversTypes['File']>, protocol?: Maybe<ResolversTypes['File']> }>;
+  Meeting: ResolverTypeWrapper<MeetingResponse>;
   MeetingType: MeetingType;
   MeetingDocumentType: MeetingDocumentType;
   NewPost: NewPost;
@@ -704,7 +704,7 @@ export type ResolversParentTypes = ResolversObject<{
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
-  Meeting: Omit<Meeting, 'summons' | 'documents' | 'lateDocuments' | 'protocol'> & { summons?: Maybe<ResolversParentTypes['File']>, documents?: Maybe<ResolversParentTypes['File']>, lateDocuments?: Maybe<ResolversParentTypes['File']>, protocol?: Maybe<ResolversParentTypes['File']> };
+  Meeting: MeetingResponse;
   NewPost: NewPost;
   ModifyPost: ModifyPost;
   Me: Me;
