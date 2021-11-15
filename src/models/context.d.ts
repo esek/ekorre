@@ -8,13 +8,14 @@ export type Context = {
   accessToken: string;
   refreshToken: string;
   response: Response;
+  request: CustomReq;
   getUser: () => User;
   userDataLoader: DataLoader<string, User>;
   postDataLoader: DataLoader<string, Post>;
 };
 
-export type ContextParams = Omit<ExpressContext, 'req'> & {
-  req: Omit<Request, 'cookies'> & {
-    cookies: Record<string, string>;
-  };
+export type ContextParams = Omit<ExpressContext, 'req'> & { req: CustomReq };
+
+type CustomReq = Omit<Request, 'cookies'> & {
+  cookies: Record<string, string>;
 };

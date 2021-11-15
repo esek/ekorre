@@ -136,6 +136,8 @@ export type Mutation = {
   addArticle?: Maybe<Article>;
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
+  casCreateUser: Scalars['Boolean'];
+  casLogin: CasLoginResponse;
   createFolder: Scalars['Boolean'];
   createUser: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
@@ -176,6 +178,17 @@ export type MutationAddUsersToPostArgs = {
   usernames: Array<Scalars['String']>;
   postname: Scalars['String'];
   period: Scalars['Int'];
+};
+
+
+export type MutationCasCreateUserArgs = {
+  input: NewUser;
+  hash: Scalars['String'];
+};
+
+
+export type MutationCasLoginArgs = {
+  token: Scalars['String'];
 };
 
 
@@ -389,6 +402,12 @@ export type UserPostHistoryEntry = {
   start: Scalars['Date'];
 };
 
+export type CasLoginResponse = {
+  username: Scalars['String'];
+  hash?: Maybe<Scalars['String']>;
+  exists: Scalars['Boolean'];
+};
+
 export enum FileType {
   Image = 'image',
   Pdf = 'pdf',
@@ -582,6 +601,7 @@ export type ResolversTypes = ResolversObject<{
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   Utskott: Utskott;
   UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
+  CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
@@ -614,6 +634,7 @@ export type ResolversParentTypes = ResolversObject<{
   Post: Post;
   HistoryEntry: HistoryEntry;
   UserPostHistoryEntry: UserPostHistoryEntry;
+  CasLoginResponse: CasLoginResponse;
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
@@ -655,6 +676,8 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
+  casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'input' | 'hash'>>;
+  casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'path' | 'name'>>;
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
@@ -749,6 +772,13 @@ export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType exte
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type CasLoginResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CasLoginResponse'] = ResolversParentTypes['CasLoginResponse']> = ResolversObject<{
+  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  hash?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  exists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type FileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = ResolversObject<{
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -793,6 +823,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Post?: PostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
   UserPostHistoryEntry?: UserPostHistoryEntryResolvers<ContextType>;
+  CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;
