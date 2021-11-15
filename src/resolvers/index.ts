@@ -6,3 +6,4 @@ export { default as files } from './files.resolver';
 export { default as post } from './post.resolver';
 // eslint-disable-next-line import/no-cycle
 export { default as user } from './user.resolver';
+export { default as meeting } from './meeting.resolver';

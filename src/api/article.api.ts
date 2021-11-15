@@ -114,10 +114,9 @@ export class ArticleAPI {
     // Ta bort undefined, de ogillas SKARPT  av Knex.js
 
     // Ts låter en inte indexera nycklar i params med foreach
-    const copy: StrictObject = { ...params };
-    Object.keys(copy).forEach((key) => (copy[key] === undefined ? delete copy[key] : {}));
+    const safeParams = stripObject(params);
 
-    const article = await knex<DatabaseArticle>(ARTICLE_TABLE).where(copy);
+    const article = await knex<DatabaseArticle>(ARTICLE_TABLE).where(safeParams);
 
     return article ?? null;
   }

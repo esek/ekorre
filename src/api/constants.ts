@@ -7,3 +7,4 @@ export const ARTICLE_TABLE = 'Articles';
 export const FILES_TABLE = 'Files';
 export const PASSWORD_RESET_TABLE = 'PasswordReset';
 export const ACCESS_RESOURCES_TABLE = 'AccessResources';
+export const MEETING_TABLE = 'Meetings';
