@@ -42,7 +42,7 @@ export class UnauthenticatedError extends RequestError {
 
 export class ForbiddenError extends RequestError {
   code = 403;
-  name ="ForbiddenError"
+  name = 'ForbiddenError';
 }
 
 export class ServerError extends RequestError {
