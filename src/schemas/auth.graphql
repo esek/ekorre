@@ -4,4 +4,11 @@ type Mutation {
   "Test user credentials and if valid get a jwt token"
   login(username: String!, password: String!): User
   logout: Boolean
+  casLogin(token: String!): CasLoginResponse!
+}
+
+type CasLoginResponse {
+  username: String!
+  hash: String
+  exists: Boolean!
 }

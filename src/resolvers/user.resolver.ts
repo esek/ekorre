@@ -1,5 +1,5 @@
 import { UserAPI } from '../api/user.api';
-import { verifyToken } from '../auth';
+import { hashWithSecret, verifyToken } from '../auth';
 import type { Resolvers } from '../graphql.generated';
 import { TokenValue } from '../models/auth';
 import { reduce } from '../reducers';
@@ -80,6 +80,16 @@ const userResolver: Resolvers = {
     resetPassword: async (_, { token, username, password }) => {
       await api.resetPassword(token, username, password);
       return true;
+    },
+    casCreateUser: async (_, { input, hash }) => {
+      // Check that hash is ok
+      if (hashWithSecret(input.username) !== hash) {
+        return false;
+      }
+
+      const created = await api.createUser(input);
+
+      return created != null;
     },
   },
 };
