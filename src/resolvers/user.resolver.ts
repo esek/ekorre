@@ -78,8 +78,10 @@ const userResolver: Resolvers = {
     },
     validatePasswordResetToken: async (_, { username, token }) =>
       api.validateResetPasswordToken(username, token),
-    resetPassword: async (_, { token, username, password }) =>
-      api.resetPassword(token, username, password),
+    resetPassword: async (_, { token, username, password }) => {
+      await api.resetPassword(token, username, password);
+      return true;
+    },
     casCreateUser: async (_, { input, hash }) => {
       // Check that hash is ok
       if (hashWithSecret(input.username) !== hash) {
