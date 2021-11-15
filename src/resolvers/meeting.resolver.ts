@@ -7,6 +7,7 @@ const api = new MeetingAPI();
 
 const meetingResolver: Resolvers = {
   Meeting: {
+    // För dessa löser Files-resolvern att omvandla FileResponse -> File
     summons: async ({ summons }, _, ctx) => {
       if (summons?.id != null) {
         return ctx.fileDataLoader.load(summons.id);
