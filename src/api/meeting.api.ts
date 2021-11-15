@@ -157,6 +157,21 @@ export class MeetingAPI {
   }
 
   /**
+   * Tar bort ett möte
+   * @param id Mötes-ID
+   * @throws `NotFoundError` om mötet ej kunde tas bort
+   */
+  async removeMeeting(id: string): Promise<boolean> {
+    const res = await knex<DatabaseMeeting>(MEETING_TABLE).delete().where({ id });
+
+    if (res === 0) {
+      throw new NotFoundError('Mötet kunde inte hittas');
+    }
+
+    return true;
+  }
+
+  /**
    * Försöker lägga till en fil till ett möte.
    * Ger `ServerError` om filen redan finns för detta mötet
    * @param meetingId

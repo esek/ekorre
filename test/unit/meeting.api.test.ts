@@ -59,6 +59,19 @@ test('creating valid VTM/HTM/VM specifying number but not year', async () => {
   });
 });
 
+test('deleting meeting', async () => {
+  await api.createMeeting(MeetingType.Htm, 3, undefined);
+
+  // Vi behöver inte bry oss om år, det där är det enda
+  const meeting = (await api.getAllMeetings())[0];
+  expect(await api.removeMeeting(meeting.id)).toBeTruthy();
+});
+
+test('deleting non-existant meeting', async () => {
+  // ID does not matter, the database is empty
+  await expect(api.removeMeeting('1')).rejects.toThrowError(NotFoundError);
+});
+
 test('creating two concurrent board meetings', async () => {
   await api.createMeeting(MeetingType.Sm, 1, 2021);
   await api.createMeeting(MeetingType.Sm, 4, 2021);

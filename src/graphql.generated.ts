@@ -170,6 +170,7 @@ export type Mutation = {
   modifyPost: Scalars['Boolean'];
   removeAccessResource: Scalars['Boolean'];
   removeFileFromMeeting: Scalars['Boolean'];
+  removeMeeting: Scalars['Boolean'];
   removeUsersFromPost: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
@@ -270,6 +271,11 @@ export type MutationRemoveAccessResourceArgs = {
 export type MutationRemoveFileFromMeetingArgs = {
   meetingId: Scalars['ID'];
   fileType: MeetingDocumentType;
+};
+
+
+export type MutationRemoveMeetingArgs = {
+  id: Scalars['ID'];
 };
 
 
@@ -780,6 +786,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
   removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'id'>>;
   removeFileFromMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveFileFromMeetingArgs, 'meetingId' | 'fileType'>>;
+  removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'username' | 'token' | 'password'>>;

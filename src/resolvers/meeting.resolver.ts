@@ -7,6 +7,9 @@ import { meetingReduce } from '../reducers/meeting.reducer';
 
 const api = new MeetingAPI();
 
+// TODO: Säkra upp, typ kräv inlogg för queries och
+// admin för mutations
+
 const meetingResolver: Resolvers = {
   Meeting: {
     // För dessa löser Files-resolvern att omvandla FileResponse -> File
@@ -53,6 +56,9 @@ const meetingResolver: Resolvers = {
   Mutation: {
     addMeeting: async (_, { type, number, year }) => {
       return api.createMeeting(type, number ?? undefined, year ?? undefined);
+    },
+    removeMeeting: async (_, { id }) => {
+      return api.removeMeeting(id);
     },
     addFileToMeeting: async (_, { meetingId, fileId, fileType }) => {
       return api.addFileToMeeting(meetingId, fileId, fileType);
