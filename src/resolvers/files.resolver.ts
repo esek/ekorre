@@ -42,9 +42,9 @@ const filesResolver: Resolvers = {
       await filesAPI.deleteFile(id);
       return true;
     },
-    createFolder: async (_, { path, name }, { getUser }) => {
-      const user = getUser();
-      const created = await filesAPI.createFolder(path, name, user.username);
+    createFolder: async (_, { path, name }, { getUsername }) => {
+      const username = getUsername();
+      const created = await filesAPI.createFolder(path, name, username);
       return !!created;
     },
   },

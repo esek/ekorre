@@ -9,6 +9,6 @@ INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("sik
 INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("bd", "Blå Dörren", "Coolaste rummet i edekvata", "DOOR");
 INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("ekea", "EKEA", "Här finns bord och skor", "DOOR");
 
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("super-admin", "SUPER_ADMIN", "Får göra allt", "WEB");
+INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("super-admin", "Superadmin", "Får göra allt", "WEB");
 INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("ahs", "AHS", "Alkoholhanteringssystemet", "WEB");
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("news-editor", "NEWS_EDITOR", "Kan skapa och redigera nyheter", "WEB");
+INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("article-editor", "Artikelredigerare", "Kan skapa och redigera artiklar", "WEB");

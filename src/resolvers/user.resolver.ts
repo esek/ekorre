@@ -43,9 +43,9 @@ const userResolver: Resolvers = {
   },
   Mutation: {
     updateUser: async (_, { input }, ctx) => {
-      const user = ctx.getUser();
+      const username = ctx.getUsername();
 
-      await api.updateUser(user.username, stripObject(input));
+      await api.updateUser(username, stripObject(input));
 
       return true;
     },

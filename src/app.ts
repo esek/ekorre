@@ -3,6 +3,7 @@ import cookieparser from 'cookie-parser';
 import cors, { CorsOptions } from 'cors';
 import 'dotenv/config';
 import express from 'express';
+import { applyMiddleware } from 'graphql-middleware';
 import { DateResolver } from 'graphql-scalars';
 import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 
@@ -11,9 +12,10 @@ import config from './config';
 import { createDataLoader } from './dataloaders';
 import { batchPostsFunction } from './dataloaders/post.dataloader';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
-import type { User } from './graphql.generated';
 import { Logger } from './logger';
 import { errorHandler } from './middlewares/graphql/errorhandler.middleware';
+import { generateShield } from './middlewares/graphql/shield.middleware';
+import { TokenValue } from './models/auth';
 import type { Context, ContextParams } from './models/context';
 import * as Resolvers from './resolvers/index';
 import authRoute from './routes/auth.routes';
@@ -41,10 +43,15 @@ const schemas = loadSchemaSync('./src/schemas/*.graphql', {
 const resolvers = Object.entries(Resolvers).map(([_, value]) => value);
 
 // Konstruera root schema. VIKTIGT! Det senaste schemat kommer skugga andra.
-export const schema = mergeSchemas({
+export const mergedSchemas = mergeSchemas({
   schemas: [schemas],
   resolvers,
 });
+
+const permissions = generateShield();
+
+// Add the permissions to the generated schema
+const schema = applyMiddleware(mergedSchemas, permissions);
 
 // Starta server.
 const app = express();
@@ -81,7 +88,14 @@ const server = new ApolloServer({
       refreshToken,
       response: res,
       request: req,
-      getUser: () => verifyToken<User>(accessToken, 'accessToken'),
+      getUsername: () => {
+        try {
+          const { username } = verifyToken<TokenValue>(accessToken, 'accessToken');
+          return username;
+        } catch {
+          return '';
+        }
+      },
       userDataLoader: createDataLoader(batchUsersFunction),
       postDataLoader: createDataLoader(batchPostsFunction),
     };

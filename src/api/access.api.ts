@@ -1,7 +1,13 @@
 import { Logger } from '../logger';
 import type { DatabaseAccess } from '../models/db/access';
+import { DatabasePostHistory } from '../models/db/post';
 import { DatabaseAccessResource } from '../models/db/resource';
-import { ACCESS_RESOURCES_TABLE, IND_ACCESS_TABLE, POST_ACCESS_TABLE } from './constants';
+import {
+  ACCESS_RESOURCES_TABLE,
+  IND_ACCESS_TABLE,
+  POSTS_HISTORY_TABLE,
+  POST_ACCESS_TABLE,
+} from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
@@ -25,7 +31,7 @@ export class AccessAPI {
       .where({
         refname: username,
       })
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'slug');
 
     return res;
   }
@@ -39,7 +45,7 @@ export class AccessAPI {
       .where({
         refname: postname,
       })
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'slug');
 
     return res;
   }
@@ -109,8 +115,33 @@ export class AccessAPI {
   async getAccessForPosts(posts: string[]): Promise<DatabaseJoinedAccess[]> {
     const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE)
       .whereIn('refname', posts)
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'slug');
 
     return res;
+  }
+
+  /**
+   * Gets the users access with respect to what posts they have
+   * @param username The user to get
+   * @returns A list of all the accessable resources
+   */
+  async getUserPostAccess(username: string) {
+    const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE)
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'slug')
+      .join<DatabasePostHistory>(POSTS_HISTORY_TABLE, 'refpost', 'refname')
+      .where({
+        refuser: username,
+        end: null,
+      })
+      .distinct();
+
+    return res;
+  }
+
+  async getUserFullAccess(username: string) {
+    const individual = await this.getIndividualAccess(username);
+    const post = await this.getUserPostAccess(username);
+
+    return [...individual, ...post];
   }
 }

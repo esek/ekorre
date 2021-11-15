@@ -83,33 +83,36 @@ INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("sik
 INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("bd", "Blå Dörren", "Coolaste rummet i edekvata", "DOOR");
 INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("ekea", "EKEA", "Här finns bord och skor", "DOOR");
 
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("super-admin", "SUPER_ADMIN", "Får göra allt", "WEB");
+INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("super-admin", "Superadmin", "Får göra allt", "WEB");
 INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("ahs", "AHS", "Alkoholhanteringssystemet", "WEB");
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("news-editor", "NEWS_EDITOR", "Kan skapa och redigera nyheter", "WEB");
+INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("article-editor", "Artikelredigerare", "Kan skapa och redigera artiklar", "WEB");
+
 
 CREATE TABLE "PostAccess" (
-	"refname"	TEXT,
-	"refresource"	INTEGER,
+	"refname"	TEXT NOT NULL,
+	"refresource"	TEXT NOT NULL,
 	PRIMARY KEY("refname","refresource"),
 	FOREIGN KEY("refname") REFERENCES "Posts"("postname"),
-	FOREIGN KEY("refresource") REFERENCES "Resources"("id")
+	FOREIGN KEY("refresource") REFERENCES "Resources"("slug")
 );
 
 CREATE TABLE "IndividualAccess" (
-	"refname"	TEXT,
-	"refresource"	INTEGER,
+	"refname"	TEXT NOT NULL,
+	"refresource"	TEXT NOT NULL,
 	PRIMARY KEY("refname","refresource"),
 	FOREIGN KEY("refname") REFERENCES "Users"("username"),
-	FOREIGN KEY("refresource") REFERENCES "Resources"("id")
+	FOREIGN KEY("refresource") REFERENCES "Resources"("slug")
 );
 
-INSERT INTO PostAccess VALUES('Macapär', 1);
-INSERT INTO PostAccess VALUES('Macapär', 2);
-INSERT INTO PostAccess VALUES('Macapär', 4);
-INSERT INTO PostAccess VALUES('Ordförande', 1);
+INSERT INTO PostAccess VALUES('Macapär', 'sikrit');
+INSERT INTO PostAccess VALUES('Macapär', 'bd');
+INSERT INTO PostAccess VALUES('Macapär', 'super-admin');
+INSERT INTO PostAccess VALUES('Ordförande', 'sikrit');
 
-INSERT INTO IndividualAccess VALUES('aa0000bb-s', 1);
-INSERT INTO IndividualAccess VALUES('aa0000bb-s', 3);
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'sikrit');
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'ekea');
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'super-admin'); -- this allows aa0000bb-s to access everything by default
+
 
 CREATE TABLE IF NOT EXISTS "Articles" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,
