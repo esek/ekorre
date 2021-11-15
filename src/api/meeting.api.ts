@@ -36,7 +36,7 @@ export class MeetingAPI {
       .limit(limit);
 
     validateNonEmptyArray(m, 'Hittade inga möten');
-    
+
     return m;
   }
 
