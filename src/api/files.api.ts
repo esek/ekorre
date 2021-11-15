@@ -158,6 +158,11 @@ class FilesAPI {
     return files;
   }
 
+  async getMultipleFilesById(ids: readonly string[]): Promise<DatabaseFile[]> {
+    const f = await knex<DatabaseFile>(FILES_TABLE).whereIn('id', ids);
+    return f;
+  }
+
   /**
    * Gets a files data
    * @param id Id of the file to fetch

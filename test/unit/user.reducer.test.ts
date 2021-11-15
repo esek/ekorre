@@ -1,4 +1,3 @@
-import { User } from '../../src/graphql.generated';
 import { DatabaseUser } from '../../src/models/db/user';
 import { userReduce } from '../../src/reducers/user.reducer';
 
