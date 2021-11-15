@@ -1,5 +1,7 @@
 import { MeetingAPI } from '../api/meeting.api';
+import { BadRequestError } from '../errors/RequestErrors';
 import type { Resolvers } from '../graphql.generated';
+import { StrictObject } from '../models/base';
 import { reduce } from '../reducers';
 import { meetingReduce } from '../reducers/meeting.reducer';
 
@@ -37,10 +39,31 @@ const meetingResolver: Resolvers = {
     meeting: async (_, { id }) => {
       const m = await api.getSingleMeeting(id);
       return reduce(m, meetingReduce);
-    }
+    },
+    meetings: async (_, params) => {
+      const safeParams: StrictObject = params;
+      Object.keys(safeParams).forEach(p => p ?? undefined);
+      const m = await api.getMultipleMeetings(safeParams);
+      return reduce(m, meetingReduce);
+    },
+    latestBoardMeetings: async (_, { limit }) => {
+      if (limit == null) {
+        throw new BadRequestError('limit måste vara en int');
+      }
+      const m = await api.getLatestBoardMeetings(limit);
+      return reduce(m, meetingReduce);
+    },
   },
   Mutation: {
-
+    addMeeting: async (_, { type, number, year }) => {
+      return api.createMeeting(type, number ?? undefined, year ?? undefined);
+    },
+    addFileToMeeting: async (_, { meetingId, fileId, fileType }) => {
+      return api.addFileToMeeting(meetingId, fileId, fileType);
+    },
+    removeFileFromMeeting: async (_, { meetingId, fileType }) => {
+      return api.removeFileFromMeeting(meetingId, fileType);
+    },
   },
 };
 
