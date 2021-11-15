@@ -18,13 +18,13 @@ export const accessReducer = (dbAccess: DatabaseJoinedAccess[]): Access => {
 
     switch (resource.resourceType) {
       case AccessResourceType.Web:
-        if (acc.web.some((web) => web.id === resource.id)) {
+        if (acc.web.some((web) => web.slug === resource.slug)) {
           break;
         }
         acc.web.push(resource);
         break;
       case AccessResourceType.Door:
-        if (acc.doors.some((door) => door.id === resource.id)) {
+        if (acc.doors.some((door) => door.slug === resource.slug)) {
           break;
         }
         acc.doors.push(resource);

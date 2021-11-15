@@ -37,7 +37,7 @@ export type Query = {
 
 
 export type QueryAccessResourceArgs = {
-  id: Scalars['Int'];
+  slug: Scalars['String'];
 };
 
 
@@ -132,7 +132,7 @@ export type Access = {
 };
 
 export type Mutation = {
-  addAccessResource: AccessResource;
+  addAccessResource: Scalars['Boolean'];
   addArticle?: Maybe<Article>;
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
@@ -226,7 +226,7 @@ export type MutationModifyPostArgs = {
 
 
 export type MutationRemoveAccessResourceArgs = {
-  id: Scalars['Int'];
+  slug: Scalars['String'];
 };
 
 
@@ -272,9 +272,9 @@ export type MutationValidatePasswordResetTokenArgs = {
 
 export type AccessResource = {
   description: Scalars['String'];
-  id: Scalars['Int'];
   name: Scalars['String'];
   resourceType: AccessResourceType;
+  slug: Scalars['String'];
 };
 
 export enum AccessResourceType {
@@ -581,10 +581,10 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Query: ResolverTypeWrapper<{}>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
-  ID: ResolverTypeWrapper<Scalars['ID']>;
   String: ResolverTypeWrapper<Scalars['String']>;
+  ID: ResolverTypeWrapper<Scalars['ID']>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   Access: ResolverTypeWrapper<Access>;
   Mutation: ResolverTypeWrapper<{}>;
   AccessResource: ResolverTypeWrapper<AccessResource>;
@@ -618,10 +618,10 @@ export type ResolversTypes = ResolversObject<{
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Query: {};
-  Int: Scalars['Int'];
-  ID: Scalars['ID'];
   String: Scalars['String'];
+  ID: Scalars['ID'];
   Boolean: Scalars['Boolean'];
+  Int: Scalars['Int'];
   Access: Access;
   Mutation: {};
   AccessResource: AccessResource;
@@ -647,7 +647,7 @@ export type ResolversParentTypes = ResolversObject<{
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  accessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<QueryAccessResourceArgs, 'id'>>;
+  accessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<QueryAccessResourceArgs, 'slug'>>;
   accessResources?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType, RequireFields<QueryAccessResourcesArgs, never>>;
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
@@ -672,7 +672,7 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 }>;
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  addAccessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType'>>;
+  addAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType'>>;
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
@@ -685,7 +685,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
-  removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'id'>>;
+  removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'slug'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'username' | 'token' | 'password'>>;
@@ -697,9 +697,9 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
 
 export type AccessResourceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessResource'] = ResolversParentTypes['AccessResource']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   resourceType?: Resolver<ResolversTypes['AccessResourceType'], ParentType, ContextType>;
+  slug?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
