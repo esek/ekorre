@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS "Meetings" (
   FOREIGN KEY("refprotocol") REFERENCES "Files"("id")
 );
 
-INSERT INTO Meetings (type, year) VALUES ('VM', 2020);
+INSERT INTO Meetings (type, number, year) VALUES ('VM', 1, 2020);
 INSERT INTO Meetings (type, number, year) VALUES ('SM', 1, 1962);
 INSERT INTO Meetings (type, number, year) VALUES ('Extra', 1, 2050);
 
