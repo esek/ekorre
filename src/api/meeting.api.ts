@@ -10,6 +10,7 @@ import {
 import { MeetingDocumentType, MeetingType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseMeeting } from '../models/db/meeting';
+import { validateNonEmptyArray } from '../services/validation.service';
 import { stripObject } from '../util';
 import { MEETING_TABLE } from './constants';
 import knex from './knex';
@@ -33,6 +34,9 @@ export class MeetingAPI {
       .select('*')
       .orderBy('id', sortOrder)
       .limit(limit);
+
+    validateNonEmptyArray(m, 'Hittade inga möten');
+    
     return m;
   }
 
@@ -59,23 +63,33 @@ export class MeetingAPI {
       throw new ServerError('Mötessökningen misslyckades');
     }
 
+    validateNonEmptyArray(m, 'Hittade inga möten');
+
     return m;
   }
 
   /**
    * Hämtar de senaste `limit` styrelsemötena
-   * @param limit antal styrelsemöten som ska returneras
+   * @param limit antal styrelsemöten som ska returneras. Om null
+   * returneras alla
    */
-  async getLatestBoardMeetings(limit: number): Promise<DatabaseMeeting[]> {
-    const m = await knex<DatabaseMeeting>(MEETING_TABLE)
+  async getLatestBoardMeetings(limit?: number): Promise<DatabaseMeeting[]> {
+    const query = knex<DatabaseMeeting>(MEETING_TABLE)
       .where({ type: MeetingType.Sm })
       .orderBy('number', 'desc')
-      .orderBy('year', 'desc')
-      .limit(limit);
+      .orderBy('year', 'desc');
+
+    if (limit != null) {
+      query.limit(limit);
+    }
+
+    const m = await query;
 
     if (m === null) {
       throw new ServerError('Mötessökningen misslyckades');
     }
+
+    validateNonEmptyArray(m, 'Hittade inga möten');
 
     return m;
   }

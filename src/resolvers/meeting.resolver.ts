@@ -41,16 +41,12 @@ const meetingResolver: Resolvers = {
       return reduce(m, meetingReduce);
     },
     meetings: async (_, params) => {
-      const safeParams: StrictObject = params;
-      Object.keys(safeParams).forEach(p => p ?? undefined);
-      const m = await api.getMultipleMeetings(safeParams);
+      const strictParams: StrictObject = params;
+      const m = await api.getMultipleMeetings(strictParams);
       return reduce(m, meetingReduce);
     },
     latestBoardMeetings: async (_, { limit }) => {
-      if (limit == null) {
-        throw new BadRequestError('limit måste vara en int');
-      }
-      const m = await api.getLatestBoardMeetings(limit);
+      const m = await api.getLatestBoardMeetings(limit ?? undefined);
       return reduce(m, meetingReduce);
     },
   },
