@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
 
 import { UnauthenticatedError } from './errors/RequestErrors';
@@ -130,3 +130,13 @@ export const invalidateToken = (token: string): void => {
 export const invalidateTokens = (...tokens: string[]) => {
   tokens.forEach(invalidateToken);
 };
+
+/**
+ * Hashar en string tillsammans med dagens secret
+ * @param s Stringen att hasha
+ * @returns Hash
+ */
+export const hashWithSecret = (s: string) =>
+  createHash('sha256')
+    .update(s + SECRET('refreshToken'))
+    .digest('hex');

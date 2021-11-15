@@ -14,9 +14,10 @@ type Mutation {
   requestPasswordReset(username: String!): Boolean!
   validatePasswordResetToken(username: String!, token: String!): Boolean!
   resetPassword(username: String!, token: String!, password: String!): Boolean!
+  casCreateUser(input: NewUser!, hash: String!): Boolean!
 }
 
-type User {
+type User { 
   username: String!
 
   firstName: String!
@@ -55,6 +56,7 @@ input NewUser {
   firstName: String!
   lastName: String!
   class: String!
+  email: String
   password: String!
   isFuncUser: Boolean
 }

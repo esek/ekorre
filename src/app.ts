@@ -50,7 +50,7 @@ export const schema = mergeSchemas({
 const app = express();
 
 const corsOptions: CorsOptions = {
-  origin: ['http://localhost:3000', ...CORS.ALLOWED_ORIGINS],
+  origin: CORS.ALLOWED_ORIGINS,
   credentials: true,
 };
 
@@ -74,10 +74,13 @@ const server = new ApolloServer({
     const accessToken = req.cookies[COOKIES.accessToken] ?? '';
     const refreshToken = req.cookies[COOKIES.refreshToken] ?? '';
 
+    // console.log({ accessToken, refreshToken });
+
     return {
       accessToken,
       refreshToken,
       response: res,
+      request: req,
       getUser: () => verifyToken<User>(accessToken, 'accessToken'),
       userDataLoader: createDataLoader(batchUsersFunction),
       postDataLoader: createDataLoader(batchPostsFunction),
