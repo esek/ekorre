@@ -1,0 +1,13 @@
+{
+  // Denna tsconfig ska användas som `--project`-parameter
+  // då tsc används, för att bara src/ ska transpileras
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "src/modules/*.ignore",
+    "test/**/*.ts"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ]
+}

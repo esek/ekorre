@@ -192,7 +192,7 @@ export class UserAPI {
     }
 
     const res = await knex<DatabaseUser>(USER_TABLE).where('username', username).update(partial);
-    
+
     if (res <= 0) {
       throw new BadRequestError('Något gick fel');
     }

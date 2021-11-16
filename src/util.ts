@@ -20,7 +20,7 @@ export const toUTC = (d: Date) =>
 /**
  * Removes unused keys from an object. Is needed before some
  * knex operations with `obj`
- * @param obj 
+ * @param obj
  */
 export const stripObject = <E, T extends E>(obj: E): Partial<T> => {
   // Ts låter en inte indexera nycklar i params med foreach,

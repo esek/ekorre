@@ -97,7 +97,6 @@ test('creating, verifying and invalidating refreshToken', () => {
 
   expect(() => verifyToken(token, 'refreshToken')).toThrowError();
 
-
   // jwt.verify() ska inte ha kallats en gång till
   expect(verifySpy).toHaveBeenCalledTimes(1);
 

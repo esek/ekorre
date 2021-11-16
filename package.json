@@ -5,7 +5,7 @@
   "main": "src/app.ts",
   "scripts": {
     "run": "node build/app.js",
-    "build": "tsc",
+    "build": "tsc --project ./tsconfig.build.json",
     "prestart": "npm run build",
     "start": "npm run run",
     "dev": "nodemon -e ts,graphql --watch src --exec \"node --nolazy --inspect -r ts-node/register src/app.ts\"",
