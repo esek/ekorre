@@ -1,0 +1,13 @@
+"use strict";
+exports.__esModule = true;
+exports.MEETING_TABLE = exports.ACCESS_RESOURCES_TABLE = exports.PASSWORD_RESET_TABLE = exports.FILES_TABLE = exports.ARTICLE_TABLE = exports.POSTS_HISTORY_TABLE = exports.POSTS_TABLE = exports.IND_ACCESS_TABLE = exports.POST_ACCESS_TABLE = exports.USER_TABLE = void 0;
+exports.USER_TABLE = 'Users';
+exports.POST_ACCESS_TABLE = 'PostAccess';
+exports.IND_ACCESS_TABLE = 'IndividualAccess';
+exports.POSTS_TABLE = 'Posts';
+exports.POSTS_HISTORY_TABLE = 'PostHistory';
+exports.ARTICLE_TABLE = 'Articles';
+exports.FILES_TABLE = 'Files';
+exports.PASSWORD_RESET_TABLE = 'PasswordReset';
+exports.ACCESS_RESOURCES_TABLE = 'AccessResources';
+exports.MEETING_TABLE = 'Meetings';
