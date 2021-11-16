@@ -71,10 +71,9 @@
   },
   "exclude": [
     "node_modules",
-    "src/modules/*.ignore"
+    "src/modules/*.ignore",
   ],
   "include": [
     "src/**/*.ts",
-    "test/**/*.ts",
   ]
 }

@@ -4,7 +4,7 @@
   "description": "E-Sektionens backend",
   "main": "src/app.ts",
   "scripts": {
-    "run": "node build/src/app.js",
+    "run": "node build/app.js",
     "build": "tsc",
     "prestart": "npm run build",
     "start": "npm run run",
