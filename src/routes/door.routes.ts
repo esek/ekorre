@@ -14,7 +14,7 @@ doorsRoute.get('/', async (_req, res) => {
 
     return res.send({
       status: 'success',
-      data: doors.map((d) => ({ name: d.name, id: d.id })),
+      data: doors.map((d) => ({ name: d.name, slug: d.slug })),
     });
   } catch {
     return res.send({

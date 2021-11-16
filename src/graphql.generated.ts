@@ -17,6 +17,7 @@ export type Scalars = {
 };
 
 
+
 /** Access will be treated as a immutable object! */
 export type Access = {
   doors: Array<AccessResource>;
@@ -25,9 +26,9 @@ export type Access = {
 
 export type AccessResource = {
   description: Scalars['String'];
-  id: Scalars['Int'];
   name: Scalars['String'];
   resourceType: AccessResourceType;
+  slug: Scalars['String'];
 };
 
 export enum AccessResourceType {
@@ -181,7 +182,7 @@ export type ModifyPost = {
 };
 
 export type Mutation = {
-  addAccessResource: AccessResource;
+  addAccessResource: Scalars['Boolean'];
   addArticle?: Maybe<Article>;
   addFileToMeeting: Scalars['Boolean'];
   addMeeting: Scalars['Boolean'];
@@ -293,7 +294,7 @@ export type MutationModifyPostArgs = {
 
 
 export type MutationRemoveAccessResourceArgs = {
-  id: Scalars['Int'];
+  slug: Scalars['String'];
 };
 
 
@@ -437,7 +438,7 @@ export type Query = {
 
 
 export type QueryAccessResourceArgs = {
-  id: Scalars['Int'];
+  slug: Scalars['String'];
 };
 
 
@@ -674,7 +675,6 @@ export type ResolversTypes = ResolversObject<{
   Access: ResolverTypeWrapper<Access>;
   AccessResource: ResolverTypeWrapper<AccessResource>;
   String: ResolverTypeWrapper<Scalars['String']>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
   AccessResourceType: AccessResourceType;
   AccessType: AccessType;
   Article: ResolverTypeWrapper<ArticleResponse>;
@@ -685,6 +685,7 @@ export type ResolversTypes = ResolversObject<{
   Date: ResolverTypeWrapper<Scalars['Date']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   File: ResolverTypeWrapper<FileResponse>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   FileType: FileType;
@@ -714,7 +715,6 @@ export type ResolversParentTypes = ResolversObject<{
   Access: Access;
   AccessResource: AccessResource;
   String: Scalars['String'];
-  Int: Scalars['Int'];
   Article: ArticleResponse;
   ID: Scalars['ID'];
   CasLoginResponse: CasLoginResponse;
@@ -722,6 +722,7 @@ export type ResolversParentTypes = ResolversObject<{
   Date: Scalars['Date'];
   DateTime: Scalars['DateTime'];
   File: FileResponse;
+  Int: Scalars['Int'];
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
   HistoryEntry: HistoryEntry;
@@ -745,6 +746,10 @@ export type AuthRequiredDirectiveArgs = {  };
 
 export type AuthRequiredDirectiveResolver<Result, Parent, ContextType = Context, Args = AuthRequiredDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
 
+export type WithPermissionsDirectiveArgs = {   roles: Array<Scalars['String']>; };
+
+export type WithPermissionsDirectiveResolver<Result, Parent, ContextType = Context, Args = WithPermissionsDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
+
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
   doors?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType>;
   web?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType>;
@@ -753,9 +758,9 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 
 export type AccessResourceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessResource'] = ResolversParentTypes['AccessResource']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   resourceType?: Resolver<ResolversTypes['AccessResourceType'], ParentType, ContextType>;
+  slug?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -843,7 +848,7 @@ export type MeetingResolvers<ContextType = Context, ParentType extends Resolvers
 }>;
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  addAccessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType'>>;
+  addAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType'>>;
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'fileId' | 'fileType' | 'meetingId'>>;
   addMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
@@ -858,7 +863,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
-  removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'id'>>;
+  removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'slug'>>;
   removeFileFromMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveFileFromMeetingArgs, 'fileType' | 'meetingId'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'postname' | 'usernames'>>;
@@ -884,7 +889,7 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  accessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<QueryAccessResourceArgs, 'id'>>;
+  accessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<QueryAccessResourceArgs, 'slug'>>;
   accessResources?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType, RequireFields<QueryAccessResourcesArgs, never>>;
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
@@ -958,6 +963,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
 export type IResolvers<ContextType = Context> = Resolvers<ContextType>;
 export type DirectiveResolvers<ContextType = Context> = ResolversObject<{
   authRequired?: AuthRequiredDirectiveResolver<any, any, ContextType>;
+  withPermissions?: WithPermissionsDirectiveResolver<any, any, ContextType>;
 }>;
 
 

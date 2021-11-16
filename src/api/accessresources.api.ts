@@ -1,4 +1,4 @@
-import { NotFoundError, ServerError } from '../errors/RequestErrors';
+import { NotFoundError } from '../errors/RequestErrors';
 import { AccessResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
 import { DatabaseAccessResource } from '../models/db/resource';
@@ -18,14 +18,14 @@ class ResourcesAPI {
     return q;
   }
 
-  async getResource(id: number): Promise<DatabaseAccessResource> {
+  async getResource(slug: string): Promise<DatabaseAccessResource> {
     const resouce = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
-      .where('id', id)
+      .where('slug', slug)
       .first();
 
     if (!resouce) {
-      logger.error(`Resource with id ${id} not found`);
-      throw new NotFoundError(`Resource with id ${id} not found`);
+      logger.error(`Resource with slug ${slug} not found`);
+      throw new NotFoundError(`Resource with slug ${slug} not found`);
     }
 
     return resouce;
@@ -35,32 +35,26 @@ class ResourcesAPI {
     name: string,
     description: string,
     resourceType: AccessResourceType,
-  ): Promise<DatabaseAccessResource> {
-    const [id] = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).insert({
+  ): Promise<boolean> {
+    const [slug] = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).insert({
       description,
       name,
       resourceType,
     });
 
-    if (!id) {
-      const errStr = `Failed to add resource with name ${name}`;
-      logger.error(errStr);
-      throw new ServerError(errStr);
+    if (!slug) {
+      logger.error(`Failed to add resource with name ${name}`);
+      throw new NotFoundError(`Resursen ${slug} kunde inte hittas`);
     }
 
-    return {
-      id,
-      name,
-      description,
-      resourceType,
-    };
+    return true;
   }
 
-  async removeResouce(id: number): Promise<boolean> {
-    const res = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).where('id', id).delete();
+  async removeResouce(slug: string): Promise<boolean> {
+    const res = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).where('slug', slug).delete();
 
     if (!res) {
-      logger.error(`Failed to remove resource with id ${id}`);
+      logger.error(`Failed to remove resource with slug ${slug}`);
       return false;
     }
 

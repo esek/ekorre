@@ -5,7 +5,7 @@
 scalar Date
 
 type Query {
-  user(username: String!): User @withPermissions(roles: ["Test123"])
+  user(username: String!): User @withPermissions(roles: ["user-admin"])
   me: Me @authRequired 
 }
 

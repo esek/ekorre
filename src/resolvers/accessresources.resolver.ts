@@ -5,7 +5,7 @@ const resourcesAPI = new AccessResourcesAPI();
 
 const doorResolver: Resolvers = {
   Query: {
-    accessResource: async (_, { id }) => resourcesAPI.getResource(id),
+    accessResource: async (_, { slug }) => resourcesAPI.getResource(slug),
     accessResources: async (_, { type }) => {
       const safeType = type ?? undefined;
       const resources = await resourcesAPI.getResources(safeType);
@@ -14,11 +14,9 @@ const doorResolver: Resolvers = {
     },
   },
   Mutation: {
-    addAccessResource: async (_, { name, description, resourceType }) => {
-      const door = await resourcesAPI.addResource(name, description, resourceType);
-      return door;
-    },
-    removeAccessResource: async (_, { id }) => resourcesAPI.removeResouce(id),
+    addAccessResource: async (_, { name, description, resourceType }) =>
+      resourcesAPI.addResource(name, description, resourceType),
+    removeAccessResource: async (_, { slug }) => resourcesAPI.removeResouce(slug),
   },
 };
 

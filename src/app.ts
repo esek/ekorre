@@ -4,6 +4,7 @@ import cors, { CorsOptions } from 'cors';
 import 'dotenv/config';
 import express from 'express';
 import { DateResolver } from 'graphql-scalars';
+
 import { GraphQLFileLoader } from '../node_modules/@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '../node_modules/@graphql-tools/load';
 import { makeExecutableSchema } from '../node_modules/@graphql-tools/schema';
@@ -46,7 +47,7 @@ const typeDefs = loadSchemaSync('./src/schemas/*.graphql', {
 const resolvers = Object.entries(Resolvers).map(([_, value]) => value);
 
 // Konstruera root schema. VIKTIGT! Det senaste schemat kommer skugga andra.
-export let schema = makeExecutableSchema({
+let schema = makeExecutableSchema({
   typeDefs,
   resolvers,
 });
@@ -56,7 +57,6 @@ export let schema = makeExecutableSchema({
  */
 schema = authDirectiveTransformer(schema);
 schema = permissionsDirectiveTransformer(schema);
-
 
 (async () => {
   // Starta server.
@@ -94,12 +94,11 @@ schema = permissionsDirectiveTransformer(schema);
         request: req,
         getUsername: () => {
           try {
-          const {username} = verifyToken<TokenValue>(accessToken, 'accessToken');
-          return username;
-        }
-        catch {
-          return '';
-        }
+            const { username } = verifyToken<TokenValue>(accessToken, 'accessToken');
+            return username;
+          } catch {
+            return '';
+          }
         },
         userDataLoader: createDataLoader(batchUsersFunction),
         postDataLoader: createDataLoader(batchPostsFunction),
@@ -111,6 +110,7 @@ schema = permissionsDirectiveTransformer(schema);
       {
         requestDidStart: async ({ request }) => {
           apolloLogger.info(request);
+          return Promise.resolve();
         },
       },
     ],
@@ -124,5 +124,4 @@ schema = permissionsDirectiveTransformer(schema);
   app.listen(PORT, HOST, () => {
     logger.log(`Server started on http://${HOST}:${PORT}`);
   });
-
 })();
