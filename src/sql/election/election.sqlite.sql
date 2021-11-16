@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS "Elections" (
   "openedAt" TIMESTAMP,
   "closedAt" TIMESTAMP,
   "open" BOOLEAN NOT NULL,
+  "responsesHidden" BOOLEAN DEFAULT 0,
   FOREIGN KEY("refcreator") REFERENCES "Users"("username")
 );

@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS "Proposals" (
   "refelection" TEXT NOT NULL,
   FOREIGN KEY("refuser") REFERENCES "Users"("username"),
   FOREIGN KEY("refpost") REFERENCES "Posts"("postname"),
-  FOREIGN KEY("refelection") REFERENCES "Elections"("id")
+  FOREIGN KEY("refelection") REFERENCES "Elections"("id"),
+  CONSTRAINT "uniqueProposal" UNIQUE ("refuser", "refpost", "refelection")
 );
