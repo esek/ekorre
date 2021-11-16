@@ -1,6 +1,6 @@
 {
   // Denna tsconfig ska användas som `--project`-parameter
-  // då tsc används
+  // då tsc används, för att bara src/ ska transpileras
   "extends": "./tsconfig.base.json",
   "exclude": [
     "node_modules",

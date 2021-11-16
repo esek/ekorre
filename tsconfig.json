@@ -1,4 +1,6 @@
 {
+  // Detta är default tsconfig.ts, och används av bl.a. `npm run dev`
+  // och eslint. Vid kompilering ska `tsconfig.build.json` användas
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
 
