@@ -14,8 +14,8 @@ export type FileResponse = Partial<Omit<File, 'createdBy'>> & {
   createdBy: Partial<User>;
 };
 
-export type MeetingResponse = Partial<
-Omit<Meeting, 'summons' | 'documents' | 'lateDocuments' | 'protocol'>
+// prettier-ignore
+export type MeetingResponse = Partial<Omit<Meeting, 'summons' | 'documents' | 'lateDocuments' | 'protocol'>
 > & {
   summons?: Partial<File>;
   documents?: Partial<File>;
