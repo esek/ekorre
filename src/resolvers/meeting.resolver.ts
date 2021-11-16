@@ -1,5 +1,4 @@
 import { MeetingAPI } from '../api/meeting.api';
-import { BadRequestError } from '../errors/RequestErrors';
 import type { Resolvers } from '../graphql.generated';
 import { StrictObject } from '../models/base';
 import { reduce } from '../reducers';

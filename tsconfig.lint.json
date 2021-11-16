@@ -1,0 +1,13 @@
+{
+  // Denna tsconfig ska användas `project`
+  // för eslint
+  "extends": "./tsconfig.base.json",
+  "exclude": [
+    "node_modules",
+    "src/modules/*.ignore",
+  ],
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts"
+  ]
+}
