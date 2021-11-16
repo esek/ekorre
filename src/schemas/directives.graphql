@@ -1,0 +1,4 @@
+directive @authRequired on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+directive @withPermissions(
+	roles: [String!]!
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION

@@ -1,16 +1,16 @@
 import { ExpressContext } from 'apollo-server-express';
 import type DataLoader from 'dataloader';
 import { Request, Response } from 'express';
-
-import type { User, Post } from '../graphql.generated';
+import type { Post, User } from '../graphql.generated';
 import type { FileResponse } from '../models/mappers';
+
 
 export type Context = {
   accessToken: string;
   refreshToken: string;
   response: Response;
   request: CustomReq;
-  getUser: () => User;
+  getUsername: () => string;
   userDataLoader: DataLoader<string, User>;
   postDataLoader: DataLoader<string, Post>;
   fileDataLoader: DataLoader<string, FileResponse>;

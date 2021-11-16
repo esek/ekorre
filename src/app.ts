@@ -4,17 +4,21 @@ import cors, { CorsOptions } from 'cors';
 import 'dotenv/config';
 import express from 'express';
 import { DateResolver } from 'graphql-scalars';
-import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
-
+import { GraphQLFileLoader } from '../node_modules/@graphql-tools/graphql-file-loader';
+import { loadSchemaSync } from '../node_modules/@graphql-tools/load';
+import { makeExecutableSchema } from '../node_modules/@graphql-tools/schema';
+// import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import { COOKIES, verifyToken } from './auth';
 import config from './config';
 import { createDataLoader } from './dataloaders';
 import { batchFilesFunction } from './dataloaders/file.dataloader';
 import { batchPostsFunction } from './dataloaders/post.dataloader';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
-import type { User } from './graphql.generated';
 import { Logger } from './logger';
+import { authDirectiveTransformer } from './middlewares/graphql/auth.directive';
 import { errorHandler } from './middlewares/graphql/errorhandler.middleware';
+import { permissionsDirectiveTransformer } from './middlewares/graphql/permissions.directive';
+import { TokenValue } from './models/auth';
 import type { Context, ContextParams } from './models/context';
 import * as Resolvers from './resolvers/index';
 import authRoute from './routes/auth.routes';
@@ -31,7 +35,7 @@ const logger = Logger.getLogger('App');
 logger.log('Beginning startup...');
 
 // Ladda alla scheman från .graphql filer
-const schemas = loadSchemaSync('./src/schemas/*.graphql', {
+const typeDefs = loadSchemaSync('./src/schemas/*.graphql', {
   loaders: [new GraphQLFileLoader()],
   resolvers: {
     Date: DateResolver,
@@ -42,66 +46,83 @@ const schemas = loadSchemaSync('./src/schemas/*.graphql', {
 const resolvers = Object.entries(Resolvers).map(([_, value]) => value);
 
 // Konstruera root schema. VIKTIGT! Det senaste schemat kommer skugga andra.
-export const schema = mergeSchemas({
-  schemas: [schemas],
+export let schema = makeExecutableSchema({
+  typeDefs,
   resolvers,
 });
 
-// Starta server.
-const app = express();
+/**
+ * Apply schema transformation for directives
+ */
+schema = authDirectiveTransformer(schema);
+schema = permissionsDirectiveTransformer(schema);
 
-const corsOptions: CorsOptions = {
-  origin: CORS.ALLOWED_ORIGINS,
-  credentials: true,
-};
 
-app.use(cookieparser());
+(async () => {
+  // Starta server.
+  const app = express();
 
-app.use(cors(corsOptions));
+  const corsOptions: CorsOptions = {
+    origin: CORS.ALLOWED_ORIGINS,
+    credentials: true,
+  };
 
-// Setup files endpoint for REST-file handling
-app.use(FILES.ENDPOINT, filesRoute);
+  app.use(cookieparser());
 
-// Doors endpoint used by LU to give access
-app.use('/doors', doorsRoute);
+  app.use(cors(corsOptions));
 
-app.use('/auth', authRoute);
+  // Setup files endpoint for REST-file handling
+  app.use(FILES.ENDPOINT, filesRoute);
 
-const apolloLogger = Logger.getLogger('Apollo');
+  // Doors endpoint used by LU to give access
+  app.use('/doors', doorsRoute);
 
-const server = new ApolloServer({
-  schema,
-  context: ({ req, res }: ContextParams): Context => {
-    const accessToken = req.cookies[COOKIES.accessToken] ?? '';
-    const refreshToken = req.cookies[COOKIES.refreshToken] ?? '';
+  app.use('/auth', authRoute);
 
-    // console.log({ accessToken, refreshToken });
+  const apolloLogger = Logger.getLogger('Apollo');
 
-    return {
-      accessToken,
-      refreshToken,
-      response: res,
-      request: req,
-      getUser: () => verifyToken<User>(accessToken, 'accessToken'),
-      userDataLoader: createDataLoader(batchUsersFunction),
-      postDataLoader: createDataLoader(batchPostsFunction),
-      fileDataLoader: createDataLoader(batchFilesFunction),
-    };
-  },
-  debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
-  plugins: [
-    {
-      requestDidStart({ request }) {
-        apolloLogger.info(request);
-      },
+  const server = new ApolloServer({
+    schema,
+    context: ({ req, res }: ContextParams): Context => {
+      const accessToken = req.cookies[COOKIES.accessToken] ?? '';
+      const refreshToken = req.cookies[COOKIES.refreshToken] ?? '';
+
+      return {
+        accessToken,
+        refreshToken,
+        response: res,
+        request: req,
+        getUsername: () => {
+          try {
+          const {username} = verifyToken<TokenValue>(accessToken, 'accessToken');
+          return username;
+        }
+        catch {
+          return '';
+        }
+        },
+        userDataLoader: createDataLoader(batchUsersFunction),
+        postDataLoader: createDataLoader(batchPostsFunction),
+        fileDataLoader: createDataLoader(batchFilesFunction),
+      };
     },
-  ],
-  tracing: true,
-  formatError: errorHandler,
-});
+    debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
+    plugins: [
+      {
+        requestDidStart: async ({ request }) => {
+          apolloLogger.info(request);
+        },
+      },
+    ],
+    formatError: errorHandler,
+  });
 
-server.applyMiddleware({ app, path: '/', cors: corsOptions });
+  await server.start();
 
-app.listen(PORT, HOST, () => {
-  logger.log(`Server started on http://${HOST}:${PORT}`);
-});
+  server.applyMiddleware({ app, path: '/', cors: corsOptions });
+
+  app.listen(PORT, HOST, () => {
+    logger.log(`Server started on http://${HOST}:${PORT}`);
+  });
+
+})();
