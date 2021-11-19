@@ -76,7 +76,7 @@ export const verifyFileReadAccess =
       // return null if file doesn't exist
       const file = await api.getFileData(id).catch((_) => null);
 
-      if (!file) {
+      if (file == null) {
         logger.debug(`Could not find file '${id}' in DB`);
         res.status(404).send();
         return;
@@ -102,7 +102,7 @@ export const verifyFileReadAccess =
           return;
         }
 
-        // If none of the above verifications succeeded, user is not authorized
+        // If none of tgithe above verifications succeeded, user is not authorized
         throw new UnauthenticatedError('Du har inte access');
       } catch (error) {
         // Return 403 if no token was provided or it verification failed
