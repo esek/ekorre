@@ -219,3 +219,18 @@ test('updating non-existant user', async () => {
     BadRequestError,
   );
 });
+
+test('search for users by username that exists', async () => {
+  await api.createUser(mockNewUser1);
+  expect((await api.searchUser('Test1')).length).toBe(1);
+  expect((await api.searchUser('Test')).length).toBe(2);
+});
+
+test('search for user by name that exists', async () => {
+  await api.createUser(mockNewUser1);
+  expect((await api.searchUser('kalle')).length).toBe(1);
+});
+
+test('search for non existing user', async () => {
+  await expect(api.searchUser('Albert')).rejects.toThrow('Inga användare hittades');
+});
