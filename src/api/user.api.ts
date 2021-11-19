@@ -79,6 +79,17 @@ export class UserAPI {
     return u;
   }
 
+  async searchUser(search: string): Promise<DatabaseUser[]> {
+    const users = await knex<DatabaseUser>(USER_TABLE)
+      .where('username', 'like', `%${search}%`)
+      .orWhere('firstName', 'like', `%${search}%`)
+      .orWhere('lastName', 'like', `%${search}%`);
+
+    validateNonEmptyArray(users, 'Inga användare hittades');
+
+    return users;
+  }
+
   /**
    * Kontrollera ifall inloggningen är korrekt och returnera användaren.
    * @param username användarnamnet
