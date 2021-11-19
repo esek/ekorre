@@ -1,3 +1,6 @@
+import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
+import { loadSchemaSync } from '@graphql-tools/load';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { ApolloServer } from 'apollo-server-express';
 import cookieparser from 'cookie-parser';
 import cors, { CorsOptions } from 'cors';
@@ -5,9 +8,6 @@ import 'dotenv/config';
 import express from 'express';
 import { DateResolver } from 'graphql-scalars';
 
-import { GraphQLFileLoader } from '../node_modules/@graphql-tools/graphql-file-loader';
-import { loadSchemaSync } from '../node_modules/@graphql-tools/load';
-import { makeExecutableSchema } from '../node_modules/@graphql-tools/schema';
 // import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import { COOKIES, verifyToken } from './auth';
 import config from './config';
