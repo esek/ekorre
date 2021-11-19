@@ -7,6 +7,7 @@ type Query {
   files(type: FileType): [File!]!
   file(id: ID!): File!
   fileSystem(folder: String!): FileSystemResponse!
+  searchFiles(search: String!): [File!]!
 }
 
 
