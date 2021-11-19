@@ -223,7 +223,7 @@ test('updating non-existant user', async () => {
 test('search for users by username that exists', async () => {
   await api.createUser(mockNewUser1);
   expect((await api.searchUser('Test1')).length).toBe(1);
-  expect((await api.searchUser('Test')).length).toBe(2);
+  expect((await api.searchUser('userapi')).length).toBe(2);
 });
 
 test('search for user by name that exists', async () => {
