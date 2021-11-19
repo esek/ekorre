@@ -32,7 +32,9 @@ export const permissionsDirectiveTransformer = useDirective<Args>(
     // Check that the slugs contains at least of the needed roles
     // OR that the user is a super admin
     if (!roles.some((r) => slugs.includes(r)) && !slugs.includes(SUPER_ADMIN)) {
-      throw new ForbiddenError('Du har inte tillgång till denna resurs');
+      throw new ForbiddenError(
+        `Du måste ha någon av rollerna: [${roles.join(',')}] för att komma åt denna resursen`,
+      );
     }
 
     return resolve();
