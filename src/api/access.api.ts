@@ -1,8 +1,11 @@
 import { Logger } from '../logger';
 import type { DatabaseAccess } from '../models/db/access';
+import { DatabaseAccessMapping } from '../models/db/accessmapping';
 import { DatabasePostHistory } from '../models/db/post';
 import { DatabaseAccessResource } from '../models/db/resource';
+import { validateNonEmptyArray } from '../services/validation.service';
 import {
+  ACCESS_MAPPINGS_TABLE,
   ACCESS_RESOURCES_TABLE,
   IND_ACCESS_TABLE,
   POSTS_HISTORY_TABLE,
@@ -143,5 +146,22 @@ export class AccessAPI {
     const post = await this.getUserPostAccess(username);
 
     return [...individual, ...post];
+  }
+
+  async getAccessMapping(
+    resolverType: string,
+    resolverName: string,
+  ): Promise<DatabaseAccessMapping[]> {
+    const resources = await knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE).where({
+      resolverType,
+      resolverName,
+    });
+
+    validateNonEmptyArray(
+      resources,
+      `Ingen accessmappning finns för ${resolverType} ${resolverName}`,
+    );
+
+    return resources;
   }
 }

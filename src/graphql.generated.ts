@@ -16,8 +16,6 @@ export type Scalars = {
   DateTime: any;
 };
 
-
-
 /** Access will be treated as a immutable object! */
 export type Access = {
   doors: Array<AccessResource>;
@@ -742,14 +740,6 @@ export type ResolversParentTypes = ResolversObject<{
   UserPostHistoryEntry: UserPostHistoryEntry;
 }>;
 
-export type AuthRequiredDirectiveArgs = {  };
-
-export type AuthRequiredDirectiveResolver<Result, Parent, ContextType = Context, Args = AuthRequiredDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
-
-export type WithPermissionsDirectiveArgs = {   roles: Array<Scalars['String']>; };
-
-export type WithPermissionsDirectiveResolver<Result, Parent, ContextType = Context, Args = WithPermissionsDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
-
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
   doors?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType>;
   web?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType>;
@@ -961,14 +951,3 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
  * Use "Resolvers" root object instead. If you wish to get "IResolvers", add "typesPrefix: I" to your config.
  */
 export type IResolvers<ContextType = Context> = Resolvers<ContextType>;
-export type DirectiveResolvers<ContextType = Context> = ResolversObject<{
-  authRequired?: AuthRequiredDirectiveResolver<any, any, ContextType>;
-  withPermissions?: WithPermissionsDirectiveResolver<any, any, ContextType>;
-}>;
-
-
-/**
- * @deprecated
- * Use "DirectiveResolvers" root object instead. If you wish to get "IDirectiveResolvers", add "typesPrefix: I" to your config.
- */
-export type IDirectiveResolvers<ContextType = Context> = DirectiveResolvers<ContextType>;

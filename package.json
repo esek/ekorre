@@ -48,6 +48,7 @@
     "express": "^4.17.1",
     "express-fileupload": "^1.2.1",
     "graphql": "^15.3.0",
+    "graphql-middleware": "^6.1.12",
     "graphql-scalars": "^1.13.6",
     "jsdom": "^16.5.2",
     "jsonwebtoken": "^8.5.1",

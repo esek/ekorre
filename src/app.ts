@@ -6,6 +6,7 @@ import cookieparser from 'cookie-parser';
 import cors, { CorsOptions } from 'cors';
 import 'dotenv/config';
 import express from 'express';
+import { applyMiddleware } from 'graphql-middleware';
 import { DateResolver } from 'graphql-scalars';
 
 // import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
@@ -16,9 +17,8 @@ import { batchFilesFunction } from './dataloaders/file.dataloader';
 import { batchPostsFunction } from './dataloaders/post.dataloader';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
 import { Logger } from './logger';
-import { authDirectiveTransformer } from './middlewares/graphql/auth.directive';
+import { checkAuthMiddleware } from './middlewares/graphql/auth.middleware';
 import { errorHandler } from './middlewares/graphql/errorhandler.middleware';
-import { permissionsDirectiveTransformer } from './middlewares/graphql/permissions.directive';
 import { TokenValue } from './models/auth';
 import type { Context, ContextParams } from './models/context';
 import * as Resolvers from './resolvers/index';
@@ -47,16 +47,10 @@ const typeDefs = loadSchemaSync('./src/schemas/*.graphql', {
 const resolvers = Object.entries(Resolvers).map(([_, value]) => value);
 
 // Konstruera root schema. VIKTIGT! Det senaste schemat kommer skugga andra.
-let schema = makeExecutableSchema({
+const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
 });
-
-/**
- * Apply schema transformation for directives
- */
-schema = authDirectiveTransformer(schema);
-schema = permissionsDirectiveTransformer(schema);
 
 (async () => {
   // Starta server.
@@ -82,7 +76,7 @@ schema = permissionsDirectiveTransformer(schema);
   const apolloLogger = Logger.getLogger('Apollo');
 
   const server = new ApolloServer({
-    schema,
+    schema: applyMiddleware(schema, checkAuthMiddleware),
     context: ({ req, res }: ContextParams): Context => {
       const accessToken = req.cookies[COOKIES.accessToken] ?? '';
       const refreshToken = req.cookies[COOKIES.refreshToken] ?? '';

@@ -1,12 +1,11 @@
 # import Post, UserPostHistoryEntry from 'post.graphql'
 # import Access from 'access.graphql'
-# import authRequired, withPermissions from 'directives.graphql'
 
 scalar Date
 
 type Query {
-  user(username: String!): User @withPermissions(roles: ["user-admin"])
-  me: Me @authRequired 
+  user(username: String!): User
+  me: Me
 }
 
 type Mutation {
