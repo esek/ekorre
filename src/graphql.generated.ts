@@ -135,6 +135,7 @@ export type QueryPostAccessArgs = {
 
 export type QueryPostsArgs = {
   utskott?: Maybe<Utskott>;
+  includeInactive: Scalars['Boolean'];
 };
 
 
@@ -164,6 +165,7 @@ export type Access = {
 };
 
 export type Mutation = {
+  activatePost: Scalars['Boolean'];
   addAccessResource: AccessResource;
   addArticle?: Maybe<Article>;
   addFileToMeeting: Scalars['Boolean'];
@@ -174,6 +176,7 @@ export type Mutation = {
   casLogin: CasLoginResponse;
   createFolder: Scalars['Boolean'];
   createUser: Scalars['Boolean'];
+  deactivatePost: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
   /** Test user credentials and if valid get a jwt token */
   login?: Maybe<User>;
@@ -190,6 +193,11 @@ export type Mutation = {
   setPostAccess: Scalars['Boolean'];
   updateUser: Scalars['Boolean'];
   validatePasswordResetToken: Scalars['Boolean'];
+};
+
+
+export type MutationActivatePostArgs = {
+  postname: Scalars['String'];
 };
 
 
@@ -250,6 +258,11 @@ export type MutationCreateFolderArgs = {
 
 export type MutationCreateUserArgs = {
   input: NewUser;
+};
+
+
+export type MutationDeactivatePostArgs = {
+  postname: Scalars['String'];
 };
 
 
@@ -769,7 +782,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
-  posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, never>>;
+  posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, 'includeInactive'>>;
   searchFiles?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QuerySearchFilesArgs, 'search'>>;
   searchUser?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySearchUserArgs, 'search'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
@@ -783,6 +796,7 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 }>;
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  activatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationActivatePostArgs, 'postname'>>;
   addAccessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType'>>;
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'meetingId' | 'fileId' | 'fileType'>>;
@@ -793,6 +807,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'path' | 'name'>>;
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
+  deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'postname'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
   login?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
