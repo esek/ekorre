@@ -29,7 +29,6 @@ export type Query = {
   latestBoardMeetings: Array<Maybe<Meeting>>;
   latestElection?: Maybe<Election>;
   latestnews: Array<Maybe<Article>>;
-  /** Hurrdurr test */
   me?: Maybe<Me>;
   meeting?: Maybe<Meeting>;
   meetings: Array<Maybe<Meeting>>;
