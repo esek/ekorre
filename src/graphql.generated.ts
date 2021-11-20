@@ -21,19 +21,26 @@ export type Query = {
   accessResources: Array<AccessResource>;
   article?: Maybe<Article>;
   articles: Array<Maybe<Article>>;
+  electables: Array<Maybe<Post>>;
   file: File;
   fileSystem: FileSystemResponse;
   files: Array<File>;
   individualAccess?: Maybe<Access>;
   latestBoardMeetings: Array<Maybe<Meeting>>;
+  latestElection?: Maybe<Election>;
   latestnews: Array<Maybe<Article>>;
+  /** Hurrdurr test */
   me?: Maybe<Me>;
   meeting?: Maybe<Meeting>;
   meetings: Array<Maybe<Meeting>>;
   newsentries: Array<Maybe<Article>>;
+  nominations: Array<Maybe<Nomination>>;
+  numberOfNominations: Scalars['Int'];
+  openElection?: Maybe<Election>;
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
   posts?: Maybe<Array<Maybe<Post>>>;
+  proposals: Array<Maybe<Proposal>>;
   user?: Maybe<User>;
   utskott?: Maybe<Utskott>;
 };
@@ -67,6 +74,11 @@ export type QueryArticlesArgs = {
   tags?: Maybe<Array<Maybe<Scalars['String']>>>;
   articleType?: Maybe<Scalars['String']>;
   markdown?: Maybe<Scalars['Boolean']>;
+};
+
+
+export type QueryElectablesArgs = {
+  electionId: Scalars['ID'];
 };
 
 
@@ -121,6 +133,18 @@ export type QueryNewsentriesArgs = {
 };
 
 
+export type QueryNominationsArgs = {
+  electionId: Scalars['ID'];
+  postname?: Maybe<Scalars['String']>;
+};
+
+
+export type QueryNumberOfNominationsArgs = {
+  electionId: Scalars['ID'];
+  postname?: Maybe<Scalars['String']>;
+};
+
+
 export type QueryPostArgs = {
   name: Scalars['String'];
 };
@@ -133,6 +157,12 @@ export type QueryPostAccessArgs = {
 
 export type QueryPostsArgs = {
   utskott?: Maybe<Utskott>;
+};
+
+
+export type QueryProposalsArgs = {
+  electionId: Scalars['ID'];
+  postname?: Maybe<Scalars['String']>;
 };
 
 
@@ -154,12 +184,15 @@ export type Access = {
 export type Mutation = {
   addAccessResource: AccessResource;
   addArticle?: Maybe<Article>;
+  addElectables: Scalars['Boolean'];
   addFileToMeeting: Scalars['Boolean'];
   addMeeting: Scalars['Boolean'];
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
   casCreateUser: Scalars['Boolean'];
   casLogin: CasLoginResponse;
+  closeElection: Scalars['Boolean'];
+  createElection: Scalars['Boolean'];
   createFolder: Scalars['Boolean'];
   createUser: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
@@ -168,12 +201,17 @@ export type Mutation = {
   logout?: Maybe<Scalars['Boolean']>;
   modifyArticle: Scalars['Boolean'];
   modifyPost: Scalars['Boolean'];
+  nominate: Scalars['Boolean'];
+  openElection: Scalars['Boolean'];
+  propose: Scalars['Boolean'];
   removeAccessResource: Scalars['Boolean'];
+  removeElectables: Scalars['Boolean'];
   removeFileFromMeeting: Scalars['Boolean'];
   removeMeeting: Scalars['Boolean'];
   removeUsersFromPost: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
+  respondToNomination: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
   updateUser: Scalars['Boolean'];
@@ -190,6 +228,11 @@ export type MutationAddAccessResourceArgs = {
 
 export type MutationAddArticleArgs = {
   entry: NewArticle;
+};
+
+
+export type MutationAddElectablesArgs = {
+  postnames?: Maybe<Array<Scalars['String']>>;
 };
 
 
@@ -230,6 +273,12 @@ export type MutationCasLoginArgs = {
 };
 
 
+export type MutationCreateElectionArgs = {
+  electables: Array<Maybe<Scalars['String']>>;
+  nominationsHidden: Scalars['Boolean'];
+};
+
+
 export type MutationCreateFolderArgs = {
   path: Scalars['String'];
   name: Scalars['String'];
@@ -263,8 +312,32 @@ export type MutationModifyPostArgs = {
 };
 
 
+export type MutationNominateArgs = {
+  electionId: Scalars['ID'];
+  username: Scalars['String'];
+  postname: Scalars['String'];
+};
+
+
+export type MutationOpenElectionArgs = {
+  electionId: Scalars['ID'];
+};
+
+
+export type MutationProposeArgs = {
+  electionId: Scalars['ID'];
+  username: Scalars['String'];
+  postname: Scalars['String'];
+};
+
+
 export type MutationRemoveAccessResourceArgs = {
   id: Scalars['Int'];
+};
+
+
+export type MutationRemoveElectablesArgs = {
+  postnames?: Maybe<Array<Scalars['String']>>;
 };
 
 
@@ -294,6 +367,14 @@ export type MutationResetPasswordArgs = {
   username: Scalars['String'];
   token: Scalars['String'];
   password: Scalars['String'];
+};
+
+
+export type MutationRespondToNominationArgs = {
+  electionId: Scalars['ID'];
+  username: Scalars['String'];
+  postname: Scalars['String'];
+  accepts: Scalars['Boolean'];
 };
 
 
@@ -455,6 +536,34 @@ export type CasLoginResponse = {
   username: Scalars['String'];
   hash?: Maybe<Scalars['String']>;
   exists: Scalars['Boolean'];
+};
+
+export type Election = {
+  id: Scalars['ID'];
+  creator: User;
+  createdAt: Scalars['DateTime'];
+  openedAt?: Maybe<Scalars['DateTime']>;
+  closedAt?: Maybe<Scalars['DateTime']>;
+  open: Scalars['Boolean'];
+  /** Which posts can be elected in the election */
+  electables: Array<Maybe<Post>>;
+  /** Whether the nominations and their responses are anonymous */
+  nominationsHidden: Scalars['Boolean'];
+};
+
+export type Nomination = {
+  user: User;
+  post: Post;
+  /**
+   * If this nomination has been accepted,
+   * `null` means no response has been given yet
+   */
+  accepted?: Maybe<Scalars['Boolean']>;
+};
+
+export type Proposal = {
+  user: User;
+  post: Post;
 };
 
 export enum FileType {
@@ -692,6 +801,9 @@ export type ResolversTypes = ResolversObject<{
   Utskott: Utskott;
   UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
   CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
+  Election: ResolverTypeWrapper<Election>;
+  Nomination: ResolverTypeWrapper<Nomination>;
+  Proposal: ResolverTypeWrapper<Proposal>;
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
@@ -728,6 +840,9 @@ export type ResolversParentTypes = ResolversObject<{
   HistoryEntry: HistoryEntry;
   UserPostHistoryEntry: UserPostHistoryEntry;
   CasLoginResponse: CasLoginResponse;
+  Election: Election;
+  Nomination: Nomination;
+  Proposal: Proposal;
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
@@ -745,19 +860,25 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   accessResources?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType, RequireFields<QueryAccessResourcesArgs, never>>;
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
+  electables?: Resolver<Array<Maybe<ResolversTypes['Post']>>, ParentType, ContextType, RequireFields<QueryElectablesArgs, 'electionId'>>;
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
   latestBoardMeetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryLatestBoardMeetingsArgs, never>>;
+  latestElection?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryMeetingsArgs, never>>;
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
+  nominations?: Resolver<Array<Maybe<ResolversTypes['Nomination']>>, ParentType, ContextType, RequireFields<QueryNominationsArgs, 'electionId'>>;
+  numberOfNominations?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfNominationsArgs, 'electionId'>>;
+  openElection?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
   posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, never>>;
+  proposals?: Resolver<Array<Maybe<ResolversTypes['Proposal']>>, ParentType, ContextType, RequireFields<QueryProposalsArgs, 'electionId'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
@@ -771,12 +892,15 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   addAccessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType'>>;
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
+  addElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddElectablesArgs, never>>;
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'meetingId' | 'fileId' | 'fileType'>>;
   addMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
   casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'input' | 'hash'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
+  closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  createElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'path' | 'name'>>;
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
@@ -784,12 +908,17 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
+  nominate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationNominateArgs, 'electionId' | 'username' | 'postname'>>;
+  openElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenElectionArgs, 'electionId'>>;
+  propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'username' | 'postname'>>;
   removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'id'>>;
+  removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, never>>;
   removeFileFromMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveFileFromMeetingArgs, 'meetingId' | 'fileType'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'username' | 'token' | 'password'>>;
+  respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'electionId' | 'username' | 'postname' | 'accepts'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
   updateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
@@ -880,6 +1009,31 @@ export type CasLoginResponseResolvers<ContextType = Context, ParentType extends 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type ElectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Election'] = ResolversParentTypes['Election']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  openedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  closedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  open?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  electables?: Resolver<Array<Maybe<ResolversTypes['Post']>>, ParentType, ContextType>;
+  nominationsHidden?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type NominationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Nomination'] = ResolversParentTypes['Nomination']> = ResolversObject<{
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
+  accepted?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ProposalResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Proposal'] = ResolversParentTypes['Proposal']> = ResolversObject<{
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type FileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = ResolversObject<{
   accessType?: Resolver<ResolversTypes['AccessType'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -938,6 +1092,9 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
   UserPostHistoryEntry?: UserPostHistoryEntryResolvers<ContextType>;
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
+  Election?: ElectionResolvers<ContextType>;
+  Nomination?: NominationResolvers<ContextType>;
+  Proposal?: ProposalResolvers<ContextType>;
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;

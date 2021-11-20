@@ -1,0 +1,55 @@
+# import User from 'user.graphql'
+# import Post from 'post.graphql'
+
+scalar DateTime
+
+type Query {
+  openElection: Election
+  latestElection: Election
+  nominations(electionId: ID!, postname: String): [Nomination]!
+  numberOfNominations(electionId: ID!, postname: String): Int!
+  proposals(electionId: ID!, postname: String): [Proposal]!
+  electables(electionId: ID!): [Post]!
+}
+
+type Mutation {
+  createElection(electables: [String]!, nominationsHidden: Boolean!): Boolean!
+  addElectables(postnames: [String!]): Boolean!
+  removeElectables(postnames: [String!]): Boolean!
+  openElection(electionId: ID!): Boolean!
+  closeElection: Boolean!
+  nominate(electionId: ID!, username: String!, postname: String!): Boolean!
+  propose(electionId: ID!, username: String!, postname: String!): Boolean!
+  respondToNomination(electionId: ID!, username: String!, postname: String!, accepts: Boolean!): Boolean!
+}
+
+type Election {
+  id: ID!
+  creator: User!
+  createdAt: DateTime!
+  openedAt: DateTime
+  closedAt: DateTime
+  open: Boolean!
+
+  "Which posts can be elected in the election"
+  electables: [Post]!
+
+  "Whether the nominations and their responses are anonymous"
+  nominationsHidden: Boolean!
+}
+
+type Nomination {
+  user: User!
+  post: Post!
+
+  """
+  If this nomination has been accepted,
+  `null` means no response has been given yet
+  """
+  accepted: Boolean
+}
+
+type Proposal {
+  user: User!
+  post: Post!
+}
