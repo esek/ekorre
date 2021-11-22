@@ -141,11 +141,13 @@ export class AccessAPI {
     return res;
   }
 
-  async getUserFullAccess(username: string) {
-    const individual = await this.getIndividualAccess(username);
-    const post = await this.getUserPostAccess(username);
+  async getUserFullAccess(username: string): Promise<DatabaseJoinedAccess[]> {
+    const individual = this.getIndividualAccess(username);
+    const post = this.getUserPostAccess(username);
 
-    return [...individual, ...post];
+    const p = await Promise.all([individual, post]);
+
+    return p.flat();
   }
 
   async getAccessMapping(

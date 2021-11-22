@@ -9,7 +9,7 @@ import { accessReducer } from '../../reducers/access.reducer';
 const api = new AccessAPI();
 const logger = Logger.getLogger('GqlAuthMiddleware');
 
-export const checkAuthMiddleware: IMiddlewareFunction<{}, Context> = async (
+export const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
   resolve,
   root,
   args,
