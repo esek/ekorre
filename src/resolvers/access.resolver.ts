@@ -1,6 +1,14 @@
+import * as resolverObjects from '.';
+
 import { AccessAPI } from '../api/access.api';
 import { PostAPI } from '../api/post.api';
-import { Resolvers } from '../graphql.generated';
+import {
+  AvailableResolver,
+  MutationResolvers,
+  QueryResolvers,
+  Resolvers,
+  ResolverType,
+} from '../graphql.generated';
 import { accessReducer } from '../reducers/access.reducer';
 
 const accessApi = new AccessAPI();
@@ -17,6 +25,40 @@ const accessresolver: Resolvers = {
       const access = await accessApi.getPostAccess(postname);
 
       return accessReducer(access);
+    },
+    resolvers: async (_, { type }) => {
+      const queries: AvailableResolver[] = [];
+      const mutations: AvailableResolver[] = [];
+
+      // Converts the resolver object to an array of the names and their types
+      const hydrate = (type: ResolverType, resolver?: QueryResolvers | MutationResolvers) => {
+        if (!resolver) {
+          return [];
+        }
+
+        const keys: AvailableResolver[] = Object.keys(resolver).map((name) => ({
+          name,
+          type,
+        }));
+
+        return keys;
+      };
+
+      // Add the resolvers to their arrays
+      Object.values(resolverObjects).forEach((resolver) => {
+        queries.push(...hydrate(ResolverType.Query, resolver.Query));
+        mutations.push(...hydrate(ResolverType.Mutation, resolver.Query));
+      });
+
+      // Only return the ones that are relevant
+      switch (type) {
+        case ResolverType.Query:
+          return queries;
+        case ResolverType.Mutation:
+          return mutations;
+        default:
+          return [...queries, ...mutations];
+      }
     },
   },
   Mutation: {

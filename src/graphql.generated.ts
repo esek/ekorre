@@ -22,6 +22,13 @@ export type Access = {
   web: Array<AccessResource>;
 };
 
+export type AccessMapping = {
+  id: Scalars['Int'];
+  resource?: Maybe<AccessResource>;
+  resolverType: ResolverType;
+  resolverName: Scalars['String'];
+};
+
 export type AccessResource = {
   description: Scalars['String'];
   name: Scalars['String'];
@@ -60,6 +67,11 @@ export enum ArticleType {
   News = 'news',
   Information = 'information'
 }
+
+export type AvailableResolver = {
+  name: Scalars['String'];
+  type: ResolverType;
+};
 
 export type CasLoginResponse = {
   exists: Scalars['Boolean'];
@@ -430,6 +442,7 @@ export type Query = {
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
   posts?: Maybe<Array<Maybe<Post>>>;
+  resolvers: Array<AvailableResolver>;
   user?: Maybe<User>;
   utskott?: Maybe<Utskott>;
 };
@@ -532,6 +545,11 @@ export type QueryPostsArgs = {
 };
 
 
+export type QueryResolversArgs = {
+  type?: Maybe<ResolverType>;
+};
+
+
 export type QueryUserArgs = {
   username: Scalars['String'];
 };
@@ -540,6 +558,11 @@ export type QueryUserArgs = {
 export type QueryUtskottArgs = {
   name?: Maybe<Scalars['String']>;
 };
+
+export enum ResolverType {
+  Query = 'QUERY',
+  Mutation = 'MUTATION'
+}
 
 export type UpdateUser = {
   address?: Maybe<Scalars['String']>;
@@ -671,19 +694,21 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Access: ResolverTypeWrapper<Access>;
-  AccessResource: ResolverTypeWrapper<AccessResource>;
+  AccessMapping: ResolverTypeWrapper<AccessMapping>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   String: ResolverTypeWrapper<Scalars['String']>;
+  AccessResource: ResolverTypeWrapper<AccessResource>;
   AccessResourceType: AccessResourceType;
   AccessType: AccessType;
   Article: ResolverTypeWrapper<ArticleResponse>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   ArticleType: ArticleType;
+  AvailableResolver: ResolverTypeWrapper<AvailableResolver>;
   CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   File: ResolverTypeWrapper<FileResponse>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   FileType: FileType;
@@ -702,6 +727,7 @@ export type ResolversTypes = ResolversObject<{
   Post: ResolverTypeWrapper<Post>;
   PostType: PostType;
   Query: ResolverTypeWrapper<{}>;
+  ResolverType: ResolverType;
   UpdateUser: UpdateUser;
   User: ResolverTypeWrapper<User>;
   UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
@@ -711,16 +737,18 @@ export type ResolversTypes = ResolversObject<{
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Access: Access;
-  AccessResource: AccessResource;
+  AccessMapping: AccessMapping;
+  Int: Scalars['Int'];
   String: Scalars['String'];
+  AccessResource: AccessResource;
   Article: ArticleResponse;
   ID: Scalars['ID'];
+  AvailableResolver: AvailableResolver;
   CasLoginResponse: CasLoginResponse;
   Boolean: Scalars['Boolean'];
   Date: Scalars['Date'];
   DateTime: Scalars['DateTime'];
   File: FileResponse;
-  Int: Scalars['Int'];
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
   HistoryEntry: HistoryEntry;
@@ -746,6 +774,14 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type AccessMappingResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessMapping'] = ResolversParentTypes['AccessMapping']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  resource?: Resolver<Maybe<ResolversTypes['AccessResource']>, ParentType, ContextType>;
+  resolverType?: Resolver<ResolversTypes['ResolverType'], ParentType, ContextType>;
+  resolverName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type AccessResourceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessResource'] = ResolversParentTypes['AccessResource']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -766,6 +802,12 @@ export type ArticleResolvers<ContextType = Context, ParentType extends Resolvers
   slug?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   tags?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type AvailableResolverResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AvailableResolver'] = ResolversParentTypes['AvailableResolver']> = ResolversObject<{
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['ResolverType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -896,6 +938,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
   posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, never>>;
+  resolvers?: Resolver<Array<ResolversTypes['AvailableResolver']>, ParentType, ContextType, RequireFields<QueryResolversArgs, never>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
@@ -927,8 +970,10 @@ export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType exte
 
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Access?: AccessResolvers<ContextType>;
+  AccessMapping?: AccessMappingResolvers<ContextType>;
   AccessResource?: AccessResourceResolvers<ContextType>;
   Article?: ArticleResolvers<ContextType>;
+  AvailableResolver?: AvailableResolverResolvers<ContextType>;
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;

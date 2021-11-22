@@ -1,0 +1,24 @@
+type Query {
+	resolvers(type: ResolverType): [AvailableResolver!]!
+}
+
+# type Mutation {
+	
+# }
+
+type AvailableResolver {
+	name: String!
+	type: ResolverType!
+}
+
+type AccessMapping {
+	id: Int!
+	resource: AccessResource
+	resolverType: ResolverType!
+	resolverName: String!
+}
+
+enum ResolverType {
+    QUERY,
+		MUTATION
+}
