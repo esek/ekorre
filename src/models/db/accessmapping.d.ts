@@ -2,7 +2,7 @@ import { ResolverType } from '../../graphql.generated';
 
 export type DatabaseAccessMapping = {
   id: number;
-  refresource: string;
+  refaccessresource: string;
   resolverType: ResolverType;
   resolverName: string;
 };

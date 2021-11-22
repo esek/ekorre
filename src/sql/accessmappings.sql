@@ -1,7 +1,7 @@
 CREATE TABLE "AccessMappings" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "refresource" TEXT,
+  "refaccessresource" TEXT,
   "resolverType" TEXT NOT NULL,
   "resolverName" TEXT NOT NULL,
-	FOREIGN KEY("refresource") REFERENCES "Resources"("slug")
+	FOREIGN KEY("refaccessresource") REFERENCES "Resources"("slug")
 );

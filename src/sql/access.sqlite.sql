@@ -1,17 +1,17 @@
 CREATE TABLE "PostAccess" (
 	"refname"	TEXT NOT NULL,
-	"refresource"	TEXT NOT NULL,
-	PRIMARY KEY("refname","refresource"),
+	"refaccessresource"	TEXT NOT NULL,
+	PRIMARY KEY("refname","refaccessresource"),
 	FOREIGN KEY("refname") REFERENCES "Posts"("postname"),
-	FOREIGN KEY("refresource") REFERENCES "Resources"("slug")
+	FOREIGN KEY("refaccessresource") REFERENCES "Resources"("slug")
 );
 
 CREATE TABLE "IndividualAccess" (
 	"refname"	TEXT NOT NULL,
-	"refresource"	TEXT NOT NULL,
-	PRIMARY KEY("refname","refresource"),
+	"refaccessresource"	TEXT NOT NULL,
+	PRIMARY KEY("refname","refaccessresource"),
 	FOREIGN KEY("refname") REFERENCES "Users"("username"),
-	FOREIGN KEY("refresource") REFERENCES "Resources"("slug")
+	FOREIGN KEY("refaccessresource") REFERENCES "Resources"("slug")
 );
 
 INSERT INTO PostAccess VALUES('Macapär', 'sikrit');

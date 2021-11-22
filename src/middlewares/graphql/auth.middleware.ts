@@ -37,7 +37,7 @@ const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
       }
 
       // If only login is required, (refresouce is null / '')
-      if (access.some((a) => !a.refresource)) {
+      if (access.some((a) => !a.refaccessresource)) {
         return resolve(root, args, context, info);
       }
 
@@ -48,8 +48,8 @@ const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
       const slugs = web.map((w) => w.slug);
 
       // If user does not have access, send back 403
-      if (!access.some((r) => slugs.includes(r.refresource))) {
-        const requiredAccess = access.map((a) => a.refresource).join(',');
+      if (!access.some((r) => slugs.includes(r.refaccessresource))) {
+        const requiredAccess = access.map((a) => a.refaccessresource).join(',');
         return new ForbiddenError(
           `Du måste ha någon av rollerna: [${requiredAccess}] för att komma åt denna resursen`,
         );

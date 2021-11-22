@@ -86,7 +86,7 @@ const accessresolver: Resolvers = {
         }
 
         obj[resolverName].resources.push({
-          slug: mapping.refresource,
+          slug: mapping.refaccessresource,
         });
       });
 

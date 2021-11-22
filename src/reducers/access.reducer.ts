@@ -14,7 +14,7 @@ export const accessReducer = (dbAccess: DatabaseJoinedAccess[]): Access => {
 
   const access = dbAccess.reduce((acc, curr) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { refname, refresource, ...resource } = curr;
+    const { refname, refaccessresource, ...resource } = curr;
 
     switch (resource.resourceType) {
       case AccessResourceType.Web:

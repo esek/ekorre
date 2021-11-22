@@ -35,7 +35,7 @@ export class AccessAPI {
       .where({
         refname: username,
       })
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'slug');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
 
     return res;
   }
@@ -49,7 +49,7 @@ export class AccessAPI {
       .where({
         refname: postname,
       })
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'slug');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
 
     return res;
   }
@@ -70,7 +70,7 @@ export class AccessAPI {
     // Only do insert with actual values.
     const inserts = newaccess.map<DatabaseAccess>((id) => ({
       refname: ref,
-      refresource: id,
+      refaccessresource: id,
     }));
 
     if (inserts.length > 0) {
@@ -119,7 +119,7 @@ export class AccessAPI {
   async getAccessForPosts(posts: string[]): Promise<DatabaseJoinedAccess[]> {
     const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE)
       .whereIn('refname', posts)
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'slug');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
 
     return res;
   }
@@ -131,13 +131,13 @@ export class AccessAPI {
    */
   async getUserPostAccess(username: string) {
     const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE)
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'slug')
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
       .join<DatabasePostHistory>(POSTS_HISTORY_TABLE, 'refpost', 'refname')
       .where({
         refuser: username,
-        end: null,
+        end: null, // Only fetch active posts
       })
-      .distinct();
+      .distinct(); // remove any duplicates
 
     return res;
   }
