@@ -3,5 +3,5 @@ CREATE TABLE IF NOT EXISTS "Electable" (
   "refelection" INTEGER NOT NULL,
   FOREIGN KEY("refpost") REFERENCES "Posts"("postname"),
   FOREIGN KEY("refelection") REFERENCES "Elections"("id"),
-  CONSTRAINT "uniqueElectable" UNIQUE ("refpost", "refelection")
+  PRIMARY KEY ("refpost", "refelection")
 );
