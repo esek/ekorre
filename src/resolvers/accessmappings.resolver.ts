@@ -13,21 +13,30 @@ import { AccessResourceResponse } from '../models/mappers';
 
 const accessApi = new AccessAPI();
 
+type TempAccessMapping = Omit<AccessMapping, 'resources'> & {
+  resources: AccessResourceResponse[];
+};
+
+type TempMappingObject = Record<string, TempAccessMapping>;
+
 const accessMappingResolver: Resolvers = {
   Query: {
-    resolvers: async (_, { type }) => {
+    resolvers: (_, { type }) => {
       const queries: AvailableResolver[] = [];
       const mutations: AvailableResolver[] = [];
 
       // Converts the resolver object to an array of the names and their types
-      const hydrate = (type: ResolverType, resolver?: QueryResolvers | MutationResolvers) => {
+      const hydrate = (
+        resolverType: ResolverType,
+        resolver?: QueryResolvers | MutationResolvers,
+      ) => {
         if (!resolver) {
           return [];
         }
 
         const keys: AvailableResolver[] = Object.keys(resolver).map((name) => ({
           name,
-          type,
+          type: resolverType,
         }));
 
         return keys;
@@ -51,12 +60,9 @@ const accessMappingResolver: Resolvers = {
     },
     accessMappings: async (_, { type, name }) => {
       const mappings = await accessApi.getAccessMapping(name ?? undefined, type ?? undefined);
-      const obj: Record<
-        string,
-        Omit<AccessMapping, 'resources'> & {
-          resources: AccessResourceResponse[];
-        }
-      > = {};
+
+      // eslint-disable-next-line @typescript-eslint/indent
+      const obj: TempMappingObject = {};
 
       mappings.forEach((mapping) => {
         const { resolverName } = mapping;

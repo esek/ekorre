@@ -1,12 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { Maybe } from 'graphql/jsutils/Maybe';
-
-import {
-  BadRequestError,
-  NotFoundError,
-  ServerError,
-  UnauthenticatedError,
-} from '../errors/RequestErrors';
+import { BadRequestError, NotFoundError, ServerError } from '../errors/RequestErrors';
 import { MeetingDocumentType, MeetingType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseMeeting } from '../models/db/meeting';
@@ -36,7 +29,7 @@ export class MeetingAPI {
       .limit(limit);
 
     validateNonEmptyArray(m, 'Hittade inga möten');
-    
+
     return m;
   }
 

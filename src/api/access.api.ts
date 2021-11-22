@@ -184,7 +184,7 @@ export class AccessAPI {
 
     validateNonEmptyArray(
       resources,
-      `Ingen accessmappning finns för ${resolverType} ${resolverName}`,
+      `Ingen accessmappning hittades: ${resolverType?.toString() ?? ''} ${resolverName ?? ''}`,
     );
 
     return resources;

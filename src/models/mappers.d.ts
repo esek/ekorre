@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /**
  * Typer som definieras här måste även skrivas in i
  * `codegen.yml`!

@@ -11,7 +11,7 @@ const api = new UserAPI();
 
 const userResolver: Resolvers = {
   Query: {
-    me: async (_, __, { accessToken, refreshToken, userDataLoader }) => {
+    me: async (_, __, { accessToken, refreshToken }) => {
       const access = verifyToken<TokenValue>(accessToken, 'accessToken');
       const refresh = verifyToken<TokenValue>(refreshToken, 'refreshToken');
 
@@ -41,7 +41,7 @@ const userResolver: Resolvers = {
     },
   },
   Mutation: {
-    updateUser: async (_, { input }, {getUsername}) => {
+    updateUser: async (_, { input }, { getUsername }) => {
       const username = getUsername();
       await api.updateUser(username, stripObject(input));
 

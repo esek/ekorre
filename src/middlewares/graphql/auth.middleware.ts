@@ -38,6 +38,7 @@ const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
 
       // If only login is required, (refresouce is null / '')
       if (access.some((a) => !a.refaccessresource)) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return resolve(root, args, context, info);
       }
 
@@ -50,6 +51,7 @@ const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
       // If user does not have access, send back 403
       if (!access.some((r) => slugs.includes(r.refaccessresource))) {
         const requiredAccess = access.map((a) => a.refaccessresource).join(',');
+        // eslint-disable-next-line @typescript-eslint/indent
         return new ForbiddenError(
           `Du måste ha någon av rollerna: [${requiredAccess}] för att komma åt denna resursen`,
         );
@@ -60,6 +62,7 @@ const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return resolve(root, args, context, info);
 };
 
