@@ -2,7 +2,12 @@ import { Logger } from '../logger';
 import type { DatabaseAccess } from '../models/db/access';
 import { DatabasePost } from '../models/db/post';
 import { DatabaseAccessResource } from '../models/db/resource';
-import { ACCESS_RESOURCES_TABLE, IND_ACCESS_TABLE, POSTS_TABLE, POST_ACCESS_TABLE } from './constants';
+import {
+  ACCESS_RESOURCES_TABLE,
+  IND_ACCESS_TABLE,
+  POSTS_TABLE,
+  POST_ACCESS_TABLE,
+} from './constants';
 import knex from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
@@ -108,17 +113,18 @@ export class AccessAPI {
    * @param posts posterna
    * @param includeInactivePosts Om inaktiverade posters access ska tas med
    */
-  async getAccessForPosts(posts: string[], includeInactivePosts = false): Promise<DatabaseJoinedAccess[]> {
+  async getAccessForPosts(
+    posts: string[],
+    includeInactivePosts = false,
+  ): Promise<DatabaseJoinedAccess[]> {
     const query = knex<DatabaseAccess>(POST_ACCESS_TABLE)
       .whereIn('refname', posts)
       .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
-    
+
     // Om inaktiva posters access inte ska inkluderas,
     // ta in `POSTS_TABLE` och se vilka som är aktiva
     if (!includeInactivePosts) {
-      query
-        .innerJoin<DatabasePost>(POSTS_TABLE, 'refname', 'postname')
-        .where('active', true);
+      query.innerJoin<DatabasePost>(POSTS_TABLE, 'refname', 'postname').where('active', true);
     }
 
     const res = await query;

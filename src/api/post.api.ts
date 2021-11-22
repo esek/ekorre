@@ -47,7 +47,6 @@ const checkPostTypeAndSpots = (
  * Det här är apin för att hantera poster.
  */
 export class PostAPI {
-  
   /**
    * Hämta alla poster.
    * @param limit Begränsning av antal poster
@@ -70,7 +69,6 @@ export class PostAPI {
 
     return posts;
   }
-
 
   async getPost(postname: string): Promise<DatabasePost | null> {
     const post = await knex<DatabasePost>(POSTS_TABLE).where('postname', postname).first();
