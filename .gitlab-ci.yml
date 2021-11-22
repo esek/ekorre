@@ -27,6 +27,8 @@ build:
     - master
     - main
     - /^release-[0-9]\.[0-9]\.[0-9]$/
+    # Brancher med suffixet `-run-build` kör build
+    - /.?-run-build$/
   script:
     - docker build -t $CONTAINER_TEST_IMAGE .
     - docker push $CONTAINER_TEST_IMAGE
