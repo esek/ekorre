@@ -2,7 +2,7 @@
 import { RequestHandler } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 
-import FilesAPI from '../../api/files.api';
+import FileAPI from '../../api/file.api';
 import { COOKIES, verifyToken } from '../../auth';
 import { UnauthenticatedError } from '../../errors/RequestErrors';
 import { AccessType, User } from '../../graphql.generated';
@@ -67,7 +67,7 @@ export const verifyAuthenticated: RequestHandlerWithLocals = (_req, res, next) =
  */
 
 export const verifyFileReadAccess =
-  (api: FilesAPI): RequestHandlerWithLocals =>
+  (api: FileAPI): RequestHandlerWithLocals =>
   (req, res, next) => {
     // IIFE because .use does not expect a promise
     (async () => {

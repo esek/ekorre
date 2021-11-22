@@ -1,4 +1,4 @@
-# import File from 'files.graphql'
+# import File from 'file.graphql'
 
 type Query {
   meeting(id: ID!): Meeting
