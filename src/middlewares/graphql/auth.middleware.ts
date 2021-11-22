@@ -55,6 +55,7 @@ const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
         );
       }
     } catch (err) {
+      // Catches any errors that occurs earlier on and just resolves the middleware
       logger.warn((err as RequestError).message);
     }
   }

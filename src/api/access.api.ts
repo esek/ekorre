@@ -148,11 +148,14 @@ export class AccessAPI {
    * @returns A list of databaseaccess objects
    */
   async getUserFullAccess(username: string): Promise<DatabaseJoinedAccess[]> {
+    // Get the individual access for that user
     const individual = this.getIndividualAccess(username);
+    // Get the postaccess for that users posts
     const post = this.getUserPostAccess(username);
 
     const p = await Promise.all([individual, post]);
 
+    // Flatten the array of access from the promises
     return p.flat();
   }
 
