@@ -40,6 +40,8 @@ export type Query = {
   postAccess?: Maybe<Access>;
   posts?: Maybe<Array<Maybe<Post>>>;
   proposals: Array<Maybe<Proposal>>;
+  searchFiles: Array<File>;
+  searchUser: Array<User>;
   user?: Maybe<User>;
   utskott?: Maybe<Utskott>;
 };
@@ -156,12 +158,23 @@ export type QueryPostAccessArgs = {
 
 export type QueryPostsArgs = {
   utskott?: Maybe<Utskott>;
+  includeInactive: Scalars['Boolean'];
 };
 
 
 export type QueryProposalsArgs = {
   electionId: Scalars['ID'];
   postname?: Maybe<Scalars['String']>;
+};
+
+
+export type QuerySearchFilesArgs = {
+  search: Scalars['String'];
+};
+
+
+export type QuerySearchUserArgs = {
+  search: Scalars['String'];
 };
 
 
@@ -181,6 +194,7 @@ export type Access = {
 };
 
 export type Mutation = {
+  activatePost: Scalars['Boolean'];
   addAccessResource: AccessResource;
   addArticle?: Maybe<Article>;
   addElectables: Scalars['Boolean'];
@@ -194,6 +208,7 @@ export type Mutation = {
   createElection: Scalars['Boolean'];
   createFolder: Scalars['Boolean'];
   createUser: Scalars['Boolean'];
+  deactivatePost: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
   /** Test user credentials and if valid get a jwt token */
   login?: Maybe<User>;
@@ -215,6 +230,11 @@ export type Mutation = {
   setPostAccess: Scalars['Boolean'];
   updateUser: Scalars['Boolean'];
   validatePasswordResetToken: Scalars['Boolean'];
+};
+
+
+export type MutationActivatePostArgs = {
+  postname: Scalars['String'];
 };
 
 
@@ -286,6 +306,11 @@ export type MutationCreateFolderArgs = {
 
 export type MutationCreateUserArgs = {
   input: NewUser;
+};
+
+
+export type MutationDeactivatePostArgs = {
+  postname: Scalars['String'];
 };
 
 
@@ -876,8 +901,10 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   openElection?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
-  posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, never>>;
+  posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, 'includeInactive'>>;
   proposals?: Resolver<Array<Maybe<ResolversTypes['Proposal']>>, ParentType, ContextType, RequireFields<QueryProposalsArgs, 'electionId'>>;
+  searchFiles?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QuerySearchFilesArgs, 'search'>>;
+  searchUser?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySearchUserArgs, 'search'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
@@ -889,6 +916,7 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 }>;
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  activatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationActivatePostArgs, 'postname'>>;
   addAccessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType'>>;
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddElectablesArgs, never>>;
@@ -902,6 +930,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   createElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'path' | 'name'>>;
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
+  deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'postname'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
   login?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;

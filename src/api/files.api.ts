@@ -178,6 +178,16 @@ class FilesAPI {
     return file;
   }
 
+  async searchFiles(search: string): Promise<DatabaseFile[]> {
+    const files = await knex<DatabaseFile>(FILES_TABLE)
+      .where('name', 'like', `%${search}%`)
+      .orWhere('id', 'like', `%${search}%`);
+
+    validateNonEmptyArray(files, 'Inga filer hittades');
+
+    return files;
+  }
+
   /**
    * Helper method to get Enum value of file type
    * @param name Name of the file, including extension

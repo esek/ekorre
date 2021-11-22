@@ -81,7 +81,7 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
 
   let path = 'avatars';
 
-  if (!(await filesAPI.getFileData('avatars'))) {
+  if (!(await filesAPI.getFileData('avatars').catch((_) => null))) {
     const newPath = await filesAPI.createFolder('', path, username, path);
 
     if (!newPath) {

@@ -47,19 +47,34 @@ const checkPostTypeAndSpots = (
  * Det här är apin för att hantera poster.
  */
 export class PostAPI {
+  
   /**
    * Hämta alla poster.
+   * @param limit Begränsning av antal poster
+   * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getPosts(): Promise<DatabasePost[]> {
-    const posts = await knex<DatabasePost>(POSTS_TABLE);
+  async getPosts(limit?: number, includeInactive = true): Promise<DatabasePost[]> {
+    const query = knex<DatabasePost>(POSTS_TABLE).where('active', includeInactive);
+
+    if (!includeInactive) {
+      query.where('active', true);
+    }
+
+    if (limit != null) {
+      query.limit(limit);
+    }
+
+    const posts = await query;
 
     validateNonEmptyArray(posts, 'Inga poster hittades');
 
     return posts;
   }
 
+
   async getPost(postname: string): Promise<DatabasePost | null> {
     const post = await knex<DatabasePost>(POSTS_TABLE).where('postname', postname).first();
+
     if (!post) {
       throw new NotFoundError('Posten kunde inte hittas');
     }
@@ -67,8 +82,22 @@ export class PostAPI {
     return post;
   }
 
-  async getMultiplePosts(postnames: string[] | readonly string[]): Promise<DatabasePost[]> {
-    const posts = await knex<DatabasePost>(POSTS_TABLE).whereIn('postname', postnames);
+  /**
+   * Returnerar ett antal poster.
+   * @param postnames Lista på postnamn
+   * @param includeInactive Om inaktiva poster ska inkluderas
+   */
+  async getMultiplePosts(
+    postnames: string[] | readonly string[],
+    includeInactive = true,
+  ): Promise<DatabasePost[]> {
+    const query = knex<DatabasePost>(POSTS_TABLE).whereIn('postname', postnames);
+
+    if (!includeInactive) {
+      query.where('active', true);
+    }
+
+    const posts = await query;
 
     validateNonEmptyArray(posts, 'Inga poster hittades');
 
@@ -78,8 +107,9 @@ export class PostAPI {
   /**
    * Hämta alla poster som en användare sitter på.
    * @param username användaren
+   * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getPostsForUser(username: string): Promise<DatabasePost[]> {
+  async getPostsForUser(username: string, includeInactive = true): Promise<DatabasePost[]> {
     const refposts = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .where({
         refuser: username,
@@ -87,10 +117,16 @@ export class PostAPI {
       })
       .select('refpost');
 
-    const posts = await knex<DatabasePost>(POSTS_TABLE).whereIn(
+    const query = knex<DatabasePost>(POSTS_TABLE).whereIn(
       'postname',
       refposts.map((e) => e.refpost),
     );
+
+    if (!includeInactive) {
+      query.where('active', true);
+    }
+
+    const posts = await query;
 
     validateNonEmptyArray(posts, 'Inga poster hittades');
 
@@ -100,11 +136,18 @@ export class PostAPI {
   /**
    * Hämta alla poster som tillhör ett utskott.
    * @param utskott utskottet
+   * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getPostsFromUtskott(utskott: Utskott): Promise<DatabasePost[]> {
-    const posts = await knex<DatabasePost>(POSTS_TABLE).where({
+  async getPostsFromUtskott(utskott: Utskott, includeInactive = true): Promise<DatabasePost[]> {
+    const query = knex<DatabasePost>(POSTS_TABLE).where({
       utskott,
     });
+
+    if (!includeInactive) {
+      query.where('active', true);
+    }
+
+    const posts = await query;
 
     validateNonEmptyArray(posts, 'Inga poster hittades');
 
@@ -244,6 +287,28 @@ export class PostAPI {
     const res = await knex<DatabasePost>(POSTS_TABLE)
       .where('postname', name)
       .update({ ...update, spots: s });
+
+    return res > 0;
+  }
+
+  /**
+   * Markerar en post som aktiv.
+   * @param postname Namnet på posten
+   * @returns Om en uppdatering gjordes
+   */
+  async activatePost(postname: string): Promise<boolean> {
+    const res = await knex<DatabasePost>(POSTS_TABLE).update('active', true).where({ postname });
+
+    return res > 0;
+  }
+
+  /**
+   * Markerar en post som inaktiv.
+   * @param postname Namnet på posten
+   * @returns Om en uppdatering gjordes
+   */
+  async deactivatePost(postname: string): Promise<boolean> {
+    const res = await knex<DatabasePost>(POSTS_TABLE).update('active', false).where({ postname });
 
     return res > 0;
   }

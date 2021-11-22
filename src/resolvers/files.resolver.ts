@@ -1,5 +1,6 @@
 import FilesAPI from '../api/files.api';
 import { useDataLoader } from '../dataloaders';
+import { BadRequestError } from '../errors/RequestErrors';
 import { Resolvers } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { fileReduce } from '../reducers/file.reducer';
@@ -35,6 +36,14 @@ const filesResolver: Resolvers = {
         files: reduce(files, fileReduce),
         path,
       };
+    },
+    searchFiles: async (_, { search }) => {
+      // If no search query
+      if (!search) {
+        throw new BadRequestError('Du måste ange en söksträng');
+      }
+      const files = await filesAPI.searchFiles(search);
+      return reduce(files, fileReduce);
     },
   },
   Mutation: {
