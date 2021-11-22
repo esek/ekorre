@@ -1,4 +1,4 @@
-import type { IMiddlewareFunction } from 'graphql-middleware';
+import type { IMiddleware, IMiddlewareFunction } from 'graphql-middleware';
 
 import { AccessAPI } from '../../api/access.api';
 import RequestError, { ForbiddenError, UnauthenticatedError } from '../../errors/RequestErrors';
@@ -9,7 +9,7 @@ import { accessReducer } from '../../reducers/access.reducer';
 const api = new AccessAPI();
 const logger = Logger.getLogger('GqlAuthMiddleware');
 
-export const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
+const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
   resolve,
   root,
   args,
@@ -18,7 +18,7 @@ export const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async 
 ) => {
   // Get the name of the resolver and if it's a query or mutation
   const resolverType = info.operation.operation;
-  const resolverName = info.path.prev?.key.toString();
+  const resolverName = info.path.key.toString();
 
   if (resolverType && resolverName) {
     try {
@@ -61,4 +61,10 @@ export const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async 
   }
 
   return resolve(root, args, context, info);
+};
+
+// Only run middlewares on queries and mutations
+export const authMiddleware: IMiddleware = {
+  Query: checkAuthMiddleware,
+  Mutation: checkAuthMiddleware,
 };

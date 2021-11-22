@@ -17,7 +17,7 @@ import { batchFilesFunction } from './dataloaders/file.dataloader';
 import { batchPostsFunction } from './dataloaders/post.dataloader';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
 import { Logger } from './logger';
-import { checkAuthMiddleware } from './middlewares/graphql/auth.middleware';
+import { authMiddleware } from './middlewares/graphql/auth.middleware';
 import { errorHandler } from './middlewares/graphql/errorhandler.middleware';
 import { TokenValue } from './models/auth';
 import type { Context, ContextParams } from './models/context';
@@ -76,7 +76,7 @@ const schema = makeExecutableSchema({
   const apolloLogger = Logger.getLogger('Apollo');
 
   const server = new ApolloServer({
-    schema: applyMiddleware(schema, checkAuthMiddleware),
+    schema: applyMiddleware(schema, authMiddleware),
     context: ({ req, res }: ContextParams): Context => {
       const accessToken = req.cookies[COOKIES.accessToken] ?? '';
       const refreshToken = req.cookies[COOKIES.refreshToken] ?? '';
