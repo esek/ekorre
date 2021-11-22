@@ -1,3 +1,4 @@
+import { ServerError } from '../errors/RequestErrors';
 import { ResolverType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseAccess } from '../models/db/access';
@@ -187,5 +188,25 @@ export class AccessAPI {
     );
 
     return resources;
+  }
+
+  async addAccessMappings(
+    resolverName: string,
+    resolverType: ResolverType,
+    slugs: string[],
+  ): Promise<boolean> {
+    const q = await knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE).insert(
+      slugs.map((s) => ({
+        resolverName,
+        resolverType,
+        refaccessresource: s,
+      })),
+    );
+
+    if (!q.length) {
+      throw new ServerError('Kunde inte skapa mappningen av resursen');
+    }
+
+    return true;
   }
 }

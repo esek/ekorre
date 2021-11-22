@@ -97,6 +97,8 @@ const accessresolver: Resolvers = {
     setIndividualAccess: (_, { username, access }) =>
       accessApi.setIndividualAccess(username, access),
     setPostAccess: (_, { postname, access }) => accessApi.setPostAccess(postname, access),
+    addResolverMappings: async (_, { name, type, slugs }) =>
+      accessApi.addAccessMappings(name, type, slugs),
   },
   User: {
     access: async ({ username }) => {

@@ -4,4 +4,6 @@ CREATE TABLE "AccessMappings" (
   "resolverType" TEXT NOT NULL,
   "resolverName" TEXT NOT NULL,
 	FOREIGN KEY("refaccessresource") REFERENCES "Resources"("slug")
+  CONSTRAINT "uniqueMapping" UNIQUE ("refaccessresource", "resolverType", "resolverName")
+
 );

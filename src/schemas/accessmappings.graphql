@@ -3,9 +3,9 @@ type Query {
 	accessMappings(name: String, type: ResolverType): [AccessMapping!]!
 }
 
-# type Mutation {
-	
-# }
+type Mutation {
+	addResolverMappings(name: String!, type: ResolverType!, slugs: [String!]!): Boolean!
+}
 
 type AvailableResolver {
 	name: String!
