@@ -1,5 +1,6 @@
 type Query {
 	resolvers(type: ResolverType): [AvailableResolver!]!
+	accessMappings(name: String, type: ResolverType): [AccessMapping!]!
 }
 
 # type Mutation {
@@ -13,9 +14,8 @@ type AvailableResolver {
 
 type AccessMapping {
 	id: Int!
-	resource: AccessResource
-	resolverType: ResolverType!
-	resolverName: String!
+	resolver: AvailableResolver!
+	resources: [AccessResource!]
 }
 
 enum ResolverType {

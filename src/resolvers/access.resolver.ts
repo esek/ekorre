@@ -3,12 +3,14 @@ import * as resolverObjects from '.';
 import { AccessAPI } from '../api/access.api';
 import { PostAPI } from '../api/post.api';
 import {
+  AccessMapping,
   AvailableResolver,
   MutationResolvers,
   QueryResolvers,
   Resolvers,
   ResolverType,
 } from '../graphql.generated';
+import { AccessResourceResponse } from '../models/mappers';
 import { accessReducer } from '../reducers/access.reducer';
 
 const accessApi = new AccessAPI();
@@ -59,6 +61,36 @@ const accessresolver: Resolvers = {
         default:
           return [...queries, ...mutations];
       }
+    },
+    accessMappings: async (_, { type, name }) => {
+      const mappings = await accessApi.getAccessMapping(name ?? undefined, type ?? undefined);
+      const obj: Record<
+        string,
+        Omit<AccessMapping, 'resources'> & {
+          resources: AccessResourceResponse[];
+        }
+      > = {};
+
+      mappings.forEach((mapping) => {
+        const { resolverName } = mapping;
+
+        if (!(resolverName in obj)) {
+          obj[resolverName] = {
+            id: mapping.id,
+            resolver: {
+              name: resolverName,
+              type: mapping.resolverType,
+            },
+            resources: [],
+          };
+        }
+
+        obj[resolverName].resources.push({
+          slug: mapping.refresource,
+        });
+      });
+
+      return Object.values(obj);
     },
   },
   Mutation: {

@@ -13,6 +13,7 @@ import { DateResolver } from 'graphql-scalars';
 import { COOKIES, verifyToken } from './auth';
 import config from './config';
 import { createDataLoader } from './dataloaders';
+import { batchAccessResources } from './dataloaders/accessresources.dataloader';
 import { batchFilesFunction } from './dataloaders/file.dataloader';
 import { batchPostsFunction } from './dataloaders/post.dataloader';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
@@ -97,6 +98,7 @@ const schema = makeExecutableSchema({
         userDataLoader: createDataLoader(batchUsersFunction),
         postDataLoader: createDataLoader(batchPostsFunction),
         fileDataLoader: createDataLoader(batchFilesFunction),
+        accessResourceDataloader: createDataLoader(batchAccessResources),
       };
     },
     debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),

@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse, MeetingResponse } from './models/mappers';
+import type { ArticleResponse, FileResponse, MeetingResponse, AccessResourceResponse } from './models/mappers';
 import type { Context } from './models/context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -24,9 +24,8 @@ export type Access = {
 
 export type AccessMapping = {
   id: Scalars['Int'];
-  resource?: Maybe<AccessResource>;
-  resolverType: ResolverType;
-  resolverName: Scalars['String'];
+  resolver: AvailableResolver;
+  resources?: Maybe<Array<AccessResource>>;
 };
 
 export type AccessResource = {
@@ -425,6 +424,7 @@ export enum PostType {
 }
 
 export type Query = {
+  accessMappings: Array<AccessMapping>;
   accessResource: AccessResource;
   accessResources: Array<AccessResource>;
   article?: Maybe<Article>;
@@ -445,6 +445,12 @@ export type Query = {
   resolvers: Array<AvailableResolver>;
   user?: Maybe<User>;
   utskott?: Maybe<Utskott>;
+};
+
+
+export type QueryAccessMappingsArgs = {
+  name?: Maybe<Scalars['String']>;
+  type?: Maybe<ResolverType>;
 };
 
 
@@ -693,11 +699,11 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
-  Access: ResolverTypeWrapper<Access>;
-  AccessMapping: ResolverTypeWrapper<AccessMapping>;
+  Access: ResolverTypeWrapper<Omit<Access, 'doors' | 'web'> & { doors: Array<ResolversTypes['AccessResource']>, web: Array<ResolversTypes['AccessResource']> }>;
+  AccessMapping: ResolverTypeWrapper<Omit<AccessMapping, 'resources'> & { resources?: Maybe<Array<ResolversTypes['AccessResource']>> }>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
+  AccessResource: ResolverTypeWrapper<AccessResourceResponse>;
   String: ResolverTypeWrapper<Scalars['String']>;
-  AccessResource: ResolverTypeWrapper<AccessResource>;
   AccessResourceType: AccessResourceType;
   AccessType: AccessType;
   Article: ResolverTypeWrapper<ArticleResponse>;
@@ -712,8 +718,8 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   FileType: FileType;
-  HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
-  Me: ResolverTypeWrapper<Me>;
+  HistoryEntry: ResolverTypeWrapper<Omit<HistoryEntry, 'holder'> & { holder: ResolversTypes['User'] }>;
+  Me: ResolverTypeWrapper<Omit<Me, 'user'> & { user?: Maybe<ResolversTypes['User']> }>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
   Meeting: ResolverTypeWrapper<MeetingResponse>;
   MeetingDocumentType: MeetingDocumentType;
@@ -724,23 +730,23 @@ export type ResolversTypes = ResolversObject<{
   NewArticle: NewArticle;
   NewPost: NewPost;
   NewUser: NewUser;
-  Post: ResolverTypeWrapper<Post>;
+  Post: ResolverTypeWrapper<Omit<Post, 'access' | 'history'> & { access: ResolversTypes['Access'], history: Array<ResolversTypes['HistoryEntry']> }>;
   PostType: PostType;
   Query: ResolverTypeWrapper<{}>;
   ResolverType: ResolverType;
   UpdateUser: UpdateUser;
-  User: ResolverTypeWrapper<User>;
-  UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
+  User: ResolverTypeWrapper<Omit<User, 'access' | 'posts' | 'userPostHistory'> & { access: ResolversTypes['Access'], posts: Array<ResolversTypes['Post']>, userPostHistory: Array<Maybe<ResolversTypes['UserPostHistoryEntry']>> }>;
+  UserPostHistoryEntry: ResolverTypeWrapper<Omit<UserPostHistoryEntry, 'post'> & { post: ResolversTypes['Post'] }>;
   Utskott: Utskott;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
-  Access: Access;
-  AccessMapping: AccessMapping;
+  Access: Omit<Access, 'doors' | 'web'> & { doors: Array<ResolversParentTypes['AccessResource']>, web: Array<ResolversParentTypes['AccessResource']> };
+  AccessMapping: Omit<AccessMapping, 'resources'> & { resources?: Maybe<Array<ResolversParentTypes['AccessResource']>> };
   Int: Scalars['Int'];
+  AccessResource: AccessResourceResponse;
   String: Scalars['String'];
-  AccessResource: AccessResource;
   Article: ArticleResponse;
   ID: Scalars['ID'];
   AvailableResolver: AvailableResolver;
@@ -751,8 +757,8 @@ export type ResolversParentTypes = ResolversObject<{
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
-  HistoryEntry: HistoryEntry;
-  Me: Me;
+  HistoryEntry: Omit<HistoryEntry, 'holder'> & { holder: ResolversParentTypes['User'] };
+  Me: Omit<Me, 'user'> & { user?: Maybe<ResolversParentTypes['User']> };
   Float: Scalars['Float'];
   Meeting: MeetingResponse;
   ModifyArticle: ModifyArticle;
@@ -761,11 +767,11 @@ export type ResolversParentTypes = ResolversObject<{
   NewArticle: NewArticle;
   NewPost: NewPost;
   NewUser: NewUser;
-  Post: Post;
+  Post: Omit<Post, 'access' | 'history'> & { access: ResolversParentTypes['Access'], history: Array<ResolversParentTypes['HistoryEntry']> };
   Query: {};
   UpdateUser: UpdateUser;
-  User: User;
-  UserPostHistoryEntry: UserPostHistoryEntry;
+  User: Omit<User, 'access' | 'posts' | 'userPostHistory'> & { access: ResolversParentTypes['Access'], posts: Array<ResolversParentTypes['Post']>, userPostHistory: Array<Maybe<ResolversParentTypes['UserPostHistoryEntry']>> };
+  UserPostHistoryEntry: Omit<UserPostHistoryEntry, 'post'> & { post: ResolversParentTypes['Post'] };
 }>;
 
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
@@ -776,9 +782,8 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 
 export type AccessMappingResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessMapping'] = ResolversParentTypes['AccessMapping']> = ResolversObject<{
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  resource?: Resolver<Maybe<ResolversTypes['AccessResource']>, ParentType, ContextType>;
-  resolverType?: Resolver<ResolversTypes['ResolverType'], ParentType, ContextType>;
-  resolverName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  resolver?: Resolver<ResolversTypes['AvailableResolver'], ParentType, ContextType>;
+  resources?: Resolver<Maybe<Array<ResolversTypes['AccessResource']>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -921,6 +926,7 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
+  accessMappings?: Resolver<Array<ResolversTypes['AccessMapping']>, ParentType, ContextType, RequireFields<QueryAccessMappingsArgs, never>>;
   accessResource?: Resolver<ResolversTypes['AccessResource'], ParentType, ContextType, RequireFields<QueryAccessResourceArgs, 'slug'>>;
   accessResources?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType, RequireFields<QueryAccessResourcesArgs, never>>;
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;

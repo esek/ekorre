@@ -8,16 +8,34 @@ import knex from './knex';
 const logger = Logger.getLogger('ResourcesAPI');
 
 class ResourcesAPI {
-  async getResources(type?: AccessResourceType): Promise<DatabaseAccessResource[]> {
+  /**
+   * Gets all access resources
+   * @param {AccessResource?} type - Optional type of resource to filter by
+   * @param {string[]?} slugs - Optional slugs to filter by
+   * @returns List of access resources as presented in the database
+   */
+  async getResources(
+    type?: AccessResourceType,
+    slugs?: string[],
+  ): Promise<DatabaseAccessResource[]> {
     const q = knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE);
 
     if (type) {
-      return q.where('resourceType', type);
+      q.where('resourceType', type);
+    }
+
+    if (slugs) {
+      q.whereIn('slug', slugs);
     }
 
     return q;
   }
 
+  /**
+   * Gets a single access resource
+   * @param {string} slug - Slug used to find the correct resource
+   * @returns Access resources as presented in the database
+   */
   async getResource(slug: string): Promise<DatabaseAccessResource> {
     const resouce = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
       .where('slug', slug)
@@ -51,7 +69,9 @@ class ResourcesAPI {
   }
 
   async removeResouce(slug: string): Promise<boolean> {
-    const res = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).where('slug', slug).delete();
+    const res = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
+      .where('slug', slug)
+      .delete();
 
     if (!res) {
       logger.error(`Failed to remove resource with slug ${slug}`);

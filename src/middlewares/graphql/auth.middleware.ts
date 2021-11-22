@@ -2,6 +2,7 @@ import type { IMiddleware, IMiddlewareFunction } from 'graphql-middleware';
 
 import { AccessAPI } from '../../api/access.api';
 import RequestError, { ForbiddenError, UnauthenticatedError } from '../../errors/RequestErrors';
+import { ResolverType } from '../../graphql.generated';
 import { Logger } from '../../logger';
 import { Context } from '../../models/context';
 import { accessReducer } from '../../reducers/access.reducer';
@@ -17,7 +18,8 @@ const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
   info,
 ) => {
   // Get the name of the resolver and if it's a query or mutation
-  const resolverType = info.operation.operation;
+  const resolverType =
+    info.operation.operation === 'query' ? ResolverType.Query : ResolverType.Mutation;
   const resolverName = info.path.key.toString();
 
   if (resolverType && resolverName) {
@@ -25,10 +27,7 @@ const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
       /** Get the mapped accessrequirements
        * @throws if no mapping (and will resolve below)
        */
-      const access = await api.getAccessMapping(
-        resolverType.toLowerCase(),
-        resolverName.toLowerCase(),
-      );
+      const access = await api.getAccessMapping(resolverName, resolverType);
 
       const username = context.getUsername();
 

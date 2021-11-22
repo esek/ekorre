@@ -1,3 +1,4 @@
+import { ResolverType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseAccess } from '../models/db/access';
 import { DatabaseAccessMapping } from '../models/db/accessmapping';
@@ -141,6 +142,11 @@ export class AccessAPI {
     return res;
   }
 
+  /**
+   * Gets a users entire access, including inherited access from posts
+   * @param username The user whose access to get
+   * @returns A list of databaseaccess objects
+   */
   async getUserFullAccess(username: string): Promise<DatabaseJoinedAccess[]> {
     const individual = this.getIndividualAccess(username);
     const post = this.getUserPostAccess(username);
@@ -150,14 +156,27 @@ export class AccessAPI {
     return p.flat();
   }
 
+  /**
+   * Gets the mapping for a resource
+   * @param resolverType The type of resource (query or mutation)
+   * @param resolverName The name of the resource
+   * @returns A list of mappings
+   */
   async getAccessMapping(
-    resolverType: string,
-    resolverName: string,
+    resolverName?: string,
+    resolverType?: ResolverType,
   ): Promise<DatabaseAccessMapping[]> {
-    const resources = await knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE).where({
-      resolverType,
-      resolverName,
-    });
+    const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
+
+    if (resolverName) {
+      q.where({ resolverName });
+    }
+
+    if (resolverType) {
+      q.where({ resolverType });
+    }
+
+    const resources = await q;
 
     validateNonEmptyArray(
       resources,
