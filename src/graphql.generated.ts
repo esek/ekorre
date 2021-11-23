@@ -32,6 +32,7 @@ export type Query = {
   me?: Maybe<Me>;
   meeting?: Maybe<Meeting>;
   meetings: Array<Maybe<Meeting>>;
+  myNominations: Array<Maybe<Nomination>>;
   newsentries: Array<Maybe<Article>>;
   nominations: Array<Maybe<Nomination>>;
   numberOfNominations: Scalars['Int'];
@@ -398,7 +399,7 @@ export type MutationRespondToNominationArgs = {
   electionId: Scalars['ID'];
   username: Scalars['String'];
   postname: Scalars['String'];
-  accepts: Scalars['Boolean'];
+  accepts: NominationResponse;
 };
 
 
@@ -578,17 +579,19 @@ export type Election = {
 export type Nomination = {
   user: User;
   post: Post;
-  /**
-   * If this nomination has been accepted,
-   * `null` means no response has been given yet
-   */
-  accepted?: Maybe<Scalars['Boolean']>;
+  accepted?: Maybe<NominationResponse>;
 };
 
 export type Proposal = {
   user: User;
   post: Post;
 };
+
+export enum NominationResponse {
+  Yes = 'Yes',
+  No = 'No',
+  NoAnswer = 'NoAnswer'
+}
 
 export enum FileType {
   Code = 'code',
@@ -828,6 +831,7 @@ export type ResolversTypes = ResolversObject<{
   Election: ResolverTypeWrapper<Election>;
   Nomination: ResolverTypeWrapper<Nomination>;
   Proposal: ResolverTypeWrapper<Proposal>;
+  NominationResponse: NominationResponse;
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
@@ -895,6 +899,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryMeetingsArgs, never>>;
+  myNominations?: Resolver<Array<Maybe<ResolversTypes['Nomination']>>, ParentType, ContextType>;
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
   nominations?: Resolver<Array<Maybe<ResolversTypes['Nomination']>>, ParentType, ContextType, RequireFields<QueryNominationsArgs, 'electionId'>>;
   numberOfNominations?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfNominationsArgs, 'electionId'>>;
@@ -1052,7 +1057,7 @@ export type ElectionResolvers<ContextType = Context, ParentType extends Resolver
 export type NominationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Nomination'] = ResolversParentTypes['Nomination']> = ResolversObject<{
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
-  accepted?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  accepted?: Resolver<Maybe<ResolversTypes['NominationResponse']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

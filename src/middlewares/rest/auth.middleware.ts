@@ -66,49 +66,51 @@ export const verifyAuthenticated: RequestHandlerWithLocals = (_req, res, next) =
  * @param api Files API
  */
 
-export const verifyFileReadAccess =
-  (api: FileAPI): RequestHandlerWithLocals =>
-  (req, res, next) => {
-    // IIFE because .use does not expect a promise
-    (async () => {
-      const { url } = req;
-      const id = url.substring(url.lastIndexOf('/') + 1).split('?')[0];
-      // return null if file doesn't exist
-      const file = await api.getFileData(id).catch((_) => null);
+export const verifyFileReadAccess = (api: FileAPI): RequestHandlerWithLocals => (
+  req,
+  res,
+  next,
+) => {
+  // IIFE because .use does not expect a promise
+  (async () => {
+    const { url } = req;
+    const id = url.substring(url.lastIndexOf('/') + 1).split('?')[0];
+    // return null if file doesn't exist
+    const file = await api.getFileData(id).catch((_) => null);
 
-      if (file == null) {
-        logger.debug(`Could not find file '${id}' in DB`);
-        res.status(404).send();
-        return;
-      }
+    if (file == null) {
+      logger.debug(`Could not find file '${id}' in DB`);
+      res.status(404).send();
+      return;
+    }
 
-      // If public file, just go to content
-      if (file.accessType === AccessType.Public) {
+    // If public file, just go to content
+    if (file.accessType === AccessType.Public) {
+      next();
+      return;
+    }
+
+    try {
+      const user: User = res.locals.getUser();
+
+      if (file.accessType === AccessType.Admin && user) {
+        // TODO: Verify that user is admin
         next();
         return;
       }
 
-      try {
-        const user: User = res.locals.getUser();
-
-        if (file.accessType === AccessType.Admin && user) {
-          // TODO: Verify that user is admin
-          next();
-          return;
-        }
-
-        if (file.accessType === AccessType.Authenticated && user) {
-          next();
-          return;
-        }
-
-        // If none of tgithe above verifications succeeded, user is not authorized
-        throw new UnauthenticatedError('Du har inte access');
-      } catch (error) {
-        // Return 403 if no token was provided or it verification failed
-        logger.error(`Error in verification middleware - ${error as string}`);
-
-        res.status(403).send('Access Denied');
+      if (file.accessType === AccessType.Authenticated && user) {
+        next();
+        return;
       }
-    })();
-  };
+
+      // If none of tgithe above verifications succeeded, user is not authorized
+      throw new UnauthenticatedError('Du har inte access');
+    } catch (error) {
+      // Return 403 if no token was provided or it verification failed
+      logger.error(`Error in verification middleware - ${error as string}`);
+
+      res.status(403).send('Access Denied');
+    }
+  })();
+};
