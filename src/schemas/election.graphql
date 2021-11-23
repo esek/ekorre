@@ -46,9 +46,9 @@ type Nomination {
 }
 
 enum NominationResponse {
-  Yes
-  No
-  NoAnswer
+  YES
+  NO
+  NO_ANSWER
 }
 
 type Proposal {
