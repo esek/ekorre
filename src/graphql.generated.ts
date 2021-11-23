@@ -588,9 +588,9 @@ export type Proposal = {
 };
 
 export enum NominationResponse {
-  Yes = 'Yes',
-  No = 'No',
-  NoAnswer = 'NoAnswer'
+  Yes = 'YES',
+  No = 'NO',
+  NoAnswer = 'NO_ANSWER'
 }
 
 export enum FileType {
