@@ -7,7 +7,7 @@ type Query {
   openElection: Election
   latestElection: Election
   nominations(electionId: ID!, postname: String): [Nomination]!
-  myNominations: [Nomination]!
+  myNominations(electionId: ID!): [Nomination]!
   numberOfNominations(electionId: ID!, postname: String): Int!
   proposals(electionId: ID!, postname: String): [Proposal]!
   electables(electionId: ID!): [Post]!
@@ -40,9 +40,10 @@ type Election {
 }
 
 type Nomination {
+  election: Election!
   user: User!
   post: Post!
-  accepted: NominationResponse
+  accepted: NominationResponse!
 }
 
 enum NominationResponse {
@@ -52,6 +53,7 @@ enum NominationResponse {
 }
 
 type Proposal {
+  election: Election!
   user: User!
   post: Post!
 }
