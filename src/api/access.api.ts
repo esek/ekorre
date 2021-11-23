@@ -209,4 +209,22 @@ export class AccessAPI {
 
     return true;
   }
+
+  async removeAccessMapping(
+    resolverName: string,
+    resolverType: ResolverType,
+    slugs?: string[],
+  ): Promise<boolean> {
+    const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE).where({
+      resolverName,
+      resolverType,
+    });
+
+    // If no slugs are passed, all the mappings will be removed
+    if (slugs) {
+      q.whereIn('refaccessresource', slugs);
+    }
+
+    return q.delete();
+  }
 }
