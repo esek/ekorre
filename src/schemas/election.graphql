@@ -7,6 +7,7 @@ type Query {
   openElection: Election
   latestElection: Election
   nominations(electionId: ID!, postname: String): [Nomination]!
+  myNominations: [Nomination]!
   numberOfNominations(electionId: ID!, postname: String): Int!
   proposals(electionId: ID!, postname: String): [Proposal]!
   electables(electionId: ID!): [Post]!
@@ -20,7 +21,7 @@ type Mutation {
   closeElection: Boolean!
   nominate(electionId: ID!, username: String!, postname: String!): Boolean!
   propose(electionId: ID!, username: String!, postname: String!): Boolean!
-  respondToNomination(electionId: ID!, username: String!, postname: String!, accepts: Boolean!): Boolean!
+  respondToNomination(electionId: ID!, username: String!, postname: String!, accepts: NominationResponse!): Boolean!
 }
 
 type Election {
@@ -41,12 +42,13 @@ type Election {
 type Nomination {
   user: User!
   post: Post!
+  accepted: NominationResponse
+}
 
-  """
-  If this nomination has been accepted,
-  `null` means no response has been given yet
-  """
-  accepted: Boolean
+enum NominationResponse {
+  Yes
+  No
+  NoAnswer
 }
 
 type Proposal {
