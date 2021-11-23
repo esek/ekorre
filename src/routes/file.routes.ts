@@ -1,7 +1,7 @@
 import { Router, static as staticFiles } from 'express';
 import upload, { UploadedFile } from 'express-fileupload';
 
-import FilesAPI from '../api/files.api';
+import FileAPI from '../api/file.api';
 import { UserAPI } from '../api/user.api';
 import config from '../config';
 import RequestError from '../errors/RequestErrors';
@@ -16,7 +16,7 @@ import { fileReduce } from '../reducers/file.reducer';
 
 const filesRoute = Router();
 
-const filesAPI = new FilesAPI();
+const fileApi = new FileAPI();
 const userApi = new UserAPI();
 
 export interface UploadFileRequest {
@@ -60,7 +60,7 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
-  const dbFile = await filesAPI.saveFile(file, accessType, path, res.locals.user.username);
+  const dbFile = await fileApi.saveFile(file, accessType, path, res.locals.user.username);
 
   return res.send(dbFile);
 });
@@ -81,8 +81,8 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
 
   let path = 'avatars';
 
-  if (!(await filesAPI.getFileData('avatars').catch((_) => null))) {
-    const newPath = await filesAPI.createFolder('', path, username, path);
+  if (!(await fileApi.getFileData('avatars').catch((_) => null))) {
+    const newPath = await fileApi.createFolder('', path, username, path);
 
     if (!newPath) {
       return res.status(500).send('Could not create directory');
@@ -94,7 +94,7 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
   const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = AccessType.Authenticated;
 
-  const dbFile = await filesAPI.saveFile(file, accessType, path, username);
+  const dbFile = await fileApi.saveFile(file, accessType, path, username);
 
   try {
     await userApi.updateUser(username, { photoUrl: dbFile.folderLocation });
@@ -108,6 +108,6 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
 });
 
 // Host static files
-filesRoute.use('/', verifyFileReadAccess(filesAPI), staticFiles(config.FILES.ROOT));
+filesRoute.use('/', verifyFileReadAccess(fileApi), staticFiles(config.FILES.ROOT));
 
 export default filesRoute;
