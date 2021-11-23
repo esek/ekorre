@@ -1,5 +1,6 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse, MeetingResponse } from './models/mappers';
+import type { ArticleResponse, FileResponse, MeetingResponse, ProposalResponse } from './models/mappers';
+import type { ElectionResponse } from './model/mappers';
 import type { Context } from './models/context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -830,10 +831,10 @@ export type ResolversTypes = ResolversObject<{
   Utskott: Utskott;
   UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
   CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
-  Election: ResolverTypeWrapper<Election>;
-  Nomination: ResolverTypeWrapper<Nomination>;
+  Election: ResolverTypeWrapper<ElectionResponse>;
+  Nomination: ResolverTypeWrapper<Omit<Nomination, 'election'> & { election: ResolversTypes['Election'] }>;
   NominationResponse: NominationResponse;
-  Proposal: ResolverTypeWrapper<Proposal>;
+  Proposal: ResolverTypeWrapper<ProposalResponse>;
   FileType: FileType;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
@@ -870,9 +871,9 @@ export type ResolversParentTypes = ResolversObject<{
   HistoryEntry: HistoryEntry;
   UserPostHistoryEntry: UserPostHistoryEntry;
   CasLoginResponse: CasLoginResponse;
-  Election: Election;
-  Nomination: Nomination;
-  Proposal: Proposal;
+  Election: ElectionResponse;
+  Nomination: Omit<Nomination, 'election'> & { election: ResolversParentTypes['Election'] };
+  Proposal: ProposalResponse;
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;

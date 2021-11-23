@@ -3,7 +3,7 @@
  * `codegen.yml`!
  */
 
-import { Article, File, User, Meeting } from '../graphql.generated';
+import { Article, File, User, Post, Meeting, Proposal } from '../graphql.generated';
 
 export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {
   creator: Partial<User>;
@@ -21,4 +21,16 @@ export type MeetingResponse = Partial<Omit<Meeting, 'summons' | 'documents' | 'l
   documents?: Partial<File>;
   lateDocuments?: Partial<File>;
   protocol?: Partial<File>;
+};
+
+// prettier-ignore
+export type ElectionResponse = Partial<Omit<Election, 'creator' | 'electables' | 'proposals'>> & {
+  creator: Partial<User>;
+  electables: Partial<Post>[];
+  proposals?: Partial<Proposal>[];
+};
+
+export type ProposalResponse = Partial<Omit<Proposal, 'user' | 'post'>> & {
+  refuser: string;
+  refpost: string;
 };

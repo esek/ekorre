@@ -114,11 +114,12 @@ export class ElectionAPI {
   }
 
   /**
-   * Hittar alla valbara poster för ett val.
+   * Hittar alla valbara poster (postnamn) för ett val.
    * @param electionId ID på ett val
+   * @returns Lista på `postnames`
    */
-  async getAllElectables(electionId: string): Promise<DatabaseProposal[]> {
-    const e = await knex<DatabaseProposal>(ELECTABLE_TABLE).where('refelection', electionId);
+  async getAllElectables(electionId: string): Promise<string[]> {
+    const e = await knex<string>(ELECTABLE_TABLE).where('refelection', electionId);
 
     validateNonEmptyArray(e, `Hittade inga valbara poster för valet med ID ${electionId}`);
 

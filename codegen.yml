@@ -13,6 +13,8 @@ generates:
         Article: ./models/mappers#ArticleResponse
         File: ./models/mappers#FileResponse
         Meeting: ./models/mappers#MeetingResponse
+        Election: ./model/mappers#ElectionResponse
+        Proposal: ./models/mappers#ProposalResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"
