@@ -9,7 +9,6 @@ type Query {
   nominations(electionId: ID!, postname: String): [Nomination]!
   myNominations(electionId: ID!): [Nomination]!
   numberOfNominations(electionId: ID!, postname: String): Int!
-  proposals(electionId: ID!, postname: String): [Proposal]!
   electables(electionId: ID!): [Post]!
 }
 
@@ -35,10 +34,19 @@ type Election {
   "Which posts can be elected in the election"
   electables: [Post]!
 
+  proposals: [Proposal]
+
   "Whether the nominations and their responses are anonymous"
   nominationsHidden: Boolean!
 }
 
+"Valberedningens förslag"
+type Proposal {
+  user: User!
+  post: Post!
+}
+
+"Is not part of election, as nominations may be anonymous"
 type Nomination {
   election: Election!
   user: User!
@@ -50,10 +58,4 @@ enum NominationResponse {
   YES
   NO
   NO_ANSWER
-}
-
-type Proposal {
-  election: Election!
-  user: User!
-  post: Post!
 }

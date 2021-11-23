@@ -10,7 +10,7 @@ export type DatabaseNomination = Omit<Nomination, 'election' | 'user' | 'post'> 
   refpost: string;
 };
 
-export type DatabaseProposal = Omit<Proposal, 'election' | 'user' | 'post'> & {
+export type DatabaseProposal = Omit<Proposal, 'user' | 'post'> & {
   refelection: string;
   refuser: string;
   refpost: string;

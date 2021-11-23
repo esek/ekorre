@@ -76,6 +76,12 @@ export class ElectionAPI {
     return n;
   }
 
+  /**
+   * Räknar antalet nomineringar för en post och ett möte.
+   * @param electionId ID på ett val
+   * @param postname Namnet på posten
+   * @returns Ett heltal (`number`)
+   */
   async getNumberOfNominations(electionId: string, postname: string): Promise<number> {
     const i = await knex(NOMINATION_TABLE)
       .where('refelection', electionId)
@@ -93,5 +99,29 @@ export class ElectionAPI {
     }
 
     return i.count;
+  }
+
+  /**
+   * Hittar alla valberedningens nomineringar för ett val.
+   * @param electionId ID på ett val
+   */
+  async getAllProposals(electionId: string): Promise<DatabaseProposal[]> {
+    const p = await knex<DatabaseProposal>(PROPOSAL_TABLE).where('refelection', electionId);
+
+    validateNonEmptyArray(p, `Hittade inte Valberedningens förslag för valet med ID ${electionId}`);
+
+    return p;
+  }
+
+  /**
+   * Hittar alla valbara poster för ett val.
+   * @param electionId ID på ett val
+   */
+  async getAllElectables(electionId: string): Promise<DatabaseProposal[]> {
+    const e = await knex<DatabaseProposal>(ELECTABLE_TABLE).where('refelection', electionId);
+
+    validateNonEmptyArray(e, `Hittade inga valbara poster för valet med ID ${electionId}`);
+
+    return e;
   }
 }
