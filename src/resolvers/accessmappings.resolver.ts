@@ -22,8 +22,7 @@ type TempMappingObject = Record<string, TempAccessMapping>;
 const accessMappingResolver: Resolvers = {
   Query: {
     resolvers: (_, { type }) => {
-      const queries: AvailableResolver[] = [];
-      const mutations: AvailableResolver[] = [];
+      const resolversToReturn: AvailableResolver[] = [];
 
       // Converts the resolver object to an array of the names and their types
       const hydrate = (
@@ -44,19 +43,16 @@ const accessMappingResolver: Resolvers = {
 
       // Add the resolvers to their arrays
       Object.values(resolverObjects).forEach((resolver) => {
-        queries.push(...hydrate(ResolverType.Query, resolver.Query));
-        mutations.push(...hydrate(ResolverType.Mutation, resolver.Query));
+        if (type === ResolverType.Query || !type) {
+          resolversToReturn.push(...hydrate(ResolverType.Query, resolver.Query));
+        }
+
+        if (type === ResolverType.Mutation || !type) {
+          resolversToReturn.push(...hydrate(ResolverType.Mutation, resolver.Mutation));
+        }
       });
 
-      // Only return the ones that are relevant
-      switch (type) {
-        case ResolverType.Query:
-          return queries;
-        case ResolverType.Mutation:
-          return mutations;
-        default:
-          return [...queries, ...mutations];
-      }
+      return resolversToReturn;
     },
     accessMappings: async (_, { type, name }) => {
       const mappings = await accessApi.getAccessMapping(name ?? undefined, type ?? undefined);
