@@ -5,6 +5,7 @@ import { Maybe } from 'graphql/jsutils/Maybe';
 import { ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
 import { StrictObject } from '../models/base';
 import type { DatabaseArticle } from '../models/db/article';
+import { convertMarkdownToHtml } from '../reducers/article.reducer';
 import { stripObject, toUTC } from '../util';
 import { ARTICLE_TABLE } from './constants';
 import knex from './knex';
@@ -168,6 +169,7 @@ export class ArticleAPI {
    */
   async modifyArticle(id: number, entry: ModifyArticle): Promise<boolean> {
     const update: StrictObject = stripObject(entry);
+    update.body = convertMarkdownToHtml(update.body ?? '');
 
     // TODO: Add lastUpdatedBy using auth
 
