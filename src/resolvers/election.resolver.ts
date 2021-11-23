@@ -10,6 +10,8 @@ const api = new ElectionAPI();
 
 const electionResolver: Resolvers = {
   Election: {
+    // Vi fyller ut resolvern med de saker som
+    // skiljer ElectionResponse och Election
     creator: useDataLoader((model, context) => ({
       dataLoader: context.userDataLoader,
       key: model.creator.username,
@@ -20,5 +22,28 @@ const electionResolver: Resolvers = {
           return ctx.postDataLoader.load(e.postname);
       }));
     },
+  },
+  Proposal: {
+    user: useDataLoader((model, context) => ({
+      dataLoader: context.userDataLoader,
+      key: model.user.username,
+    })),
+    post: useDataLoader((model, context) => ({
+      dataLoader: context.postDataLoader,
+      key: model.post.postname,
+    })),
+  },
+  Nomination: {
+    // TODO: Lägg till dataloader för election
+    user: useDataLoader((model, context) => ({
+      dataLoader: context.userDataLoader,
+      key: model.user.username,
+    })),
+    post: useDataLoader((model, context) => ({
+      dataLoader: context.postDataLoader,
+      key: model.post.postname,
+    })),
   }
 };
+
+export default electionResolver;
