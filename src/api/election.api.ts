@@ -70,7 +70,7 @@ export class ElectionAPI {
     const n = await knex<DatabaseNomination>(NOMINATION_TABLE)
       .where('refelection', electionId)
       .where('refuser', username);
-    
+
     validateNonEmptyArray(n, `Hittade inga nomineringar för användaren ${username}`);
 
     return n;
@@ -84,6 +84,11 @@ export class ElectionAPI {
       .first();
 
     if (i == null || i.count == null) {
+      logger.debug(
+        `Kunde inte räkna antalet nomineringar för valet ${electionId} och posten ${postname}, count var ${JSON.stringify(
+          i,
+        )}`,
+      );
       throw new ServerError('Kunde inte räkna antal nomineringar');
     }
 
