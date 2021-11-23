@@ -168,8 +168,8 @@ export class ArticleAPI {
    * @param entry Modifiering av existerande artikel
    */
   async modifyArticle(id: number, entry: ModifyArticle): Promise<boolean> {
-    entry.body = convertMarkdownToHtml(entry.body ?? '');
     const update: StrictObject = stripObject(entry);
+    update.body = convertMarkdownToHtml(update.body ?? '');
 
     // TODO: Add lastUpdatedBy using auth
 
