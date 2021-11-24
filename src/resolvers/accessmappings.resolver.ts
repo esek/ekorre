@@ -94,7 +94,7 @@ const accessMappingResolver: Resolvers = {
   },
   Mutation: {
     setResolverMappings: async (_, { name, type, slugs }) =>
-      accessApi.setAccessMappings(name, type, slugs),
+      accessApi.setAccessMappings(name, type, slugs ?? undefined),
   },
 };
 

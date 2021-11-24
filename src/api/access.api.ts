@@ -193,7 +193,7 @@ export class AccessAPI {
   async setAccessMappings(
     resolverName: string,
     resolverType: ResolverType,
-    slugs: string[],
+    slugs?: string[],
   ): Promise<boolean> {
     const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
 
@@ -204,12 +204,15 @@ export class AccessAPI {
       })
       .delete();
 
-    const inserts = await q.insert(
-      slugs.map((s) => ({ refaccessresource: s, resolverName, resolverType })),
-    );
+    // if we have anything to add
+    if (slugs) {
+      const inserts = await q.insert(
+        slugs.map((s) => ({ refaccessresource: s, resolverName, resolverType })),
+      );
 
-    if (inserts.length < 1) {
-      return false;
+      if (inserts.length < 1) {
+        return false;
+      }
     }
 
     return true;

@@ -5,7 +5,7 @@ type Query {
 }
 
 type Mutation {
-	setResolverMappings(name: String!, type: ResolverType!, slugs: [String!]!): Boolean!
+	setResolverMappings(name: String!, type: ResolverType!, slugs: [String!]): Boolean!
 }
 
 type AvailableResolver {
