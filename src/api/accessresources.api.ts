@@ -51,18 +51,20 @@ class ResourcesAPI {
 
   async addResource(
     name: string,
+    slug: string,
     description: string,
     resourceType: AccessResourceType,
   ): Promise<boolean> {
-    const [slug] = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).insert({
+    const [id] = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).insert({
+      slug,
       description,
       name,
       resourceType,
     });
 
-    if (!slug) {
+    if (!id) {
       logger.error(`Failed to add resource with name ${name}`);
-      throw new NotFoundError(`Resursen ${slug} kunde inte hittas`);
+      throw new NotFoundError(`Resursen ${name} kunde inte skapas`);
     }
 
     return true;

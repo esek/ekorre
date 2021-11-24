@@ -4,7 +4,7 @@ type Query {
 }
 
 type Mutation {
-	addAccessResource(name: String!, description: String!, resourceType: AccessResourceType!): Boolean!
+	addAccessResource(name: String!, description: String!, resourceType: AccessResourceType!, slug: String!): Boolean!
 	removeAccessResource(slug: String!): Boolean!
 }
 

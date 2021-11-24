@@ -15,8 +15,8 @@ const doorResolver: Resolvers = {
     },
   },
   Mutation: {
-    addAccessResource: async (_, { name, description, resourceType }) =>
-      resourcesAPI.addResource(name, description, resourceType),
+    addAccessResource: async (_, { name, description, resourceType, slug }) =>
+      resourcesAPI.addResource(name, slug, description, resourceType),
     removeAccessResource: async (_, { slug }) => resourcesAPI.removeResouce(slug),
   },
   AccessMapping: {
