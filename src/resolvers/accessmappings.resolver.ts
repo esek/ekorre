@@ -65,9 +65,10 @@ const accessMappingResolver: Resolvers = {
       });
     },
     accessMappings: async (_, { type, name }) => {
-      const mappings = await accessApi.getAccessMapping(name ?? undefined, type ?? undefined);
+      const mappings = await accessApi
+        .getAccessMapping(name ?? undefined, type ?? undefined)
+        .catch(() => []);
 
-      // eslint-disable-next-line @typescript-eslint/indent
       const obj: TempMappingObject = {};
 
       mappings.forEach((mapping) => {
