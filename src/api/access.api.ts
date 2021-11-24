@@ -190,12 +190,43 @@ export class AccessAPI {
     return resources;
   }
 
+  async setAccessMappings(
+    resolverName: string,
+    resolverType: ResolverType,
+    slugs: string[],
+  ): Promise<boolean> {
+    const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
+
+    await q
+      .where({
+        resolverName,
+        resolverType,
+      })
+      .delete();
+
+    const inserts = await q.insert(
+      slugs.map((s) => ({ refaccessresource: s, resolverName, resolverType })),
+    );
+
+    if (inserts.length < 1) {
+      return false;
+    }
+
+    return true;
+  }
+
   async addAccessMappings(
     resolverName: string,
     resolverType: ResolverType,
     slugs: string[],
   ): Promise<boolean> {
-    const q = await knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE).insert(
+    const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
+
+    // Remove if exists
+    const deleteResponse = q.whereIn('refaccessresource', slugs).delete();
+
+    // Add again
+    const res = await q.insert(
       slugs.map((s) => ({
         resolverName,
         resolverType,
@@ -203,7 +234,7 @@ export class AccessAPI {
       })),
     );
 
-    if (!q.length) {
+    if (!res.length) {
       throw new ServerError('Kunde inte skapa mappningen av resursen');
     }
 
