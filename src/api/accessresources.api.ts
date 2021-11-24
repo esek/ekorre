@@ -1,4 +1,4 @@
-import { NotFoundError } from '../errors/RequestErrors';
+import { NotFoundError, ServerError } from '../errors/RequestErrors';
 import { AccessResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
 import { DatabaseAccessResource } from '../models/db/resource';
@@ -64,7 +64,7 @@ class ResourcesAPI {
 
     if (!id) {
       logger.error(`Failed to add resource with name ${name}`);
-      throw new NotFoundError(`Resursen ${name} kunde inte skapas`);
+      throw new ServerError(`Resursen ${name} kunde inte skapas`);
     }
 
     return true;
@@ -77,7 +77,7 @@ class ResourcesAPI {
 
     if (!res) {
       logger.error(`Failed to remove resource with slug ${slug}`);
-      return false;
+      throw new NotFoundError(`Resursen med slug ${slug} kunde inte hittas`);
     }
 
     return true;
