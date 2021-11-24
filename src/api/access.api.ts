@@ -62,7 +62,7 @@ export class AccessAPI {
    * @param ref referens (användare eller post)
    * @param newaccess den nya accessen
    */
-  private async setAccess(table: string, ref: string, newaccess: number[]): Promise<boolean> {
+  private async setAccess(table: string, ref: string, newaccess: string[]): Promise<boolean> {
     await knex<DatabaseAccess>(table)
       .where({
         refname: ref,
@@ -90,7 +90,7 @@ export class AccessAPI {
    * @param username användaren
    * @param newaccess den nya accessen
    */
-  async setIndividualAccess(username: string, newaccess: number[]): Promise<boolean> {
+  async setIndividualAccess(username: string, newaccess: string[]): Promise<boolean> {
     const status = this.setAccess(IND_ACCESS_TABLE, username, newaccess);
 
     logger.info(`Updated access for user ${username}`);
@@ -105,7 +105,7 @@ export class AccessAPI {
    * @param postname posten
    * @param newaccess den nya accessen
    */
-  async setPostAccess(postname: string, newaccess: number[]): Promise<boolean> {
+  async setPostAccess(postname: string, newaccess: string[]): Promise<boolean> {
     const status = this.setAccess(POST_ACCESS_TABLE, postname, newaccess);
 
     logger.info(`Updated access for post ${postname}`);
@@ -125,7 +125,7 @@ export class AccessAPI {
   ): Promise<DatabaseJoinedAccess[]> {
     const query = knex<DatabaseAccess>(POST_ACCESS_TABLE)
       .whereIn('refname', posts)
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
 
     // Om inaktiva posters access inte ska inkluderas,
     // ta in `POSTS_TABLE` och se vilka som är aktiva

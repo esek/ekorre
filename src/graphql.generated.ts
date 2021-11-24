@@ -351,13 +351,13 @@ export type MutationResetPasswordArgs = {
 
 
 export type MutationSetIndividualAccessArgs = {
-  access: Array<Scalars['Int']>;
+  access: Array<Scalars['String']>;
   username: Scalars['String'];
 };
 
 
 export type MutationSetPostAccessArgs = {
-  access: Array<Scalars['Int']>;
+  access: Array<Scalars['String']>;
   postname: Scalars['String'];
 };
 
