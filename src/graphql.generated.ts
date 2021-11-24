@@ -451,6 +451,7 @@ export type Query = {
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
   posts?: Maybe<Array<Maybe<Post>>>;
+  resolverExists: Scalars['Boolean'];
   resolvers: Array<AvailableResolver>;
   user?: Maybe<User>;
   utskott?: Maybe<Utskott>;
@@ -557,6 +558,12 @@ export type QueryPostAccessArgs = {
 
 export type QueryPostsArgs = {
   utskott?: Maybe<Utskott>;
+};
+
+
+export type QueryResolverExistsArgs = {
+  type: ResolverType;
+  name: Scalars['String'];
 };
 
 
@@ -954,6 +961,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
   posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, never>>;
+  resolverExists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<QueryResolverExistsArgs, 'type' | 'name'>>;
   resolvers?: Resolver<Array<ResolversTypes['AvailableResolver']>, ParentType, ContextType, RequireFields<QueryResolversArgs, never>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;

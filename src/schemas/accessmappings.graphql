@@ -1,5 +1,6 @@
 type Query {
 	resolvers(type: ResolverType): [AvailableResolver!]!
+	resolverExists(type: ResolverType!, name: String!): Boolean!
 	accessMappings(name: String, type: ResolverType): [AccessMapping!]!
 }
 
