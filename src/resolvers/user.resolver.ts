@@ -1,5 +1,6 @@
 import { UserAPI } from '../api/user.api';
 import { hashWithSecret, verifyToken } from '../auth';
+import { BadRequestError } from '../errors/RequestErrors';
 import type { Resolvers } from '../graphql.generated';
 import { TokenValue } from '../models/auth';
 import { reduce } from '../reducers';
@@ -38,6 +39,15 @@ const userResolver: Resolvers = {
     user: async (_, { username }) => {
       const u = await api.getSingleUser(username);
       return reduce(u, userReduce);
+    },
+    searchUser: async (_, { search }) => {
+      // If no search query
+      if (!search) {
+        throw new BadRequestError('Du måste ange en söksträng');
+      }
+
+      const users = await api.searchUser(search);
+      return reduce(users, userReduce);
     },
   },
   Mutation: {

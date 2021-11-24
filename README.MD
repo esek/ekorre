@@ -131,6 +131,15 @@ npm run lint // Testa kodfel, brukar göras av IDE
 npm run prettier-format // Formatera all kod
 ```
 
+Det händer att `prettier` och `eslint` bråkar, främst vid långa typdeklarationer som i
+`src/models/mappers.d.ts`. Då är det praktiskt att prega in en
+
+```ts
+// prettier-ignore
+```
+
+ovanför typen.
+
 ### SEMVER
 
 Versionshantering följer [semantic versioning](https://semver.org/spec/v2.0.0.html) specificationen. Detta är viktigt eftersom releases

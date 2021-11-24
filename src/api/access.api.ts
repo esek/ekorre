@@ -3,7 +3,7 @@ import { ResolverType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseAccess } from '../models/db/access';
 import { DatabaseAccessMapping } from '../models/db/accessmapping';
-import { DatabasePostHistory } from '../models/db/post';
+import { DatabasePost, DatabasePostHistory } from '../models/db/post';
 import { DatabaseAccessResource } from '../models/db/resource';
 import { validateNonEmptyArray } from '../services/validation.service';
 import {
@@ -11,6 +11,7 @@ import {
   ACCESS_RESOURCES_TABLE,
   IND_ACCESS_TABLE,
   POSTS_HISTORY_TABLE,
+  POSTS_TABLE,
   POST_ACCESS_TABLE,
 } from './constants';
 import knex from './knex';
@@ -116,11 +117,23 @@ export class AccessAPI {
    * Hämta access för flera poster.
    * TODO: Kanske inkludera referens till post.
    * @param posts posterna
+   * @param includeInactivePosts Om inaktiverade posters access ska tas med
    */
-  async getAccessForPosts(posts: string[]): Promise<DatabaseJoinedAccess[]> {
-    const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE)
+  async getAccessForPosts(
+    posts: string[],
+    includeInactivePosts = false,
+  ): Promise<DatabaseJoinedAccess[]> {
+    const query = knex<DatabaseAccess>(POST_ACCESS_TABLE)
       .whereIn('refname', posts)
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
+
+    // Om inaktiva posters access inte ska inkluderas,
+    // ta in `POSTS_TABLE` och se vilka som är aktiva
+    if (!includeInactivePosts) {
+      query.innerJoin<DatabasePost>(POSTS_TABLE, 'refname', 'postname').where('active', true);
+    }
+
+    const res = await query;
 
     return res;
   }

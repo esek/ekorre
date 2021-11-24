@@ -1,4 +1,4 @@
-import FilesAPI from '../api/files.api';
+import FileAPI from '../api/file.api';
 import { NotFoundError } from '../errors/RequestErrors';
 import { FileResponse } from '../models/mappers';
 import { reduce } from '../reducers';
@@ -6,7 +6,7 @@ import { fileReduce } from '../reducers/file.reducer';
 
 // Om vi kör tester beh;ver vi denna konstant
 // för att kunna spionera på den
-export const filesApi = new FilesAPI();
+export const fileApi = new FileAPI();
 
 /**
  * Funktion som används för att skapa en DataLoader
@@ -22,7 +22,7 @@ export const batchFilesFunction = async (
    * see /src/resolvers/README.md
    * @param postnames
    */
-  const apiResponse = await filesApi.getMultipleFilesById(fileIds);
+  const apiResponse = await fileApi.getMultipleFilesById(fileIds);
   if (apiResponse === null) return [];
   const files = reduce(apiResponse, fileReduce);
 

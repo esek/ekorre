@@ -1,4 +1,4 @@
-import { USER_TABLE } from '../../src/api/constants';
+import { USER_TABLE, PASSWORD_RESET_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
 import { UserAPI } from '../../src/api/user.api';
 import {
@@ -37,6 +37,9 @@ afterEach(async () => {
   await knex(USER_TABLE)
     .delete()
     .whereIn('username', [mockNewUser1.username, `funcUser_${mockNewUser1.username}`]);
+  // Delete EVERYTHING
+  await knex(PASSWORD_RESET_TABLE).delete().where('token', '=', null);
+  jest.useRealTimers();
 });
 
 afterAll(async () => {
@@ -218,4 +221,105 @@ test('updating non-existant user', async () => {
   await expect(api.updateUser('Obv. fake username', { firstName: 'Adolf' })).rejects.toThrowError(
     BadRequestError,
   );
+});
+
+test('search for users by username that exists', async () => {
+  await api.createUser(mockNewUser1);
+  expect((await api.searchUser('Test1')).length).toBe(1);
+  expect((await api.searchUser('userapi')).length).toBe(2);
+});
+
+test('search for user by name that exists', async () => {
+  await api.createUser(mockNewUser1);
+  expect((await api.searchUser('kalle')).length).toBe(1);
+});
+
+test('search for non existing user', async () => {
+  await expect(api.searchUser('Albert')).rejects.toThrow('Inga användare hittades');
+});
+
+// Test för att återställa password
+
+test('changing password for non-existing user', async () => {
+  await expect(api.changePassword('Not a user', 'hunter2', 'hunter3')).rejects.toThrowError(
+    NotFoundError,
+  );
+});
+
+test('changing password using wrong oldPassword', async () => {
+  const newPassword = 'hunter3';
+  await api.createUser(mockNewUser1);
+  await expect(
+    api.changePassword(mockNewUser1.username, 'Not correct', newPassword),
+  ).rejects.toThrowError(UnauthenticatedError);
+
+  // Försäkra oss om att lösen inte ändras
+  await expect(api.loginUser(mockNewUser1.username, newPassword)).rejects.toThrowError(
+    UnauthenticatedError,
+  );
+});
+
+test('changing password for valid user', async () => {
+  const newPassword = 'hunter3';
+  await api.createUser(mockNewUser1);
+
+  // Försäkra sig om att nya lösenordet inte funkar till att börja med
+  await expect(api.loginUser(mockNewUser1.username, newPassword)).rejects.toThrowError(
+    UnauthenticatedError,
+  );
+
+  await api.changePassword(mockNewUser1.username, mockNewUser1.password, newPassword);
+
+  // Försäkra oss om att lösen ändras
+  await expect(api.loginUser(mockNewUser1.username, newPassword)).resolves.toBeTruthy();
+});
+
+test('validating non-valid resetPasswordToken', async () => {
+  expect(await api.validateResetPasswordToken(mockNewUser0.username, 'Not a token')).toBeFalsy();
+});
+
+test('validating valid resetPasswordToken for wrong user', async () => {
+  await api.createUser(mockNewUser1);
+  const token = await api.requestPasswordReset(mockNewUser1.username);
+  expect(await api.validateResetPasswordToken(mockNewUser0.username, token)).toBeFalsy();
+});
+
+test('validating valid resetPasswordToken for correct user', async () => {
+  await api.createUser(mockNewUser1);
+  const token = await api.requestPasswordReset(mockNewUser1.username);
+  expect(await api.validateResetPasswordToken(mockNewUser1.username, token)).toBeTruthy();
+});
+
+test('reset password for non-valid username/token', async () => {
+  await expect(api.resetPassword('Not a token', 'Not a username', 'drrr')).rejects.toThrowError(NotFoundError);
+});
+
+test('reset password with expired resetPasswordToken', async () => {
+  await api.createUser(mockNewUser1);
+  const token = await api.requestPasswordReset(mockNewUser1.username);
+
+  // Vi fejkar nu att system time är 1h fram
+  const expireMinutes = 60;
+  const trueTime = new Date();
+  jest
+    .useFakeTimers()
+    .setSystemTime(new Date(trueTime.getTime() + expireMinutes * 60000));
+
+  await expect(api.resetPassword(mockNewUser1.username, token, 'drr password')).rejects.toThrowError(NotFoundError);
+});
+
+test('reset password properly', async () => {
+  await api.createUser(mockNewUser1);
+  const token = await api.requestPasswordReset(mockNewUser1.username);
+  const newPassword = 'Detta test skrevs på valmötet 2021';
+
+  // Försäkra sig om att nya lösenordet inte funkar till att börja med
+  await expect(api.loginUser(mockNewUser1.username, newPassword)).rejects.toThrowError(
+    UnauthenticatedError,
+  );
+
+  await api.resetPassword(token, mockNewUser1.username, newPassword);
+  
+  // Försäkra oss om att lösen ändras
+  await expect(api.loginUser(mockNewUser1.username, newPassword)).resolves.toBeTruthy();
 });

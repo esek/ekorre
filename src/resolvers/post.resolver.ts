@@ -13,9 +13,9 @@ const postresolver: Resolvers = {
       if (res != null) return postReduce(res);
       return null;
     },
-    posts: async (_, { utskott }) => {
+    posts: async (_, { utskott, includeInactive }) => {
       if (utskott != null) {
-        return reduce(await api.getPostsFromUtskott(utskott), postReduce);
+        return reduce(await api.getPostsFromUtskott(utskott, includeInactive), postReduce);
       }
       return reduce(await api.getPosts(), postReduce);
     },
@@ -27,6 +27,8 @@ const postresolver: Resolvers = {
       api.addUsersToPost(usernames, postname, period),
     removeUsersFromPost: (_, { usernames, postname }) =>
       api.removeUsersFromPost(usernames, postname),
+    activatePost: (_, { postname }) => api.activatePost(postname),
+    deactivatePost: (_, { postname }) => api.deactivatePost(postname),
   },
   User: {
     posts: async ({ username }, _, ctx) => {

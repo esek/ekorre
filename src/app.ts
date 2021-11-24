@@ -25,7 +25,7 @@ import type { Context, ContextParams } from './models/context';
 import * as Resolvers from './resolvers/index';
 import authRoute from './routes/auth.routes';
 import doorsRoute from './routes/door.routes';
-import filesRoute from './routes/files.routes';
+import filesRoute from './routes/file.routes';
 
 const { PORT, HOST, FILES, CORS } = config;
 

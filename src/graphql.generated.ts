@@ -191,6 +191,7 @@ export type ModifyPost = {
 };
 
 export type Mutation = {
+  activatePost: Scalars['Boolean'];
   addAccessResource: Scalars['Boolean'];
   addArticle?: Maybe<Article>;
   addFileToMeeting: Scalars['Boolean'];
@@ -201,6 +202,7 @@ export type Mutation = {
   casLogin: CasLoginResponse;
   createFolder: Scalars['Boolean'];
   createUser: Scalars['Boolean'];
+  deactivatePost: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
   /** Test user credentials and if valid get a jwt token */
   login?: Maybe<User>;
@@ -218,6 +220,11 @@ export type Mutation = {
   setResolverMappings: Scalars['Boolean'];
   updateUser: Scalars['Boolean'];
   validatePasswordResetToken: Scalars['Boolean'];
+};
+
+
+export type MutationActivatePostArgs = {
+  postname: Scalars['String'];
 };
 
 
@@ -279,6 +286,11 @@ export type MutationCreateFolderArgs = {
 
 export type MutationCreateUserArgs = {
   input: NewUser;
+};
+
+
+export type MutationDeactivatePostArgs = {
+  postname: Scalars['String'];
 };
 
 
@@ -453,6 +465,8 @@ export type Query = {
   posts?: Maybe<Array<Maybe<Post>>>;
   resolverExists: Scalars['Boolean'];
   resolvers: Array<AvailableResolver>;
+  searchFiles: Array<File>;
+  searchUser: Array<User>;
   user?: Maybe<User>;
   utskott?: Maybe<Utskott>;
 };
@@ -557,6 +571,7 @@ export type QueryPostAccessArgs = {
 
 
 export type QueryPostsArgs = {
+  includeInactive: Scalars['Boolean'];
   utskott?: Maybe<Utskott>;
 };
 
@@ -569,6 +584,16 @@ export type QueryResolverExistsArgs = {
 
 export type QueryResolversArgs = {
   type?: Maybe<ResolverType>;
+};
+
+
+export type QuerySearchFilesArgs = {
+  search: Scalars['String'];
+};
+
+
+export type QuerySearchUserArgs = {
+  search: Scalars['String'];
 };
 
 
@@ -901,6 +926,7 @@ export type MeetingResolvers<ContextType = Context, ParentType extends Resolvers
 }>;
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  activatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationActivatePostArgs, 'postname'>>;
   addAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType' | 'slug'>>;
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'fileId' | 'fileType' | 'meetingId'>>;
@@ -911,6 +937,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
+  deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'postname'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
   login?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -960,9 +987,11 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
-  posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, never>>;
+  posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, 'includeInactive'>>;
   resolverExists?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<QueryResolverExistsArgs, 'type' | 'name'>>;
   resolvers?: Resolver<Array<ResolversTypes['AvailableResolver']>, ParentType, ContextType, RequireFields<QueryResolversArgs, never>>;
+  searchFiles?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QuerySearchFilesArgs, 'search'>>;
+  searchUser?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySearchUserArgs, 'search'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
