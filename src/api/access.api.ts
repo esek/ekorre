@@ -239,7 +239,7 @@ export class AccessAPI {
     const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
 
     // Remove if exists
-    const deleteResponse = q.whereIn('refaccessresource', slugs).delete();
+    await q.whereIn('refaccessresource', slugs).delete();
 
     // Add again
     const res = await q.insert(

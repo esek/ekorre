@@ -37,8 +37,7 @@ const accessresolver: Resolvers = {
   Post: {
     access: async ({ postname }) => {
       // Maybe implement API method that takes single postname.
-      const postAccess = await accessApi.getAccessForPosts([postname]).catch((err) => {
-        console.log(err);
+      const postAccess = await accessApi.getAccessForPosts([postname]).catch(() => {
         return [];
       });
       return accessReducer(postAccess);

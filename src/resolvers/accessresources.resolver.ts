@@ -28,7 +28,7 @@ const doorResolver: Resolvers = {
       try {
         // try to load the mappings from datalodaer
         const r = await ctx.accessResourceDataloader.loadMany(
-          resources.filter((r) => r.slug).map((resource) => resource.slug ?? ''),
+          resources.filter((resource) => resource.slug).map((resource) => resource.slug ?? ''),
         );
         return r;
       } catch (err) {

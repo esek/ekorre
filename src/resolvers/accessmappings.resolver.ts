@@ -54,14 +54,14 @@ const accessMappingResolver: Resolvers = {
 
       return resolversToReturn;
     },
-    resolverExists: async (_, { name, type }) => {
+    resolverExists: (_, { name, type }) => {
       return Object.values(resolverObjects).some((r) => {
         const resolverType = type === ResolverType.Query ? 'Query' : 'Mutation';
         if (!r[resolverType]) {
           return false;
         }
 
-        return r[resolverType]?.[name] != undefined;
+        return r[resolverType]?.[name] !== undefined;
       });
     },
     accessMappings: async (_, { type, name }) => {
