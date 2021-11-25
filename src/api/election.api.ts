@@ -43,17 +43,18 @@ export class ElectionAPI {
   }
 
   /**
-   * Funktion som endast används av DataLoader. Returnerar en lista med alla val
-   * som matchar något av de angivna ID:n.
-   *
-   * Eftersom DataLoaders själv hanterar tomma svar ger denna funktionen inga fel.
+   * Returnerar en lista med alla val som matchar något av de angivna ID:n.
    * @param electionIds En lista med `electionId`
-   * @returns En lista med val, alternativt en tom lista
+   * @returns En lista med val
    */
   async getMultipleElections(
     electionIds: string[] | readonly string[],
   ): Promise<DatabaseElection[]> {
-    return knex<DatabaseElection>(ELECTABLE_TABLE).whereIn('id', electionIds);
+    const e = await knex<DatabaseElection>(ELECTABLE_TABLE).whereIn('id', electionIds);
+
+    validateNonEmptyArray(e, 'Hittade inte något möte alls');
+
+    return e;
   }
 
   /**

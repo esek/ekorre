@@ -536,6 +536,8 @@ export type Query = {
   article?: Maybe<Article>;
   articles: Array<Maybe<Article>>;
   electables: Array<Maybe<Post>>;
+  election?: Maybe<Election>;
+  elections: Array<Maybe<Election>>;
   file: File;
   fileSystem: FileSystemResponse;
   files: Array<File>;
@@ -602,6 +604,16 @@ export type QueryArticlesArgs = {
 
 export type QueryElectablesArgs = {
   electionId: Scalars['ID'];
+};
+
+
+export type QueryElectionArgs = {
+  electionId: Scalars['ID'];
+};
+
+
+export type QueryElectionsArgs = {
+  electiondIds: Array<Scalars['ID']>;
 };
 
 
@@ -1131,6 +1143,8 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
   electables?: Resolver<Array<Maybe<ResolversTypes['Post']>>, ParentType, ContextType, RequireFields<QueryElectablesArgs, 'electionId'>>;
+  election?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType, RequireFields<QueryElectionArgs, 'electionId'>>;
+  elections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryElectionsArgs, 'electiondIds'>>;
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;

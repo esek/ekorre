@@ -6,6 +6,8 @@ scalar DateTime
 type Query {
   openElection: Election
   latestElection: Election
+  election(electionId: ID!): Election
+  elections(electiondIds: [ID!]!): [Election]!
   nominations(electionId: ID!, postname: String): [Nomination]!
   myNominations(electionId: ID!): [Nomination]!
   numberOfNominations(electionId: ID!, postname: String): Int!
