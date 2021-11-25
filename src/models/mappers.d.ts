@@ -3,13 +3,22 @@
 /**
  * Typer som definieras här måste även skrivas in i
  * `codegen.yml`!
- * 
+ *
  * Får du trots detta konstiga fel, kontrollera så att
  * 1) Du importerat alla relevanta typer (dvs. inga `any`)
  * 2) `graphql.generated.ts` ser bra ut
  */
-
-import { AccessResource, Article, File, User, Post, Meeting, Election, Nomination, Proposal } from '../graphql.generated';
+import {
+  AccessResource,
+  Article,
+  File,
+  User,
+  Post,
+  Meeting,
+  Election,
+  Nomination,
+  Proposal,
+} from '../graphql.generated';
 
 export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {
   creator: Partial<User>;
@@ -45,4 +54,4 @@ export type NominationResponse = Partial<Omit<Nomination, 'user' | 'post' | 'ele
   election: Partial<Election>;
   user: Partial<User>;
   post: Partial<Post>;
-}
+};

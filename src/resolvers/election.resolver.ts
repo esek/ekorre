@@ -32,12 +32,13 @@ const electionResolver: Resolvers = {
       return Promise.all(
         refposts.map(async (e) => {
           return ctx.postDataLoader.load(e);
-        }));
+        }),
+      );
     },
     proposals: async (model) => {
       const p = await api.getAllProposals(model.id ?? '');
       return reduce(p, proposalReduce);
-    }
+    },
   },
   Proposal: {
     user: useDataLoader((model, context) => ({
@@ -62,7 +63,7 @@ const electionResolver: Resolvers = {
       dataLoader: context.postDataLoader,
       key: model.post.postname,
     })),
-  }
+  },
 };
 
 export default electionResolver;

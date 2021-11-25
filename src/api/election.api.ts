@@ -43,6 +43,20 @@ export class ElectionAPI {
   }
 
   /**
+   * Funktion som endast används av DataLoader. Returnerar en lista med alla val
+   * som matchar något av de angivna ID:n.
+   *
+   * Eftersom DataLoaders själv hanterar tomma svar ger denna funktionen inga fel.
+   * @param electionIds En lista med `electionId`
+   * @returns En lista med val, alternativt en tom lista
+   */
+  async getMultipleElections(
+    electionIds: string[] | readonly string[],
+  ): Promise<DatabaseElection[]> {
+    return knex<DatabaseElection>(ELECTABLE_TABLE).whereIn('id', electionIds);
+  }
+
+  /**
    * Returnerar alla nomineringar för posten och valet.
    * @param electionId ID på ett val
    * @param postname Namnet på posten

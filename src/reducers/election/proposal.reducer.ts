@@ -6,10 +6,10 @@ export function proposalReduce(dbProposal: DatabaseProposal): ProposalResponse {
 
   const pr = {
     user: {
-      username: refuser
+      username: refuser,
     },
     post: {
-      postname: refpost
+      postname: refpost,
     },
   };
 
