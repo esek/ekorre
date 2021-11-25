@@ -14,9 +14,7 @@ export class ElectionAPI {
    * @throws `NotFoundError`
    */
   async getLatestElections(limit?: number): Promise<DatabaseElection[]> {
-    const query = knex<DatabaseElection>(ELECTION_TABLE)
-      .select('*')
-      .orderBy('createdAt', 'desc');
+    const query = knex<DatabaseElection>(ELECTION_TABLE).select('*').orderBy('createdAt', 'desc');
 
     if (limit != null) {
       query.limit(limit);
