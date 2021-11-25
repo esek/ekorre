@@ -57,6 +57,7 @@ const accessMappingResolver: Resolvers = {
     resolverExists: (_, { name, type }) => {
       return Object.values(resolverObjects).some((r) => {
         const resolverType = type === ResolverType.Query ? 'Query' : 'Mutation';
+
         if (!r[resolverType]) {
           return false;
         }
@@ -65,15 +66,19 @@ const accessMappingResolver: Resolvers = {
       });
     },
     accessMappings: async (_, { type, name }) => {
+      // Get all mappings
       const mappings = await accessApi
         .getAccessMapping(name ?? undefined, type ?? undefined)
         .catch(() => []);
 
+      // Create temporary object to group mappings by resolver name
       const obj: TempMappingObject = {};
 
+      // Loop through mappings
       mappings.forEach((mapping) => {
         const { resolverName } = mapping;
 
+        // If the resolver name is not in the object, add it
         if (!(resolverName in obj)) {
           obj[resolverName] = {
             id: mapping.id,
@@ -85,6 +90,7 @@ const accessMappingResolver: Resolvers = {
           };
         }
 
+        // Add the resources to that resolver
         obj[resolverName].resources.push({
           slug: mapping.refaccessresource,
         });

@@ -49,6 +49,14 @@ class ResourcesAPI {
     return resouce;
   }
 
+  /**
+   * Adds a new access resource
+   * @param {string} name Name of the resource
+   * @param {string} slug Slug of the resource
+   * @param {string} description Description of the resource
+   * @param {string} resourceType Type of the resource
+   * @returns {boolean} True if successful
+   */
   async addResource(
     name: string,
     slug: string,
@@ -70,6 +78,11 @@ class ResourcesAPI {
     return true;
   }
 
+  /**
+   * Removes an access resource
+   * @param {string} slug Slug of the resource to remove
+   * @returns {boolean} True if successful
+   */
   async removeResouce(slug: string): Promise<boolean> {
     const res = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
       .where('slug', slug)

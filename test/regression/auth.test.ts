@@ -47,13 +47,14 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  await accessApi.removeAccessMapping('logout', ResolverType.Mutation);
+  // remove all mappings
+  await accessApi.setAccessMappings('logout', ResolverType.Mutation);
   await accessApi.setIndividualAccess('aa0000bb-s', []);
 });
 
 afterAll(async () => {
   await resourcesApi.removeResouce(testResource.slug);
-  await accessApi.removeAccessMapping('logout', ResolverType.Mutation);
+  await accessApi.setAccessMappings('logout', ResolverType.Mutation);
 });
 
 test('resource with only auth required', async () => {
@@ -79,7 +80,7 @@ test('resource with only auth required', async () => {
   ).resolves.toBe(true);
 
   // add resource mapping
-  await accessApi.addAccessMappings('logout', ResolverType.Mutation, ['']);
+  await accessApi.setAccessMappings('logout', ResolverType.Mutation, ['']);
 
   // try to call without auth, (should throw error)
   await axiosInstance
@@ -133,7 +134,7 @@ test('resource with mapping', async () => {
   ).resolves.toBe(true);
 
   // add resource mapping
-  await accessApi.addAccessMappings('logout', ResolverType.Mutation, [testResource.slug]);
+  await accessApi.setAccessMappings('logout', ResolverType.Mutation, [testResource.slug]);
 
   // try to call without auth, (should throw error)
   await axiosInstance

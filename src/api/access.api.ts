@@ -203,6 +203,13 @@ export class AccessAPI {
     return resources;
   }
 
+  /**
+   * Sets (overrides) the mapping for a resolver
+   * @param {string} resolverName The name of the resolver
+   * @param {string} resolverType The type of the resolver
+   * @param {string} slugs The slugs of the resoures to set
+   * @returns {boolean} True if successful
+   */
   async setAccessMappings(
     resolverName: string,
     resolverType: ResolverType,
@@ -224,54 +231,10 @@ export class AccessAPI {
       );
 
       if (inserts.length < 1) {
-        return false;
+        throw new ServerError('Kunde inte skapa mappningen av resursen');
       }
     }
 
     return true;
-  }
-
-  async addAccessMappings(
-    resolverName: string,
-    resolverType: ResolverType,
-    slugs: string[],
-  ): Promise<boolean> {
-    const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
-
-    // Remove if exists
-    await q.whereIn('refaccessresource', slugs).delete();
-
-    // Add again
-    const res = await q.insert(
-      slugs.map((s) => ({
-        resolverName,
-        resolverType,
-        refaccessresource: s,
-      })),
-    );
-
-    if (!res.length) {
-      throw new ServerError('Kunde inte skapa mappningen av resursen');
-    }
-
-    return true;
-  }
-
-  async removeAccessMapping(
-    resolverName: string,
-    resolverType: ResolverType,
-    slugs?: string[],
-  ): Promise<boolean> {
-    const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE).where({
-      resolverName,
-      resolverType,
-    });
-
-    // If no slugs are passed, all the mappings will be removed
-    if (slugs) {
-      q.whereIn('refaccessresource', slugs);
-    }
-
-    return q.delete();
   }
 }
