@@ -8,60 +8,89 @@ import knex from './knex';
 const logger = Logger.getLogger('ResourcesAPI');
 
 class ResourcesAPI {
-  async getResources(type?: AccessResourceType): Promise<DatabaseAccessResource[]> {
+  /**
+   * Gets all access resources
+   * @param {AccessResource?} type - Optional type of resource to filter by
+   * @param {string[]?} slugs - Optional slugs to filter by
+   * @returns List of access resources as presented in the database
+   */
+  async getResources(
+    type?: AccessResourceType,
+    slugs?: string[],
+  ): Promise<DatabaseAccessResource[]> {
     const q = knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE);
 
     if (type) {
-      return q.where('resourceType', type);
+      q.where('resourceType', type);
+    }
+
+    if (slugs) {
+      q.whereIn('slug', slugs);
     }
 
     return q;
   }
 
-  async getResource(id: number): Promise<DatabaseAccessResource> {
+  /**
+   * Gets a single access resource
+   * @param {string} slug - Slug used to find the correct resource
+   * @returns Access resources as presented in the database
+   */
+  async getResource(slug: string): Promise<DatabaseAccessResource> {
     const resouce = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
-      .where('id', id)
+      .where('slug', slug)
       .first();
 
     if (!resouce) {
-      logger.error(`Resource with id ${id} not found`);
-      throw new NotFoundError(`Resource with id ${id} not found`);
+      logger.error(`Resource with slug ${slug} not found`);
+      throw new NotFoundError(`Resource with slug ${slug} not found`);
     }
 
     return resouce;
   }
 
+  /**
+   * Adds a new access resource
+   * @param {string} name Name of the resource
+   * @param {string} slug Slug of the resource
+   * @param {string} description Description of the resource
+   * @param {string} resourceType Type of the resource
+   * @returns {boolean} True if successful
+   */
   async addResource(
     name: string,
+    slug: string,
     description: string,
     resourceType: AccessResourceType,
-  ): Promise<DatabaseAccessResource> {
+  ): Promise<boolean> {
     const [id] = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).insert({
+      slug,
       description,
       name,
       resourceType,
     });
 
     if (!id) {
-      const errStr = `Failed to add resource with name ${name}`;
-      logger.error(errStr);
-      throw new ServerError(errStr);
+      logger.error(`Failed to add resource with name ${name}`);
+      throw new ServerError(`Resursen ${name} kunde inte skapas`);
     }
 
-    return {
-      id,
-      name,
-      description,
-      resourceType,
-    };
+    return true;
   }
 
-  async removeResouce(id: number): Promise<boolean> {
-    const res = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).where('id', id).delete();
+  /**
+   * Removes an access resource
+   * @param {string} slug Slug of the resource to remove
+   * @returns {boolean} True if successful
+   */
+  async removeResouce(slug: string): Promise<boolean> {
+    const res = await knex<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
+      .where('slug', slug)
+      .delete();
 
     if (!res) {
-      logger.error(`Failed to remove resource with id ${id}`);
-      return false;
+      logger.error(`Failed to remove resource with slug ${slug}`);
+      throw new NotFoundError(`Resursen med slug ${slug} kunde inte hittas`);
     }
 
     return true;

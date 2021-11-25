@@ -3,7 +3,11 @@
  * `null` om ingen hittas
  * @param s `set-cookie`-string
  */
-export const extractToken = (tokenName: string, s: string): string | null => {
+export const extractToken = (tokenName: string, s?: string): string | null => {
+  if (!s) {
+    return null;
+  }
+
   // Matcha base64url enl. JavaScript-specification, inclusive
   // separator "."
   const match = RegExp(`(?<=${tokenName}=)([-_.A-z0-9]+);`).exec(s);

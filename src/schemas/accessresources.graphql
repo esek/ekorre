@@ -1,15 +1,15 @@
 type Query {
 	accessResources(type: AccessResourceType): [AccessResource!]!
-	accessResource(id: Int!): AccessResource!
+	accessResource(slug: String!): AccessResource!
 }
 
 type Mutation {
-	addAccessResource(name: String!, description: String!, resourceType: AccessResourceType!): AccessResource!
-	removeAccessResource(id: Int!): Boolean!
+	addAccessResource(name: String!, description: String!, resourceType: AccessResourceType!, slug: String!): Boolean!
+	removeAccessResource(slug: String!): Boolean!
 }
 
 type AccessResource {
-	id: Int!
+	slug: String!
 	name: String!
 	description: String!
 	resourceType: AccessResourceType!
