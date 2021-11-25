@@ -22,7 +22,7 @@ type Mutation {
   closeElection: Boolean!
   nominate(electionId: ID!, username: String!, postname: String!): Boolean!
   propose(electionId: ID!, username: String!, postname: String!): Boolean!
-  respondToNomination(electionId: ID!, username: String!, postname: String!, accepts: NominationResponse!): Boolean!
+  respondToNomination(electionId: ID!, username: String!, postname: String!, accepts: NominationAnswer!): Boolean!
 }
 
 type Election {
@@ -53,10 +53,10 @@ type Nomination {
   election: Election!
   user: User!
   post: Post!
-  accepted: NominationResponse!
+  accepted: NominationAnswer!
 }
 
-enum NominationResponse {
+enum NominationAnswer {
   YES
   NO
   NO_ANSWER
