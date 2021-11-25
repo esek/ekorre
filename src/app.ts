@@ -25,7 +25,7 @@ import type { Context, ContextParams } from './models/context';
 import * as Resolvers from './resolvers/index';
 import authRoute from './routes/auth.routes';
 import doorsRoute from './routes/door.routes';
-import filesRoute from './routes/file.routes';
+import fileRoute from './routes/file.routes';
 
 const { PORT, HOST, FILES, CORS } = config;
 
@@ -67,7 +67,7 @@ const schema = makeExecutableSchema({
   app.use(cors(corsOptions));
 
   // Setup files endpoint for REST-file handling
-  app.use(FILES.ENDPOINT, filesRoute);
+  app.use(FILES.ENDPOINT, fileRoute);
 
   // Doors endpoint used by LU to give access
   app.use('/doors', doorsRoute);
