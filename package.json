@@ -12,6 +12,7 @@
     "generate": "graphql-codegen --config codegen.yml",
     "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" \"test/**/*.ts\" --write",
     "lint": "eslint src",
+    "lint:test": "eslint test",
     "test": "jest",
     "unittest": "jest test/unit",
     "regressiontest": "jest test/regression",
