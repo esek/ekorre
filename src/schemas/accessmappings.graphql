@@ -1,0 +1,25 @@
+type Query {
+	resolvers(type: ResolverType): [AvailableResolver!]!
+	resolverExists(type: ResolverType!, name: String!): Boolean!
+	accessMappings(name: String, type: ResolverType): [AccessMapping!]!
+}
+
+type Mutation {
+	setResolverMappings(name: String!, type: ResolverType!, slugs: [String!]): Boolean!
+}
+
+type AvailableResolver {
+	name: String!
+	type: ResolverType!
+}
+
+type AccessMapping {
+	id: Int!
+	resolver: AvailableResolver!
+	resources: [AccessResource!]
+}
+
+enum ResolverType {
+    QUERY,
+		MUTATION
+}

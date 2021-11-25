@@ -72,45 +72,56 @@ INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär
 END TRANSACTION;
 BEGIN TRANSACTION;
 
-CREATE TABLE IF NOT EXISTS "AccessResources" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE "AccessResources" (
+  "slug" TEXT PRIMARY KEY NOT NULL,
   "name" TEXT NOT NULL,
   "description" TEXT,
   "resourceType" TEXT NOT NULL
 );
 
-INSERT INTO AccessResources (name, description, resourceType) VALUES ("Sikrit", "Rummet med en massa skräp", "DOOR");
-INSERT INTO AccessResources (name, description, resourceType) VALUES ("BD", "Coolaste rummet i edekvata", "DOOR");
-INSERT INTO AccessResources (name, description, resourceType) VALUES ("EKEA", "Här finns bord och skor", "DOOR");
+INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("sikrit", "Sikrit", "Rummet med en massa skräp", "DOOR");
+INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("bd", "Blå Dörren", "Coolaste rummet i edekvata", "DOOR");
+INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("ekea", "EKEA", "Här finns bord och skor", "DOOR");
 
-INSERT INTO AccessResources (name, description, resourceType) VALUES ("SUPER_ADMIN", "Får göra allt", "WEB");
-INSERT INTO AccessResources (name, description, resourceType) VALUES ("AHS", "Alkoholhanteringssystemet", "WEB");
-INSERT INTO AccessResources (name, description, resourceType) VALUES ("NEWS_EDITOR", "Kan skapa och redigera nyheter", "WEB");
-
+INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("super-admin", "Superadmin", "Får göra allt", "WEB");
+INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("ahs", "AHS", "Alkoholhanteringssystemet", "WEB");
+INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("article-editor", "Artikelredigerare", "Kan skapa och redigera artiklar", "WEB");
 
 CREATE TABLE "PostAccess" (
-	"refname"	TEXT,
-	"refresource"	INTEGER,
-	PRIMARY KEY("refname","refresource"),
+	"refname"	TEXT NOT NULL,
+	"refaccessresource"	TEXT NOT NULL,
+	PRIMARY KEY("refname","refaccessresource"),
 	FOREIGN KEY("refname") REFERENCES "Posts"("postname"),
-	FOREIGN KEY("refresource") REFERENCES "Resources"("id")
+	FOREIGN KEY("refaccessresource") REFERENCES "Resources"("slug")
 );
 
 CREATE TABLE "IndividualAccess" (
-	"refname"	TEXT,
-	"refresource"	INTEGER,
-	PRIMARY KEY("refname","refresource"),
+	"refname"	TEXT NOT NULL,
+	"refaccessresource"	TEXT NOT NULL,
+	PRIMARY KEY("refname","refaccessresource"),
 	FOREIGN KEY("refname") REFERENCES "Users"("username"),
-	FOREIGN KEY("refresource") REFERENCES "Resources"("id")
+	FOREIGN KEY("refaccessresource") REFERENCES "Resources"("slug")
 );
 
-INSERT INTO PostAccess VALUES('Macapär', 1);
-INSERT INTO PostAccess VALUES('Macapär', 2);
-INSERT INTO PostAccess VALUES('Macapär', 4);
-INSERT INTO PostAccess VALUES('Ordförande', 1);
+INSERT INTO PostAccess VALUES('Macapär', 'sikrit');
+INSERT INTO PostAccess VALUES('Macapär', 'bd');
+INSERT INTO PostAccess VALUES('Macapär', 'super-admin');
+INSERT INTO PostAccess VALUES('Ordförande', 'sikrit');
 
-INSERT INTO IndividualAccess VALUES('aa0000bb-s', 1);
-INSERT INTO IndividualAccess VALUES('aa0000bb-s', 3);
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'sikrit');
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'ekea');
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'super-admin'); -- this allows aa0000bb-s to access everything by default
+
+CREATE TABLE "AccessMappings" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "refaccessresource" TEXT,
+  "resolverType" TEXT NOT NULL,
+  "resolverName" TEXT NOT NULL,
+	FOREIGN KEY("refaccessresource") REFERENCES "Resources"("slug")
+  CONSTRAINT "uniqueMapping" UNIQUE ("refaccessresource", "resolverType", "resolverName")
+
+);
+
 
 CREATE TABLE IF NOT EXISTS "Articles" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,

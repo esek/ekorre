@@ -1,7 +1,7 @@
 import { AccessResourceType } from '../../graphql.generated';
 
 export type DatabaseAccessResource = {
-  id: number;
+  slug: string;
   name: string;
   description: string;
   resourceType: AccessResourceType;
