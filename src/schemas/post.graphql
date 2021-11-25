@@ -7,6 +7,7 @@ scalar Date
 type Query {
     post(name: String!): Post
     posts(utskott: Utskott, includeInactive: Boolean!): [Post]
+    groupedPosts(includeInactive: Boolean!): [GroupedPost]!
 }
 
 type Mutation {
@@ -37,6 +38,11 @@ type Post {
     """
     interviewRequired: Boolean
     history: [HistoryEntry!]!
+}
+
+type GroupedPost {
+    utskott: Utskott!
+    posts: [Post!]!
 }
 
 input NewPost {

@@ -1,5 +1,5 @@
 import { PostAPI } from '../api/post.api';
-import { Resolvers } from '../graphql.generated';
+import { Post, Resolvers, Utskott } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { postReduce } from '../reducers/post.reducer';
 
@@ -18,6 +18,24 @@ const postresolver: Resolvers = {
         return reduce(await api.getPostsFromUtskott(utskott, includeInactive), postReduce);
       }
       return reduce(await api.getPosts(), postReduce);
+    },
+    groupedPosts: async (_, { includeInactive }) => {
+      const posts = await api.getPosts(undefined, includeInactive);
+
+      const temp: Record<Utskott, Post[]> = {} as Record<Utskott, Post[]>;
+
+      posts.forEach((post) => {
+        if (!temp[post.utskott]) {
+          temp[post.utskott] = [];
+        }
+
+        temp[post.utskott].push(reduce(post, postReduce));
+      });
+
+      return Object.entries(temp).map(([utskott, posts]) => ({
+        utskott: utskott as Utskott,
+        posts,
+      }));
     },
   },
   Mutation: {
