@@ -1,9 +1,11 @@
+/* eslint-disable */
+
 /**
  * Typer som definieras här måste även skrivas in i
  * `codegen.yml`!
  */
 
-import { Article, File, User, Post, Meeting, Proposal } from '../graphql.generated';
+import { AccessResource, Article, File, User, Post, Meeting, Proposal } from '../graphql.generated';
 
 export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {
   creator: Partial<User>;
@@ -22,6 +24,8 @@ export type MeetingResponse = Partial<Omit<Meeting, 'summons' | 'documents' | 'l
   lateDocuments?: Partial<File>;
   protocol?: Partial<File>;
 };
+
+export type AccessResourceResponse = Partial<AccessResource>;
 
 // prettier-ignore
 export type ElectionResponse = Partial<Omit<Election, 'creator' | 'electables' | 'proposals'>> & {

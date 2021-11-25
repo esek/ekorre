@@ -8,6 +8,7 @@ export const FILE_TABLE = 'Files';
 export const PASSWORD_RESET_TABLE = 'PasswordReset';
 export const ACCESS_RESOURCES_TABLE = 'AccessResources';
 export const MEETING_TABLE = 'Meetings';
+export const ACCESS_MAPPINGS_TABLE = 'AccessMappings';
 export const ELECTION_TABLE = 'Elections';
 export const NOMINATION_TABLE = 'Nominations';
 export const PROPOSAL_TABLE = 'Proposals';

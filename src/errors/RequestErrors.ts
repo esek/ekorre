@@ -40,6 +40,11 @@ export class UnauthenticatedError extends RequestError {
   name = 'UnauthenticatedError';
 }
 
+export class ForbiddenError extends RequestError {
+  code = 403;
+  name = 'ForbiddenError';
+}
+
 export class ServerError extends RequestError {
   code = 500;
   name = 'ServerError';

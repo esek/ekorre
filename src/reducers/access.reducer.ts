@@ -14,17 +14,17 @@ export const accessReducer = (dbAccess: DatabaseJoinedAccess[]): Access => {
 
   const access = dbAccess.reduce((acc, curr) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { refname, refresource, ...resource } = curr;
+    const { refname, refaccessresource, ...resource } = curr;
 
     switch (resource.resourceType) {
       case AccessResourceType.Web:
-        if (acc.web.some((web) => web.id === resource.id)) {
+        if (acc.web.some((web) => web.slug === resource.slug)) {
           break;
         }
         acc.web.push(resource);
         break;
       case AccessResourceType.Door:
-        if (acc.doors.some((door) => door.id === resource.id)) {
+        if (acc.doors.some((door) => door.slug === resource.slug)) {
           break;
         }
         acc.doors.push(resource);

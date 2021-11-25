@@ -1,10 +1,16 @@
+import { ServerError } from '../errors/RequestErrors';
+import { ResolverType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseAccess } from '../models/db/access';
-import { DatabasePost } from '../models/db/post';
+import { DatabaseAccessMapping } from '../models/db/accessmapping';
+import { DatabasePost, DatabasePostHistory } from '../models/db/post';
 import { DatabaseAccessResource } from '../models/db/resource';
+import { validateNonEmptyArray } from '../services/validation.service';
 import {
+  ACCESS_MAPPINGS_TABLE,
   ACCESS_RESOURCES_TABLE,
   IND_ACCESS_TABLE,
+  POSTS_HISTORY_TABLE,
   POSTS_TABLE,
   POST_ACCESS_TABLE,
 } from './constants';
@@ -31,7 +37,7 @@ export class AccessAPI {
       .where({
         refname: username,
       })
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
 
     return res;
   }
@@ -45,7 +51,7 @@ export class AccessAPI {
       .where({
         refname: postname,
       })
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
 
     return res;
   }
@@ -56,7 +62,7 @@ export class AccessAPI {
    * @param ref referens (användare eller post)
    * @param newaccess den nya accessen
    */
-  private async setAccess(table: string, ref: string, newaccess: number[]): Promise<boolean> {
+  private async setAccess(table: string, ref: string, newaccess: string[]): Promise<boolean> {
     await knex<DatabaseAccess>(table)
       .where({
         refname: ref,
@@ -66,7 +72,7 @@ export class AccessAPI {
     // Only do insert with actual values.
     const inserts = newaccess.map<DatabaseAccess>((id) => ({
       refname: ref,
-      refresource: id,
+      refaccessresource: id,
     }));
 
     if (inserts.length > 0) {
@@ -84,7 +90,7 @@ export class AccessAPI {
    * @param username användaren
    * @param newaccess den nya accessen
    */
-  async setIndividualAccess(username: string, newaccess: number[]): Promise<boolean> {
+  async setIndividualAccess(username: string, newaccess: string[]): Promise<boolean> {
     const status = this.setAccess(IND_ACCESS_TABLE, username, newaccess);
 
     logger.info(`Updated access for user ${username}`);
@@ -99,7 +105,7 @@ export class AccessAPI {
    * @param postname posten
    * @param newaccess den nya accessen
    */
-  async setPostAccess(postname: string, newaccess: number[]): Promise<boolean> {
+  async setPostAccess(postname: string, newaccess: string[]): Promise<boolean> {
     const status = this.setAccess(POST_ACCESS_TABLE, postname, newaccess);
 
     logger.info(`Updated access for post ${postname}`);
@@ -119,7 +125,7 @@ export class AccessAPI {
   ): Promise<DatabaseJoinedAccess[]> {
     const query = knex<DatabaseAccess>(POST_ACCESS_TABLE)
       .whereIn('refname', posts)
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refresource', 'id');
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
 
     // Om inaktiva posters access inte ska inkluderas,
     // ta in `POSTS_TABLE` och se vilka som är aktiva
@@ -130,5 +136,105 @@ export class AccessAPI {
     const res = await query;
 
     return res;
+  }
+
+  /**
+   * Gets the users access with respect to what posts they have
+   * @param username The user to get
+   * @returns A list of all the accessable resources
+   */
+  async getUserPostAccess(username: string) {
+    const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE)
+      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
+      .join<DatabasePostHistory>(POSTS_HISTORY_TABLE, 'refpost', 'refname')
+      .where({
+        refuser: username,
+        end: null, // Only fetch active posts
+      })
+      .distinct(); // remove any duplicates
+
+    return res;
+  }
+
+  /**
+   * Gets a users entire access, including inherited access from posts
+   * @param username The user whose access to get
+   * @returns A list of databaseaccess objects
+   */
+  async getUserFullAccess(username: string): Promise<DatabaseJoinedAccess[]> {
+    // Get the individual access for that user
+    const individual = this.getIndividualAccess(username);
+    // Get the postaccess for that users posts
+    const post = this.getUserPostAccess(username);
+
+    const p = await Promise.all([individual, post]);
+
+    // Flatten the array of access from the promises
+    return p.flat();
+  }
+
+  /**
+   * Gets the mapping for a resource
+   * @param resolverType The type of resource (query or mutation)
+   * @param resolverName The name of the resource
+   * @returns A list of mappings
+   */
+  async getAccessMapping(
+    resolverName?: string,
+    resolverType?: ResolverType,
+  ): Promise<DatabaseAccessMapping[]> {
+    const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
+
+    if (resolverName) {
+      q.where({ resolverName });
+    }
+
+    if (resolverType) {
+      q.where({ resolverType });
+    }
+
+    const resources = await q;
+
+    validateNonEmptyArray(
+      resources,
+      `Ingen accessmappning hittades: ${resolverType?.toString() ?? ''} ${resolverName ?? ''}`,
+    );
+
+    return resources;
+  }
+
+  /**
+   * Sets (overrides) the mapping for a resolver
+   * @param {string} resolverName The name of the resolver
+   * @param {string} resolverType The type of the resolver
+   * @param {string} slugs The slugs of the resoures to set
+   * @returns {boolean} True if successful
+   */
+  async setAccessMappings(
+    resolverName: string,
+    resolverType: ResolverType,
+    slugs?: string[],
+  ): Promise<boolean> {
+    const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
+
+    await q
+      .where({
+        resolverName,
+        resolverType,
+      })
+      .delete();
+
+    // if we have anything to add
+    if (slugs) {
+      const inserts = await q.insert(
+        slugs.map((s) => ({ refaccessresource: s, resolverName, resolverType })),
+      );
+
+      if (inserts.length < 1) {
+        throw new ServerError('Kunde inte skapa mappningen av resursen');
+      }
+    }
+
+    return true;
   }
 }

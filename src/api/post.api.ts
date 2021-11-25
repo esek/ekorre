@@ -71,7 +71,9 @@ export class PostAPI {
   }
 
   async getPost(postname: string): Promise<DatabasePost | null> {
-    const post = await knex<DatabasePost>(POSTS_TABLE).where('postname', postname).first();
+    const post = await knex<DatabasePost>(POSTS_TABLE)
+      .whereRaw('LOWER(postname) = ?', [postname.toLowerCase()])
+      .first();
 
     if (!post) {
       throw new NotFoundError('Posten kunde inte hittas');

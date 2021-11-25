@@ -6,8 +6,8 @@ type Query {
 }
 
 type Mutation {
-    setIndividualAccess(username: String!, access:[Int!]!): Boolean!
-    setPostAccess(postname: String!, access:[Int!]!): Boolean!
+    setIndividualAccess(username: String!, access:[String!]!): Boolean!
+    setPostAccess(postname: String!, access:[String!]!): Boolean!
 }
 
 "Access will be treated as a immutable object!"
