@@ -4,6 +4,7 @@ import { AccessAPI } from '../../src/api/access.api';
 import ResourcesAPI from '../../src/api/accessresources.api';
 import { COOKIES } from '../../src/auth';
 import { AccessResource, AccessResourceType, ResolverType } from '../../src/graphql.generated';
+import { ApiRequest, GraphqlResponse } from '../models/test';
 import { AXIOS_CONFIG } from '../utils/axiosConfig';
 import { extractToken } from '../utils/utils';
 
@@ -31,6 +32,10 @@ const LOGOUT_MUTATION = `
 mutation {
 	logout
 }`;
+
+type LogoutResponse = {
+  logout: boolean;
+};
 
 beforeAll(async () => {
   await resourcesApi.addResource(
@@ -68,21 +73,25 @@ test('resource with only auth required', async () => {
 
   // try without auth
   await expect(
-    axiosInstance.post('/', logoutData).then((res) => res.data.data.logout),
+    axiosInstance
+      .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', logoutData)
+      .then((res) => res.data.data.logout),
   ).resolves.toBe(true);
 
   // add resource mapping
   await accessApi.addAccessMappings('logout', ResolverType.Mutation, ['']);
 
   // try to call without auth, (should throw error)
-  await axiosInstance.post('/', logoutData).then((res) => {
-    expect(res.data.data.logout).toBeNull();
-    expect(res.data.errors.length).toBeGreaterThan(0);
-  });
+  await axiosInstance
+    .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', logoutData)
+    .then((res) => {
+      expect(res.data.data.logout).toBeNull();
+      expect(res.data.errors?.length).toBeGreaterThan(0);
+    });
 
   // login
-  axiosInstance.post('/', loginData).then(async (res) => {
-    const accessToken = extractToken(COOKIES.accessToken, res.headers['set-cookie'][1]);
+  axiosInstance.post<ApiRequest, GraphqlResponse>('/', loginData).then(async (res) => {
+    const accessToken = extractToken(COOKIES.accessToken, res.headers['set-cookie']?.[1]);
     expect(accessToken).not.toBeNull();
 
     const authHeader: AxiosRequestConfig = {
@@ -93,7 +102,9 @@ test('resource with only auth required', async () => {
 
     // try mutation again with credentials
     await expect(
-      axiosInstance.post('/', logoutData, authHeader).then((res) => res.data.data.logout),
+      axiosInstance
+        .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', logoutData, authHeader)
+        .then((res2) => res2.data.data.logout),
     ).resolves.toBe(true);
   });
 });
@@ -116,41 +127,51 @@ test('resource with mapping', async () => {
 
   // try without auth
   await expect(
-    axiosInstance.post('/', logoutData).then((res) => res.data.data.logout),
+    axiosInstance
+      .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', logoutData)
+      .then((res) => res.data.data.logout),
   ).resolves.toBe(true);
 
   // add resource mapping
   await accessApi.addAccessMappings('logout', ResolverType.Mutation, [testResource.slug]);
 
   // try to call without auth, (should throw error)
-  await axiosInstance.post('/', logoutData).then((res) => {
-    expect(res.data.data.logout).toBeNull();
-    expect(res.data.errors.length).toBeGreaterThan(0);
-  });
-
-  // login
-  await axiosInstance.post('/', loginData).then(async (res) => {
-    const accessToken = extractToken(COOKIES.accessToken, res.headers['set-cookie'][1]);
-    expect(accessToken).not.toBeNull();
-
-    const authHeader: AxiosRequestConfig = {
-      headers: {
-        Cookie: `${COOKIES.accessToken}=${accessToken ?? ''}`,
-      },
-    };
-
-    // try mutation again with only auth (should throw)
-    await axiosInstance.post('/', logoutData, authHeader).then((res) => {
+  await axiosInstance
+    .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', logoutData)
+    .then((res) => {
       expect(res.data.data.logout).toBeNull();
-      expect(res.data.errors.length).toBeGreaterThan(0);
+      expect(res.data.errors?.length).toBeGreaterThan(0);
     });
 
-    // give user access to resource
-    await accessApi.setIndividualAccess(username, [testResource.slug]);
+  // login
+  await axiosInstance
+    .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', loginData)
+    .then(async (res) => {
+      const accessToken = extractToken(COOKIES.accessToken, res.headers['set-cookie']?.[1]);
+      expect(accessToken).not.toBeNull();
 
-    // aaaaand again
-    await expect(
-      axiosInstance.post('/', logoutData, authHeader).then((res) => res.data.data.logout),
-    ).resolves.toBe(true);
-  });
+      const authHeader: AxiosRequestConfig = {
+        headers: {
+          Cookie: `${COOKIES.accessToken}=${accessToken ?? ''}`,
+        },
+      };
+
+      // try mutation again with only auth (should throw)
+      await axiosInstance
+        .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', logoutData, authHeader)
+        .then((res2) => {
+          expect(res2.data.data.logout).toBeNull();
+          expect(res2.data.errors?.length).toBeGreaterThan(0);
+        });
+
+      // give user access to resource
+      await accessApi.setIndividualAccess(username, [testResource.slug]);
+
+      // aaaaand again
+      await expect(
+        axiosInstance
+          .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', logoutData, authHeader)
+          .then((res3) => res3.data.data.logout),
+      ).resolves.toBe(true);
+    });
 });
