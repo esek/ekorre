@@ -6,8 +6,6 @@ import { proposalReduce } from '../reducers/election/proposal.reducer';
 
 const api = new ElectionAPI();
 
-// TODO: SÄKRA SKITEN UR DETTA
-
 const electionResolver: Resolvers = {
   Election: {
     // Vi fyller ut resolvern med de saker som
@@ -16,12 +14,30 @@ const electionResolver: Resolvers = {
       dataLoader: context.userDataLoader,
       key: model.creator.username,
     })),
-    electables: (electables, _, ctx) => {
+    createdAt: (model) => new Date(model.createdAt),
+    openedAt: (model) => {
+      if (model.openedAt != null) {
+        return new Date(model.openedAt);
+      }
+      return null;
+    },
+    closedAt: (model) => {
+      if (model.closedAt != null) {
+        return new Date(model.closedAt);
+      }
+      return null;
+    },
+    electables: async (model, _, ctx) => {
+      const refposts = await api.getAllElectables(model.id ?? '');
       return Promise.all(
-        electables.map(async (e) => {
-          return ctx.postDataLoader.load(e.postname);
+        refposts.map(async (e) => {
+          return ctx.postDataLoader.load(e);
         }));
     },
+    proposals: async (model) => {
+      const p = await api.getAllProposals(model.id ?? '');
+      return reduce(p, proposalReduce);
+    }
   },
   Proposal: {
     user: useDataLoader((model, context) => ({

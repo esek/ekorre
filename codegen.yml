@@ -14,9 +14,9 @@ generates:
         File: ./models/mappers#FileResponse
         Meeting: ./models/mappers#MeetingResponse
         AccessResource: ./models/mappers#AccessResourceResponse
-        Election: ./model/mappers#ElectionResponse
+        Election: ./models/mappers#ElectionResponse
         Proposal: ./models/mappers#ProposalResponse
-        Nomination: ./model/mappers#NominationResponse
+        Nomination: ./models/mappers#NominationResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"

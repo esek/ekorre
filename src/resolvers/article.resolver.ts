@@ -11,6 +11,12 @@ import { articleReducer } from '../reducers/article.reducer';
 
 const articleApi = new ArticleAPI();
 
+/**
+ * Maps an `DatabaseArticle` i.e. a partial of `Article` to an ArticleResponse object
+ * @param partial DatabaseArticle to be mapped
+ * @returns ArticleResponse object with references to `creator` and
+ * `lastUpdatedBy`
+ */
 const articleResolver: Resolvers = {
   Article: {
     // Load creator & lastUpdateBy using dataloader for performace reasons
@@ -139,12 +145,5 @@ const articleResolver: Resolvers = {
     modifyArticle: (_, { articleId, entry }) => articleApi.modifyArticle(articleId, entry),
   },
 };
-
-/**
- * Maps an `DatabaseArticle` i.e. a partial of `Article` to an ArticleResponse object
- * @param partial DatabaseArticle to be mapped
- * @returns ArticleResponse object with references to `creator` and
- * `lastUpdatedBy`
- */
 
 export default articleResolver;
