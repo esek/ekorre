@@ -20,18 +20,22 @@ const postresolver: Resolvers = {
       return reduce(await api.getPosts(), postReduce);
     },
     groupedPosts: async (_, { includeInactive }) => {
-      const posts = await api.getPosts(undefined, includeInactive);
+      // Get all posts
+      const allPosts = await api.getPosts(undefined, includeInactive);
 
+      // Create temp object to group posts
       const temp: Record<Utskott, Post[]> = {} as Record<Utskott, Post[]>;
 
-      posts.forEach((post) => {
+      allPosts.forEach((post) => {
         if (!temp[post.utskott]) {
           temp[post.utskott] = [];
         }
 
+        // Add the posts to the object by the utskott
         temp[post.utskott].push(reduce(post, postReduce));
       });
 
+      // map the objects to an array again
       return Object.entries(temp).map(([utskott, posts]) => ({
         utskott: utskott as Utskott,
         posts,
