@@ -543,7 +543,7 @@ export type Query = {
   files: Array<File>;
   individualAccess?: Maybe<Access>;
   latestBoardMeetings: Array<Maybe<Meeting>>;
-  latestElection?: Maybe<Election>;
+  latestElections: Array<Maybe<Election>>;
   latestnews: Array<Maybe<Article>>;
   me?: Maybe<Me>;
   meeting?: Maybe<Meeting>;
@@ -638,6 +638,11 @@ export type QueryIndividualAccessArgs = {
 
 
 export type QueryLatestBoardMeetingsArgs = {
+  limit?: Maybe<Scalars['Int']>;
+};
+
+
+export type QueryLatestElectionsArgs = {
   limit?: Maybe<Scalars['Int']>;
 };
 
@@ -1150,7 +1155,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
   latestBoardMeetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryLatestBoardMeetingsArgs, never>>;
-  latestElection?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType>;
+  latestElections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryLatestElectionsArgs, never>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;

@@ -9,14 +9,20 @@ const logger = Logger.getLogger('ElectionAPI');
 
 export class ElectionAPI {
   /**
-   * @returns Senaste mötet som skapades`
+   * @param limit Gräns på antal möten. Om null ges alla möten
+   * @returns Senaste mötet som skapades
    * @throws `NotFoundError`
    */
-  async getLatestCreatedElection(): Promise<DatabaseElection> {
-    const e = await knex<DatabaseElection>(ELECTION_TABLE)
+  async getLatestElections(limit?: number): Promise<DatabaseElection[]> {
+    const query = knex<DatabaseElection>(ELECTION_TABLE)
       .select('*')
-      .orderBy('createdAt', 'desc')
-      .first();
+      .orderBy('createdAt', 'desc');
+
+    if (limit != null) {
+      query.limit(limit);
+    }
+
+    const e = await query;
 
     if (e == null) {
       throw new NotFoundError('Hittade inga val');
