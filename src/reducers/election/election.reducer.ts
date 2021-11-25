@@ -1,20 +1,15 @@
-import type { Election } from '../../graphql.generated';
+import type { DatabaseElection } from '../../models/db/election';
 import type { ElectionResponse } from '../../models/mappers';
 
 export function electionReduce(dbElection: DatabaseElection): ElectionResponse {
-  const { refcreator } = dbElection;
+  const { refcreator, ...reduced } = dbElection;
 
-  const nr = {
-    election: {
-      id: refelection,
-    },
-    user: {
-      username: refuser,
-    },
-    post: {
-      postname: refpost,
+  const e = {
+    ...reduced,
+    creator: {
+      username: refcreator,
     },
   };
 
-  return nr;
+  return e;
 }
