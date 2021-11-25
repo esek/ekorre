@@ -2,7 +2,7 @@ import { ElectionAPI } from '../api/election.api';
 import { useDataLoader } from '../dataloaders';
 import type { Resolvers } from '../graphql.generated';
 import { reduce } from '../reducers';
-import { proposalReduce } from '../reducers/proposal.reducer';
+import { proposalReduce } from '../reducers/election/proposal.reducer';
 
 const api = new ElectionAPI();
 
@@ -16,11 +16,11 @@ const electionResolver: Resolvers = {
       dataLoader: context.userDataLoader,
       key: model.creator.username,
     })),
-    electables: ({ electables }, _, ctx) => {
+    electables: (electables, _, ctx) => {
       return Promise.all(
         electables.map(async (e) => {
           return ctx.postDataLoader.load(e.postname);
-      }));
+        }));
     },
   },
   Proposal: {
@@ -34,7 +34,10 @@ const electionResolver: Resolvers = {
     })),
   },
   Nomination: {
-    // TODO: Lägg till dataloader för election
+    election: useDataLoader((model, context) => ({
+      dataLoader: context.electionDataLoader,
+      key: model.election.id,
+    })),
     user: useDataLoader((model, context) => ({
       dataLoader: context.userDataLoader,
       key: model.user.username,

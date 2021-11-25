@@ -5,7 +5,7 @@
  * `codegen.yml`!
  */
 
-import { AccessResource, Article, File, User, Post, Meeting, Proposal } from '../graphql.generated';
+import { AccessResource, Article, File, User, Post, Meeting, Nomination, Proposal } from '../graphql.generated';
 
 export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {
   creator: Partial<User>;
@@ -35,6 +35,12 @@ export type ElectionResponse = Partial<Omit<Election, 'creator' | 'electables' |
 };
 
 export type ProposalResponse = Partial<Omit<Proposal, 'user' | 'post'>> & {
-  refuser: string;
-  refpost: string;
+  user: Partial<User>;
+  post: Partial<Post>;
 };
+
+export type NominationResponse = Partial<Omit<Nomination, 'user' | 'post' | 'election'>> & {
+  election: Partial<Election>;
+  user: Partial<User>;
+  post: Partial<Post>;
+}

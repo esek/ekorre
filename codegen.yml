@@ -16,6 +16,7 @@ generates:
         AccessResource: ./models/mappers#AccessResourceResponse
         Election: ./model/mappers#ElectionResponse
         Proposal: ./models/mappers#ProposalResponse
+        Nomination: ./model/mappers#NominationResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"

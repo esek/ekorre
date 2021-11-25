@@ -1,6 +1,6 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import type { ArticleResponse, FileResponse, MeetingResponse, AccessResourceResponse, ProposalResponse } from './models/mappers';
-import type { ElectionResponse } from './model/mappers';
+import type { ElectionResponse, NominationResponse } from './model/mappers';
 import type { Context } from './models/context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -886,7 +886,7 @@ export type ResolversTypes = ResolversObject<{
   NewArticle: NewArticle;
   NewPost: NewPost;
   NewUser: NewUser;
-  Nomination: ResolverTypeWrapper<Omit<Nomination, 'election' | 'post' | 'user'> & { election: ResolversTypes['Election'], post: ResolversTypes['Post'], user: ResolversTypes['User'] }>;
+  Nomination: ResolverTypeWrapper<NominationResponse>;
   NominationResponse: NominationResponse;
   Post: ResolverTypeWrapper<Omit<Post, 'access' | 'history'> & { access: ResolversTypes['Access'], history: Array<ResolversTypes['HistoryEntry']> }>;
   PostType: PostType;
@@ -927,7 +927,7 @@ export type ResolversParentTypes = ResolversObject<{
   NewArticle: NewArticle;
   NewPost: NewPost;
   NewUser: NewUser;
-  Nomination: Omit<Nomination, 'election' | 'post' | 'user'> & { election: ResolversParentTypes['Election'], post: ResolversParentTypes['Post'], user: ResolversParentTypes['User'] };
+  Nomination: NominationResponse;
   Post: Omit<Post, 'access' | 'history'> & { access: ResolversParentTypes['Access'], history: Array<ResolversParentTypes['HistoryEntry']> };
   Proposal: ProposalResponse;
   Query: {};
