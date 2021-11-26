@@ -30,3 +30,18 @@ export const stripObject = <E, T extends E>(obj: E): Partial<T> => {
 
   return copy as Partial<T>;
 };
+
+/**
+ * Filter callback function for removing empty (Maybe<>) while maintaining
+ * type safety.
+ * @param value 
+ * @example
+ * const someArray: Maybe<string>[] = // ...
+ * // ...
+ * const safeArray: string[] = someArray.filter(notEmpty);
+ */
+export const notEmpty = <ValueType>(value: ValueType | null | undefined): value is ValueType => {
+  if (value === null || value === undefined) return false;
+  const testDummy: ValueType = value;
+  return true;
+};

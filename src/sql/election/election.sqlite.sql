@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS "Elections" (
   "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "openedAt" TIMESTAMP,
   "closedAt" TIMESTAMP,
-  "open" BOOLEAN NOT NULL,
+  "open" BOOLEAN NOT NULL DEFAULT 0,
   "nominationsHidden" BOOLEAN DEFAULT 0,
   FOREIGN KEY("refcreator") REFERENCES "Users"("username")
 );

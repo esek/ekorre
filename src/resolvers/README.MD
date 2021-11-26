@@ -5,26 +5,43 @@ alla queries och ser till att de returnera vettig data.
 För att göra det så användbart som möjligt så bör varje resolver
 sköta en grej och om en resolvers funktion uttökar en annan
 typ av data ska det fältet defineras i korrekt resolver. Se
-`access` modulen och hur den uttökar både `post` och `user`. Detta
-är dock lite av ett undantagsfall.
+`access` modulen och hur den uttökar både `post` och `user`. Det
+går dock att lösa, men man behöver generellt använda [mappers](../models/mappers.d.ts),
+för att specificera att vissa delar i en typ löses på annat håll.
 
-Vi hanterar `null` i själva resolvern (dvs. API:n kan returnera null, och detta måste resolvern kontrollera).
+I vissa fall kan `Maybe`-typer få TS att bli riktigt drygt.
+För arrays av denna typ kan man använda `notEmpty`-filtret i [`util.ts`](../util.ts).
 
 ## Att hantera en typ i en annan
 
-Låt oss ta `article` som exempel (för jag skrev den och har därför koll på den, även om den i skrivande stund ej är mergad). Om du kollar i `/src/schemas/article.graphql` ser du att `Article` kräver två `User`-objekt; `creator` och `lastUpdatedBy`. Men detta kan ju bli krångligt om man inte gör det relativt snyggt. Vi måste ju skapa ett `User`-objekt vid något tillfälle så vi kan returnera detta. Sättet vi löser detta är genom att använda `UserAPI` i `article.resolver.ts`. Vi sparar `username` som `creator` i vår artikel-databas, men inte hela `User`-objektet. Därför returnerar vår `ArticleAPI` en `ArticleModel` till vår reducer som formaterar och returnerar ännu en `ArticleModel` till resolvern.
+Ett exempel på något som innehåller väldigt många typer som kräver andra är
+`Election`, se [`election.graphql`](../schemas/election.graphql). Vi kan
+se att t.ex. `Election` behöver en lista av `Proposal`, som i sin tur
+består av `User` och `Post`. Men om vi kollar hur detta ser ut i databasen blir
+det ju extremt jobbigt (och långsamt) att gå igenom alla förslag, och sen för dem
+skapa ett perfekt användarobjekt i `ElectionAPI`. Hur gör vi då? Och hur får
+vi TypeScript att fatta vad vi vill? Vår räddning är delvis `graphql-generate` som
+genererar våra typer av våra scheman, med hjälp av mappers. Mappers berättar för
+TypeScript att vissa saker fyller sig själva (more or less).
 
-Vår `ArticleModel` är en speciell typ skapad genom
+Det är ofta bra att börja med schemat, men sen bör man starta på sin API. Varje API
+ska bara göra SQL-queries på "sin egen" tabell. Så vi skapar ett antal typer i
+[`models/db`](../models/db) som beskriver hur våra typer ser ut i databasen, jämfört
+med våra genererade typer (vårt mål). För `DatabaseElection` ser vi att vi behöver en skapare,
+men har endast `refcreator` (användarnamnet). Så vi gör följande:
 
-```
-export type ArticleModel = Omit<Article, 'creator' | 'lastUpdatedBy'> & {
-  refcreator: string;  // Reference for use, i.e. username
-  reflastupdater: string
-}
-```
+#1 En ny typ, `ElectionResponse`, vilket är `Election` men vi tillåter att skapare är delvis där.
+#2 Vi skapar en reducer, `electionReduce`, som omvandlar vår `DatabaseElection` till denna nya typ.
+#3 Nu kan vi fylla ut resolvern med beskrivningar hur den ska fylla ut vår `ElectionResponse`
+till att bli `Election`. Vi säger bl.a. att `creator` fås genom att använda en dataloader
+för att få ett fullständigt `User`-objekt.
 
-dvs. vi har referens-användarnamn `refcreator`, en sträng, som placeholder. Eftersom `username` är unikt i databasen räcker detta för att i resolvern kalla på `UserAPI.getSingleUser()` för att få fram ett färdigt `User`-objekt genom vårt användarnamn `refuser`, som vi sedan kan returnera som en del i vårt `Article`-objekt.
+Ibland har vi inte en referens, som med `nominations` och `proposals`. Detta gör inget,
+för de kan ju fås med hjälp av val-ID:t, och det är ju en del av `DatabaseElection` och
+`ElectionResponse` redan.
 
+Kolla runt lite i resolvers för att lista ut hur de fungerar. Notera att deras struktur
+är densamma som hur vi definierar typer i GraphQL!
 ### (n+1)-problemet och vår standardlösning
 
 Detta medför dock ett känt problem med GraphQL; n+1 problemet. Vi kan ju behöva göra en massa queries för att få `User`-objekt, vilket gör det väldigt långsamt att få fram artiklar. Problemet beskrivs bra i [denna](https://youtu.be/uCbFMZYQbxE) videon. Detta är något man måste lösa för att få en snabb och bra API.
@@ -36,3 +53,6 @@ Vår standardlösning är att använda `DataLoader`, ett objekt vi skapar vid va
 Anledningen att vi skapar ett nytt `DataLoader`-objekt varje gång är att vi inte ska cacha en `User` som sedan uppdateras i databasen, men inte i `DataLoader`-objektet; Då riskerar vi att skicka utdaterad information.
 
 För den intresserade kan man kolla upp _memoization_, vilket är hur `DataLoader` håller koll på vilka `username` den redan har en `User` på.
+
+DataLoaders ökar också prestanda genom att batcha flera förfrågningar till databasen samtidigt,
+vilket är väldigt nice!

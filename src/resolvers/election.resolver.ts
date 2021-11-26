@@ -5,6 +5,7 @@ import { reduce } from '../reducers';
 import { electionReduce } from '../reducers/election/election.reducer';
 import { nominationReduce } from '../reducers/election/nomination.reducer';
 import { proposalReduce } from '../reducers/election/proposal.reducer';
+import { notEmpty } from '../util';
 
 const api = new ElectionAPI();
 
@@ -41,6 +42,12 @@ const electionResolver: Resolvers = {
     numberOfNominations: async (_, { electionId, postname }) => {
       return api.getNumberOfNominations(electionId, postname ?? undefined);
     },
+  },
+  Mutation: {
+    createElection: async (_, { electables, nominationsHidden }, ctx) => {
+      const safeElectables = electables.filter(notEmpty);
+      return api.createElection(ctx.getUsername(), safeElectables, nominationsHidden);
+    }
   },
   Election: {
     // Vi fyller ut resolvern med de saker som

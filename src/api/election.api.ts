@@ -122,14 +122,13 @@ export class ElectionAPI {
   async getNumberOfNominations(electionId: string, postname?: string): Promise<number> {
     const query = knex(NOMINATION_TABLE)
       .where('refelection', electionId)
-      .count<Record<string, number>>('*')
-      .first();
+      .count<Record<string, number>>('*');
 
     if (postname != null) {
       query.where('refpost', postname);
     }
 
-    const i = await query;
+    const i = await query.first();
 
     if (i == null || i.count == null) {
       logger.debug(
@@ -166,5 +165,37 @@ export class ElectionAPI {
     validateNonEmptyArray(e, `Hittade inga valbara poster för valet med ID ${electionId}`);
 
     return e;
+  }
+
+  async createElection(creatorUsername: string, electables: string[], nominationsHidden: boolean): Promise<boolean> {
+    // Vi försäkrar oss om att det senaste valet är stängt
+    const lastElection = (await this.getLatestElections(1))[0];
+    if (lastElection?.open || lastElection?.closedAt == null) {
+      throw new BadRequestError('Det finns ett öppet val, eller ett val som väntar på att bli öppnat redan.');
+    }
+
+    const electionId = (await knex<DatabaseElection>(ELECTION_TABLE).insert({
+      refcreator: creatorUsername,
+      nominationsHidden,
+    }, 'id'))[0];
+
+    if (electionId == null) {
+      logger.error('Failed to create new election for unknown reason');
+      throw new ServerError('Kunde inte skapa ett nytt val');
+    }
+
+    const electableRows = electables.map(e => {
+      return { refelection: electionId, refpost: e };
+    });
+    const res = await knex(ELECTABLE_TABLE).insert(electableRows);
+
+    // Vi vill ju ha lagt till lika många rader som det finns poster
+    // i electables
+    if (res[0] !== electables.length) {
+      logger.debug(`Could not insert all electables when creating election with ID ${electionId}`);
+      throw new ServerError('Kunde inte lägga till alla valbara poster. Försök lägga till dessa manuellt');
+    }
+
+    return true;
   }
 }
