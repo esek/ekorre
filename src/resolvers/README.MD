@@ -41,7 +41,7 @@ för de kan ju fås med hjälp av val-ID:t, och det är ju en del av `DatabaseEl
 `ElectionResponse` redan.
 
 Kolla runt lite i resolvers för att lista ut hur de fungerar. Notera att deras struktur
-är densamma som hur vi definierar typer i GraphQL!
+är densamma som hur vi definierar typer i GraphQL-scheman!
 ### (n+1)-problemet och vår standardlösning
 
 Detta medför dock ett känt problem med GraphQL; n+1 problemet. Vi kan ju behöva göra en massa queries för att få `User`-objekt, vilket gör det väldigt långsamt att få fram artiklar. Problemet beskrivs bra i [denna](https://youtu.be/uCbFMZYQbxE) videon. Detta är något man måste lösa för att få en snabb och bra API.
