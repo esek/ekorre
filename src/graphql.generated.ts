@@ -113,6 +113,11 @@ export enum FileType {
   Text = 'text'
 }
 
+export type GroupedPost = {
+  posts: Array<Post>;
+  utskott: Utskott;
+};
+
 export type HistoryEntry = {
   end?: Maybe<Scalars['Date']>;
   holder: User;
@@ -453,6 +458,7 @@ export type Query = {
   file: File;
   fileSystem: FileSystemResponse;
   files: Array<File>;
+  groupedPosts: Array<Maybe<GroupedPost>>;
   individualAccess?: Maybe<Access>;
   latestBoardMeetings: Array<Maybe<Meeting>>;
   latestnews: Array<Maybe<Article>>;
@@ -521,6 +527,11 @@ export type QueryFileSystemArgs = {
 
 export type QueryFilesArgs = {
   type?: Maybe<FileType>;
+};
+
+
+export type QueryGroupedPostsArgs = {
+  includeInactive: Scalars['Boolean'];
 };
 
 
@@ -759,6 +770,7 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   FileType: FileType;
+  GroupedPost: ResolverTypeWrapper<Omit<GroupedPost, 'posts'> & { posts: Array<ResolversTypes['Post']> }>;
   HistoryEntry: ResolverTypeWrapper<Omit<HistoryEntry, 'holder'> & { holder: ResolversTypes['User'] }>;
   Me: ResolverTypeWrapper<Omit<Me, 'user'> & { user?: Maybe<ResolversTypes['User']> }>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
@@ -798,6 +810,7 @@ export type ResolversParentTypes = ResolversObject<{
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
+  GroupedPost: Omit<GroupedPost, 'posts'> & { posts: Array<ResolversParentTypes['Post']> };
   HistoryEntry: Omit<HistoryEntry, 'holder'> & { holder: ResolversParentTypes['User'] };
   Me: Omit<Me, 'user'> & { user?: Maybe<ResolversParentTypes['User']> };
   Float: Scalars['Float'];
@@ -897,6 +910,12 @@ export type FileSystemResponsePathResolvers<ContextType = Context, ParentType ex
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type GroupedPostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GroupedPost'] = ResolversParentTypes['GroupedPost']> = ResolversObject<{
+  posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
+  utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type HistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HistoryEntry'] = ResolversParentTypes['HistoryEntry']> = ResolversObject<{
   end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   holder?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
@@ -978,6 +997,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
+  groupedPosts?: Resolver<Array<Maybe<ResolversTypes['GroupedPost']>>, ParentType, ContextType, RequireFields<QueryGroupedPostsArgs, 'includeInactive'>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
   latestBoardMeetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryLatestBoardMeetingsArgs, never>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
@@ -1033,6 +1053,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;
+  GroupedPost?: GroupedPostResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
   Me?: MeResolvers<ContextType>;
   Meeting?: MeetingResolvers<ContextType>;
