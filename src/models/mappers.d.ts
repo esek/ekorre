@@ -41,7 +41,7 @@ export type MeetingResponse = Partial<Omit<Meeting, 'summons' | 'documents' | 'l
 export type AccessResourceResponse = Partial<AccessResource>;
 
 // prettier-ignore
-export type ElectionResponse = Partial<Omit<Election, 'creator' | 'electables' | 'proposals'>> & {
+export type ElectionResponse = Partial<Omit<Election, 'creator' | 'electables' | 'proposals' | 'nominations'>> & {
   creator: Partial<User>;
 };
 
@@ -50,8 +50,7 @@ export type ProposalResponse = Partial<Omit<Proposal, 'user' | 'post'>> & {
   post: Partial<Post>;
 };
 
-export type NominationResponse = Partial<Omit<Nomination, 'user' | 'post' | 'election'>> & {
-  election: Partial<Election>;
+export type NominationResponse = Partial<Omit<Nomination, 'user' | 'post'>> & {
   user: Partial<User>;
   post: Partial<Post>;
 };

@@ -4,8 +4,7 @@ export type DatabaseElection = Omit<Election, 'creator' | 'electables' | 'propos
   refcreator: string;
 };
 
-export type DatabaseNomination = Omit<Nomination, 'election' | 'user' | 'post'> & {
-  refelection: string;
+export type DatabaseNomination = Omit<Nomination, 'user' | 'post'> & {
   refuser: string;
   refpost: string;
 };

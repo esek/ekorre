@@ -79,13 +79,30 @@ export class ElectionAPI {
   }
 
   /**
-   * Returnerar nomineringar för en användare.
+   * Returnerar alla nomineringar för valet.
+   * @param electionId ID på ett val
+   * @returns Lista över nomineringar
+   * @throws `NotFoundError`
+   */
+  async getAllNominations(electionId: string): Promise<DatabaseNomination[]> {
+    const n = await knex<DatabaseNomination>(NOMINATION_TABLE).where('refelection', electionId);
+
+    validateNonEmptyArray(n, `Hittade inga nomineringar för mötet med ID ${electionId}`);
+
+    return n;
+  }
+
+  /**
+   * Returnerar alla nomineringar för en användare för ett val.
    * @param electionId ID på ett val
    * @param username Användarnamnet
    * @returns Lista över nomineringar
    * @throws `NotFoundError`
    */
-  async getNominationsForUser(electionId: string, username: string): Promise<DatabaseNomination[]> {
+  async getAllNominationsForUser(
+    electionId: string,
+    username: string,
+  ): Promise<DatabaseNomination[]> {
     const n = await knex<DatabaseNomination>(NOMINATION_TABLE)
       .where('refelection', electionId)
       .where('refuser', username);
@@ -96,23 +113,29 @@ export class ElectionAPI {
   }
 
   /**
-   * Räknar antalet nomineringar för en post och ett möte.
+   * Räknar antalet nomineringar för en post och ett möte. Om posten utelämnas returneras
+   * det totala antalet nomineringar.
    * @param electionId ID på ett val
    * @param postname Namnet på posten
    * @returns Ett heltal (`number`)
    */
-  async getNumberOfNominations(electionId: string, postname: string): Promise<number> {
-    const i = await knex(NOMINATION_TABLE)
+  async getNumberOfNominations(electionId: string, postname?: string): Promise<number> {
+    const query = knex(NOMINATION_TABLE)
       .where('refelection', electionId)
-      .where('refpost', postname)
       .count<Record<string, number>>('*')
       .first();
 
+    if (postname != null) {
+      query.where('refpost', postname);
+    }
+
+    const i = await query;
+
     if (i == null || i.count == null) {
       logger.debug(
-        `Kunde inte räkna antalet nomineringar för valet ${electionId} och posten ${postname}, count var ${JSON.stringify(
-          i,
-        )}`,
+        `Kunde inte räkna antalet nomineringar för valet ${electionId} och posten ${
+          postname ?? 'alla poster'
+        }, count var ${JSON.stringify(i)}`,
       );
       throw new ServerError('Kunde inte räkna antal nomineringar');
     }

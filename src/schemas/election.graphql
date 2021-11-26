@@ -8,10 +8,15 @@ type Query {
   latestElections(limit: Int): [Election]!
   election(electionId: ID!): Election
   elections(electiondIds: [ID!]!): [Election]!
-  nominations(electionId: ID!, postname: String): [Nomination]!
+
+  """
+  Used if nominations are hidden but an election-admin wants too see nominations
+  """
+  hiddenNominations(electionId: ID!): [Nomination]!
+
+  "A users own nominations should always be available to them"
   myNominations(electionId: ID!): [Nomination]!
   numberOfNominations(electionId: ID!, postname: String): Int!
-  electables(electionId: ID!): [Post]!
 }
 
 type Mutation {
@@ -38,6 +43,9 @@ type Election {
 
   proposals: [Proposal]
 
+  "Is only available if `nominationsHidden` is `false`"
+  nominations: [Nomination]
+
   "Whether the nominations and their responses are anonymous"
   nominationsHidden: Boolean!
 }
@@ -48,9 +56,7 @@ type Proposal {
   post: Post!
 }
 
-"Is not part of election, as nominations may be anonymous"
 type Nomination {
-  election: Election!
   user: User!
   post: Post!
   accepted: NominationAnswer!
