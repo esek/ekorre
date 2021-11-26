@@ -4,6 +4,25 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2021-11-25
+
+### Tillagt
+ - `Meetings`-tabell i databasen
+ - API för möten, inklusive mötesfiler
+ - Standardlösning för auth
+    - Tabeller för access och auth
+    - `graphql-middleware` för tabellbaserad auth
+ - Standardiserad felhantering i API:er
+ - Automatisk testning i form av `ts-jest`
+ - Uppdaterad CI för testning
+ - Möjlighet att köra `build`-CI på GitLab genom `-run-build`-suffix på branchnamn
+ - DataLoaders för flertalet resurser
+
+ ### Ändrat
+  - Ändrat `files` till `file` i kodbasen för att följa praxis
+  - Se MR [!22](https://gitlab.com/esektionen/projekt/ekorre/-/merge_requests/22) till [!79](https://gitlab.com/esektionen/projekt/ekorre/-/merge_requests/79) för mer information
+
+
 ## [0.1.0] - 2021-04-27
 
 ### Tillagt
