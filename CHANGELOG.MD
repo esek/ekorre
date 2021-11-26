@@ -4,7 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.1]	- 2021-11-26
+## [0.3.0] - 2021-11-27
+
+### Tillagt
+ - Lägger till API för elections, se [!69](https://gitlab.com/esektionen/projekt/ekorre/-/merge_requests/69)
+
+## [0.2.1] - 2021-11-26
 
 ### Tillagt
 - Query för gruppering av poster
