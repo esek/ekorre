@@ -9,6 +9,9 @@ import express from 'express';
 import { applyMiddleware } from 'graphql-middleware';
 import { DateResolver } from 'graphql-scalars';
 
+import { ApolloServerPluginLandingPageGraphQLPlayground,
+  ApolloServerPluginLandingPageDisabled } from 'apollo-server-core';
+
 // import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import { COOKIES, verifyToken } from './auth';
 import config from './config';
@@ -111,6 +114,10 @@ const schema = makeExecutableSchema({
           return Promise.resolve();
         },
       },
+      // If we are in development, run GraphQL Playground
+      // TODO: Upgrade to GraphiQL
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      process.env.NODE_ENV === 'production' ? ApolloServerPluginLandingPageDisabled() : ApolloServerPluginLandingPageGraphQLPlayground(),
     ],
     formatError: errorHandler,
   });

@@ -10,7 +10,12 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
  - Lägger till API för elections, se [!69](https://gitlab.com/esektionen/projekt/ekorre/-/merge_requests/69)
  - `notEmpty` util-filter
 
-## [0.2.1] - 2021-11-26
+## [0.2.2]	- 2021-11-26
+
+### Ändrat
+- Återinför GraphQL playground, bör ersättas med GraphiQL i framtiden
+
+## [0.2.1]	- 2021-11-26
 
 ### Tillagt
 - Query för gruppering av poster
