@@ -7,3 +7,5 @@ CREATE TABLE IF NOT EXISTS "Proposals" (
   FOREIGN KEY("refelection") REFERENCES "Elections"("id"),
   PRIMARY KEY ("refuser", "refpost", "refelection")
 );
+
+INSERT INTO Proposals (refuser, refpost, refelection)  VALUES ('aa0000bb-s', 'Macapär', 1);

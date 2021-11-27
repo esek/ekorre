@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS "Nominations" (
   FOREIGN KEY("refelection") REFERENCES "Elections"("id"),
   PRIMARY KEY ("refuser", "refpost", "refelection")
 );
+
+INSERT INTO Nominations (refuser, refpost, refelection, accepted)  VALUES ('aa0000bb-s', 'Macapär', 1, 'YES');

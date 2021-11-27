@@ -185,4 +185,52 @@ INSERT INTO Meetings (type, number, year, refsummons) VALUES ('VM', 1, 2020, '09
 INSERT INTO Meetings (type, number, year) VALUES ('SM', 1, 1962);
 INSERT INTO Meetings (type, number, year) VALUES ('Extra', 1, 2050);
 
+CREATE TABLE IF NOT EXISTS "Elections" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "refcreator" TEXT NOT NULL,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "openedAt" TIMESTAMP,
+  "closedAt" TIMESTAMP,
+  "open" BOOLEAN NOT NULL DEFAULT 0,
+  "nominationsHidden" BOOLEAN DEFAULT 0,
+  FOREIGN KEY("refcreator") REFERENCES "Users"("username")
+);
+
+INSERT INTO Elections (refcreator, nominationsHidden) VALUES ('aa0000bb-s', 0);
+
+CREATE TABLE IF NOT EXISTS "Electables" (
+  "refpost" TEXT NOT NULL,
+  "refelection" INTEGER NOT NULL,
+  FOREIGN KEY("refpost") REFERENCES "Posts"("postname"),
+  FOREIGN KEY("refelection") REFERENCES "Elections"("id"),
+  PRIMARY KEY ("refpost", "refelection")
+);
+
+INSERT INTO Electables (refpost, refelection) VALUES ('Macapär', 1);
+
+CREATE TABLE IF NOT EXISTS "Proposals" (
+  "refuser" TEXT NOT NULL,
+  "refpost" TEXT NOT NULL,
+  "refelection" INTEGER NOT NULL,
+  FOREIGN KEY("refuser") REFERENCES "Users"("username"),
+  FOREIGN KEY("refpost") REFERENCES "Posts"("postname"),
+  FOREIGN KEY("refelection") REFERENCES "Elections"("id"),
+  PRIMARY KEY ("refuser", "refpost", "refelection")
+);
+
+INSERT INTO Proposals (refuser, refpost, refelection)  VALUES ('aa0000bb-s', 'Macapär', 1);
+
+CREATE TABLE IF NOT EXISTS "Nominations" (
+  "refuser" TEXT NOT NULL,
+  "refpost" TEXT NOT NULL,
+  "refelection" INT NOT NULL,
+  "accepted" TEXT NOT NULL, -- TS Enum
+  FOREIGN KEY("refuser") REFERENCES "Users"("username"),
+  FOREIGN KEY("refpost") REFERENCES "Posts"("postname"),
+  FOREIGN KEY("refelection") REFERENCES "Elections"("id"),
+  PRIMARY KEY ("refuser", "refpost", "refelection")
+);
+
+INSERT INTO Nominations (refuser, refpost, refelection, accepted)  VALUES ('aa0000bb-s', 'Macapär', 1, 'YES');
+
 END TRANSACTION;

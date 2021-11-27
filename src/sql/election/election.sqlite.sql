@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS "Elections" (
   "nominationsHidden" BOOLEAN DEFAULT 0,
   FOREIGN KEY("refcreator") REFERENCES "Users"("username")
 );
+
+INSERT INTO Elections (refcreator, nominationsHidden) VALUES ('aa0000bb-s', 0);
