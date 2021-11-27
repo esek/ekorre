@@ -10,3 +10,8 @@ TODO: Komma på hur detta ska lösas i produktion.
 
 För att förhindra att man gör något dumt som klyddar till det används `FOREIGN KEY`,
 vilket förhindrar att man t.ex. lägger till en `refpost` som inte är en post i `Electables`.
+Dock måste det vara enabled, vilket för sqlite görs i runtime med
+
+```sql
+PRAGMA foreign_keys = ON;
+```
