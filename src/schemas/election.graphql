@@ -3,6 +3,11 @@
 
 scalar DateTime
 
+"""
+Queries and mutations that relies on an election being open
+does not take an `electionId` parameter.
+"""
+
 type Query {
   openElection: Election
   latestElections(limit: Int): [Election]!
