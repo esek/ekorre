@@ -47,6 +47,21 @@ const electionResolver: Resolvers = {
     createElection: async (_, { electables, nominationsHidden }, ctx) => {
       const safeElectables = electables.filter(notEmpty);
       return api.createElection(ctx.getUsername(), safeElectables, nominationsHidden);
+    },
+    addElectables: async (_, { electionId, postnames }) => {
+      return api.addElectables(electionId, postnames ?? []);
+    },
+    removeElectables: async (_, { electionId, postnames }) => {
+      return api.removeElectables(electionId, postnames ?? []);
+    },
+    openElection: async (_, { electionId }) => {
+      return api.openElection(electionId);
+    },
+    closeElection: async () => {
+      return api.closeElection();
+    },
+    nominate: async (_, { username, postnames }) => {
+      return api.nominate(username, postnames);
     }
   },
   Election: {

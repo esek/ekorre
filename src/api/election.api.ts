@@ -1,6 +1,7 @@
 import { NotFoundError, BadRequestError, ServerError } from '../errors/RequestErrors';
+import { NominationAnswer } from '../graphql.generated';
 import { Logger } from '../logger';
-import { DatabaseElection, DatabaseNomination, DatabaseProposal } from '../models/db/election';
+import { DatabaseElectable, DatabaseElection, DatabaseNomination, DatabaseProposal } from '../models/db/election';
 import { validateNonEmptyArray } from '../services/validation.service';
 import { ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE, ELECTABLE_TABLE } from './constants';
 import knex from './knex';
@@ -160,13 +161,22 @@ export class ElectionAPI {
    * @returns Lista på `postnames`
    */
   async getAllElectables(electionId: string): Promise<string[]> {
-    const e = await knex<string>(ELECTABLE_TABLE).where('refelection', electionId);
+    const electableRows = await knex<DatabaseElectable>(ELECTABLE_TABLE).select('refpost').where('refelection', electionId);
 
-    validateNonEmptyArray(e, `Hittade inga valbara poster för valet med ID ${electionId}`);
+    const refposts = electableRows.map(e => e.refpost);
 
-    return e;
+    validateNonEmptyArray(refposts, `Hittade inga valbara poster för valet med ID ${electionId}`);
+
+    return refposts;
   }
 
+  /**
+   * Skapar ett nytt val, förutsatt att det inte finns några öppna val,
+   * eller val som inte har ett datum de stängdes.
+   * @param creatorUsername Användarnamnet på skaparen av valet
+   * @param electables En lista med postnamn
+   * @param nominationsHidden Om nomineringar ska vara dolda för alla utom den som blivit nominerad och valadmin
+   */
   async createElection(creatorUsername: string, electables: string[], nominationsHidden: boolean): Promise<boolean> {
     // Vi försäkrar oss om att det senaste valet är stängt
     const lastElection = (await this.getLatestElections(1))[0];
@@ -184,7 +194,7 @@ export class ElectionAPI {
       throw new ServerError('Kunde inte skapa ett nytt val');
     }
 
-    const electableRows = electables.map(e => {
+    const electableRows: DatabaseElectable[] = electables.map(e => {
       return { refelection: electionId, refpost: e };
     });
     const res = await knex(ELECTABLE_TABLE).insert(electableRows);
@@ -198,4 +208,133 @@ export class ElectionAPI {
 
     return true;
   }
+
+  /**
+   * Försöker att lägga till alla poster som valbara i det specificerade valet.
+   * @param electionId ID på ett val
+   * @param postnames Lista på postnamn
+   */
+  async addElectables(electionId: string, postnames: string[]): Promise<boolean> {
+    if (postnames.length === 0) {
+      throw new BadRequestError('Inga postnamn specificerade');
+    }
+
+    const electableRows: DatabaseElectable[] = postnames.map((postname) => {
+      return { refelection: electionId, refpost: postname };
+    });
+    const res = await knex(ELECTABLE_TABLE).insert(electableRows);
+
+    if (res[0] !== electableRows.length) {
+      logger.debug(`Could not insert all electables for election with ID ${electionId}`);
+      throw new ServerError('Kunde inte lägga till alla valbara poster');
+    }
+
+    return true;
+  }
+
+  /**
+   * Tar bort alla poster som valbara i det specificerade valet
+   * @param electionId ID på ett val
+   * @param postnames Lista på postnamn
+   */
+  async removeElectables(electionId: string, postnames: string[]): Promise<boolean> {
+    if (postnames.length === 0) {
+      throw new BadRequestError('Inga postnamn specificerade');
+    }
+
+    const electableRows: DatabaseElectable[] = postnames.map((postname) => {
+      return { refelection: electionId, refpost: postname };
+    });
+    const res = await knex(ELECTABLE_TABLE).delete().where(electableRows);
+
+    if (res !== electableRows.length) {
+      logger.debug(`Could not delete all electables for election with ID ${electionId}`);
+      throw new ServerError('Kunde inte ta bort alla valbara poster');
+    }
+
+    return true;
+  }
+
+  /**
+   * Öppnar ett val, förutsatt att det inte redan stängts en gång
+   * @param electionId ID på ett val
+   */
+  async openElection(electionId: string): Promise<boolean> {
+    // Markerar valet som öppet, men bara om det inte redan stängts
+    const res = await knex<DatabaseElection>(ELECTION_TABLE).update({
+      openedAt: knex.fn.now(), // Current timestamp
+      open: true,
+    }).where({ id: electionId }).and.whereNull('createdAt');
+
+    if (res === 0) {
+      throw new BadRequestError('Antingen är valet redan stängt, eller så finns det inte.');
+    }
+
+    return true;
+  }
+
+  /**
+   * Stänger alla öppna val, men ger ett fel om fler än ett måste stängas,
+   * då endast ett ska kunna vara öppet samtidigt.
+   */
+  async closeElection(): Promise<boolean> {
+    const res = await knex<DatabaseElection>(ELECTION_TABLE).update({
+      closedAt: knex.fn.now(), // Current timestamp
+      open: false,
+    }).where({ open: true });
+
+    if (res > 1) {
+      logger.warn('VARNING: Anrop till closeElection stängde mer än ett val! Endast ett val ska kunna vara öppet samtidigt!');
+      throw new ServerError('Mer än ett val stängdes, men fler än ett val ska inte kunna vara öppna samtidigt!');
+    }
+
+    if (res === 0) {
+      throw new BadRequestError('Antingen är valet redan stängt, eller så finns det inte.');
+    }
+
+    return true;
+  }
+
+  /**
+   * Försöker hitta ett öppet val och om det finns, nominerar
+   * användaren till alla poster.
+   * @param username Användarnamn på den som ska nomineras
+   * @param postnames Namnet på alla poster personen ska nomineras till
+   */
+  async nominate(username: string, postnames: string[]): Promise<boolean> {
+    if (postnames.length === 0) {
+      throw new BadRequestError('Inga postnamn specificerade');
+    }
+
+    let openElection: DatabaseElection;
+
+    try {
+      openElection = await this.getOpenElection();
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        throw new BadRequestError('Det finns inget öppet val!');
+      } else {
+        throw new ServerError('Något gick fel när det öppna valet försökte hittas');
+      }
+    }
+
+    const nominationRows: DatabaseNomination[] = postnames.map((postname) => {
+      return {
+        refelection: openElection.id,
+        refuser: username,
+        refpost: postname,
+        accepted: NominationAnswer.NoAnswer
+      };
+    });
+
+    const res = await knex<DatabaseNomination>(NOMINATION_TABLE).insert(nominationRows);
+
+    if (res[0] !== nominationRows.length) {
+      logger.debug(`Could not insert all nominations for election with ID ${openElection.id}`);
+      throw new ServerError('Kunde inte nominera till alla poster');
+    }
+
+    return true;
+  }
+
 }

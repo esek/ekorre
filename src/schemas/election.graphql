@@ -21,13 +21,17 @@ type Query {
 
 type Mutation {
   createElection(electables: [String]!, nominationsHidden: Boolean!): Boolean!
-  addElectables(postnames: [String!]): Boolean!
-  removeElectables(postnames: [String!]): Boolean!
+  addElectables(electionId: ID!, postnames: [String!]): Boolean!
+  removeElectables(electionId: ID!, postnames: [String!]): Boolean!
   openElection(electionId: ID!): Boolean!
   closeElection: Boolean!
-  nominate(electionId: ID!, username: String!, postname: String!): Boolean!
+
+  "Only possible during open election, so electionId is known"
+  nominate(username: String!, postnames: [String!]!): Boolean!
+
+  "Only possible during open election, so electionId is known"
+  respondToNomination(username: String!, postname: String!, accepts: NominationAnswer!): Boolean!
   propose(electionId: ID!, username: String!, postname: String!): Boolean!
-  respondToNomination(electionId: ID!, username: String!, postname: String!, accepts: NominationAnswer!): Boolean!
 }
 
 type Election {
@@ -40,7 +44,6 @@ type Election {
 
   "Which posts can be elected in the election"
   electables: [Post]!
-
   proposals: [Proposal]
 
   "Is only available if `nominationsHidden` is `false`"
