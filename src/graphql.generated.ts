@@ -81,14 +81,14 @@ export type CasLoginResponse = {
 
 
 export type Election = {
+  /** Is only available if `nominationsHidden` is `false` */
+  acceptedNominations?: Maybe<Array<Maybe<Nomination>>>;
   closedAt?: Maybe<Scalars['DateTime']>;
   createdAt: Scalars['DateTime'];
   creator: User;
   /** Which posts can be elected in the election */
   electables: Array<Maybe<Post>>;
   id: Scalars['ID'];
-  /** Is only available if `nominationsHidden` is `false` */
-  nominations?: Maybe<Array<Maybe<Nomination>>>;
   /** Whether accepted nominations are to be hidden */
   nominationsHidden: Scalars['Boolean'];
   open: Scalars['Boolean'];
@@ -1161,12 +1161,12 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 }
 
 export type ElectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Election'] = ResolversParentTypes['Election']> = ResolversObject<{
+  acceptedNominations?: Resolver<Maybe<Array<Maybe<ResolversTypes['Nomination']>>>, ParentType, ContextType>;
   closedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   electables?: Resolver<Array<Maybe<ResolversTypes['Post']>>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  nominations?: Resolver<Maybe<Array<Maybe<ResolversTypes['Nomination']>>>, ParentType, ContextType>;
   nominationsHidden?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   open?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   openedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;

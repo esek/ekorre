@@ -54,7 +54,7 @@ type Election {
   proposals: [Proposal]
 
   "Is only available if `nominationsHidden` is `false`"
-  nominations: [Nomination]
+  acceptedNominations: [Nomination]
 
   "Whether accepted nominations are to be hidden"
   nominationsHidden: Boolean!

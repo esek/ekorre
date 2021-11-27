@@ -108,7 +108,7 @@ const electionResolver: Resolvers = {
       const p = await api.getAllProposals(model.id ?? '');
       return reduce(p, proposalReduce);
     },
-    nominations: async (model) => {
+    acceptedNominations: async (model) => {
       // Eftersom denne bara ska returneras om valadmin tillåter
       // det kontrollerar vi detta här. I fallet att admin vill se dold
       // finns används `hiddenNominations`
