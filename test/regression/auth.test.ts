@@ -44,17 +44,21 @@ beforeAll(async () => {
     testResource.description,
     testResource.resourceType,
   );
+  await resourcesApi.addResource('', 'logout', '', AccessResourceType.Web);
+  await resourcesApi.addResource('Empty resource', '', '', AccessResourceType.Web);
 });
 
 beforeEach(async () => {
-  // remove all mappings
   await accessApi.setAccessMappings('logout', ResolverType.Mutation);
   await accessApi.setIndividualAccess('aa0000bb-s', []);
 });
 
 afterAll(async () => {
+  await accessApi.setAccessMappings('logout', ResolverType.Mutation, );
+  await accessApi.setIndividualAccess('aa0000bb-s', []);
   await resourcesApi.removeResouce(testResource.slug);
-  await accessApi.setAccessMappings('logout', ResolverType.Mutation);
+  await resourcesApi.removeResouce('logout');
+  await resourcesApi.removeResouce('');
 });
 
 test('resource with only auth required', async () => {
