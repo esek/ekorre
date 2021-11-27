@@ -42,6 +42,9 @@ const electionResolver: Resolvers = {
     numberOfNominations: async (_, { electionId, postname }) => {
       return api.getNumberOfNominations(electionId, postname ?? undefined);
     },
+    numberOfProposals: async (_, { electionId, postname }) => {
+      return api.getNumberOfProposals(electionId, postname ?? undefined);
+    },
   },
   Mutation: {
     createElection: async (_, { electables, nominationsHidden }, ctx) => {
@@ -62,7 +65,13 @@ const electionResolver: Resolvers = {
     },
     nominate: async (_, { username, postnames }) => {
       return api.nominate(username, postnames);
-    }
+    },
+    respondToNomination: async (_, { postname, accepts }, ctx) => {
+      return api.respondToNomination(ctx.getUsername(), postname, accepts);
+    },
+    propose: async (_, { electionId, username, postname }) => {
+      return api.propose(electionId, username, postname);
+    },
   },
   Election: {
     // Vi fyller ut resolvern med de saker som

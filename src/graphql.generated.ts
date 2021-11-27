@@ -420,7 +420,6 @@ export type MutationResetPasswordArgs = {
 export type MutationRespondToNominationArgs = {
   accepts: NominationAnswer;
   postname: Scalars['String'];
-  username: Scalars['String'];
 };
 
 
@@ -561,6 +560,7 @@ export type Query = {
   myNominations: Array<Maybe<Nomination>>;
   newsentries: Array<Maybe<Article>>;
   numberOfNominations: Scalars['Int'];
+  numberOfProposals: Scalars['Int'];
   openElection?: Maybe<Election>;
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
@@ -693,6 +693,12 @@ export type QueryNewsentriesArgs = {
 
 
 export type QueryNumberOfNominationsArgs = {
+  electionId: Scalars['ID'];
+  postname?: Maybe<Scalars['String']>;
+};
+
+
+export type QueryNumberOfProposalsArgs = {
   electionId: Scalars['ID'];
   postname?: Maybe<Scalars['String']>;
 };
@@ -1123,7 +1129,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'postname' | 'usernames'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
-  respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postname' | 'username'>>;
+  respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postname'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'access' | 'username'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postname'>>;
   setResolverMappings?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetResolverMappingsArgs, 'name' | 'type'>>;
@@ -1180,6 +1186,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   myNominations?: Resolver<Array<Maybe<ResolversTypes['Nomination']>>, ParentType, ContextType, RequireFields<QueryMyNominationsArgs, 'electionId'>>;
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
   numberOfNominations?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfNominationsArgs, 'electionId'>>;
+  numberOfProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfProposalsArgs, 'electionId'>>;
   openElection?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;

@@ -17,6 +17,7 @@ type Query {
   "A users own nominations should always be available to them"
   myNominations(electionId: ID!): [Nomination]!
   numberOfNominations(electionId: ID!, postname: String): Int!
+  numberOfProposals(electionId: ID!, postname: String): Int!
 }
 
 type Mutation {
@@ -30,7 +31,7 @@ type Mutation {
   nominate(username: String!, postnames: [String!]!): Boolean!
 
   "Only possible during open election, so electionId is known"
-  respondToNomination(username: String!, postname: String!, accepts: NominationAnswer!): Boolean!
+  respondToNomination(postname: String!, accepts: NominationAnswer!): Boolean!
   propose(electionId: ID!, username: String!, postname: String!): Boolean!
 }
 
