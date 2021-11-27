@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "E-Sektionens backend",
   "main": "src/app.ts",
   "scripts": {
@@ -36,6 +36,7 @@
     "@graphql-tools/utils": "^8.5.3",
     "apollo-graphql": "^0.9.5",
     "apollo-server": "^3.5.0",
+    "apollo-server-core": "^3.5.0",
     "apollo-server-errors": "^3.3.0",
     "apollo-server-express": "^3.5.0",
     "axios": "^0.21.1",
