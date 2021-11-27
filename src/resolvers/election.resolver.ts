@@ -57,6 +57,9 @@ const electionResolver: Resolvers = {
     removeElectables: async (_, { electionId, postnames }) => {
       return api.removeElectables(electionId, postnames ?? []);
     },
+    setHiddenNominations: async (_, { electionId, hidden }) => {
+      return api.setHiddenNominations(electionId, hidden);
+    },
     openElection: async (_, { electionId }) => {
       return api.openElection(electionId);
     },
@@ -112,7 +115,10 @@ const electionResolver: Resolvers = {
       if (model.nominationsHidden ?? true) {
         return null;
       }
-      const n = await api.getAllNominations(model.id ?? '');
+
+      // Vi vill bara visa de nomineringar där folk tackat ja
+      const n = await api.getAllAcceptedNominations(model.id ?? '');
+      
       return reduce(n, nominationReduce);
     },
   },

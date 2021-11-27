@@ -99,6 +99,23 @@ export class ElectionAPI {
   }
 
   /**
+   * Returnerar alla accepterade nomineringar för valet.
+   * @param electionId ID på ett val
+   * @returns Lista över accepterade nomineringar
+   * @throws `NotFoundError`
+   */
+  async getAllAcceptedNominations(electionId: string): Promise<DatabaseNomination[]> {
+    const n = await knex<DatabaseNomination>(NOMINATION_TABLE).where({
+      refelection: electionId,
+      accepted: NominationAnswer.Yes,
+    });
+
+    validateNonEmptyArray(n, `Hittade inga accepterade nomineringar för mötet med ID ${electionId}`);
+
+    return n;
+  }
+
+  /**
    * Returnerar alla nomineringar för en användare för ett val.
    * @param electionId ID på ett val
    * @param username Användarnamnet
@@ -303,6 +320,17 @@ export class ElectionAPI {
     }
 
     return true;
+  }
+
+  /**
+   * Ändrar om nomineringar är dolda eller ej för ett val.
+   * @param electionId ID på ett val
+   * @param hidden Om alla ska kunna vem som tackat ja till vad eller ej
+   * @returns Om en ändring gjordes eller ej
+   */
+  async setHiddenNominations(electionId: string, hidden: boolean): Promise<boolean> {
+    const res = await knex<DatabaseElection>(ELECTION_TABLE).update('nominationsHidden', hidden).where('id', electionId);
+    return res > 0;
   }
 
   /**

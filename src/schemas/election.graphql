@@ -29,6 +29,7 @@ type Mutation {
   createElection(electables: [String]!, nominationsHidden: Boolean!): Boolean!
   addElectables(electionId: ID!, postnames: [String!]): Boolean!
   removeElectables(electionId: ID!, postnames: [String!]): Boolean!
+  setHiddenNominations(electionId: ID!, hidden: Boolean!): Boolean!
   openElection(electionId: ID!): Boolean!
   closeElection: Boolean!
 
@@ -55,7 +56,7 @@ type Election {
   "Is only available if `nominationsHidden` is `false`"
   nominations: [Nomination]
 
-  "Whether the nominations and their responses are anonymous"
+  "Whether accepted nominations are to be hidden"
   nominationsHidden: Boolean!
 }
 

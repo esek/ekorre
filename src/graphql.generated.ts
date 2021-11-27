@@ -89,7 +89,7 @@ export type Election = {
   id: Scalars['ID'];
   /** Is only available if `nominationsHidden` is `false` */
   nominations?: Maybe<Array<Maybe<Nomination>>>;
-  /** Whether the nominations and their responses are anonymous */
+  /** Whether accepted nominations are to be hidden */
   nominationsHidden: Scalars['Boolean'];
   open: Scalars['Boolean'];
   openedAt?: Maybe<Scalars['DateTime']>;
@@ -246,6 +246,7 @@ export type Mutation = {
   resetPassword: Scalars['Boolean'];
   /** Only possible during open election, so electionId is known */
   respondToNomination: Scalars['Boolean'];
+  setHiddenNominations: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
   setResolverMappings: Scalars['Boolean'];
@@ -423,6 +424,12 @@ export type MutationRespondToNominationArgs = {
 };
 
 
+export type MutationSetHiddenNominationsArgs = {
+  electionId: Scalars['ID'];
+  hidden: Scalars['Boolean'];
+};
+
+
 export type MutationSetIndividualAccessArgs = {
   access: Array<Scalars['String']>;
   username: Scalars['String'];
@@ -535,6 +542,10 @@ export type Proposal = {
   user: User;
 };
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type Query = {
   accessMappings: Array<AccessMapping>;
   accessResource: AccessResource;
@@ -574,22 +585,38 @@ export type Query = {
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryAccessMappingsArgs = {
   name?: Maybe<Scalars['String']>;
   type?: Maybe<ResolverType>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryAccessResourceArgs = {
   slug: Scalars['String'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryAccessResourcesArgs = {
   type?: Maybe<AccessResourceType>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryArticleArgs = {
   id?: Maybe<Scalars['ID']>;
   markdown?: Maybe<Scalars['Boolean']>;
@@ -597,6 +624,10 @@ export type QueryArticleArgs = {
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryArticlesArgs = {
   articleType?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['DateTime']>;
@@ -611,67 +642,119 @@ export type QueryArticlesArgs = {
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryElectionArgs = {
   electionId: Scalars['ID'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryElectionsArgs = {
   electiondIds: Array<Scalars['ID']>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryFileArgs = {
   id: Scalars['ID'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryFileSystemArgs = {
   folder: Scalars['String'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryFilesArgs = {
   type?: Maybe<FileType>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryGroupedPostsArgs = {
   includeInactive: Scalars['Boolean'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryHiddenNominationsArgs = {
   electionId: Scalars['ID'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryIndividualAccessArgs = {
   username: Scalars['String'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryLatestBoardMeetingsArgs = {
   limit?: Maybe<Scalars['Int']>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryLatestElectionsArgs = {
   limit?: Maybe<Scalars['Int']>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryLatestnewsArgs = {
   limit?: Maybe<Scalars['Int']>;
   markdown?: Maybe<Scalars['Boolean']>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryMeetingArgs = {
   id: Scalars['ID'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryMeetingsArgs = {
   number?: Maybe<Scalars['Int']>;
   type?: Maybe<MeetingType>;
@@ -679,11 +762,19 @@ export type QueryMeetingsArgs = {
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryMyNominationsArgs = {
   electionId: Scalars['ID'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryNewsentriesArgs = {
   after?: Maybe<Scalars['DateTime']>;
   before?: Maybe<Scalars['DateTime']>;
@@ -692,60 +783,104 @@ export type QueryNewsentriesArgs = {
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryNumberOfNominationsArgs = {
   electionId: Scalars['ID'];
   postname?: Maybe<Scalars['String']>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryNumberOfProposalsArgs = {
   electionId: Scalars['ID'];
   postname?: Maybe<Scalars['String']>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryPostArgs = {
   name: Scalars['String'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryPostAccessArgs = {
   postname: Scalars['String'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryPostsArgs = {
   includeInactive: Scalars['Boolean'];
   utskott?: Maybe<Utskott>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryResolverExistsArgs = {
   type: ResolverType;
   name: Scalars['String'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryResolversArgs = {
   type?: Maybe<ResolverType>;
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QuerySearchFilesArgs = {
   search: Scalars['String'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QuerySearchUserArgs = {
   search: Scalars['String'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryUserArgs = {
   username: Scalars['String'];
 };
 
 
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryUtskottArgs = {
   name?: Maybe<Scalars['String']>;
 };
@@ -1130,6 +1265,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
   respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postname'>>;
+  setHiddenNominations?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetHiddenNominationsArgs, 'electionId' | 'hidden'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'access' | 'username'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postname'>>;
   setResolverMappings?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetResolverMappingsArgs, 'name' | 'type'>>;
