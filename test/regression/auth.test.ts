@@ -91,7 +91,7 @@ test('resource with only auth required', async () => {
     });
 
   // login
-  axiosInstance.post<ApiRequest, GraphqlResponse>('/', loginData).then(async (res) => {
+  await axiosInstance.post<ApiRequest, GraphqlResponse>('/', loginData).then(async (res) => {
     const accessToken = extractToken(COOKIES.accessToken, res.headers['set-cookie']?.[1]);
     expect(accessToken).not.toBeNull();
 
