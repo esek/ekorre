@@ -47,3 +47,7 @@ const OPEN_ELECTION_QUERY = `
     }
   }
 `;
+
+const NOMINATION_QUERY = `
+  nom
+`;

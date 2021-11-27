@@ -110,7 +110,10 @@ export class ElectionAPI {
       accepted: NominationAnswer.Yes,
     });
 
-    validateNonEmptyArray(n, `Hittade inga accepterade nomineringar för mötet med ID ${electionId}`);
+    validateNonEmptyArray(
+      n,
+      `Hittade inga accepterade nomineringar för mötet med ID ${electionId}`,
+    );
 
     return n;
   }
@@ -289,9 +292,9 @@ export class ElectionAPI {
     const electableRows: DatabaseElectable[] = postnames.map((postname) => {
       return { refelection: electionId, refpost: postname };
     });
-    const res = await knex(ELECTABLE_TABLE).insert(electableRows);
+    const [affectedColoumns] = await knex(ELECTABLE_TABLE).insert(electableRows);
 
-    if (res[0] !== electableRows.length) {
+    if (affectedColoumns !== electableRows.length * 2) {
       logger.debug(`Could not insert all electables for election with ID ${electionId}`);
       throw new ServerError('Kunde inte lägga till alla valbara poster');
     }
@@ -309,12 +312,12 @@ export class ElectionAPI {
       throw new BadRequestError('Inga postnamn specificerade');
     }
 
-    const electableRows: DatabaseElectable[] = postnames.map((postname) => {
-      return { refelection: electionId, refpost: postname };
-    });
-    const res = await knex(ELECTABLE_TABLE).delete().where(electableRows);
+    const res = await knex(ELECTABLE_TABLE)
+      .delete()
+      .where('refelection', electionId)
+      .and.whereIn('refpost', postnames);
 
-    if (res !== electableRows.length) {
+    if (res !== postnames.length) {
       logger.debug(`Could not delete all electables for election with ID ${electionId}`);
       throw new ServerError('Kunde inte ta bort alla valbara poster');
     }
@@ -329,7 +332,9 @@ export class ElectionAPI {
    * @returns Om en ändring gjordes eller ej
    */
   async setHiddenNominations(electionId: string, hidden: boolean): Promise<boolean> {
-    const res = await knex<DatabaseElection>(ELECTION_TABLE).update('nominationsHidden', hidden).where('id', electionId);
+    const res = await knex<DatabaseElection>(ELECTION_TABLE)
+      .update('nominationsHidden', hidden)
+      .where('id', electionId);
     return res > 0;
   }
 
