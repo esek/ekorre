@@ -85,35 +85,23 @@ export class ElectionAPI {
   }
 
   /**
-   * Returnerar alla nomineringar för valet.
+   * Returnerar alla nomineringar för valet, om specificerat endast
+   * de med ett specifikt svar.
    * @param electionId ID på ett val
+   * @param answer Vilken typ av svar som ska returneras. Om `null` ges alla
    * @returns Lista över nomineringar
    * @throws `NotFoundError`
    */
-  async getAllNominations(electionId: string): Promise<DatabaseNomination[]> {
-    const n = await knex<DatabaseNomination>(NOMINATION_TABLE).where('refelection', electionId);
+  async getAllNominations(electionId: string, answer?: NominationAnswer): Promise<DatabaseNomination[]> {
+    const query = knex<DatabaseNomination>(NOMINATION_TABLE).where('refelection', electionId);
+
+    if (answer != null) {
+      query.and.where('accepted', answer);
+    }
+
+    const n = await query;
 
     validateNonEmptyArray(n, `Hittade inga nomineringar för mötet med ID ${electionId}`);
-
-    return n;
-  }
-
-  /**
-   * Returnerar alla accepterade nomineringar för valet.
-   * @param electionId ID på ett val
-   * @returns Lista över accepterade nomineringar
-   * @throws `NotFoundError`
-   */
-  async getAllAcceptedNominations(electionId: string): Promise<DatabaseNomination[]> {
-    const n = await knex<DatabaseNomination>(NOMINATION_TABLE).where({
-      refelection: electionId,
-      accepted: NominationAnswer.Yes,
-    });
-
-    validateNonEmptyArray(
-      n,
-      `Hittade inga accepterade nomineringar för mötet med ID ${electionId}`,
-    );
 
     return n;
   }

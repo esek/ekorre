@@ -1,6 +1,6 @@
 import { ElectionAPI } from '../api/election.api';
 import { useDataLoader } from '../dataloaders';
-import type { Resolvers } from '../graphql.generated';
+import { NominationAnswer, Resolvers } from '../graphql.generated';
 import { reduce } from '../reducers';
 import { electionReduce } from '../reducers/election/election.reducer';
 import { nominationReduce } from '../reducers/election/nomination.reducer';
@@ -117,7 +117,7 @@ const electionResolver: Resolvers = {
       }
 
       // Vi vill bara visa de nomineringar där folk tackat ja
-      const n = await api.getAllAcceptedNominations(model.id ?? '');
+      const n = await api.getAllNominations(model.id ?? '', NominationAnswer.Yes);
       
       return reduce(n, nominationReduce);
     },
