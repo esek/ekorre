@@ -436,4 +436,5 @@ test('get number of volunteers in year 1700', async () => {
   await api.createPost(np);
   await api.addUsersToPost([DUMMY_USER.username], np.name, 1700, startDate);
   expect(await api.getNumberOfVolunteers(startDate)).toBe(1);
+  expect(await api.getNumberOfVolunteers(new Date('2020-01-01'))).toBe(0);
 });
