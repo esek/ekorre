@@ -41,12 +41,15 @@ const postresolver: Resolvers = {
         posts,
       }));
     },
+    numberOfVolunteers: async (_, { date }) => {
+      return api.getNumberOfVolunteers(date ?? undefined);
+    },
   },
   Mutation: {
     addPost: (_, { info }) => api.createPost(info),
     modifyPost: (_, { info }) => api.modifyPost(info),
-    addUsersToPost: (_, { usernames, postname, period }) =>
-      api.addUsersToPost(usernames, postname, period),
+    addUsersToPost: (_, { usernames, postname, period, startDate }) =>
+      api.addUsersToPost(usernames, postname, period, startDate ?? undefined),
     removeUsersFromPost: (_, { usernames, postname }) =>
       api.removeUsersFromPost(usernames, postname),
     activatePost: (_, { postname }) => api.activatePost(postname),

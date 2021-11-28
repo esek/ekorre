@@ -268,6 +268,7 @@ export type MutationAddPostArgs = {
 export type MutationAddUsersToPostArgs = {
   period: Scalars['Int'];
   postname: Scalars['String'];
+  startDate?: Maybe<Scalars['Date']>;
   usernames: Array<Scalars['String']>;
 };
 
@@ -466,6 +467,7 @@ export type Query = {
   meeting?: Maybe<Meeting>;
   meetings: Array<Maybe<Meeting>>;
   newsentries: Array<Maybe<Article>>;
+  numberOfVolunteers: Scalars['Int'];
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
   posts?: Maybe<Array<Maybe<Post>>>;
@@ -568,6 +570,11 @@ export type QueryNewsentriesArgs = {
   before?: Maybe<Scalars['DateTime']>;
   creator?: Maybe<Scalars['String']>;
   markdown?: Maybe<Scalars['Boolean']>;
+};
+
+
+export type QueryNumberOfVolunteersArgs = {
+  date?: Maybe<Scalars['Date']>;
 };
 
 
@@ -1005,6 +1012,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryMeetingsArgs, never>>;
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
+  numberOfVolunteers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfVolunteersArgs, never>>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;
   posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, 'includeInactive'>>;

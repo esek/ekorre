@@ -411,3 +411,19 @@ test('changing postType to e.a. from u without changing spots', async () => {
     expect(res).not.toBeNull();
   }
 });
+
+test('get current number of volunteers', async () => {
+  await api.createPost(np);
+  await api.addUsersToPost([DUMMY_USER.username], np.name, period);
+
+  // Vår dummy-db innehåller några också
+  expect(await api.getNumberOfVolunteers()).toBe(1);
+});
+
+test('get number of volunteers in year 1700', async () => {
+  const startDate = new Date('1700-03-13');
+  expect(await api.getNumberOfVolunteers(startDate)).toBe(0);
+  await api.createPost(np);
+  await api.addUsersToPost([DUMMY_USER.username], np.name, 1700, startDate);
+  expect(await api.getNumberOfVolunteers(startDate)).toBe(1);
+});

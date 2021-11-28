@@ -154,7 +154,7 @@ export class PostAPI {
     return posts;
   }
 
-  async addUsersToPost(usernames: string[], postname: string, period: number): Promise<boolean> {
+  async addUsersToPost(usernames: string[], postname: string, period: number, startDate?: Date): Promise<boolean> {
     // Ta bort dubbletter
     const uniqueUsernames = [...new Set(usernames)];
 
@@ -182,7 +182,7 @@ export class PostAPI {
     const insert = usernamesToUse.map<DatabasePostHistory>((e) => ({
       refuser: e,
       refpost: postname,
-      start: new Date(),
+      start: startDate ?? new Date(),
       end: null,
       period,
     }));
@@ -340,5 +340,37 @@ export class PostAPI {
     });
 
     return entries;
+  }
+
+  /**
+   * Beräknar antalet unika funktionärer för ett visst
+   * datum, eller dagens datum om inget ges. Räknar inte samma
+   * användare flera gånger.
+   * @param date Ett datum
+   */
+  async getNumberOfVolunteers(date?: Date): Promise<number> {
+    const safeDate = date ?? new Date();
+
+    // Om `end` är `null` har man inte gått av posten
+    const i = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
+      .where('start', '<=', safeDate)
+      .andWhere((q) => {
+        // Antingen är end efter datumet, eller så är det null (inte gått av)
+        q.andWhere('end', '>=', safeDate).orWhereNull('end');
+      })
+      .distinct('refuser') // Vi vill inte räkna samma person flera gånger
+      .count<Record<string, number>>('refuser AS count') // Så att vi får `i.count`
+      .first();
+
+    if (i == null || i.count == null) {
+      logger.debug(
+        `Kunde inte räkna antalet funktionärer för datumet ${safeDate.toISOString()}'
+        }, count var ${JSON.stringify(i)}`,
+      );
+      throw new ServerError('Kunde inte räkna antal förslag');
+    }
+
+    return i.count;
+
   }
 }
