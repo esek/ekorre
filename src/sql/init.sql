@@ -92,7 +92,7 @@ CREATE TABLE "PostAccess" (
 	"refaccessresource"	TEXT NOT NULL,
 	PRIMARY KEY("refname","refaccessresource"),
 	FOREIGN KEY("refname") REFERENCES "Posts"("postname"),
-	FOREIGN KEY("refaccessresource") REFERENCES "Resources"("slug")
+	FOREIGN KEY("refaccessresource") REFERENCES "AccessResources"("slug")
 );
 
 CREATE TABLE "IndividualAccess" (
@@ -100,7 +100,7 @@ CREATE TABLE "IndividualAccess" (
 	"refaccessresource"	TEXT NOT NULL,
 	PRIMARY KEY("refname","refaccessresource"),
 	FOREIGN KEY("refname") REFERENCES "Users"("username"),
-	FOREIGN KEY("refaccessresource") REFERENCES "Resources"("slug")
+	FOREIGN KEY("refaccessresource") REFERENCES "AccessResources"("slug")
 );
 
 INSERT INTO PostAccess VALUES('Macapär', 'sikrit');
@@ -117,7 +117,7 @@ CREATE TABLE "AccessMappings" (
   "refaccessresource" TEXT,
   "resolverType" TEXT NOT NULL,
   "resolverName" TEXT NOT NULL,
-	FOREIGN KEY("refaccessresource") REFERENCES "Resources"("slug")
+	FOREIGN KEY("refaccessresource") REFERENCES "AccessResources"("slug")
   CONSTRAINT "uniqueMapping" UNIQUE ("refaccessresource", "resolverType", "resolverName")
 
 );

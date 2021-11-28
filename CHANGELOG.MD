@@ -4,11 +4,16 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.0] - 2021-11-27
+## [0.3.0] - 2021-11-28
 
 ### Tillagt
  - Lägger till API för elections, se [!69](https://gitlab.com/esektionen/projekt/ekorre/-/merge_requests/69)
  - `notEmpty` util-filter
+## [0.2.3]	- 2021-11-27
+
+### Ändrat
+- Aktiverar `FOREIGN KEY` i sqlite genom knex
+- Fixar tester som gick sönder av ovanstående
 
 ## [0.2.2]	- 2021-11-26
 
