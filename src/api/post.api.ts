@@ -154,7 +154,12 @@ export class PostAPI {
     return posts;
   }
 
-  async addUsersToPost(usernames: string[], postname: string, period: number, startDate?: Date): Promise<boolean> {
+  async addUsersToPost(
+    usernames: string[],
+    postname: string,
+    period: number,
+    startDate?: Date,
+  ): Promise<boolean> {
     // Ta bort dubbletter
     const uniqueUsernames = [...new Set(usernames)];
 
@@ -371,6 +376,5 @@ export class PostAPI {
     }
 
     return i.count;
-
   }
 }

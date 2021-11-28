@@ -2,7 +2,15 @@ import { POSTS_HISTORY_TABLE, POSTS_TABLE, USER_TABLE } from '../../src/api/cons
 import knex from '../../src/api/knex';
 import { PostAPI } from '../../src/api/post.api';
 import { UserAPI } from '../../src/api/user.api';
-import { Access, ModifyPost, NewPost, NewUser, Post, PostType, Utskott } from '../../src/graphql.generated';
+import {
+  Access,
+  ModifyPost,
+  NewPost,
+  NewUser,
+  Post,
+  PostType,
+  Utskott,
+} from '../../src/graphql.generated';
 import { DatabaseUser } from '../../src/models/db/user';
 import { postReduce } from '../../src/reducers/post.reducer';
 
@@ -302,7 +310,9 @@ test('deleting user from post', async () => {
   const removed = await api.removeUsersFromPost([DUMMY_USER.username], np.name);
   expect(removed).toBe(true);
 
-  await expect(api.getPostsForUser(DUMMY_USER.username)).rejects.toThrowError('Inga poster hittades');
+  await expect(api.getPostsForUser(DUMMY_USER.username)).rejects.toThrowError(
+    'Inga poster hittades',
+  );
 });
 
 test('modifying post in allowed way', async () => {

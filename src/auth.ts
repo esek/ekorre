@@ -109,7 +109,7 @@ export const verifyToken = <T>(token: string, type: TokenType) => {
 
   logger.debug(`Verified a ${type} with value: ${Logger.pretty(obj)}`);
 
-  return (obj as unknown) as T & { exp: number; issued: number };
+  return obj as unknown as T & { exp: number; issued: number };
 };
 
 /**
