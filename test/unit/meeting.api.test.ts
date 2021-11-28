@@ -1,11 +1,23 @@
-import { MEETING_TABLE } from '../../src/api/constants';
+import { FILE_TABLE, MEETING_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
 import { MeetingAPI } from '../../src/api/meeting.api';
 import { BadRequestError, NotFoundError, ServerError } from '../../src/errors/RequestErrors';
-import { MeetingDocumentType, MeetingType } from '../../src/graphql.generated';
+import { AccessType, FileType, MeetingDocumentType, MeetingType } from '../../src/graphql.generated';
+import { DatabaseFile } from '../../src/models/db/file';
 import { DatabaseMeeting } from '../../src/models/db/meeting';
 
 const api = new MeetingAPI();
+
+// Vi behöver en fejkfil p.g.a. FOREIGN KEY CONSTRAINT
+const DUMMY_FILE: DatabaseFile = {
+  id: 'meetingApiTestFile',
+  refuploader: 'aa0000bb-s',
+  name: 'Kvittoförstärkning för sista måltiden',
+  type: FileType.Image,
+  folderLocation: '',
+  accessType: AccessType.Admin,
+  createdAt: Date.now(),
+};
 
 beforeEach(async () => {
   // Delete all rows
@@ -16,11 +28,13 @@ beforeEach(async () => {
 let dbBefore: DatabaseMeeting[];
 beforeAll(async () => {
   dbBefore = await knex<DatabaseMeeting>(MEETING_TABLE).select('*');
+  await knex<DatabaseFile>(FILE_TABLE).insert(DUMMY_FILE);
 });
 
 afterAll(async () => {
   await knex<DatabaseMeeting>(MEETING_TABLE).delete().where('id', '!=', 'null');
   await knex<DatabaseMeeting>(MEETING_TABLE).insert(dbBefore);
+  await knex<DatabaseFile>(FILE_TABLE).delete().where('id', DUMMY_FILE.id);
 });
 
 test('creating valid VTM/HTM/VM specifying year but not number', async () => {
@@ -137,26 +151,26 @@ test('adding file to meeting', async () => {
   await api.createMeeting(MeetingType.Extra, 1, 2021);
   const { id } = (await api.getAllMeetings())[0];
   await expect(
-    api.addFileToMeeting(id, 'fakeFileId', MeetingDocumentType.Summons),
+    api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Summons),
   ).resolves.toBeTruthy();
   const { refsummons } = await api.getSingleMeeting(id);
-  expect(refsummons).toStrictEqual('fakeFileId');
+  expect(refsummons).toStrictEqual(DUMMY_FILE.id);
 });
 
 test('adding duplicate file to meeting', async () => {
   await api.createMeeting(MeetingType.Sm, 1, 2021);
   const { id } = (await api.getAllMeetings())[0];
-  await api.addFileToMeeting(id, 'fakeFileId', MeetingDocumentType.Protocol);
+  await api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Protocol);
   await expect(
-    api.addFileToMeeting(id, 'fakeFileId2', MeetingDocumentType.Protocol),
+    api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Protocol),
   ).rejects.toThrowError(ServerError);
 });
 
 test('removing document from meeting', async () => {
   await api.createMeeting(MeetingType.Extra, 1, 2021);
   const { id } = (await api.getAllMeetings())[0];
-  await api.addFileToMeeting(id, 'fakeFileId', MeetingDocumentType.Summons);
-  expect((await api.getSingleMeeting(id)).refsummons).toStrictEqual('fakeFileId');
+  await api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Summons);
+  expect((await api.getSingleMeeting(id)).refsummons).toStrictEqual(DUMMY_FILE.id);
 
   // Remove it again
   await expect(api.removeFileFromMeeting(id, MeetingDocumentType.Summons)).resolves.toBeTruthy();

@@ -1,12 +1,22 @@
-import { POSTS_HISTORY_TABLE, POSTS_TABLE } from '../../src/api/constants';
+import { POSTS_HISTORY_TABLE, POSTS_TABLE, USER_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
 import { PostAPI } from '../../src/api/post.api';
-import { Access, ModifyPost, NewPost, Post, PostType, Utskott } from '../../src/graphql.generated';
+import { UserAPI } from '../../src/api/user.api';
+import { Access, ModifyPost, NewPost, NewUser, Post, PostType, Utskott } from '../../src/graphql.generated';
+import { DatabaseUser } from '../../src/models/db/user';
 import { postReduce } from '../../src/reducers/post.reducer';
 
 const api = new PostAPI();
+const userApi = new UserAPI();
 
-const uname = 'kk6969mm-s';
+// P.g.a. FOREIGN KEY constraint
+const DUMMY_USER: NewUser = {
+  username: 'testPostApiTestUser',
+  firstName: 'Adde',
+  lastName: 'Heinrichson',
+  class: 'E18',
+  password: 'hunter2',
+};
 const period = 5;
 
 const np: NewPost = {
@@ -47,13 +57,22 @@ const removePostHistory = async (username: string) => {
 };
 
 const clearDb = () => {
+  removePostHistory(DUMMY_USER.username);
   removePost('Underphøs');
-  removePostHistory(uname);
 };
+
+beforeAll(async () => {
+  await userApi.createUser(DUMMY_USER);
+});
 
 beforeEach(clearDb);
 
-afterAll(clearDb);
+afterEach(clearDb);
+
+afterAll(async () => {
+  clearDb();
+  await knex<DatabaseUser>(USER_TABLE).delete().where('username', DUMMY_USER.username);
+});
 
 test('getting all posts', async () => {
   const ok = await api.createPost(np);
@@ -76,7 +95,7 @@ test('getting history entries for user', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
-  ok = await api.addUsersToPost([uname], np.name, period);
+  ok = await api.addUsersToPost([DUMMY_USER.username], np.name, period);
   expect(ok).toBe(true);
 
   const dph = await api.getHistoryEntries(np.name);
@@ -86,7 +105,7 @@ test('getting history entries for user', async () => {
   const { start, end, ...reducedDph } = dph[0];
   expect(reducedDph).toStrictEqual({
     refpost: np.name,
-    refuser: uname,
+    refuser: DUMMY_USER.username,
     period,
   });
 });
@@ -235,10 +254,10 @@ test('adding user to post', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
-  ok = await api.addUsersToPost([uname], np.name, period);
+  ok = await api.addUsersToPost([DUMMY_USER.username], np.name, period);
   expect(ok).toBe(true);
 
-  const res = (await api.getPostsForUser(uname))[0];
+  const res = (await api.getPostsForUser(DUMMY_USER.username))[0];
   if (res !== null) {
     const { active, interviewRequired, ...reducedRes } = postReduce(res);
     expect(reducedRes).toStrictEqual(p);
@@ -253,7 +272,7 @@ test('adding user to post twice in the same period at the same time', async () =
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
-  ok = await api.addUsersToPost([uname, uname], np.name, period);
+  ok = await api.addUsersToPost([DUMMY_USER.username, DUMMY_USER.username], np.name, period);
   expect(ok).toBe(true);
 });
 
@@ -261,10 +280,10 @@ test('adding user to post twice in the same period at different times', async ()
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
-  ok = await api.addUsersToPost([uname], np.name, period);
+  ok = await api.addUsersToPost([DUMMY_USER.username], np.name, period);
   expect(ok).toBe(true);
 
-  await expect(api.addUsersToPost([uname], np.name, period)).rejects.toThrowError(
+  await expect(api.addUsersToPost([DUMMY_USER.username], np.name, period)).rejects.toThrowError(
     'Användaren kunde inte läggas till',
   );
 });
@@ -273,17 +292,17 @@ test('deleting user from post', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
-  ok = await api.addUsersToPost([uname], np.name, period);
+  ok = await api.addUsersToPost([DUMMY_USER.username], np.name, period);
   expect(ok).toBe(true);
 
-  // Nu borde uname ha en post
-  const res = await api.getPostsForUser(uname);
+  // Nu borde DUMMY_USER.username ha en post
+  const res = await api.getPostsForUser(DUMMY_USER.username);
   expect(res.length).not.toBe(0);
 
-  const removed = await api.removeUsersFromPost([uname], np.name);
+  const removed = await api.removeUsersFromPost([DUMMY_USER.username], np.name);
   expect(removed).toBe(true);
 
-  await expect(api.getPostsForUser(uname)).rejects.toThrowError('Inga poster hittades');
+  await expect(api.getPostsForUser(DUMMY_USER.username)).rejects.toThrowError('Inga poster hittades');
 });
 
 test('modifying post in allowed way', async () => {
