@@ -31,12 +31,12 @@ const electionResolver: Resolvers = {
       );
     },
     // Att användas av val-admin om nomineringar är hemliga
-    hiddenNominations: async (_, { electionId }) => {
-      const n = await api.getAllNominations(electionId);
+    hiddenNominations: async (_, { electionId, answer }) => {
+      const n = await api.getAllNominations(electionId, answer ?? undefined);
       return reduce(n, nominationReduce);
     },
-    myNominations: async (_, { electionId }, ctx) => {
-      const n = await api.getAllNominationsForUser(electionId, ctx.getUsername());
+    myNominations: async (_, { electionId, answer }, ctx) => {
+      const n = await api.getAllNominationsForUser(electionId, ctx.getUsername(), answer ?? undefined);
       return reduce(n, nominationReduce);
     },
     numberOfNominations: async (_, { electionId, postname }) => {

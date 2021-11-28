@@ -17,10 +17,10 @@ type Query {
   """
   Used if nominations are hidden but an election-admin wants too see nominations
   """
-  hiddenNominations(electionId: ID!): [Nomination]!
+  hiddenNominations(electionId: ID!, answer: NominationAnswer): [Nomination]!
 
   "A users own nominations should always be available to them"
-  myNominations(electionId: ID!): [Nomination]!
+  myNominations(electionId: ID!, answer: NominationAnswer): [Nomination]!
   numberOfNominations(electionId: ID!, postname: String): Int!
   numberOfProposals(electionId: ID!, postname: String): Int!
 }

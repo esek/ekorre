@@ -701,6 +701,7 @@ export type QueryGroupedPostsArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryHiddenNominationsArgs = {
+  answer?: Maybe<NominationAnswer>;
   electionId: Scalars['ID'];
 };
 
@@ -767,6 +768,7 @@ export type QueryMeetingsArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryMyNominationsArgs = {
+  answer?: Maybe<NominationAnswer>;
   electionId: Scalars['ID'];
 };
 

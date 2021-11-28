@@ -88,7 +88,7 @@ export class ElectionAPI {
    * Returnerar alla nomineringar för valet, om specificerat endast
    * de med ett specifikt svar.
    * @param electionId ID på ett val
-   * @param answer Vilken typ av svar som ska returneras. Om `null` ges alla
+   * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
    * @returns Lista över nomineringar
    * @throws `NotFoundError`
    */
@@ -107,19 +107,28 @@ export class ElectionAPI {
   }
 
   /**
-   * Returnerar alla nomineringar för en användare för ett val.
+   * Returnerar alla nomineringar för en användare för ett val, om specificerat endast
+   * de med ett specifikt svar.
    * @param electionId ID på ett val
    * @param username Användarnamnet
+   * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
    * @returns Lista över nomineringar
    * @throws `NotFoundError`
    */
   async getAllNominationsForUser(
     electionId: string,
     username: string,
+    answer?: NominationAnswer
   ): Promise<DatabaseNomination[]> {
-    const n = await knex<DatabaseNomination>(NOMINATION_TABLE)
+    const query = knex<DatabaseNomination>(NOMINATION_TABLE)
       .where('refelection', electionId)
-      .where('refuser', username);
+      .and.where('refuser', username);
+
+    if (answer != null) {
+      query.and.where('accepted', answer);
+    }
+
+    const n = await query;
 
     validateNonEmptyArray(n, `Hittade inga nomineringar för användaren ${username}`);
 
