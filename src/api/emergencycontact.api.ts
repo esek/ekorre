@@ -1,4 +1,4 @@
-import { ServerError } from '../errors/RequestErrors';
+import { BadRequestError, ServerError } from '../errors/RequestErrors';
 import { EmergencyContactType } from '../graphql.generated';
 import { DatabaseEmergencyContact } from '../models/db/emergencycontact';
 import { validateNonEmptyArray } from '../services/validation.service';
@@ -23,6 +23,13 @@ class EmergencyContactAPI {
     phone: string,
     type: EmergencyContactType,
   ): Promise<boolean> {
+    // regex for swedish telephone numbers
+    const r = new RegExp(/^(\+46|0)7\d{8}$/);
+
+    if (!r.test(phone)) {
+      throw new BadRequestError('Felaktigt telefonnummer');
+    }
+
     const removed = await knex<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).insert({
       name,
       phone,
