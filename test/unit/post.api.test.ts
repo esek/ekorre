@@ -418,5 +418,7 @@ test('get number of volunteers in year 1700', async () => {
   // Number of volunteers
   const oldVolunteers = await api.getNumberOfVolunteers(startDate);
   expect(oldVolunteers).toBe(1);
-  expect(await api.getNumberOfVolunteers(new Date('2100-01-01'))).toBeLessThanOrEqual(oldVolunteers);
+  expect(await api.getNumberOfVolunteers(new Date('2100-01-01'))).toBeLessThanOrEqual(
+    oldVolunteers,
+  );
 });

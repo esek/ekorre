@@ -83,11 +83,7 @@ const postresolver: Resolvers = {
             safeEnd = new Date(end);
           }
 
-          return { ...reduced,
-            post,
-            start: new Date(start),
-            end: safeEnd
-          };
+          return { ...reduced, post, start: new Date(start), end: safeEnd };
         }),
       );
       return a;
@@ -109,11 +105,7 @@ const postresolver: Resolvers = {
             safeEnd = new Date(end);
           }
 
-          return { postname: refpost,
-            holder,
-            start: new Date(start),
-            end: safeEnd
-          };
+          return { postname: refpost, holder, start: new Date(start), end: safeEnd };
         }),
       );
       return a;

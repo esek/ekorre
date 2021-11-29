@@ -171,7 +171,7 @@ export class PostAPI {
     const insert = uniqueUsernames.map<DatabasePostHistory>((e) => ({
       refuser: e,
       refpost: postname,
-      
+
       // Vi sparar som timestamp i DB, setHours returnerar timestamp
       // Start ska alltid vara 00:00, end alltid 23:59
       start: start?.setHours(0, 0, 0, 0) ?? new Date().setHours(0, 0, 0, 0),
