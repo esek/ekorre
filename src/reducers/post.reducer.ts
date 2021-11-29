@@ -1,5 +1,5 @@
 import { Access, Post } from '../graphql.generated';
-import { DatabasePost } from '../models/db/post';
+import { DatabasePost, DatabasePostHistory } from '../models/db/post';
 
 export function postReduce(post: DatabasePost): Post {
   const access: Access = {

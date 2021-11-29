@@ -8,12 +8,13 @@ type Query {
     post(name: String!): Post
     posts(utskott: Utskott, includeInactive: Boolean!): [Post]
     groupedPosts(includeInactive: Boolean!): [GroupedPost]!
+    numberOfVolunteers(date: Date): Int!
 }
 
 type Mutation {
     addPost(info: NewPost!): Boolean!
     modifyPost(info: ModifyPost!): Boolean!
-    addUsersToPost(usernames: [String!]!, postname: String!, period: Int!): Boolean!
+    addUsersToPost(usernames: [String!]!, postname: String!, start: Date, end: Date): Boolean!
     removeUsersFromPost(usernames: [String!]!, postname: String!): Boolean!
     activatePost(postname: String!): Boolean!
     deactivatePost(postname: String!): Boolean!

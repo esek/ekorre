@@ -1,5 +1,4 @@
 /* eslint-disable class-methods-use-this */
-
 import { Maybe } from 'graphql/jsutils/Maybe';
 
 import { ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';

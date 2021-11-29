@@ -61,7 +61,7 @@ const articleReduce = (article: DatabaseArticle, markdown: boolean): ArticleResp
     body: sanitizedBody.trim(),
     slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
     // Exteremely temporary fix for tags, as knex doesn't send them back as an array
-    tags: ((reduced.tags as unknown) as string).toString().split(','),
+    tags: (reduced.tags as unknown as string).toString().split(','),
     creator: {
       username: refcreator,
     },

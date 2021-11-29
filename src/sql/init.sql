@@ -55,10 +55,9 @@ CREATE TABLE "Posts" (
 CREATE TABLE "PostHistory" (
 	"refpost"	TEXT NOT NULL,
 	"refuser"	TEXT NOT NULL,
-	"start"	TEXT NOT NULL,
-	"end"	TEXT,
-	"period" INT,
-	PRIMARY KEY("refpost","refuser","period"),
+	"start"	TIMESTAMP NOT NULL,
+	"end"	TIMESTAMP,
+	PRIMARY KEY("refpost", "refuser", "start", "end"),
 	FOREIGN KEY("refuser") REFERENCES "Users"("username"),
 	FOREIGN KEY("refpost") REFERENCES "Posts"("postname")
 );
@@ -66,8 +65,8 @@ CREATE TABLE "PostHistory" (
 INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewRequired) VALUES ('Macapär','INFU','N',2,'Informationschefsslav',1,0);
 INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewRequired) VALUES ('Teknokrat','INFU','N',3,'Ljudperson',1,0);
 INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewRequired) VALUES ('Cophös','NOLLU','N',5,'Stressad',1,1);
-INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär','aa0000bb-s','2020-12-29','2020-12-30',2020);
-INSERT INTO PostHistory (refpost,refuser,"start","end",period) VALUES ('Macapär','aa0000bb-s','2020-12-29',null,2021);
+INSERT INTO PostHistory (refpost,refuser,"start","end") VALUES ('Macapär','aa0000bb-s', 1577833200, 1609369200);
+INSERT INTO PostHistory (refpost,refuser,"start","end") VALUES ('Macapär','aa0000bb-s', 1609369200, null);
 
 END TRANSACTION;
 BEGIN TRANSACTION;

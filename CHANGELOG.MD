@@ -4,6 +4,19 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4]	- 2021-11-28
+
+### Tillagt
+- Lägger till `numberOfVolunteers` som beräknar antalet unika funktionärer
+- Lägger till tester för ovanstående
+
+### Ändrat
+- `period` inte längre än del av `Post`
+- `start` och `end` sparas nu som `TIMESTAMP` i `PostHistory`
+
+### Ändrat
+- `start` och `end` är numera `DATE` i tabellen `PostHistory`
+- `start` och `end` förväntas vara insatta av knex med `Date` i `PostHistory`
 ## [0.2.3]	- 2021-11-27
 
 ### Ändrat
