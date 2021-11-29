@@ -10,6 +10,9 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Lägger till `numberOfVolunteers` som beräknar antalet unika funktionärer
 - Lägger till tester för ovanstående
 
+### Ändrat
+- `period` inte längre än del av `Post`
+- `start` och `end` sparas nu som `TIMESTAMP` i `PostHistory`
 
 ### Ändrat
 - `start` och `end` är numera `DATE` i tabellen `PostHistory`
