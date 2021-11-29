@@ -433,7 +433,7 @@ test('set end time of history entry', async () => {
   await api.addUsersToPost([DUMMY_USER.username], np.name, startDate);
 
   // Som default ska `end` bli null
-  expect((await api.getHistoryEntriesForUser(DUMMY_USER.username))[0]).toStrictEqual({
+  expect((await api.getHistoryEntriesForUser(DUMMY_USER.username))[0]).toEqual({
     refuser: DUMMY_USER.username,
     refpost: np.name,
     start: midnightTimestamp(startDate, 'after'),
@@ -442,10 +442,10 @@ test('set end time of history entry', async () => {
   
   // Nu kollar vi om vi kan lägga till ett slutdatum
   await expect(api.setUserPostEnd(DUMMY_USER.username, np.name, startDate, endDate)).resolves.toBeTruthy();
-  expect((await api.getHistoryEntriesForUser(DUMMY_USER.username))[0]).toStrictEqual({
+  expect((await api.getHistoryEntriesForUser(DUMMY_USER.username))[0]).toEqual({
     refuser: DUMMY_USER.username,
     refpost: np.name,
     start: midnightTimestamp(startDate, 'after'),
-    end: midnightTimestamp(endDate, 'after'),
+    end: midnightTimestamp(endDate, 'before'),
   });
 });
