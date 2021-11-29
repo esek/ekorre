@@ -38,14 +38,13 @@ export const createDataLoader = <T, K = string>(
  * // so no reduce needed
  * const u: User = await udl(e, {}, ctx);
  */
-export const useDataLoader = <T, E>(cb: DataLoaderCallback<T, E>) => (
-  model: T,
-  _: StrictObject,
-  ctx: Context,
-) => {
-  const { key, dataLoader } = cb(model, ctx);
-  if (!key) {
-    throw new NotFoundError('Nyckeln kunde inte hittas');
-  }
-  return dataLoader.load(key);
-};
+// prettier-ignore
+export const useDataLoader =
+  <T, E>(cb: DataLoaderCallback<T, E>) =>
+    (model: T, _: StrictObject, ctx: Context) => {
+      const { key, dataLoader } = cb(model, ctx);
+      if (!key) {
+        throw new NotFoundError('Nyckeln kunde inte hittas');
+      }
+      return dataLoader.load(key);
+    };

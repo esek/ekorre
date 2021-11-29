@@ -54,7 +54,7 @@ beforeEach(async () => {
 });
 
 afterAll(async () => {
-  await accessApi.setAccessMappings('logout', ResolverType.Mutation, );
+  await accessApi.setAccessMappings('logout', ResolverType.Mutation);
   await accessApi.setIndividualAccess('aa0000bb-s', []);
   await resourcesApi.removeResouce(testResource.slug);
   await resourcesApi.removeResouce('logout');

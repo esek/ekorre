@@ -113,7 +113,10 @@ export class PostAPI {
     const refposts = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .where({
         refuser: username,
-        end: null,
+      })
+      .andWhere((q) => {
+        // Antingen ska vara null, eller efter dagens datum
+        q.whereNull('end').orWhere('end', '>', new Date().getTime());
       })
       .select('refpost');
 
@@ -154,37 +157,25 @@ export class PostAPI {
     return posts;
   }
 
-  async addUsersToPost(usernames: string[], postname: string, period: number): Promise<boolean> {
+  async addUsersToPost(
+    usernames: string[],
+    postname: string,
+    start?: Date,
+    end?: Date,
+  ): Promise<boolean> {
     // Ta bort dubbletter
     const uniqueUsernames = [...new Set(usernames)];
 
-    // Filter out already added users
-    const alreadyAdded = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
-      .select('refuser')
-      .where({
-        refpost: postname,
-      })
-      .whereIn('refuser', uniqueUsernames);
-
-    // Knex ger oss svaren på formen [{'refuser': <username>}, {...}, ...]
-    // så vi tar ut dem
-    let usernamesToUse: string[];
-
-    if (alreadyAdded.length > 0) {
-      const alreadyAddedString = alreadyAdded.map((e) => e?.refuser);
-      usernamesToUse = uniqueUsernames.filter((e) => !alreadyAddedString.includes(e));
-    } else {
-      usernamesToUse = uniqueUsernames;
-    }
-
     // spots sätter egentligen inte en limit, det
     // är mer informativt och kan ignoreras
-    const insert = usernamesToUse.map<DatabasePostHistory>((e) => ({
+    const insert = uniqueUsernames.map<DatabasePostHistory>((e) => ({
       refuser: e,
       refpost: postname,
-      start: new Date(),
-      end: null,
-      period,
+
+      // Vi sparar som timestamp i DB, setHours returnerar timestamp
+      // Start ska alltid vara 00:00, end alltid 23:59
+      start: start?.setHours(0, 0, 0, 0) ?? new Date().setHours(0, 0, 0, 0),
+      end: end?.setHours(23, 59, 59, 59) ?? undefined,
     }));
 
     if (!insert.length) {
@@ -340,5 +331,37 @@ export class PostAPI {
     });
 
     return entries;
+  }
+
+  /**
+   * Beräknar antalet unika funktionärer för ett visst
+   * datum, eller dagens datum om inget ges. Räknar inte samma
+   * användare flera gånger.
+   * @param date Ett datum
+   */
+  async getNumberOfVolunteers(date?: Date): Promise<number> {
+    const safeDate = date ?? new Date();
+    const timestamp = safeDate.getTime();
+
+    // Om `end` är `null` har man inte gått av posten
+    const i = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
+      .where('start', '<=', timestamp)
+      .andWhere((q) => {
+        // Antingen är end efter datumet, eller så är det null (inte gått av)
+        q.andWhere('end', '>=', timestamp).orWhereNull('end');
+      })
+      .distinct('refuser') // Vi vill inte räkna samma person flera gånger
+      .count<Record<string, number>>('refuser AS count') // Så att vi får `i.count`
+      .first();
+
+    if (i == null || i.count == null) {
+      logger.debug(
+        `Kunde inte räkna antalet funktionärer för datumet ${new Date(timestamp).toISOString()}'
+        }, count var ${JSON.stringify(i)}`,
+      );
+      throw new ServerError('Kunde inte räkna antal förslag');
+    }
+
+    return i.count;
   }
 }

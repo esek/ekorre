@@ -1,6 +1,10 @@
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import {
+  ApolloServerPluginLandingPageGraphQLPlayground,
+  ApolloServerPluginLandingPageDisabled,
+} from 'apollo-server-core';
 import { ApolloServer } from 'apollo-server-express';
 import cookieparser from 'cookie-parser';
 import cors, { CorsOptions } from 'cors';
@@ -8,9 +12,6 @@ import 'dotenv/config';
 import express from 'express';
 import { applyMiddleware } from 'graphql-middleware';
 import { DateResolver } from 'graphql-scalars';
-
-import { ApolloServerPluginLandingPageGraphQLPlayground,
-  ApolloServerPluginLandingPageDisabled } from 'apollo-server-core';
 
 // import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import { COOKIES, verifyToken } from './auth';
@@ -115,7 +116,9 @@ const schema = makeExecutableSchema({
       // If we are in development, run GraphQL Playground
       // TODO: Upgrade to GraphiQL
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      process.env.NODE_ENV === 'production' ? ApolloServerPluginLandingPageDisabled() : ApolloServerPluginLandingPageGraphQLPlayground(),
+      process.env.NODE_ENV === 'production'
+        ? ApolloServerPluginLandingPageDisabled()
+        : ApolloServerPluginLandingPageGraphQLPlayground(),
     ],
     formatError: errorHandler,
   });
