@@ -49,5 +49,5 @@ test('test getting after midnight timestamp', () => {
   const afterDate0 = new Date(midnightTimestamp(d0, 'after'));
   const afterDate1 = new Date(midnightTimestamp(d1, 'after'));
   expect(afterDate0.toISOString()).toEqual('2021-11-30T00:00:00.000Z');
-  expect(afterDate1.toISOString()).toEqual('1928-03-01T00:00:00.000Z');
+  expect(afterDate1.toISOString()).toEqual('1928-04-01T00:00:00.000Z');
 });
