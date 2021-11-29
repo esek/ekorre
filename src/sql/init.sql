@@ -57,7 +57,7 @@ CREATE TABLE "PostHistory" (
 	"refuser"	TEXT NOT NULL,
 	"start"	TIMESTAMP NOT NULL,
 	"end"	TIMESTAMP,
-	PRIMARY KEY("refpost","refuser","period"),
+	PRIMARY KEY("refpost", "refuser", "start", "end"),
 	FOREIGN KEY("refuser") REFERENCES "Users"("username"),
 	FOREIGN KEY("refpost") REFERENCES "Posts"("postname")
 );
