@@ -1,0 +1,25 @@
+type Query {
+	emergencyContacts(username: String!): [EmergencyContact!]!
+}
+
+type Mutation {
+    addEmergencyContact(name: String!, phone: String!, type: EmergencyContactType!): Boolean! 
+		removeEmergencyContact(id: Int!): Boolean!
+}
+
+
+type EmergencyContact {
+	id: Int!
+	name: String!
+	phone: String!
+	type: EmergencyContactType!
+}
+
+enum EmergencyContactType {
+	DAD
+	MOM
+	SIGNIFICANT_OTHER
+	BROTHER
+	SISTER
+	OTHER 
+}
