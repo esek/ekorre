@@ -45,9 +45,9 @@ test('test getting before midnight timestamp', () => {
 test('test getting after midnight timestamp', () => {
   // January is month 0
   const d0 = new Date(2021, 10, 30, 22, 36, 53, 7);
-  const d1 = new Date(1928, 3, 1, 1, 22, 22, 0);
+  const d1 = new Date(1928, 4, 1, 3, 22, 22, 0);
   const afterDate0 = new Date(midnightTimestamp(d0, 'after'));
   const afterDate1 = new Date(midnightTimestamp(d1, 'after'));
   expect(afterDate0.toISOString()).toEqual('2021-11-30T00:00:00.000Z');
-  expect(afterDate1.toISOString()).toEqual('1928-04-01T00:00:00.000Z');
+  expect(afterDate1.toISOString()).toEqual('1928-05-01T00:00:00.000Z');
 });

@@ -19,16 +19,15 @@ export const toUTC = (d: Date) =>
 
 /**
  * Returns timestamp of exactly before or after midnight
- * (i.e. 23:59:59:999 or 00:00:00:000) the same day as `d`
+ * (i.e. 23:59:59.999 or 00:00:00.000) the same day as `d`
  * @param d Date to convert to timestamp
  * @param when Either right `'before'` or `'right'` after midnight
  */
 export const midnightTimestamp = (d: Date, when: 'before' | 'after') => {
-  // Don't fucking ask about this voodoo, fucking JS dates --Emil E
-  if (when === 'before') {
-    return d.setHours(24, 59, 59, 999);
+  if (when === 'after') {
+    return d.setHours(1, 0, 0, 0); // 00:00:00.000
   }
-  return d.setHours(1, 0, 0, 0);
+  return d.setHours(24, 59, 59, 999); // 23:59:59.999
 };
 
 /**
