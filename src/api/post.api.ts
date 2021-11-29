@@ -3,9 +3,9 @@ import { BadRequestError, NotFoundError, ServerError } from '../errors/RequestEr
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '../graphql.generated';
 import { Logger } from '../logger';
 import { StrictObject } from '../models/base';
+import { midnightTimestamp, stripObject } from '../util';
 import type { DatabasePost, DatabasePostHistory } from '../models/db/post';
 import { validateNonEmptyArray } from '../services/validation.service';
-import { stripObject } from '../util';
 import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
 import knex from './knex';
 
@@ -172,10 +172,10 @@ export class PostAPI {
       refuser: e,
       refpost: postname,
 
-      // Vi sparar som timestamp i DB, setHours returnerar timestamp
+      // Vi sparar som timestamp i DB
       // Start ska alltid vara 00:00, end alltid 23:59
-      start: start?.setHours(0, 0, 0, 0) ?? new Date().setHours(0, 0, 0, 0),
-      end: end?.setHours(23, 59, 59, 59) ?? undefined,
+      start: start != null ? midnightTimestamp(start, 'after') : midnightTimestamp(new Date(), 'after'),
+      end: end != null ? midnightTimestamp(end, 'before') : undefined,
     }));
 
     if (!insert.length) {
@@ -304,17 +304,6 @@ export class PostAPI {
     return res > 0;
   }
 
-  async removeUsersFromPost(users: string[], postname: string): Promise<boolean> {
-    const res = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
-      .where({
-        refpost: postname,
-      })
-      .whereIn('refuser', users)
-      .delete();
-
-    return res > 0;
-  }
-
   async getHistoryEntries(refpost: string): Promise<DatabasePostHistory[]> {
     const entries = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
       refpost,
@@ -363,5 +352,60 @@ export class PostAPI {
     }
 
     return i.count;
+  }
+
+  /**
+   * Sätter slutdatumet för en användares post.
+   * @param username Användarnamn
+   * @param postname Namnet på posten
+   * @param start När personen går på posten (statiskt för en HistoryEntry)
+   * @param end När posten går av posten
+   */
+  async setUserPostEnd(
+    username: string,
+    postname: string,
+    start: Date,
+    end: Date,
+  ): Promise<boolean> {
+    const res = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
+      .update('end', midnightTimestamp(end, 'before'))
+      .where({
+        refuser: username,
+        refpost: postname,
+        start: midnightTimestamp(start, 'after'),
+      });
+
+    return res > 0;
+  }
+
+  /**
+   * Tar bort en `PostHistoryEntry` ur databasen.
+   * @param username Användarnamn
+   * @param postname Namnet på posten
+   * @param start När personen gick på posten
+   * @param end Om applicerbart; När personen går/gick av posten
+   */
+  async removeHistoryEntry(
+    username: string,
+    postname: string,
+    start: Date,
+    end?: Date,
+  ): Promise<boolean> {
+    const query = knex<DatabasePostHistory>(POSTS_HISTORY_TABLE)
+      .delete()
+      .where({
+        refuser: username,
+        refpost: postname,
+        start: midnightTimestamp(start, 'after'),
+      })
+      .limit(1); // Vi kör skyddat
+
+    if (end != null) {
+      query.where('end', midnightTimestamp(end, 'before'));
+    }
+
+    const res = await query;
+    
+    return res > 0;
   }
 }

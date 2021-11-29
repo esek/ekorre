@@ -18,6 +18,19 @@ export const toUTC = (d: Date) =>
   );
 
 /**
+ * Returns timestamp of exactly before or after midnight
+ * (i.e. 23:59:59:999 or 00:00:00:000)
+ * @param d Date to convert to timestamp
+ * @param when Either right `'before'` or `'right'` after midnight
+ */
+export const midnightTimestamp = (d: Date, when: 'before' | 'after') => {
+  if (when === 'before') {
+    return d.setHours(24, 59, 59, 999);
+  }
+  return d.setHours(-23, 0, 0, 0);
+};
+
+/**
  * Removes unused keys from an object. Is needed before some
  * knex operations with `obj`
  * @param obj

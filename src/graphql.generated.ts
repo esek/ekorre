@@ -216,13 +216,14 @@ export type Mutation = {
   modifyPost: Scalars['Boolean'];
   removeAccessResource: Scalars['Boolean'];
   removeFileFromMeeting: Scalars['Boolean'];
+  removeHistoryEntry: Scalars['Boolean'];
   removeMeeting: Scalars['Boolean'];
-  removeUsersFromPost: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
   setResolverMappings: Scalars['Boolean'];
+  setUserPostEnd: Scalars['Boolean'];
   updateUser: Scalars['Boolean'];
   validatePasswordResetToken: Scalars['Boolean'];
 };
@@ -333,14 +334,16 @@ export type MutationRemoveFileFromMeetingArgs = {
 };
 
 
-export type MutationRemoveMeetingArgs = {
-  id: Scalars['ID'];
+export type MutationRemoveHistoryEntryArgs = {
+  end?: Maybe<Scalars['Date']>;
+  postname: Scalars['String'];
+  start: Scalars['Date'];
+  username: Scalars['String'];
 };
 
 
-export type MutationRemoveUsersFromPostArgs = {
-  postname: Scalars['String'];
-  usernames: Array<Scalars['String']>;
+export type MutationRemoveMeetingArgs = {
+  id: Scalars['ID'];
 };
 
 
@@ -372,6 +375,14 @@ export type MutationSetResolverMappingsArgs = {
   name: Scalars['String'];
   type: ResolverType;
   slugs?: Maybe<Array<Scalars['String']>>;
+};
+
+
+export type MutationSetUserPostEndArgs = {
+  end: Scalars['Date'];
+  postname: Scalars['String'];
+  start: Scalars['Date'];
+  username: Scalars['String'];
 };
 
 
@@ -971,13 +982,14 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
   removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'slug'>>;
   removeFileFromMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveFileFromMeetingArgs, 'fileType' | 'meetingId'>>;
+  removeHistoryEntry?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHistoryEntryArgs, 'postname' | 'start' | 'username'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
-  removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'postname' | 'usernames'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'access' | 'username'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postname'>>;
   setResolverMappings?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetResolverMappingsArgs, 'name' | 'type'>>;
+  setUserPostEnd?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetUserPostEndArgs, 'end' | 'postname' | 'start' | 'username'>>;
   updateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
 }>;
