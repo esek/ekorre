@@ -38,8 +38,8 @@ test('test getting before midnight timestamp', () => {
   const d1 = new Date(1928, 3, 1, 0, 22, 22, 0);
   const beforeDate0 = new Date(midnightTimestamp(d0, 'before'));
   const beforeDate1 = new Date(midnightTimestamp(d1, 'before'));
-  expect(beforeDate0.toISOString()).toEqual('2021-11-30T23:59:59.999Z');
-  expect(beforeDate1.toISOString()).toEqual('1928-04-01T23:59:59.999Z');
+  expect(beforeDate0).toEqual(new Date(2021, 10, 30, 23, 59, 59, 999));
+  expect(beforeDate1).toEqual(new Date(1928, 3, 1, 23, 59, 59, 999));
 });
 
 test('test getting after midnight timestamp', () => {
@@ -48,6 +48,6 @@ test('test getting after midnight timestamp', () => {
   const d1 = new Date(1928, 4, 1, 3, 22, 22, 0);
   const afterDate0 = new Date(midnightTimestamp(d0, 'after'));
   const afterDate1 = new Date(midnightTimestamp(d1, 'after'));
-  expect(afterDate0.toISOString()).toEqual('2021-11-30T00:00:00.000Z');
-  expect(afterDate1.toISOString()).toEqual('1928-05-01T00:00:00.000Z');
+  expect(afterDate0).toEqual(new Date(2021, 10, 30, 0, 0, 0, 0));
+  expect(afterDate1).toEqual(new Date(1928, 4, 1, 0, 0, 0, 0));
 });

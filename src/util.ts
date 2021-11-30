@@ -23,11 +23,11 @@ export const toUTC = (d: Date) =>
  * @param d Date to convert to timestamp
  * @param when Either right `'before'` or `'right'` after midnight
  */
-export const midnightTimestamp = (d: Date, when: 'before' | 'after') => {
+export const midnightTimestamp = (d: Date, when: 'before' | 'after'): number => {
   if (when === 'after') {
-    return d.setHours(1, 0, 0, 0); // 00:00:00.000
+    return d.setHours(0, 0, 0, 0); // 00:00:00.000
   }
-  return d.setHours(24, 59, 59, 999); // 23:59:59.999
+  return d.setHours(23, 59, 59, 999); // 23:59:59.999
 };
 
 /**
