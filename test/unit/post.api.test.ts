@@ -13,6 +13,7 @@ import {
 } from '../../src/graphql.generated';
 import { DatabaseUser } from '../../src/models/db/user';
 import { postReduce } from '../../src/reducers/post.reducer';
+import { midnightTimestamp } from '../../src/util';
 
 const api = new PostAPI();
 const userApi = new UserAPI();
@@ -278,14 +279,16 @@ test('deleting user from post', async () => {
   let ok = await api.createPost(np);
   expect(ok).toBe(true);
 
-  ok = await api.addUsersToPost([DUMMY_USER.username], np.name);
+  const startDate = new Date();
+
+  ok = await api.addUsersToPost([DUMMY_USER.username], np.name, startDate);
   expect(ok).toBe(true);
 
   // Nu borde DUMMY_USER.username ha en post
   const res = await api.getPostsForUser(DUMMY_USER.username);
   expect(res.length).not.toBe(0);
 
-  const removed = await api.removeUsersFromPost([DUMMY_USER.username], np.name);
+  const removed = await api.removeHistoryEntry(DUMMY_USER.username, np.name, startDate);
   expect(removed).toBe(true);
 
   await expect(api.getPostsForUser(DUMMY_USER.username)).rejects.toThrowError(
@@ -421,4 +424,28 @@ test('get number of volunteers in year 1700', async () => {
   expect(await api.getNumberOfVolunteers(new Date('2100-01-01'))).toBeLessThanOrEqual(
     oldVolunteers,
   );
+});
+
+test('set end time of history entry', async () => {
+  const startDate = new Date('1666-03-13');
+  const endDate = new Date('1666-12-31');
+  await api.createPost(np);
+  await api.addUsersToPost([DUMMY_USER.username], np.name, startDate);
+
+  // Som default ska `end` bli null
+  expect((await api.getHistoryEntriesForUser(DUMMY_USER.username))[0]).toEqual({
+    refuser: DUMMY_USER.username,
+    refpost: np.name,
+    start: midnightTimestamp(startDate, 'after'),
+    end: null,
+  });
+  
+  // Nu kollar vi om vi kan lägga till ett slutdatum
+  await expect(api.setUserPostEnd(DUMMY_USER.username, np.name, startDate, endDate)).resolves.toBeTruthy();
+  expect((await api.getHistoryEntriesForUser(DUMMY_USER.username))[0]).toEqual({
+    refuser: DUMMY_USER.username,
+    refpost: np.name,
+    start: midnightTimestamp(startDate, 'after'),
+    end: midnightTimestamp(endDate, 'before'),
+  });
 });
