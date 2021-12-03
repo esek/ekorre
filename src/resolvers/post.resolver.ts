@@ -50,10 +50,10 @@ const postresolver: Resolvers = {
     modifyPost: (_, { info }) => api.modifyPost(info),
     addUsersToPost: (_, { usernames, postname, start, end }) =>
       api.addUsersToPost(usernames, postname, start ?? undefined, end ?? undefined),
-    removeUsersFromPost: (_, { usernames, postname }) =>
-      api.removeUsersFromPost(usernames, postname),
     activatePost: (_, { postname }) => api.activatePost(postname),
     deactivatePost: (_, { postname }) => api.deactivatePost(postname),
+    setUserPostEnd: (_, { username, postname, start, end }) => api.setUserPostEnd(username, postname, start, end),
+    removeHistoryEntry: (_, { username, postname, start, end }) => api.removeHistoryEntry(username, postname, start, end ?? undefined),
   },
   User: {
     posts: async ({ username }, _, ctx) => {
