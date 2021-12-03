@@ -1,0 +1,13 @@
+scalar Object
+
+type Mutation {
+	sendEmail(options: SendEmailOptions!): Boolean!
+}
+
+input SendEmailOptions {
+	to: [String!]!
+	subject: String!
+	template: String
+	overrides: Object
+	body: String
+}
