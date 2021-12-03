@@ -2,7 +2,12 @@ import { FILE_TABLE, MEETING_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
 import { MeetingAPI } from '../../src/api/meeting.api';
 import { BadRequestError, NotFoundError, ServerError } from '../../src/errors/RequestErrors';
-import { AccessType, FileType, MeetingDocumentType, MeetingType } from '../../src/graphql.generated';
+import {
+  AccessType,
+  FileType,
+  MeetingDocumentType,
+  MeetingType,
+} from '../../src/graphql.generated';
 import { DatabaseFile } from '../../src/models/db/file';
 import { DatabaseMeeting } from '../../src/models/db/meeting';
 

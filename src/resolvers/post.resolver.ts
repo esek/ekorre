@@ -41,16 +41,19 @@ const postresolver: Resolvers = {
         posts,
       }));
     },
+    numberOfVolunteers: async (_, { date }) => {
+      return api.getNumberOfVolunteers(date ?? undefined);
+    },
   },
   Mutation: {
     addPost: (_, { info }) => api.createPost(info),
     modifyPost: (_, { info }) => api.modifyPost(info),
-    addUsersToPost: (_, { usernames, postname, period }) =>
-      api.addUsersToPost(usernames, postname, period),
-    removeUsersFromPost: (_, { usernames, postname }) =>
-      api.removeUsersFromPost(usernames, postname),
+    addUsersToPost: (_, { usernames, postname, start, end }) =>
+      api.addUsersToPost(usernames, postname, start ?? undefined, end ?? undefined),
     activatePost: (_, { postname }) => api.activatePost(postname),
     deactivatePost: (_, { postname }) => api.deactivatePost(postname),
+    setUserPostEnd: (_, { username, postname, start, end }) => api.setUserPostEnd(username, postname, start, end),
+    removeHistoryEntry: (_, { username, postname, start, end }) => api.removeHistoryEntry(username, postname, start, end ?? undefined),
   },
   User: {
     posts: async ({ username }, _, ctx) => {
@@ -72,7 +75,15 @@ const postresolver: Resolvers = {
         entries.map(async (e) => {
           const post = await ctx.postDataLoader.load(e.refpost);
 
-          return { ...e, post };
+          // Konvertera timestamp till datum
+          const { start, end, ...reduced } = e;
+          let safeEnd: Date | null = null;
+
+          if (end != null) {
+            safeEnd = new Date(end);
+          }
+
+          return { ...reduced, post, start: new Date(start), end: safeEnd };
         }),
       );
       return a;
@@ -86,7 +97,15 @@ const postresolver: Resolvers = {
         entries.map(async (e) => {
           const holder = await ctx.userDataLoader.load(e.refuser);
 
-          return { ...e, holder, postname };
+          // Konvertera timestamp till datum
+          const { start, end, refpost } = e;
+          let safeEnd: Date | null = null;
+
+          if (end != null) {
+            safeEnd = new Date(end);
+          }
+
+          return { postname: refpost, holder, start: new Date(start), end: safeEnd };
         }),
       );
       return a;

@@ -240,8 +240,8 @@ export type Mutation = {
   removeAccessResource: Scalars['Boolean'];
   removeElectables: Scalars['Boolean'];
   removeFileFromMeeting: Scalars['Boolean'];
+  removeHistoryEntry: Scalars['Boolean'];
   removeMeeting: Scalars['Boolean'];
-  removeUsersFromPost: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
   /** Only possible during open election, so electionId is known */
@@ -250,6 +250,7 @@ export type Mutation = {
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
   setResolverMappings: Scalars['Boolean'];
+  setUserPostEnd: Scalars['Boolean'];
   updateUser: Scalars['Boolean'];
   validatePasswordResetToken: Scalars['Boolean'];
 };
@@ -299,8 +300,9 @@ export type MutationAddPostArgs = {
 
 
 export type MutationAddUsersToPostArgs = {
-  period: Scalars['Int'];
+  end?: Maybe<Scalars['Date']>;
   postname: Scalars['String'];
+  start?: Maybe<Scalars['Date']>;
   usernames: Array<Scalars['String']>;
 };
 
@@ -395,14 +397,16 @@ export type MutationRemoveFileFromMeetingArgs = {
 };
 
 
-export type MutationRemoveMeetingArgs = {
-  id: Scalars['ID'];
+export type MutationRemoveHistoryEntryArgs = {
+  end?: Maybe<Scalars['Date']>;
+  postname: Scalars['String'];
+  start: Scalars['Date'];
+  username: Scalars['String'];
 };
 
 
-export type MutationRemoveUsersFromPostArgs = {
-  postname: Scalars['String'];
-  usernames: Array<Scalars['String']>;
+export type MutationRemoveMeetingArgs = {
+  id: Scalars['ID'];
 };
 
 
@@ -446,6 +450,14 @@ export type MutationSetResolverMappingsArgs = {
   name: Scalars['String'];
   type: ResolverType;
   slugs?: Maybe<Array<Scalars['String']>>;
+};
+
+
+export type MutationSetUserPostEndArgs = {
+  end: Scalars['Date'];
+  postname: Scalars['String'];
+  start: Scalars['Date'];
+  username: Scalars['String'];
 };
 
 
@@ -572,6 +584,7 @@ export type Query = {
   newsentries: Array<Maybe<Article>>;
   numberOfNominations: Scalars['Int'];
   numberOfProposals: Scalars['Int'];
+  numberOfVolunteers: Scalars['Int'];
   openElection?: Maybe<Election>;
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
@@ -802,6 +815,15 @@ export type QueryNumberOfNominationsArgs = {
 export type QueryNumberOfProposalsArgs = {
   electionId: Scalars['ID'];
   postname?: Maybe<Scalars['String']>;
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryNumberOfVolunteersArgs = {
+  date?: Maybe<Scalars['Date']>;
 };
 
 
@@ -1243,7 +1265,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'fileId' | 'fileType' | 'meetingId'>>;
   addMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
-  addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'period' | 'postname' | 'usernames'>>;
+  addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'postname' | 'usernames'>>;
   casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1262,8 +1284,8 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'slug'>>;
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId'>>;
   removeFileFromMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveFileFromMeetingArgs, 'fileType' | 'meetingId'>>;
+  removeHistoryEntry?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHistoryEntryArgs, 'postname' | 'start' | 'username'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
-  removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'postname' | 'usernames'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
   respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postname'>>;
@@ -1271,6 +1293,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'access' | 'username'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postname'>>;
   setResolverMappings?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetResolverMappingsArgs, 'name' | 'type'>>;
+  setUserPostEnd?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetUserPostEndArgs, 'end' | 'postname' | 'start' | 'username'>>;
   updateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
 }>;
@@ -1325,6 +1348,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
   numberOfNominations?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfNominationsArgs, 'electionId'>>;
   numberOfProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfProposalsArgs, 'electionId'>>;
+  numberOfVolunteers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfVolunteersArgs, never>>;
   openElection?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'name'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postname'>>;

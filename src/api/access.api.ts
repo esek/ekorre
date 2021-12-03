@@ -149,7 +149,10 @@ export class AccessAPI {
       .join<DatabasePostHistory>(POSTS_HISTORY_TABLE, 'refpost', 'refname')
       .where({
         refuser: username,
-        end: null, // Only fetch active posts
+      })
+      .andWhere((q) => {
+        // Only fetch active posts
+        q.whereNull('end').orWhere('end', '>', new Date().getTime());
       })
       .distinct(); // remove any duplicates
 

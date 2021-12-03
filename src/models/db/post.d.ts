@@ -1,8 +1,9 @@
 import type { HistoryEntry, Post } from '../../graphql.generated';
 
 export type DatabasePost = Omit<Post, 'history' | 'access'>;
-export type DatabasePostHistory = Omit<HistoryEntry, 'holder' | 'postname'> & {
+export type DatabasePostHistory = Omit<HistoryEntry, 'holder' | 'postname' | 'start' | 'end'> & {
   refpost: string;
   refuser: string;
-  period: number;
+  start: number;
+  end?: number;
 };

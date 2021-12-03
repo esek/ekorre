@@ -9,6 +9,29 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Tillagt
  - Lägger till API för elections, se [!69](https://gitlab.com/esektionen/projekt/ekorre/-/merge_requests/69)
  - `notEmpty` util-filter
+## [0.2.5] - 2021-11-29
+
+### Tillagt
+- `setUserPostEnd`-mutation för att sätta när personer går av sin post
+- `removeHistoryEntry`-mutation för att ta bort `HistoryEntry`s
+- `midnightTimestamp`-utility för att få timestamp för 00:00:00.000 och 23:59:59.999 på ett `Date`
+
+### Borttaget
+- `removeUserFromPost`-mutation för att ta bort en användare från alla `HistoryEntries` för en post
+
+### Ändrat
+- `start` anses nu som permanent för en `HistoryEntry`. Vill man ändra får man fan ta bort entrien.
+
+## [0.2.4]	- 2021-11-28
+
+### Tillagt
+- Lägger till `numberOfVolunteers` som beräknar antalet unika funktionärer
+- Lägger till tester för ovanstående
+
+### Ändrat
+- `period` inte längre än del av `Post`
+- `start` och `end` sparas nu som `TIMESTAMP` i `PostHistory`
+
 ## [0.2.3]	- 2021-11-27
 
 ### Ändrat
