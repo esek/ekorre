@@ -51,3 +51,8 @@ const OPEN_ELECTION_QUERY = `
 const NOMINATION_QUERY = `
   nom
 `;
+
+test('getting nominations when nominations are hidden', async () => {
+  console.log('TODO: THis');
+  expect(true).toBeTruthy();
+});

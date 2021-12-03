@@ -145,7 +145,7 @@ export class ElectionAPI {
   async getNumberOfNominations(electionId: string, postname?: string): Promise<number> {
     const query = knex(NOMINATION_TABLE)
       .where('refelection', electionId)
-      .count<Record<string, number>>('*');
+      .count<Record<string, number>>('refelection AS count');
 
     if (postname != null) {
       query.where('refpost', postname);
@@ -175,7 +175,7 @@ export class ElectionAPI {
   async getNumberOfProposals(electionId: string, postname?: string): Promise<number> {
     const query = knex(PROPOSAL_TABLE)
       .where('refelection', electionId)
-      .count<Record<string, number>>('*');
+      .count<Record<string, number>>('refelection AS count');
 
     if (postname != null) {
       query.where('refpost', postname);
@@ -238,7 +238,9 @@ export class ElectionAPI {
   ): Promise<boolean> {
     // Vi försäkrar oss om att det senaste valet är stängt
     const lastElection = (await this.getLatestElections(1))[0];
-    if (lastElection?.open || lastElection?.closedAt == null) {
+    if (lastElection == null) {
+      // Fortsätt
+    } else if (lastElection.open || lastElection.closedAt == null) {
       throw new BadRequestError(
         'Det finns ett öppet val, eller ett val som väntar på att bli öppnat redan.',
       );
@@ -262,7 +264,7 @@ export class ElectionAPI {
     const electableRows: DatabaseElectable[] = electables.map((e) => {
       return { refelection: electionId, refpost: e };
     });
-    const res = await knex(ELECTABLE_TABLE).insert(electableRows);
+    const res = await knex(ELECTABLE_TABLE).insert(electableRows); // TODO: Error on this line
 
     // Vi vill ju ha lagt till lika många rader som det finns poster
     // i electables
@@ -343,11 +345,11 @@ export class ElectionAPI {
     // Markerar valet som öppet, men bara om det inte redan stängts
     const res = await knex<DatabaseElection>(ELECTION_TABLE)
       .update({
-        openedAt: knex.fn.now(), // Current timestamp
+        openedAt: Date.now(), // Current timestamp
         open: true,
       })
-      .where({ id: electionId })
-      .and.whereNull('createdAt');
+      .where('id', electionId)
+      .whereNull('createdAt');
 
     if (res === 0) {
       throw new BadRequestError('Antingen är valet redan stängt, eller så finns det inte.');
