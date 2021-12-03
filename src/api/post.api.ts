@@ -174,7 +174,7 @@ export class PostAPI {
 
       // Vi sparar som timestamp i DB
       // Start ska alltid vara 00:00, end alltid 23:59
-      start: start != null ? midnightTimestamp(start, 'after') : midnightTimestamp(new Date(), 'after'),
+      start: midnightTimestamp(start != null ? start : new Date(), 'after'),
       end: end != null ? midnightTimestamp(end, 'before') : undefined,
     }));
 
@@ -375,7 +375,11 @@ export class PostAPI {
         start: midnightTimestamp(start, 'after'),
       });
 
-    return res > 0;
+    if (res === 0) {
+      throw new NotFoundError('Kunde inte uppdatera posthistoriken');
+    }
+
+    return true;
   }
 
   /**
@@ -405,7 +409,11 @@ export class PostAPI {
     }
 
     const res = await query;
+
+    if (res === 0) {
+      throw new NotFoundError('HistoryEntry hittades inte och kunde inte tas bort');
+    }
     
-    return res > 0;
+    return true;
   }
 }
