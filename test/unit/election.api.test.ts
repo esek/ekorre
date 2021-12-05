@@ -30,9 +30,7 @@ const clearDatabase = async () => {
 };
 
 /**
- * Lägger till ett antal dummy elections och stänger
- * dem igen. Undvik höga n för att inte sakta ner
- * tester för mycket.
+ * Lägger till ett antal dummy elections, markerade som stängda
  * @param creatorUsername Användarnamnet på skaparen av valen
  * @param nominationsHidden Om valet ska ha anonyma nomineringssvar
  * @param n Antalet val att lägga till och stänga
@@ -48,6 +46,9 @@ const addDummyElections = async (
       knex<DatabaseElection>(ELECTION_TABLE).insert({
         refcreator: creatorUsername,
         nominationsHidden,
+        openedAt: Date.now() + 100,
+        closedAt: Date.now() + 200,
+        open: false,
       }),
     );
   }
@@ -106,7 +107,7 @@ test('getting open election', async () => {
   await knex<DatabaseElection>(ELECTION_TABLE).insert({
     refcreator: 'bb1111cc-s',
     nominationsHidden: false,
-    openedAt: Date.now() + 1000,
+    openedAt: Date.now() + 100,
     open: true,
   });
 
