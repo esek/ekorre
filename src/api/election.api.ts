@@ -20,7 +20,7 @@ export class ElectionAPI {
    * @throws `NotFoundError`
    */
   async getLatestElections(limit?: number): Promise<DatabaseElection[]> {
-    const query = knex<DatabaseElection>(ELECTION_TABLE).select('*').orderBy('createdAt', 'desc');
+    const query = knex<DatabaseElection>(ELECTION_TABLE).select('*').orderBy('id', 'desc');
 
     if (limit != null) {
       query.limit(limit);
@@ -92,7 +92,10 @@ export class ElectionAPI {
    * @returns Lista över nomineringar
    * @throws `NotFoundError`
    */
-  async getAllNominations(electionId: string, answer?: NominationAnswer): Promise<DatabaseNomination[]> {
+  async getAllNominations(
+    electionId: string,
+    answer?: NominationAnswer,
+  ): Promise<DatabaseNomination[]> {
     const query = knex<DatabaseNomination>(NOMINATION_TABLE).where('refelection', electionId);
 
     if (answer != null) {
@@ -118,7 +121,7 @@ export class ElectionAPI {
   async getAllNominationsForUser(
     electionId: string,
     username: string,
-    answer?: NominationAnswer
+    answer?: NominationAnswer,
   ): Promise<DatabaseNomination[]> {
     const query = knex<DatabaseNomination>(NOMINATION_TABLE)
       .where('refelection', electionId)
@@ -252,7 +255,7 @@ export class ElectionAPI {
           refcreator: creatorUsername,
           nominationsHidden,
         },
-        'id',
+        'id', // Return `id` of created election
       )
     )[0];
 
@@ -261,18 +264,22 @@ export class ElectionAPI {
       throw new ServerError('Kunde inte skapa ett nytt val');
     }
 
-    const electableRows: DatabaseElectable[] = electables.map((e) => {
-      return { refelection: electionId, refpost: e };
-    });
-    const res = await knex(ELECTABLE_TABLE).insert(electableRows); // TODO: Error on this line
+    if (electables.length !== 0) {
+      const electableRows: DatabaseElectable[] = electables.map((e) => {
+        return { refelection: electionId, refpost: e };
+      });
+      const res = await knex(ELECTABLE_TABLE).insert(electableRows);
 
-    // Vi vill ju ha lagt till lika många rader som det finns poster
-    // i electables
-    if (res[0] !== electables.length) {
-      logger.debug(`Could not insert all electables when creating election with ID ${electionId}`);
-      throw new ServerError(
-        'Kunde inte lägga till alla valbara poster. Försök lägga till dessa manuellt',
-      );
+      // Vi vill ju ha lagt till lika många rader som det finns poster
+      // i electables
+      if (res[0] !== electables.length) {
+        logger.debug(
+          `Could not insert all electables when creating election with ID ${electionId}`,
+        );
+        throw new ServerError(
+          'Kunde inte lägga till alla valbara poster. Försök lägga till dessa manuellt',
+        );
+      }
     }
 
     return true;
@@ -349,7 +356,7 @@ export class ElectionAPI {
         open: true,
       })
       .where('id', electionId)
-      .whereNull('createdAt');
+      .whereNull('closedAt');
 
     if (res === 0) {
       throw new BadRequestError('Antingen är valet redan stängt, eller så finns det inte.');

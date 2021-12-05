@@ -28,23 +28,30 @@ const clearDatabase = async () => {
   await knex<DatabaseElection>(ELECTION_TABLE).delete().whereNotNull('id');
 };
 
-// Adds some empty dummy elections,
-// and closes them properly
-const addDummyElections = async (n: number) => {
-  for (let i = 0; i < n; i-=-1) {
-    // Detta är de enda valen i DB, så m.h.a.
-    // AUTO_INCREMENT vet vi att de har ID 1 till n + 1
-    const expectedElectionId = (i + 1).toString();
-
-    // eslint-disable-next-line no-await-in-loop
-    await expect(api.createElection('aa0000bb-s', [], true)).resolves.toBeTruthy();
-    
-    // eslint-disable-next-line no-await-in-loop
-    await expect(api.openElection(expectedElectionId)).resolves.toBeTruthy();
-    
-    // eslint-disable-next-line no-await-in-loop
-    await expect(api.closeElection()).resolves.toBeTruthy();
+/**
+ * Lägger till ett antal dummy elections och stänger
+ * dem igen. Undvik höga n för att inte sakta ner
+ * tester för mycket.
+ * @param creatorUsername Användarnamnet på skaparen av valen
+ * @param nominationsHidden Om valet ska ha anonyma nomineringssvar
+ * @param n Antalet val att lägga till och stänga
+ */
+const addDummyElections = async (
+  creatorUsername: string,
+  nominationsHidden: boolean,
+  n: number,
+) => {
+  const queries = [];
+  for (let i = 0; i < n; i -= -1) {
+    queries.push(knex<DatabaseElection>(ELECTION_TABLE).insert({
+      refcreator: creatorUsername,
+      nominationsHidden,
+    }));
   }
+  // Vi bryr oss inte om ordningen (de är identiska),
+  // så vi väntar på alla istället för att göra
+  // i loopen
+  await Promise.all(queries);
 };
 
 beforeAll(async () => {
@@ -67,8 +74,24 @@ afterAll(async () => {
   await knex<DatabaseNomination>(NOMINATION_TABLE).insert(preTestNominationTable);
 });
 
-test('finding latest election without limit', async () => {
-  await addDummyElections(5);
-  const election = await api.getLatestElections();
-  expect(election.length).toEqual(5);
+test('finding latest elections without limit', async () => {
+  await addDummyElections('aa0000bb-s', true, 5);
+  const elections = await api.getLatestElections();
+  expect(elections.length).toEqual(5);
+});
+
+test('finding latest elections with limit', async () => {
+  await addDummyElections('aa0000bb-s', true, 5);
+
+  // We make the latest election unique
+  await knex<DatabaseElection>(ELECTION_TABLE).insert({
+    refcreator: 'bb1111cc-s',
+    nominationsHidden: false,
+  });
+
+  const election = await api.getLatestElections(1);
+
+  expect(election.length).toEqual(1);
+  expect(election[0].refcreator).toEqual('bb1111cc-s');
+  expect(election[0].nominationsHidden).toBeFalsy();
 });
