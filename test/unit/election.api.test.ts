@@ -6,6 +6,7 @@ import {
 } from '../../src/api/constants';
 import { ElectionAPI } from '../../src/api/election.api';
 import knex from '../../src/api/knex';
+import { NotFoundError } from '../../src/errors/RequestErrors';
 import {
   DatabaseElectable,
   DatabaseElection,
@@ -43,10 +44,12 @@ const addDummyElections = async (
 ) => {
   const queries = [];
   for (let i = 0; i < n; i -= -1) {
-    queries.push(knex<DatabaseElection>(ELECTION_TABLE).insert({
-      refcreator: creatorUsername,
-      nominationsHidden,
-    }));
+    queries.push(
+      knex<DatabaseElection>(ELECTION_TABLE).insert({
+        refcreator: creatorUsername,
+        nominationsHidden,
+      }),
+    );
   }
   // Vi bryr oss inte om ordningen (de är identiska),
   // så vi väntar på alla istället för att göra
@@ -83,7 +86,7 @@ test('finding latest elections without limit', async () => {
 test('finding latest elections with limit', async () => {
   await addDummyElections('aa0000bb-s', true, 5);
 
-  // We make the latest election unique
+  // Vi gör senaste valet unikt så vi kan identifiera det
   await knex<DatabaseElection>(ELECTION_TABLE).insert({
     refcreator: 'bb1111cc-s',
     nominationsHidden: false,
@@ -94,4 +97,28 @@ test('finding latest elections with limit', async () => {
   expect(election.length).toEqual(1);
   expect(election[0].refcreator).toEqual('bb1111cc-s');
   expect(election[0].nominationsHidden).toBeFalsy();
+});
+
+test('getting open election', async () => {
+  await addDummyElections('aa0000bb-s', true, 3);
+  await expect(api.getOpenElection()).rejects.toThrowError(NotFoundError);
+
+  await knex<DatabaseElection>(ELECTION_TABLE).insert({
+    refcreator: 'bb1111cc-s',
+    nominationsHidden: false,
+    openedAt: Date.now() + 1000,
+    open: true,
+  });
+
+  const openElection = await api.getOpenElection();
+  
+  // Hantera att SQLite sparar bools som 0 och 1
+  openElection.nominationsHidden = !!openElection.nominationsHidden;
+  openElection.open = !!openElection.open;
+
+  expect(openElection).toMatchObject({
+    refcreator: 'bb1111cc-s',
+    nominationsHidden: false,
+    open: true,
+  });
 });
