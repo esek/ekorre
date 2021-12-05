@@ -51,7 +51,4 @@ const NOMINATION_QUERY = `
   nom
 `;
 
-test('getting nominations when nominations are hidden', async () => {
-  console.log('TODO: THis');
-  await expect(new Promise(() => true)).resolves.toBeTruthy();
-});
+test.todo('getting nominations when nominations are hidden');

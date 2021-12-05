@@ -13,10 +13,10 @@
     "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" \"test/**/*.ts\" --write",
     "lint": "eslint src",
     "lint:test": "eslint test",
-    "test": "jest",
-    "unittest": "jest test/unit",
-    "regressiontest": "jest test/regression",
-    "integrationtest": "jest test/integration"
+    "test": "jest test/unit test/integration && jest test/regression --coverage=false",
+    "test:unit": "jest test/unit",
+    "test:regression": "jest test/regression",
+    "test:integration": "jest test/integration"
   },
   "author": "Emil Blennow",
   "contributors": [

@@ -123,6 +123,34 @@ test('getting open election', async () => {
   });
 });
 
-test('get multiple elections', async () => {
-  // TODO: This
-});
+test.todo('get multiple elections');
+
+test.todo('get multiple meetings when none exists');
+
+test.todo('get nominations');
+
+test.todo('get nominations when none exists');
+
+test.todo('get all nominations with specified answer');
+
+test.todo('get all nominations without specified answer');
+
+test.todo('get all nominations when none exists');
+
+test.todo('get all nominations for user with specified answer');
+
+test.todo('get all nominations for user without specified answer');
+
+test.todo('get all nominations for user when none exists');
+
+test.todo('get number of nominations without postname');
+
+test.todo('get number of nominations with existing postname');
+
+test.todo('get number of nominations with nonexistant postname');
+
+test.todo('get number of proposals without postname');
+
+test.todo('get number of proposals with existing postname');
+
+test.todo('get number of proposals with nonexistant postname');
