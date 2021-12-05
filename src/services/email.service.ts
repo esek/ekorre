@@ -1,6 +1,8 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
 import config from '../config';
+import { ServerError } from '../errors/RequestErrors';
+import { SendEmailOptions } from '../graphql.generated';
 
 const {
   EBREV: { URL, API_TOKEN },
@@ -21,10 +23,17 @@ export const sendEmail = (
   subject: string,
   templateName: string,
   overrides: Record<string, string>,
-) =>
-  api.post('/send', {
-    to: to instanceof Array ? to : [to],
-    subject,
-    templateName,
-    overrides,
-  });
+  body?: string,
+) => {
+  try {
+    return api.post<SendEmailOptions, AxiosResponse>('/send', {
+      to: to instanceof Array ? to : [to],
+      subject,
+      templateName,
+      overrides,
+      body,
+    });
+  } catch {
+    throw new ServerError('Mailet kunde inte skickas');
+  }
+};
