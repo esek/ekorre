@@ -36,7 +36,11 @@ const electionResolver: Resolvers = {
       return reduce(n, nominationReduce);
     },
     myNominations: async (_, { electionId, answer }, ctx) => {
-      const n = await api.getAllNominationsForUser(electionId, ctx.getUsername(), answer ?? undefined);
+      const n = await api.getAllNominationsForUser(
+        electionId,
+        ctx.getUsername(),
+        answer ?? undefined,
+      );
       return reduce(n, nominationReduce);
     },
     numberOfNominations: async (_, { electionId, postname }) => {
@@ -118,7 +122,7 @@ const electionResolver: Resolvers = {
 
       // Vi vill bara visa de nomineringar där folk tackat ja
       const n = await api.getAllNominations(model.id ?? '', NominationAnswer.Yes);
-      
+
       return reduce(n, nominationReduce);
     },
   },

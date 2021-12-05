@@ -111,7 +111,7 @@ test('getting open election', async () => {
   });
 
   const openElection = await api.getOpenElection();
-  
+
   // Hantera att SQLite sparar bools som 0 och 1
   openElection.nominationsHidden = !!openElection.nominationsHidden;
   openElection.open = !!openElection.open;

@@ -1,8 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
-import { Election } from '../../src/graphql.generated';
 import { RequestErrorResponse } from '../../src/errors/RequestErrors';
-
+import { Election } from '../../src/graphql.generated';
 
 interface ElectionResponse {
   headers: {
@@ -54,5 +53,5 @@ const NOMINATION_QUERY = `
 
 test('getting nominations when nominations are hidden', async () => {
   console.log('TODO: THis');
-  expect(true).toBeTruthy();
+  await expect(new Promise(() => true)).resolves.toBeTruthy();
 });

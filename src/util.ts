@@ -47,7 +47,7 @@ export const stripObject = <E, T extends E>(obj: E): Partial<T> => {
 /**
  * Filter callback function for removing empty (Maybe<>) while maintaining
  * type safety.
- * @param value 
+ * @param value
  * @example
  * const someArray: Maybe<string>[] = // ...
  * // ...

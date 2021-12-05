@@ -10,7 +10,7 @@ export type DatabaseElectable = {
 };
 
 export type DatabaseNomination = Omit<Nomination, 'user' | 'post'> & {
-  refelection: string,
+  refelection: string;
   refuser: string;
   refpost: string;
 };
