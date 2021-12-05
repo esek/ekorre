@@ -122,3 +122,7 @@ test('getting open election', async () => {
     open: true,
   });
 });
+
+test('get multiple elections', async () => {
+  // TODO: This
+});
