@@ -14,6 +14,7 @@ export type Scalars = {
   Float: number;
   Date: Date;
   DateTime: any;
+  Object: Record<string, string>;
 };
 
 /** Access will be treated as a immutable object! */
@@ -220,6 +221,7 @@ export type Mutation = {
   removeMeeting: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
+  sendEmail: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
   setResolverMappings: Scalars['Boolean'];
@@ -359,6 +361,11 @@ export type MutationResetPasswordArgs = {
 };
 
 
+export type MutationSendEmailArgs = {
+  options: SendEmailOptions;
+};
+
+
 export type MutationSetIndividualAccessArgs = {
   access: Array<Scalars['String']>;
   username: Scalars['String'];
@@ -428,6 +435,7 @@ export type NewUser = {
   password: Scalars['String'];
   username: Scalars['String'];
 };
+
 
 export type Post = {
   access: Access;
@@ -640,6 +648,14 @@ export enum ResolverType {
   Mutation = 'MUTATION'
 }
 
+export type SendEmailOptions = {
+  to: Array<Scalars['String']>;
+  subject: Scalars['String'];
+  template?: Maybe<Scalars['String']>;
+  overrides?: Maybe<Scalars['Object']>;
+  body?: Maybe<Scalars['String']>;
+};
+
 export type UpdateUser = {
   address?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['String']>;
@@ -801,10 +817,12 @@ export type ResolversTypes = ResolversObject<{
   NewArticle: NewArticle;
   NewPost: NewPost;
   NewUser: NewUser;
+  Object: ResolverTypeWrapper<Scalars['Object']>;
   Post: ResolverTypeWrapper<Omit<Post, 'access' | 'history'> & { access: ResolversTypes['Access'], history: Array<ResolversTypes['HistoryEntry']> }>;
   PostType: PostType;
   Query: ResolverTypeWrapper<{}>;
   ResolverType: ResolverType;
+  SendEmailOptions: SendEmailOptions;
   UpdateUser: UpdateUser;
   User: ResolverTypeWrapper<Omit<User, 'access' | 'posts' | 'userPostHistory'> & { access: ResolversTypes['Access'], posts: Array<ResolversTypes['Post']>, userPostHistory: Array<Maybe<ResolversTypes['UserPostHistoryEntry']>> }>;
   UserPostHistoryEntry: ResolverTypeWrapper<Omit<UserPostHistoryEntry, 'post'> & { post: ResolversTypes['Post'] }>;
@@ -839,8 +857,10 @@ export type ResolversParentTypes = ResolversObject<{
   NewArticle: NewArticle;
   NewPost: NewPost;
   NewUser: NewUser;
+  Object: Scalars['Object'];
   Post: Omit<Post, 'access' | 'history'> & { access: ResolversParentTypes['Access'], history: Array<ResolversParentTypes['HistoryEntry']> };
   Query: {};
+  SendEmailOptions: SendEmailOptions;
   UpdateUser: UpdateUser;
   User: Omit<User, 'access' | 'posts' | 'userPostHistory'> & { access: ResolversParentTypes['Access'], posts: Array<ResolversParentTypes['Post']>, userPostHistory: Array<Maybe<ResolversParentTypes['UserPostHistoryEntry']>> };
   UserPostHistoryEntry: Omit<UserPostHistoryEntry, 'post'> & { post: ResolversParentTypes['Post'] };
@@ -986,6 +1006,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
+  sendEmail?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendEmailArgs, 'options'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'access' | 'username'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postname'>>;
   setResolverMappings?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetResolverMappingsArgs, 'name' | 'type'>>;
@@ -993,6 +1014,10 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   updateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
 }>;
+
+export interface ObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Object'], any> {
+  name: 'Object';
+}
 
 export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
@@ -1078,6 +1103,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Me?: MeResolvers<ContextType>;
   Meeting?: MeetingResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  Object?: GraphQLScalarType;
   Post?: PostResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   User?: UserResolvers<ContextType>;

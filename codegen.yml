@@ -9,6 +9,7 @@ generates:
       skipTypename: true
       scalars:
         Date: Date
+        Object: Record<string, string>
       mappers:
         Article: ./models/mappers#ArticleResponse
         File: ./models/mappers#FileResponse
