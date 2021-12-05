@@ -291,7 +291,9 @@ test('validating valid resetPasswordToken for correct user', async () => {
 });
 
 test('reset password for non-valid username/token', async () => {
-  await expect(api.resetPassword('Not a token', 'Not a username', 'drrr')).rejects.toThrowError(NotFoundError);
+  await expect(api.resetPassword('Not a token', 'Not a username', 'drrr')).rejects.toThrowError(
+    NotFoundError,
+  );
 });
 
 test('reset password with expired resetPasswordToken', async () => {
@@ -301,11 +303,11 @@ test('reset password with expired resetPasswordToken', async () => {
   // Vi fejkar nu att system time är 1h fram
   const expireMinutes = 60;
   const trueTime = new Date();
-  jest
-    .useFakeTimers()
-    .setSystemTime(new Date(trueTime.getTime() + expireMinutes * 60000));
+  jest.useFakeTimers().setSystemTime(new Date(trueTime.getTime() + expireMinutes * 60000));
 
-  await expect(api.resetPassword(mockNewUser1.username, token, 'drr password')).rejects.toThrowError(NotFoundError);
+  await expect(
+    api.resetPassword(mockNewUser1.username, token, 'drr password'),
+  ).rejects.toThrowError(NotFoundError);
 });
 
 test('reset password properly', async () => {
@@ -319,7 +321,7 @@ test('reset password properly', async () => {
   );
 
   await api.resetPassword(token, mockNewUser1.username, newPassword);
-  
+
   // Försäkra oss om att lösen ändras
   await expect(api.loginUser(mockNewUser1.username, newPassword)).resolves.toBeTruthy();
 });

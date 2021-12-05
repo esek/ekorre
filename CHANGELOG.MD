@@ -4,10 +4,31 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.4] - 2021-12-05
+## [0.2.6] - 2021-12-05
 
 ### Tillagt
 - Mutation för att skicka mail med hjälp av [ebrev](https://gitlab.com/esektionen/projekt/ebrev)
+## [0.2.5] - 2021-11-29
+
+### Tillagt
+- `setUserPostEnd`-mutation för att sätta när personer går av sin post
+- `removeHistoryEntry`-mutation för att ta bort `HistoryEntry`s
+
+### Borttaget
+- `removeUserFromPost`-mutation för att ta bort en användare från alla `HistoryEntries` för en post
+
+### Ändrat
+- `start` anses nu som permanent för en `HistoryEntry`. Vill man ändra får man fan ta bort entrien.
+
+## [0.2.4]	- 2021-11-28
+
+### Tillagt
+- Lägger till `numberOfVolunteers` som beräknar antalet unika funktionärer
+- Lägger till tester för ovanstående
+
+### Ändrat
+- `period` inte längre än del av `Post`
+- `start` och `end` sparas nu som `TIMESTAMP` i `PostHistory`
 
 ## [0.2.3]	- 2021-11-27
 
