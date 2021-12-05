@@ -10,6 +10,11 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
  - Lägger till API för elections, se [!69](https://gitlab.com/esektionen/projekt/ekorre/-/merge_requests/69)
  - `notEmpty` util-filter
  
+## [0.2.6] - 2021-12-05
+
+### Tillagt
+- Mutation för att skicka mail med hjälp av [ebrev](https://gitlab.com/esektionen/projekt/ebrev)
+
 ## [0.2.5] - 2021-11-29
 
 ### Tillagt
