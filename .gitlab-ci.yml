@@ -58,7 +58,7 @@ tests:
     - apk add bash sqlite
     - ./test/utils/test-server-startup.sh
   script:
-    - npm test:ci
+    - npm run test:ci
   artifacts:
     paths:
       - coverage

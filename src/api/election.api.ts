@@ -79,7 +79,7 @@ export class ElectionAPI {
       .where('refelection', electionId)
       .where('refpost', postname);
 
-    validateNonEmptyArray(n, `Hittade inga nomineringar för mötet med ID ${electionId}`);
+    validateNonEmptyArray(n, `Hittade inga nomineringar för posten ${postname} för mötet med ID ${electionId}`);
 
     return n;
   }
@@ -407,14 +407,12 @@ export class ElectionAPI {
 
     const openElectionId = await this.getOpenElectionId();
 
-    const nominationRows: DatabaseNomination[] = postnames.map((postname) => {
-      return {
-        refelection: openElectionId,
-        refuser: username,
-        refpost: postname,
-        accepted: NominationAnswer.NoAnswer,
-      };
-    });
+    const nominationRows: DatabaseNomination[] = postnames.map((postname) => ({
+      refelection: openElectionId,
+      refuser: username,
+      refpost: postname,
+      accepted: NominationAnswer.NoAnswer,
+    }));
 
     const res = await knex<DatabaseNomination>(NOMINATION_TABLE).insert(nominationRows);
 

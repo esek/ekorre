@@ -7,6 +7,7 @@ import {
 import { ElectionAPI } from '../../src/api/election.api';
 import knex from '../../src/api/knex';
 import { NotFoundError } from '../../src/errors/RequestErrors';
+import { NominationAnswer } from '../../src/graphql.generated';
 import {
   DatabaseElectable,
   DatabaseElection,
@@ -141,30 +142,64 @@ test('get multiple meetings when none exists', async () => {
   );
 });
 
-test.todo('get nominations');
+test('getting nominations for post', async () => {
+  const electionId = await api.createElection('bb1111cc-s', ['Macapär', 'Teknokrat', 'Cophös'], false);
+  await api.openElection(electionId);
 
-test.todo('get nominations when none exists');
+  await expect(api.nominate('aa0000bb-s', ['Macapär', 'Cophös'])).resolves.toBeTruthy();
+  await expect(api.getNominations(electionId, 'Macapär')).resolves.toEqual([{
+    refelection: electionId,
+    refuser: 'aa0000bb-s',
+    refpost: 'Macapär',
+    accepted: NominationAnswer.NoAnswer,
+  }]);
+  await expect(api.getNominations(electionId, 'Teknokrat')).rejects.toThrowError(NotFoundError);
+});
 
-test.todo('get all nominations with specified answer');
+test.todo('getting nominations for post when none exists');
 
-test.todo('get all nominations without specified answer');
+test.todo('getting all nominations with specified answer');
 
-test.todo('get all nominations when none exists');
+test.todo('getting all nominations without specified answer');
 
-test.todo('get all nominations for user with specified answer');
+test.todo('getting all nominations when none exists');
 
-test.todo('get all nominations for user without specified answer');
+test.todo('getting all nominations for user with specified answer');
 
-test.todo('get all nominations for user when none exists');
+test.todo('getting all nominations for user without specified answer');
 
-test.todo('get number of nominations without postname');
+test.todo('getting all nominations for user when none exists');
 
-test.todo('get number of nominations with existing postname');
+test.todo('getting number of nominations without postname');
 
-test.todo('get number of nominations with nonexistant postname');
+test.todo('getting number of nominations with existing postname');
 
-test.todo('get number of proposals without postname');
+test.todo('getting number of nominations with nonexistant postname');
 
-test.todo('get number of proposals with existing postname');
+test.todo('getting number of proposals without postname');
 
-test.todo('get number of proposals with nonexistant postname');
+test.todo('getting number of proposals with existing postname');
+
+test.todo('getting number of proposals with nonexistant postname');
+
+test.todo('getting all proposals');
+
+test.todo('getting all proposals when none exists');
+
+test.todo('getting all electables');
+
+test.todo('getting all electables when none exists');
+
+test.todo('creating election with no previous elections');
+
+test.todo('creating election with created, but never opened, previous election');
+
+test.todo('creating election with previous created, opened, but not closed election');
+
+test.todo('creating election with previous created, opened and closed election');
+
+test.todo('creating election with no electables and hidden nominations');
+
+test.todo('creating election with valid electables and not hidden nominations');
+
+test.todo('creating election with invalid electables');
