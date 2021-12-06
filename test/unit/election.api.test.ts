@@ -6,7 +6,7 @@ import {
 } from '../../src/api/constants';
 import { ElectionAPI } from '../../src/api/election.api';
 import knex from '../../src/api/knex';
-import { NotFoundError } from '../../src/errors/RequestErrors';
+import { NotFoundError, ServerError } from '../../src/errors/RequestErrors';
 import { NominationAnswer } from '../../src/graphql.generated';
 import {
   DatabaseElectable,
@@ -151,14 +151,14 @@ test('getting nominations for post', async () => {
   await api.openElection(electionId);
 
   await expect(api.nominate('aa0000bb-s', ['Macapär', 'Cophös'])).resolves.toBeTruthy();
-  await expect(api.getNominations(electionId, 'Macapär')).resolves.toEqual([
+  await expect(api.getNominations(electionId, 'Macapär')).resolves.toEqual(expect.arrayContaining([
     {
       refelection: electionId,
       refuser: 'aa0000bb-s',
       refpost: 'Macapär',
       accepted: NominationAnswer.NoAnswer,
     },
-  ]);
+  ]));
   await expect(api.getNominations(electionId, 'Teknokrat')).rejects.toThrowError(NotFoundError);
 });
 
@@ -188,7 +188,7 @@ test('getting all nominations with specified answer', async () => {
   // Kontrollera svaret
   const nominations = await api.getAllNominations(electionId, NominationAnswer.Yes);
   expect(nominations).toHaveLength(2);
-  expect(nominations).toEqual([
+  expect(nominations).toEqual(expect.arrayContaining([
     {
       refelection: electionId,
       refuser: 'aa0000bb-s',
@@ -201,7 +201,7 @@ test('getting all nominations with specified answer', async () => {
       refpost: 'Teknokrat',
       accepted: NominationAnswer.Yes,
     },
-  ]);
+  ]));
 });
 
 test('getting all nominations without specified answer', async () => {
@@ -227,7 +227,7 @@ test('getting all nominations without specified answer', async () => {
   // Kontrollera svaret
   const nominations = await api.getAllNominations(electionId);
   expect(nominations).toHaveLength(3);
-  expect(nominations).toEqual([
+  expect(nominations).toEqual(expect.arrayContaining([
     {
       refelection: electionId,
       refuser: 'aa0000bb-s',
@@ -246,7 +246,7 @@ test('getting all nominations without specified answer', async () => {
       refpost: 'Teknokrat',
       accepted: NominationAnswer.NoAnswer,
     },
-  ]);
+  ]));
 });
 
 test('getting all nominations when none exists', async () => {
@@ -257,10 +257,10 @@ test('getting all nominations when none exists', async () => {
   );
   await api.openElection(electionId);
 
-  await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
+  await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
   await expect(
     api.getAllNominations(electionId, NominationAnswer.NoAnswer)
-  ).resolves.toHaveLength(0);
+  ).rejects.toThrowError(NotFoundError);
 });
 
 test('getting all nominations for user with specified answer', async () => {
@@ -293,14 +293,14 @@ test('getting all nominations for user with specified answer', async () => {
     NominationAnswer.Yes,
   );
   expect(nominations).toHaveLength(1);
-  expect(nominations).toEqual([
+  expect(nominations).toEqual(expect.arrayContaining([
     {
       refelection: electionId,
       refuser: 'aa0000bb-s',
       refpost: 'Macapär',
       accepted: NominationAnswer.Yes,
     },
-  ]);
+  ]));
 });
 
 test('getting all nominations for user without specified answer', async () => {
@@ -329,7 +329,7 @@ test('getting all nominations for user without specified answer', async () => {
   // Kontrollera svaret
   const nominations = await api.getAllNominationsForUser(electionId, 'aa0000bb-s');
   expect(nominations).toHaveLength(2);
-  expect(nominations).toEqual([
+  expect(nominations).toEqual(expect.arrayContaining([
     {
       refelection: electionId,
       refuser: 'aa0000bb-s',
@@ -340,12 +340,12 @@ test('getting all nominations for user without specified answer', async () => {
       refelection: electionId,
       refuser: 'aa0000bb-s',
       refpost: 'Cophös',
-      accepted: NominationAnswer.NoAnswer,
+      accepted: NominationAnswer.No,
     },
-  ]);
+  ]));
 });
 
-test.todo('getting all nominations for user when none exists', async () => {
+test('getting all nominations for user when none exists', async () => {
   const electionId = await api.createElection(
     'bb1111cc-s',
     ['Macapär', 'Teknokrat', 'Cophös'],
@@ -353,23 +353,45 @@ test.todo('getting all nominations for user when none exists', async () => {
   );
   await api.openElection(electionId);
 
-  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toHaveLength(0);
+  await expect(
+    api.getAllNominationsForUser(electionId, 'aa0000bb-s')
+  ).rejects.toThrowError(NotFoundError);
   await expect(
     api.getAllNominations(electionId, NominationAnswer.NoAnswer)
-  ).resolves.toHaveLength(0);
+  ).rejects.toThrowError(NotFoundError);
 });
 
-test.todo('getting number of nominations without postname');
+test('getting number of nominations', async () => {
+  const electionId = await api.createElection(
+    'aa0000bb-s',
+    ['Macapär', 'Teknokrat'],
+    false,
+  );
+  await api.openElection(electionId);
 
-test.todo('getting number of nominations with existing postname');
+  // Nominera lite folk
+  await expect(api.nominate('aa0000bb-s', ['Macapär', 'Cophös'])).resolves.toBeTruthy();
+  await expect(api.nominate('bb1111cc-s', ['Teknokrat'])).resolves.toBeTruthy();
 
-test.todo('getting number of nominations with nonexistant postname');
+  expect(await api.getNumberOfNominations(electionId)).toEqual(3);
+  expect(await api.getNumberOfNominations(electionId, 'Macapär')).toEqual(1);
+});
 
-test.todo('getting number of proposals without postname');
+test('getting number of proposals', async () => {
+  const electionId = await api.createElection(
+    'aa0000bb-s',
+    ['Macapär', 'Teknokrat'],
+    false,
+  );
+  await api.openElection(electionId);
 
-test.todo('getting number of proposals with existing postname');
+  // Nominera lite folk
+  await expect(api.propose(electionId, 'aa0000bb-s', 'Macapär')).resolves.toBeTruthy();
+  await expect(api.propose(electionId, 'bb1111cc-s', 'Teknokrat')).resolves.toBeTruthy();
 
-test.todo('getting number of proposals with nonexistant postname');
+  expect(await api.getNumberOfProposals(electionId)).toEqual(2);
+  expect(await api.getNumberOfProposals(electionId, 'Macapär')).toEqual(1);
+});
 
 test.todo('getting all proposals');
 
@@ -378,6 +400,8 @@ test.todo('getting all proposals when none exists');
 test.todo('getting all electables');
 
 test.todo('getting all electables when none exists');
+
+test.todo('creating election returns its ID');
 
 test.todo('creating election with no previous elections');
 
@@ -408,3 +432,45 @@ test.todo('removing valid electables from election');
 test.todo('removing mixed valid and non-valid electables from election');
 
 test.todo('removing empty list of electables from election');
+
+test.todo('setting hidden nominations');
+
+test.todo('setting hidden nominations on non-existant election');
+
+test.todo('opening non-existant election');
+
+test.todo('opening election');
+
+test.todo('opening already open election');
+
+test.todo('opening already closed election');
+
+test.todo('closing open election');
+
+test.todo('closing multiple elections');
+
+test.todo('nominating');
+
+test.todo('nominating already done nomination');
+
+test.todo('nominating non-existant user');
+
+test.todo('nominating without postnames');
+
+test.todo('nominating mixed valid and invalid postnames');
+
+test.todo('nominating with no open elections');
+
+test.todo('respond to nomination');
+
+test.todo('respond to non-existant nomination');
+
+test.todo('respond to valid nomination after election close');
+
+test.todo('proposing');
+
+test.todo('proposing non-existant user');
+
+test.todo('proposing non-existant post');
+
+test.todo('proposing non-existant election');

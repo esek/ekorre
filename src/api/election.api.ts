@@ -143,7 +143,8 @@ export class ElectionAPI {
 
   /**
    * Räknar antalet nomineringar för en post och ett möte. Om posten utelämnas returneras
-   * det totala antalet nomineringar.
+   * det totala antalet nomineringar. Svaret kan inte specificeras, då det lämnar ut för
+   * mycket information.
    * @param electionId ID på ett val
    * @param postname Namnet på posten
    * @returns Ett heltal (`number`)
