@@ -442,7 +442,7 @@ test('getting all electables when none exists', async () => {
 
 test('creating election returns its ID', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
-  const expectedElectionId = await api.getLatestElections(1);
+  const expectedElectionId = (await api.getLatestElections(1))[0]?.id;
   expect(electionId).toEqual(expectedElectionId);
 });
 
