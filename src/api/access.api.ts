@@ -126,7 +126,7 @@ export class AccessAPI {
     const query = knex<DatabaseAccess>(POST_ACCESS_TABLE)
       .whereIn('refname', posts)
       .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
-      .select('*', `${ACCESS_RESOURCES_TABLE}.description`);
+      .select<DatabaseJoinedAccess[]>('*', `${ACCESS_RESOURCES_TABLE}.description`);
 
     // Om inaktiva posters access inte ska inkluderas,
     // ta in `POSTS_TABLE` och se vilka som är aktiva
