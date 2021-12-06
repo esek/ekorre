@@ -249,13 +249,115 @@ test('getting all nominations without specified answer', async () => {
   ]);
 });
 
-test.todo('getting all nominations when none exists');
+test('getting all nominations when none exists', async () => {
+  const electionId = await api.createElection(
+    'bb1111cc-s',
+    ['Macapär', 'Teknokrat', 'Cophös'],
+    false,
+  );
+  await api.openElection(electionId);
 
-test.todo('getting all nominations for user with specified answer');
+  await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
+  await expect(
+    api.getAllNominations(electionId, NominationAnswer.NoAnswer)
+  ).resolves.toHaveLength(0);
+});
 
-test.todo('getting all nominations for user without specified answer');
+test('getting all nominations for user with specified answer', async () => {
+  const electionId = await api.createElection(
+    'bb1111cc-s',
+    ['Macapär', 'Teknokrat', 'Cophös'],
+    false,
+  );
+  await api.openElection(electionId);
 
-test.todo('getting all nominations for user when none exists');
+  // Nominera lite folk
+  await expect(api.nominate('aa0000bb-s', ['Macapär', 'Cophös'])).resolves.toBeTruthy();
+  await expect(api.nominate('bb1111cc-s', ['Teknokrat'])).resolves.toBeTruthy();
+
+  // Svara på nomineringarna
+  await expect(
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+  ).resolves.toBeTruthy();
+  await expect(
+    api.respondToNomination('aa0000bb-s', 'Cophös', NominationAnswer.No),
+  ).resolves.toBeTruthy();
+  await expect(
+    api.respondToNomination('bb1111cc-s', 'Teknokrat', NominationAnswer.Yes),
+  ).resolves.toBeTruthy();
+
+  // Kontrollera svaret
+  const nominations = await api.getAllNominationsForUser(
+    electionId,
+    'aa0000bb-s',
+    NominationAnswer.Yes,
+  );
+  expect(nominations).toHaveLength(1);
+  expect(nominations).toEqual([
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Macapär',
+      accepted: NominationAnswer.Yes,
+    },
+  ]);
+});
+
+test('getting all nominations for user without specified answer', async () => {
+  const electionId = await api.createElection(
+    'bb1111cc-s',
+    ['Macapär', 'Teknokrat', 'Cophös'],
+    false,
+  );
+  await api.openElection(electionId);
+
+  // Nominera lite folk
+  await expect(api.nominate('aa0000bb-s', ['Macapär', 'Cophös'])).resolves.toBeTruthy();
+  await expect(api.nominate('bb1111cc-s', ['Teknokrat'])).resolves.toBeTruthy();
+
+  // Svara på nomineringarna
+  await expect(
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+  ).resolves.toBeTruthy();
+  await expect(
+    api.respondToNomination('aa0000bb-s', 'Cophös', NominationAnswer.No),
+  ).resolves.toBeTruthy();
+  await expect(
+    api.respondToNomination('bb1111cc-s', 'Teknokrat', NominationAnswer.Yes),
+  ).resolves.toBeTruthy();
+
+  // Kontrollera svaret
+  const nominations = await api.getAllNominationsForUser(electionId, 'aa0000bb-s');
+  expect(nominations).toHaveLength(2);
+  expect(nominations).toEqual([
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Macapär',
+      accepted: NominationAnswer.Yes,
+    },
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Cophös',
+      accepted: NominationAnswer.NoAnswer,
+    },
+  ]);
+});
+
+test.todo('getting all nominations for user when none exists', async () => {
+  const electionId = await api.createElection(
+    'bb1111cc-s',
+    ['Macapär', 'Teknokrat', 'Cophös'],
+    false,
+  );
+  await api.openElection(electionId);
+
+  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toHaveLength(0);
+  await expect(
+    api.getAllNominations(electionId, NominationAnswer.NoAnswer)
+  ).resolves.toHaveLength(0);
+});
 
 test.todo('getting number of nominations without postname');
 
