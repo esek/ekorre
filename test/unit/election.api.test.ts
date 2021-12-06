@@ -125,7 +125,7 @@ test('getting open election', async () => {
   });
 });
 
-test('get multiple elections', async () => {
+test('getting multiple elections', async () => {
   await addDummyElections('aa0000bb-s', true, 3);
   const latestElections = await api.getLatestElections(3);
   const electionIds = latestElections.map((e) => e.id);
@@ -136,31 +136,118 @@ test('get multiple elections', async () => {
   expect(multipleElections).toEqual(expect.arrayContaining(latestElections));
 });
 
-test('get multiple meetings when none exists', async () => {
+test('getting multiple meetings when none exists', async () => {
   await expect(api.getMultipleElections(['1', '2', '69', '905393'])).rejects.toThrowError(
     NotFoundError,
   );
 });
 
 test('getting nominations for post', async () => {
-  const electionId = await api.createElection('bb1111cc-s', ['Macapär', 'Teknokrat', 'Cophös'], false);
+  const electionId = await api.createElection(
+    'bb1111cc-s',
+    ['Macapär', 'Teknokrat', 'Cophös'],
+    false,
+  );
   await api.openElection(electionId);
 
   await expect(api.nominate('aa0000bb-s', ['Macapär', 'Cophös'])).resolves.toBeTruthy();
-  await expect(api.getNominations(electionId, 'Macapär')).resolves.toEqual([{
-    refelection: electionId,
-    refuser: 'aa0000bb-s',
-    refpost: 'Macapär',
-    accepted: NominationAnswer.NoAnswer,
-  }]);
+  await expect(api.getNominations(electionId, 'Macapär')).resolves.toEqual([
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Macapär',
+      accepted: NominationAnswer.NoAnswer,
+    },
+  ]);
   await expect(api.getNominations(electionId, 'Teknokrat')).rejects.toThrowError(NotFoundError);
 });
 
-test.todo('getting nominations for post when none exists');
+test('getting all nominations with specified answer', async () => {
+  const electionId = await api.createElection(
+    'bb1111cc-s',
+    ['Macapär', 'Teknokrat', 'Cophös'],
+    false,
+  );
+  await api.openElection(electionId);
 
-test.todo('getting all nominations with specified answer');
+  // Nominera lite folk
+  await expect(api.nominate('aa0000bb-s', ['Macapär', 'Cophös'])).resolves.toBeTruthy();
+  await expect(api.nominate('bb1111cc-s', ['Teknokrat'])).resolves.toBeTruthy();
 
-test.todo('getting all nominations without specified answer');
+  // Svara på nomineringarna
+  await expect(
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+  ).resolves.toBeTruthy();
+  await expect(
+    api.respondToNomination('aa0000bb-s', 'Cophös', NominationAnswer.No),
+  ).resolves.toBeTruthy();
+  await expect(
+    api.respondToNomination('bb1111cc-s', 'Teknokrat', NominationAnswer.Yes),
+  ).resolves.toBeTruthy();
+
+  // Kontrollera svaret
+  const nominations = await api.getAllNominations(electionId, NominationAnswer.Yes);
+  expect(nominations).toHaveLength(2);
+  expect(nominations).toEqual([
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Macapär',
+      accepted: NominationAnswer.Yes,
+    },
+    {
+      refelection: electionId,
+      refuser: 'bb1111cc-s',
+      refpost: 'Teknokrat',
+      accepted: NominationAnswer.Yes,
+    },
+  ]);
+});
+
+test('getting all nominations without specified answer', async () => {
+  const electionId = await api.createElection(
+    'bb1111cc-s',
+    ['Macapär', 'Teknokrat', 'Cophös'],
+    false,
+  );
+  await api.openElection(electionId);
+
+  // Nominera lite folk
+  await expect(api.nominate('aa0000bb-s', ['Macapär', 'Cophös'])).resolves.toBeTruthy();
+  await expect(api.nominate('bb1111cc-s', ['Teknokrat'])).resolves.toBeTruthy();
+
+  // Svara på några av nomineringarna
+  await expect(
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+  ).resolves.toBeTruthy();
+  await expect(
+    api.respondToNomination('aa0000bb-s', 'Cophös', NominationAnswer.No),
+  ).resolves.toBeTruthy();
+
+  // Kontrollera svaret
+  const nominations = await api.getAllNominations(electionId);
+  expect(nominations).toHaveLength(3);
+  expect(nominations).toEqual([
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Macapär',
+      accepted: NominationAnswer.Yes,
+    },
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Cophös',
+      accepted: NominationAnswer.No,
+    },
+    {
+      refelection: electionId,
+      refuser: 'bb1111cc-s',
+      refpost: 'Teknokrat',
+      accepted: NominationAnswer.NoAnswer,
+    },
+  ]);
+});
 
 test.todo('getting all nominations when none exists');
 
@@ -203,3 +290,19 @@ test.todo('creating election with no electables and hidden nominations');
 test.todo('creating election with valid electables and not hidden nominations');
 
 test.todo('creating election with invalid electables');
+
+test.todo('adding valid electables to non-existant election');
+
+test.todo('adding valid electables to election');
+
+test.todo('adding mixed valid and non-valid electables to election');
+
+test.todo('adding empty list of electables to election');
+
+test.todo('removing valid electables from non-existant election');
+
+test.todo('removing valid electables from election');
+
+test.todo('removing mixed valid and non-valid electables from election');
+
+test.todo('removing empty list of electables from election');

@@ -79,7 +79,10 @@ export class ElectionAPI {
       .where('refelection', electionId)
       .where('refpost', postname);
 
-    validateNonEmptyArray(n, `Hittade inga nomineringar för posten ${postname} för mötet med ID ${electionId}`);
+    validateNonEmptyArray(
+      n,
+      `Hittade inga nomineringar för posten ${postname} för mötet med ID ${electionId}`,
+    );
 
     return n;
   }
@@ -299,10 +302,11 @@ export class ElectionAPI {
     const electableRows: DatabaseElectable[] = postnames.map((postname) => {
       return { refelection: electionId, refpost: postname };
     });
-    const [affectedColoumns] = await knex(ELECTABLE_TABLE).insert(electableRows);
 
-    if (affectedColoumns !== electableRows.length * 2) {
-      logger.debug(`Could not insert all electables for election with ID ${electionId}`);
+    try {
+      await knex(ELECTABLE_TABLE).insert(electableRows);
+    } catch (err) {
+      logger.debug(`Could not insert all electables for election with ID ${electionId} due to error\n\t${JSON.stringify(err)}`);
       throw new ServerError('Kunde inte lägga till alla valbara poster');
     }
 
@@ -414,10 +418,14 @@ export class ElectionAPI {
       accepted: NominationAnswer.NoAnswer,
     }));
 
-    const res = await knex<DatabaseNomination>(NOMINATION_TABLE).insert(nominationRows);
-
-    if (res[0] !== nominationRows.length) {
-      logger.debug(`Could not insert all nominations for election with ID ${openElectionId}`);
+    try {
+      await knex<DatabaseNomination>(NOMINATION_TABLE).insert(nominationRows);
+    } catch (err) {
+      logger.debug(
+        `Could not insert all nominations for election with ID ${openElectionId} due to error:\n\t${JSON.stringify(
+          err,
+        )}`,
+      );
       throw new ServerError('Kunde inte nominera till alla poster');
     }
 
