@@ -6,7 +6,7 @@ import {
 } from '../../src/api/constants';
 import { ElectionAPI } from '../../src/api/election.api';
 import knex from '../../src/api/knex';
-import { NotFoundError, ServerError } from '../../src/errors/RequestErrors';
+import { BadRequestError, NotFoundError, ServerError } from '../../src/errors/RequestErrors';
 import { NominationAnswer } from '../../src/graphql.generated';
 import {
   DatabaseElectable,
@@ -442,25 +442,74 @@ test('getting all electables when none exists', async () => {
 
 test('creating election returns its ID', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
-  const expectedElectionId = (await api.getLatestElections(1))[0]?.id;
+  const expectedElectionId = (await api.getLatestElections(1))[0].id;
   expect(electionId).toEqual(expectedElectionId);
 });
 
-test.todo('creating election with no previous elections');
+test('creating election with created, but never opened, previous election', async () => {
+  await api.createElection('aa0000bb-s', [], false);
+  await expect(api.createElection('bb1111cc-s', [], false)).rejects.toThrowError(BadRequestError);
 
-test.todo('creating election with created, but never opened, previous election');
+  // Vi vill se till att ett nytt val faktiskt inte skapades
+  expect((await api.getLatestElections(1))[0]).toMatchObject({
+    refcreator: 'aa0000bb-s'
+  });
+});
 
-test.todo('creating election with previous created, opened, but not closed election');
+test('creating election with previous created, opened, but not closed election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await api.openElection(electionId);
+  await expect(api.createElection('bb1111cc-s', [], false)).rejects.toThrowError(BadRequestError);
 
-test.todo('creating election with previous created, opened and closed election');
+  // Vi vill se till att ett nytt val faktiskt inte skapades
+  expect((await api.getLatestElections(1))[0]).toMatchObject({
+    refcreator: 'aa0000bb-s'
+  });
+});
 
-test.todo('creating election with no electables and hidden nominations');
+test('creating election with previous created, opened and closed election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await api.openElection(electionId);
+  await api.closeElection();
 
-test.todo('creating election with valid electables and not hidden nominations');
+  // Vårt nya val borde ha förra ID:t + 1
+  await expect(
+    api.createElection('bb1111cc-s', [], false)
+  ).resolves.toEqual((Number.parseInt(electionId, 10) ?? -20) + 1);
 
-test.todo('creating election with invalid electables');
+  // Vi vill se till att ett nytt val faktiskt inte skapades
+  expect((await api.getLatestElections(1))[0]).toMatchObject({
+    refcreator: 'bb1111cc-s'
+  });
+});
 
-test.todo('creating election with mixed valid and invalid electables');
+test('creating election with invalid electables', async () => {
+  await expect(api.createElection('aa0000bb-s', ['Not a post', 'Neither is this'], true)).rejects.toThrowError(ServerError);
+  
+  // Om valet inte skapades är detta `undefined`
+  const election = (await api.getLatestElections(1))[0];
+
+  // Vi försäkrar oss om att valet skapades, men att
+  // electables inte lades till
+  expect(election).toMatchObject({
+    refcreator: 'aa0000bb-s',
+  });
+  await expect(api.getAllElectables(election.id)).rejects.toThrowError(NotFoundError);
+});
+
+test('creating election with mixed valid and invalid electables', async () => {
+  await expect(api.createElection('aa0000bb-s', ['Not a post', 'Macapär'], true)).rejects.toThrowError(ServerError);
+  
+  // Om valet inte skapades är detta `undefined`
+  const election = (await api.getLatestElections(1))[0];
+
+  // Vi försäkrar oss om att valet skapades, men att
+  // bara giltiga electables lades till
+  expect(election).toMatchObject({
+    refcreator: 'aa0000bb-s',
+  });
+  await expect(api.getAllElectables(election.id)).rejects.toThrowError(NotFoundError);
+});
 
 test.todo('adding valid electables to non-existant election');
 

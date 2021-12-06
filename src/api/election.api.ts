@@ -273,16 +273,15 @@ export class ElectionAPI {
       const electableRows: DatabaseElectable[] = electables.map((e) => {
         return { refelection: electionId, refpost: e };
       });
-      const res = await knex(ELECTABLE_TABLE).insert(electableRows);
 
-      // Vi vill ju ha lagt till lika många rader som det finns poster
-      // i electables
-      if (res[0] !== electables.length) {
+      try {
+        await knex(ELECTABLE_TABLE).insert(electableRows);
+      } catch (err) {
         logger.debug(
-          `Could not insert all electables when creating election with ID ${electionId}`,
+          `Could not insert electables when creating election with ID ${electionId} due to error:\n\t${JSON.stringify(err)}`,
         );
         throw new ServerError(
-          'Kunde inte lägga till alla valbara poster. Försök lägga till dessa manuellt',
+          'Kunde inte lägga till valbara poster. Försök lägga till dessa manuellt',
         );
       }
     }
