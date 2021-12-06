@@ -124,9 +124,22 @@ test('getting open election', async () => {
   });
 });
 
-test.todo('get multiple elections');
+test('get multiple elections', async () => {
+  await addDummyElections('aa0000bb-s', true, 3);
+  const latestElections = await api.getLatestElections(3);
+  const electionIds = latestElections.map((e) => e.id);
+  const multipleElections = await api.getMultipleElections(electionIds);
+  expect(latestElections.length).toEqual(multipleElections.length);
 
-test.todo('get multiple meetings when none exists');
+  // Kolla att intehållet är samma
+  expect(multipleElections).toEqual(expect.arrayContaining(latestElections));
+});
+
+test('get multiple meetings when none exists', async () => {
+  await expect(api.getMultipleElections(['1', '2', '69', '905393'])).rejects.toThrowError(
+    NotFoundError,
+  );
+});
 
 test.todo('get nominations');
 

@@ -13,7 +13,8 @@
     "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" \"test/**/*.ts\" --write",
     "lint": "eslint src",
     "lint:test": "eslint test",
-    "test": "jest test/unit test/integration && jest test/regression --coverage=false",
+    "test": "jest",
+    "test:ci": "jest test/unit test/integration && jest test/regression --coverage=false",
     "test:unit": "jest test/unit",
     "test:regression": "jest test/regression",
     "test:integration": "jest test/integration"

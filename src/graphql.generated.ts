@@ -224,7 +224,7 @@ export type Mutation = {
   casCreateUser: Scalars['Boolean'];
   casLogin: CasLoginResponse;
   closeElection: Scalars['Boolean'];
-  createElection: Scalars['Boolean'];
+  createElection: Scalars['ID'];
   createFolder: Scalars['Boolean'];
   createUser: Scalars['Boolean'];
   deactivatePost: Scalars['Boolean'];
@@ -1289,7 +1289,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  createElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
+  createElection?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'postname'>>;

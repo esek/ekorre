@@ -60,7 +60,7 @@ export class ElectionAPI {
   async getMultipleElections(
     electionIds: string[] | readonly string[],
   ): Promise<DatabaseElection[]> {
-    const e = await knex<DatabaseElection>(ELECTABLE_TABLE).whereIn('id', electionIds);
+    const e = await knex<DatabaseElection>(ELECTION_TABLE).whereIn('id', electionIds);
 
     validateNonEmptyArray(e, 'Hittade inte något möte alls');
 
@@ -233,12 +233,13 @@ export class ElectionAPI {
    * @param creatorUsername Användarnamnet på skaparen av valet
    * @param electables En lista med postnamn
    * @param nominationsHidden Om nomineringar ska vara dolda för alla utom den som blivit nominerad och valadmin
+   * @returns `electionId` hos skapade mötet
    */
   async createElection(
     creatorUsername: string,
     electables: string[],
     nominationsHidden: boolean,
-  ): Promise<boolean> {
+  ): Promise<string> {
     // Vi försäkrar oss om att det senaste valet är stängt
     const lastElection = (await this.getLatestElections(1))[0];
     if (lastElection == null) {
@@ -282,7 +283,7 @@ export class ElectionAPI {
       }
     }
 
-    return true;
+    return electionId;
   }
 
   /**
