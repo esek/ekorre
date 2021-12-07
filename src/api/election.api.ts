@@ -419,7 +419,13 @@ export class ElectionAPI {
     }));
 
     try {
-      await knex<DatabaseNomination>(NOMINATION_TABLE).insert(nominationRows);
+      // Om nomineringen redan finns, ignorera den
+      // utan att ge error för att inte avslöja
+      // vad som finns i databasen redan
+      await knex<DatabaseNomination>(NOMINATION_TABLE)
+        .insert(nominationRows)
+        .onConflict(['refelection', 'refuser', 'refpost'])
+        .ignore();
     } catch (err) {
       logger.debug(
         `Could not insert all nominations for election with ID ${openElectionId} due to error:\n\t${JSON.stringify(

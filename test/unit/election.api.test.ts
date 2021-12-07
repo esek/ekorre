@@ -641,27 +641,86 @@ test('opening election', async () => {
   // Kontrollera att vi faktiskt öppnade valet
   expect(election.openedAt).not.toBeNull();
   expect(election.open).toBeTruthy();
-
-  // Kontrollera att vi inte kan öppna det igen
-  await expect(api.openElection(electionId)).rejects.toThrowError(BadRequestError);
-
-  // Vi ska inte ha påverkat valet
-  [election] = await api.getMultipleElections([electionId]);
-
-  // Kontrollera att vi faktiskt öppnade valet
-  expect(election.openedAt).not.toBeNull();
-  expect(election.open).toBeTruthy();
 });
 
-test.todo('opening already closed election');
+test('opening already closed election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await expect(api.openElection(electionId)).resolves.toBeTruthy();
+  let [election] = await api.getMultipleElections([electionId]);
+  expect(election.open).toBeTruthy();
 
-test.todo('closing open election');
+  await expect(api.closeElection()).resolves.toBeTruthy();
+  [election] = await api.getMultipleElections([electionId]);
+  expect(election.open).toBeFalsy();
 
-test.todo('closing multiple elections');
+  // Vi ska inte kunna öppna ett redan stängt val
+  await expect(api.openElection(electionId)).rejects.toThrowError(BadRequestError);
 
-test.todo('nominating');
+  // Kontrollera att det inte öppnades
+  [election] = await api.getMultipleElections([electionId]);
+  expect(election.open).toBeFalsy();
+});
 
-test.todo('nominating already done nomination');
+test('closing multiple elections', async () => {
+  // Vi ska egentligen inte ha flera möten
+  // öppna samtidigt, men har någon fuckat med databasen
+  // ska man kunna stänga alla och få en varning
+  await knex<DatabaseElection>(ELECTION_TABLE).insert([
+    {
+      refcreator: 'aa0000bb-s',
+      openedAt: Date.now() + 100,
+      open: true,
+    },
+    {
+      refcreator: 'bb1111cc-s',
+      openedAt: Date.now() + 300,
+      open: true,
+    },
+  ]);
+  await expect(api.closeElection()).rejects.toThrowError(ServerError);
+});
+
+test('nominating already done nomination does not overwrite answer', async () => {
+  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
+  await expect(api.openElection(electionId)).resolves.toBeTruthy();
+  await expect(api.nominate('aa0000bb-s', ['Macapär', 'Teknokrat'])).resolves.toBeTruthy();
+
+  // Kontrollera att nomineringarna lades in rätt
+  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toEqual(expect.arrayContaining([
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Macapär',
+      accepted: NominationAnswer.NoAnswer,
+    },
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Teknokrat',
+      accepted: NominationAnswer.NoAnswer,
+    }
+  ]));
+
+  // Svara på nomineringen
+  await expect(api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes)).resolves.toBeTruthy();
+  
+  // Försöker nominera igen, borde ignoreras
+  await expect(api.nominate('aa0000bb-s', ['Macapär', 'Teknokrat'])).resolves.toBeTruthy();
+  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toEqual(expect.arrayContaining([
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Macapär',
+      accepted: NominationAnswer.Yes,
+    },
+    {
+      refelection: electionId,
+      refuser: 'aa0000bb-s',
+      refpost: 'Teknokrat',
+      accepted: NominationAnswer.NoAnswer,
+    }
+  ]));
+});
 
 test.todo('nominating non-electable post');
 
