@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/indent */
 import { NotFoundError, BadRequestError, ServerError } from '../errors/RequestErrors';
 import { NominationAnswer } from '../graphql.generated';
 import { Logger } from '../logger';
@@ -76,11 +77,14 @@ export class ElectionAPI {
    * @throws `NotFoundError`
    */
   async getNominations(electionId: string, postname: string): Promise<DatabaseNomination[]> {
+    // prettier-ignore
     const n = await knex<DatabaseNomination>(NOMINATION_TABLE)
       .leftJoin<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
-      q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`)
-        .andOn(`${ELECTABLE_TABLE}.refpost`, `${NOMINATION_TABLE}.refpost`);
-    })
+        q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
+          `${ELECTABLE_TABLE}.refpost`,
+          `${NOMINATION_TABLE}.refpost`,
+        );
+      })
       .where(`${NOMINATION_TABLE}.refelection`, electionId)
       .where(`${NOMINATION_TABLE}.refpost`, postname);
 
@@ -105,11 +109,15 @@ export class ElectionAPI {
     electionId: string,
     answer?: NominationAnswer,
   ): Promise<DatabaseNomination[]> {
+    // prettier-ignore
     const query = knex<DatabaseNomination>(NOMINATION_TABLE)
       .join<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
-      q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`)
-        .andOn(`${ELECTABLE_TABLE}.refpost`, `${NOMINATION_TABLE}.refpost`);
-    }).where(`${NOMINATION_TABLE}.refelection`, electionId);
+      q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
+        `${ELECTABLE_TABLE}.refpost`,
+        `${NOMINATION_TABLE}.refpost`,
+      );
+    })
+      .where(`${NOMINATION_TABLE}.refelection`, electionId);
 
     if (answer != null) {
       query.where('accepted', answer);
@@ -136,7 +144,9 @@ export class ElectionAPI {
     username: string,
     answer?: NominationAnswer,
   ): Promise<DatabaseNomination[]> {
-    const query = knex<DatabaseNomination>(NOMINATION_TABLE).join<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
+    // prettier-ignore
+    const query = knex<DatabaseNomination>(NOMINATION_TABLE)
+      .join<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
       q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
         `${ELECTABLE_TABLE}.refpost`,
         `${NOMINATION_TABLE}.refpost`,
@@ -167,14 +177,15 @@ export class ElectionAPI {
    * @returns Ett heltal (`number`)
    */
   async getNumberOfNominations(electionId: string, postname?: string): Promise<number> {
+    // prettier-ignore
     const query = knex(NOMINATION_TABLE)
-      .leftJoin<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
+      .leftJoin<DatabaseElectable>(ELECTABLE_TABLE, (q) => {// eslint-disable indent
       q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
         `${ELECTABLE_TABLE}.refpost`,
         `${NOMINATION_TABLE}.refpost`,
       );
     })
-      .where( `${NOMINATION_TABLE}.refelection`, electionId)
+      .where(`${NOMINATION_TABLE}.refelection`, electionId)
       .count<Record<string, number>>(`${ELECTABLE_TABLE}.refelection AS count`);
 
     if (postname != null) {

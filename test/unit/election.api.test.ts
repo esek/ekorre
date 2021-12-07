@@ -177,7 +177,9 @@ test('nominations for non-electables are hidden', async () => {
   await expect(api.getNumberOfNominations(electionId)).resolves.toEqual(0);
   await expect(api.getNumberOfNominations(electionId, 'Macapär')).resolves.toEqual(0);
   await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
-  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).rejects.toThrowError(
+    NotFoundError,
+  );
 });
 
 test('getting all nominations with specified answer', async () => {
@@ -388,7 +390,11 @@ test('getting all nominations for user when none exists', async () => {
 });
 
 test('getting number of nominations', async () => {
-  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat', 'Cophös'], false);
+  const electionId = await api.createElection(
+    'aa0000bb-s',
+    ['Macapär', 'Teknokrat', 'Cophös'],
+    false,
+  );
   await api.openElection(electionId);
 
   // Nominera lite folk
@@ -597,14 +603,20 @@ test('removing valid electables from election', async () => {
 });
 
 test('removing mixed valid and non-valid electables from election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat', 'Cophös'], false);
-  
+  const electionId = await api.createElection(
+    'aa0000bb-s',
+    ['Macapär', 'Teknokrat', 'Cophös'],
+    false,
+  );
+
   await expect(api.getAllElectables(electionId)).resolves.toEqual(
     expect.arrayContaining(['Macapär', 'Teknokrat', 'Cophös']),
   );
 
-  await expect(api.removeElectables(electionId, ['Macapär', 'Not an electable'])).rejects.toThrowError(ServerError);
-  
+  await expect(
+    api.removeElectables(electionId, ['Macapär', 'Not an electable']),
+  ).rejects.toThrowError(ServerError);
+
   // Kontrollera att Macapär trots allt togs bort
   const electablesLeft = await api.getAllElectables(electionId);
   expect(electablesLeft).toHaveLength(2);
@@ -702,40 +714,46 @@ test('nominating already done nomination does not overwrite answer', async () =>
   await expect(api.nominate('aa0000bb-s', ['Macapär', 'Teknokrat'])).resolves.toBeTruthy();
 
   // Kontrollera att nomineringarna lades in rätt
-  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toEqual(expect.arrayContaining([
-    {
-      refelection: electionId,
-      refuser: 'aa0000bb-s',
-      refpost: 'Macapär',
-      accepted: NominationAnswer.NoAnswer,
-    },
-    {
-      refelection: electionId,
-      refuser: 'aa0000bb-s',
-      refpost: 'Teknokrat',
-      accepted: NominationAnswer.NoAnswer,
-    }
-  ]));
+  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toEqual(
+    expect.arrayContaining([
+      {
+        refelection: electionId,
+        refuser: 'aa0000bb-s',
+        refpost: 'Macapär',
+        accepted: NominationAnswer.NoAnswer,
+      },
+      {
+        refelection: electionId,
+        refuser: 'aa0000bb-s',
+        refpost: 'Teknokrat',
+        accepted: NominationAnswer.NoAnswer,
+      },
+    ]),
+  );
 
   // Svara på nomineringen
-  await expect(api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes)).resolves.toBeTruthy();
-  
+  await expect(
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+  ).resolves.toBeTruthy();
+
   // Försöker nominera igen, borde ignoreras
   await expect(api.nominate('aa0000bb-s', ['Macapär', 'Teknokrat'])).resolves.toBeTruthy();
-  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toEqual(expect.arrayContaining([
-    {
-      refelection: electionId,
-      refuser: 'aa0000bb-s',
-      refpost: 'Macapär',
-      accepted: NominationAnswer.Yes,
-    },
-    {
-      refelection: electionId,
-      refuser: 'aa0000bb-s',
-      refpost: 'Teknokrat',
-      accepted: NominationAnswer.NoAnswer,
-    }
-  ]));
+  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toEqual(
+    expect.arrayContaining([
+      {
+        refelection: electionId,
+        refuser: 'aa0000bb-s',
+        refpost: 'Macapär',
+        accepted: NominationAnswer.Yes,
+      },
+      {
+        refelection: electionId,
+        refuser: 'aa0000bb-s',
+        refpost: 'Teknokrat',
+        accepted: NominationAnswer.NoAnswer,
+      },
+    ]),
+  );
 });
 
 test.todo('nominating non-electable post');
