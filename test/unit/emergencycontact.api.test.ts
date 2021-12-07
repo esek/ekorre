@@ -60,7 +60,7 @@ test('add emergency contact to user that does not exist', async () => {
       DUMMMY_DAD.phone,
       DUMMMY_DAD.type,
     ),
-  ).rejects.toThrow();
+  ).rejects.toThrow(ServerError);
 });
 
 test('get all emergency contacts', async () => {
@@ -83,10 +83,14 @@ test('remove emergency contact that does exist', async () => {
   );
 
   if (!contact) {
-    fail();
+    throw new Error();
   }
 
   await expect(
     emergencyContactApi.removeEmergencyContact(DUMMY_USER.username, contact.id),
   ).resolves.toBe(true);
+
+  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).rejects.toThrow(
+    NotFoundError,
+  );
 });

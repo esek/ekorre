@@ -1,9 +1,12 @@
 import { ServerError } from '../errors/RequestErrors';
 import { EmergencyContactType } from '../graphql.generated';
+import { Logger } from '../logger';
 import { DatabaseEmergencyContact } from '../models/db/emergencycontact';
 import { validateNonEmptyArray } from '../services/validation.service';
 import { EMERGENCY_CONTACTS_TABLE } from './constants';
 import knex from './knex';
+
+const logger = Logger.getLogger('EmergencyContactApi');
 
 class EmergencyContactAPI {
   async getEmergencyContacts(username: string): Promise<DatabaseEmergencyContact[]> {
@@ -23,18 +26,19 @@ class EmergencyContactAPI {
     phone: string,
     type: EmergencyContactType,
   ): Promise<boolean> {
-    const added = await knex<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).insert({
-      name,
-      phone,
-      type,
-      refuser: username,
-    });
+    try {
+      await knex<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).insert({
+        name,
+        phone,
+        type,
+        refuser: username,
+      });
 
-    if (added[0] < 1) {
-      throw new ServerError('Kunde inte lägga till nödkontakten');
+      return true;
+    } catch (err) {
+      logger.error(`Emergency contact could not be created: ${JSON.stringify(err)}`);
+      throw new ServerError('Kunde inte lägga till nödkontakt');
     }
-
-    return true;
   }
 
   async removeEmergencyContact(username: string, id: number): Promise<boolean> {
