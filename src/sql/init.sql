@@ -184,4 +184,13 @@ INSERT INTO Meetings (type, number, year, refsummons) VALUES ('VM', 1, 2020, '09
 INSERT INTO Meetings (type, number, year) VALUES ('SM', 1, 1962);
 INSERT INTO Meetings (type, number, year) VALUES ('Extra', 1, 2050);
 
+CREATE TABLE IF NOT EXISTS "EmergencyContacts" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "phone" TEXT NOT NULL,
+	"refuser" TEXT NOT NULL,
+  FOREIGN KEY("refuser") REFERENCES "Users"("username")
+);
+
 END TRANSACTION;

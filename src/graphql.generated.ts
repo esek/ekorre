@@ -81,6 +81,22 @@ export type CasLoginResponse = {
 
 
 
+export type EmergencyContact = {
+  id: Scalars['Int'];
+  name: Scalars['String'];
+  phone: Scalars['String'];
+  type: EmergencyContactType;
+};
+
+export enum EmergencyContactType {
+  Dad = 'DAD',
+  Mom = 'MOM',
+  SignificantOther = 'SIGNIFICANT_OTHER',
+  Brother = 'BROTHER',
+  Sister = 'SISTER',
+  Other = 'OTHER'
+}
+
 export type File = {
   accessType: AccessType;
   createdAt: Scalars['DateTime'];
@@ -200,6 +216,7 @@ export type Mutation = {
   activatePost: Scalars['Boolean'];
   addAccessResource: Scalars['Boolean'];
   addArticle?: Maybe<Article>;
+  addEmergencyContact: Scalars['Boolean'];
   addFileToMeeting: Scalars['Boolean'];
   addMeeting: Scalars['Boolean'];
   addPost: Scalars['Boolean'];
@@ -216,6 +233,7 @@ export type Mutation = {
   modifyArticle: Scalars['Boolean'];
   modifyPost: Scalars['Boolean'];
   removeAccessResource: Scalars['Boolean'];
+  removeEmergencyContact: Scalars['Boolean'];
   removeFileFromMeeting: Scalars['Boolean'];
   removeHistoryEntry: Scalars['Boolean'];
   removeMeeting: Scalars['Boolean'];
@@ -246,6 +264,13 @@ export type MutationAddAccessResourceArgs = {
 
 export type MutationAddArticleArgs = {
   entry: NewArticle;
+};
+
+
+export type MutationAddEmergencyContactArgs = {
+  name: Scalars['String'];
+  phone: Scalars['String'];
+  type: EmergencyContactType;
 };
 
 
@@ -327,6 +352,11 @@ export type MutationModifyPostArgs = {
 
 export type MutationRemoveAccessResourceArgs = {
   slug: Scalars['String'];
+};
+
+
+export type MutationRemoveEmergencyContactArgs = {
+  id: Scalars['Int'];
 };
 
 
@@ -475,6 +505,7 @@ export type Query = {
   accessResources: Array<AccessResource>;
   article?: Maybe<Article>;
   articles: Array<Maybe<Article>>;
+  emergencyContacts: Array<EmergencyContact>;
   file: File;
   fileSystem: FileSystemResponse;
   files: Array<File>;
@@ -533,6 +564,11 @@ export type QueryArticlesArgs = {
   signature?: Maybe<Scalars['String']>;
   tags?: Maybe<Array<Maybe<Scalars['String']>>>;
   title?: Maybe<Scalars['String']>;
+};
+
+
+export type QueryEmergencyContactsArgs = {
+  username: Scalars['String'];
 };
 
 
@@ -800,6 +836,8 @@ export type ResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
+  EmergencyContact: ResolverTypeWrapper<EmergencyContact>;
+  EmergencyContactType: EmergencyContactType;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
@@ -843,6 +881,7 @@ export type ResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean'];
   Date: Scalars['Date'];
   DateTime: Scalars['DateTime'];
+  EmergencyContact: EmergencyContact;
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
@@ -923,6 +962,14 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
   name: 'DateTime';
 }
 
+export type EmergencyContactResolvers<ContextType = Context, ParentType extends ResolversParentTypes['EmergencyContact'] = ResolversParentTypes['EmergencyContact']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['EmergencyContactType'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type FileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = ResolversObject<{
   accessType?: Resolver<ResolversTypes['AccessType'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
@@ -986,6 +1033,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   activatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationActivatePostArgs, 'postname'>>;
   addAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddAccessResourceArgs, 'name' | 'description' | 'resourceType' | 'slug'>>;
   addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
+  addEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddEmergencyContactArgs, 'name' | 'phone' | 'type'>>;
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'fileId' | 'fileType' | 'meetingId'>>;
   addMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
@@ -1001,6 +1049,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
   removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'slug'>>;
+  removeEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveEmergencyContactArgs, 'id'>>;
   removeFileFromMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveFileFromMeetingArgs, 'fileType' | 'meetingId'>>;
   removeHistoryEntry?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHistoryEntryArgs, 'postname' | 'start' | 'username'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
@@ -1038,6 +1087,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   accessResources?: Resolver<Array<ResolversTypes['AccessResource']>, ParentType, ContextType, RequireFields<QueryAccessResourcesArgs, never>>;
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
+  emergencyContacts?: Resolver<Array<ResolversTypes['EmergencyContact']>, ParentType, ContextType, RequireFields<QueryEmergencyContactsArgs, 'username'>>;
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
@@ -1095,6 +1145,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
+  EmergencyContact?: EmergencyContactResolvers<ContextType>;
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;
