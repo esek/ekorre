@@ -629,9 +629,29 @@ test('opening non-existant election', async () => {
   await expect(api.openElection('Not an election ID')).rejects.toThrowError(BadRequestError);
 });
 
-test.todo('opening election');
+test('opening election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  let [election] = await api.getMultipleElections([electionId]);
+  expect(election.openedAt).toBeNull();
+  expect(election.open).toBeFalsy();
 
-test.todo('opening already open election');
+  await expect(api.openElection(electionId)).resolves.toBeTruthy();
+  [election] = await api.getMultipleElections([electionId]);
+
+  // Kontrollera att vi faktiskt öppnade valet
+  expect(election.openedAt).not.toBeNull();
+  expect(election.open).toBeTruthy();
+
+  // Kontrollera att vi inte kan öppna det igen
+  await expect(api.openElection(electionId)).rejects.toThrowError(BadRequestError);
+
+  // Vi ska inte ha påverkat valet
+  [election] = await api.getMultipleElections([electionId]);
+
+  // Kontrollera att vi faktiskt öppnade valet
+  expect(election.openedAt).not.toBeNull();
+  expect(election.open).toBeTruthy();
+});
 
 test.todo('opening already closed election');
 
