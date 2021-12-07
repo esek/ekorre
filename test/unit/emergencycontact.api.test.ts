@@ -64,23 +64,29 @@ test('add emergency contact to user that does not exist', async () => {
 });
 
 test('get all emergency contacts', async () => {
-  expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(1);
+  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(
+    1,
+  );
 });
 
 test('remove emergency contact that does not exist', async () => {
-  expect(emergencyContactApi.removeEmergencyContact(DUMMY_USER.username, 99999)).rejects.toThrow(
-    ServerError,
-  );
+  await expect(
+    emergencyContactApi.removeEmergencyContact(DUMMY_USER.username, 99999),
+  ).rejects.toThrow(ServerError);
 });
 
 test('remove emergency contact that does exist', async () => {
   // Get the ID of the user contact created
   const contacts = await emergencyContactApi.getEmergencyContacts(DUMMY_USER.username);
-  const c = contacts.find((c) => c.refuser == DUMMY_USER.username && c.name === DUMMMY_DAD.name);
+  const contact = contacts.find(
+    (c) => c.refuser === DUMMY_USER.username && c.name === DUMMMY_DAD.name,
+  );
 
-  if (!c) {
+  if (!contact) {
     fail();
   }
 
-  expect(emergencyContactApi.removeEmergencyContact(DUMMY_USER.username, c.id)).resolves.toBe(true);
+  await expect(
+    emergencyContactApi.removeEmergencyContact(DUMMY_USER.username, contact.id),
+  ).resolves.toBe(true);
 });
