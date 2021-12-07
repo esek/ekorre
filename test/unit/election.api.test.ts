@@ -164,6 +164,22 @@ test('getting nominations for post', async () => {
   await expect(api.getNominations(electionId, 'Teknokrat')).rejects.toThrowError(NotFoundError);
 });
 
+test('nominations for non-electables are hidden', async () => {
+  const electionId = await api.createElection('bb1111cc-s', [], false);
+  await knex<DatabaseNomination>(NOMINATION_TABLE).insert({
+    refelection: electionId,
+    refuser: 'aa0000bb-s',
+    refpost: 'Macapär', // Valid post, men inte electable
+    accepted: NominationAnswer.NoAnswer,
+  });
+
+  // Denna nominering borde aldrig synas!
+  await expect(api.getNumberOfNominations(electionId)).resolves.toEqual(0);
+  await expect(api.getNumberOfNominations(electionId, 'Macapär')).resolves.toEqual(0);
+  await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).rejects.toThrowError(NotFoundError);
+});
+
 test('getting all nominations with specified answer', async () => {
   const electionId = await api.createElection(
     'bb1111cc-s',
@@ -372,7 +388,7 @@ test('getting all nominations for user when none exists', async () => {
 });
 
 test('getting number of nominations', async () => {
-  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
+  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat', 'Cophös'], false);
   await api.openElection(electionId);
 
   // Nominera lite folk

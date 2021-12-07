@@ -68,7 +68,8 @@ export class ElectionAPI {
   }
 
   /**
-   * Returnerar alla nomineringar för posten och valet.
+   * Returnerar alla nomineringar för posten och valet, men bara
+   * poster man kan nomineras till.
    * @param electionId ID på ett val
    * @param postname Namnet på posten
    * @returns Lista över nomineringar
@@ -76,8 +77,12 @@ export class ElectionAPI {
    */
   async getNominations(electionId: string, postname: string): Promise<DatabaseNomination[]> {
     const n = await knex<DatabaseNomination>(NOMINATION_TABLE)
-      .where('refelection', electionId)
-      .where('refpost', postname);
+      .leftJoin<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
+      q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`)
+        .andOn(`${ELECTABLE_TABLE}.refpost`, `${NOMINATION_TABLE}.refpost`);
+    })
+      .where(`${NOMINATION_TABLE}.refelection`, electionId)
+      .where(`${NOMINATION_TABLE}.refpost`, postname);
 
     validateNonEmptyArray(
       n,
@@ -89,7 +94,8 @@ export class ElectionAPI {
 
   /**
    * Returnerar alla nomineringar för valet, om specificerat endast
-   * de med ett specifikt svar.
+   * de med ett specifikt svar. Returnerar inte nomineringar som inte
+   * finns som electables.
    * @param electionId ID på ett val
    * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
    * @returns Lista över nomineringar
@@ -99,10 +105,14 @@ export class ElectionAPI {
     electionId: string,
     answer?: NominationAnswer,
   ): Promise<DatabaseNomination[]> {
-    const query = knex<DatabaseNomination>(NOMINATION_TABLE).where('refelection', electionId);
+    const query = knex<DatabaseNomination>(NOMINATION_TABLE)
+      .join<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
+      q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`)
+        .andOn(`${ELECTABLE_TABLE}.refpost`, `${NOMINATION_TABLE}.refpost`);
+    }).where(`${NOMINATION_TABLE}.refelection`, electionId);
 
     if (answer != null) {
-      query.and.where('accepted', answer);
+      query.where('accepted', answer);
     }
 
     const n = await query;
@@ -114,7 +124,7 @@ export class ElectionAPI {
 
   /**
    * Returnerar alla nomineringar för en användare för ett val, om specificerat endast
-   * de med ett specifikt svar.
+   * de med ett specifikt svar. Hämtar inte nomineringar som inte finns som electables
    * @param electionId ID på ett val
    * @param username Användarnamnet
    * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
@@ -126,14 +136,21 @@ export class ElectionAPI {
     username: string,
     answer?: NominationAnswer,
   ): Promise<DatabaseNomination[]> {
-    const query = knex<DatabaseNomination>(NOMINATION_TABLE)
-      .where('refelection', electionId)
-      .and.where('refuser', username);
+    const query = knex<DatabaseNomination>(NOMINATION_TABLE).join<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
+      q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
+        `${ELECTABLE_TABLE}.refpost`,
+        `${NOMINATION_TABLE}.refpost`,
+      );
+    })
+      .where(`${NOMINATION_TABLE}.refelection`, electionId)
+      .where(`${NOMINATION_TABLE}.refuser`, username);
 
     if (answer != null) {
-      query.and.where('accepted', answer);
+      query.where('accepted', answer);
     }
 
+    // Vi måste kontrollera att nomineringar är för
+    // en valid electable
     const n = await query;
 
     validateNonEmptyArray(n, `Hittade inga nomineringar för användaren ${username}`);
@@ -144,18 +161,24 @@ export class ElectionAPI {
   /**
    * Räknar antalet nomineringar för en post och ett möte. Om posten utelämnas returneras
    * det totala antalet nomineringar. Svaret kan inte specificeras, då det lämnar ut för
-   * mycket information.
+   * mycket information. Räknar inte nomineringar som inte finns som electables.
    * @param electionId ID på ett val
    * @param postname Namnet på posten
    * @returns Ett heltal (`number`)
    */
   async getNumberOfNominations(electionId: string, postname?: string): Promise<number> {
     const query = knex(NOMINATION_TABLE)
-      .where('refelection', electionId)
-      .count<Record<string, number>>('refelection AS count');
+      .leftJoin<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
+      q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
+        `${ELECTABLE_TABLE}.refpost`,
+        `${NOMINATION_TABLE}.refpost`,
+      );
+    })
+      .where( `${NOMINATION_TABLE}.refelection`, electionId)
+      .count<Record<string, number>>(`${ELECTABLE_TABLE}.refelection AS count`);
 
     if (postname != null) {
-      query.where('refpost', postname);
+      query.where(`${NOMINATION_TABLE}.refpost`, postname);
     }
 
     const i = await query.first();
@@ -278,7 +301,9 @@ export class ElectionAPI {
         await knex(ELECTABLE_TABLE).insert(electableRows);
       } catch (err) {
         logger.debug(
-          `Could not insert electables when creating election with ID ${electionId} due to error:\n\t${JSON.stringify(err)}`,
+          `Could not insert electables when creating election with ID ${electionId} due to error:\n\t${JSON.stringify(
+            err,
+          )}`,
         );
         throw new ServerError(
           'Kunde inte lägga till valbara poster. Försök lägga till dessa manuellt',
@@ -306,7 +331,11 @@ export class ElectionAPI {
     try {
       await knex(ELECTABLE_TABLE).insert(electableRows);
     } catch (err) {
-      logger.debug(`Could not insert electables for election with ID ${electionId} due to error:\n\t${JSON.stringify(err)}`);
+      logger.debug(
+        `Could not insert electables for election with ID ${electionId} due to error:\n\t${JSON.stringify(
+          err,
+        )}`,
+      );
       throw new ServerError('Kunde inte lägga alla valbara poster');
     }
 
@@ -400,7 +429,7 @@ export class ElectionAPI {
 
   /**
    * Försöker hitta ett öppet val och om det finns, nominerar
-   * användaren till alla poster.
+   * användaren till alla poster om de finns som electables.
    * @param username Användarnamn på den som ska nomineras
    * @param postnames Namnet på alla poster personen ska nomineras till
    */
@@ -409,10 +438,18 @@ export class ElectionAPI {
       throw new BadRequestError('Inga postnamn specificerade');
     }
 
-    const openElectionId = await this.getOpenElectionId();
+    const openElection = await this.getOpenElection();
 
-    const nominationRows: DatabaseNomination[] = postnames.map((postname) => ({
-      refelection: openElectionId,
+    // Nomineringar måste finnas som electables
+    const electables = await this.getAllElectables(openElection.id);
+    const filteredPostnames = postnames.filter((e) => electables.includes(e));
+
+    if (filteredPostnames.length === 0) {
+      throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
+    }
+
+    const nominationRows: DatabaseNomination[] = filteredPostnames.map((postname) => ({
+      refelection: openElection.id,
       refuser: username,
       refpost: postname,
       accepted: NominationAnswer.NoAnswer,
@@ -428,9 +465,9 @@ export class ElectionAPI {
         .ignore();
     } catch (err) {
       logger.debug(
-        `Could not insert all nominations for election with ID ${openElectionId} due to error:\n\t${JSON.stringify(
-          err,
-        )}`,
+        `Could not insert all nominations for election with ID ${
+          openElection.id
+        } due to error:\n\t${JSON.stringify(err)}`,
       );
       throw new ServerError('Kunde inte nominera till alla poster');
     }
@@ -443,32 +480,14 @@ export class ElectionAPI {
     postname: string,
     accepts: NominationAnswer,
   ): Promise<boolean> {
-    const openElectionId = await this.getOpenElectionId();
+    const openElection = await this.getOpenElection();
     const res = await knex<DatabaseNomination>(NOMINATION_TABLE).update('accepted', accepts).where({
-      refelection: openElectionId,
+      refelection: openElection.id,
       refuser: username,
       refpost: postname,
     });
 
     return res > 0;
-  }
-
-  /**
-   * Returnerar ID:t på det öppna valet. Används för att kontrollera att
-   * nomineringar och svar på nomineringar bara sker då ett val är öppet.
-   * @throws `BadRequestError` om det inte finns några öppna val
-   */
-  private async getOpenElectionId(): Promise<string> {
-    try {
-      const openElection = await this.getOpenElection();
-      return openElection.id;
-    } catch (e) {
-      if (e instanceof NotFoundError) {
-        throw new BadRequestError('Det finns inget öppet val!');
-      } else {
-        throw new ServerError('Något gick fel när det öppna valet försökte hittas');
-      }
-    }
   }
 
   /**
