@@ -13,3 +13,4 @@ export const ELECTION_TABLE = 'Elections';
 export const NOMINATION_TABLE = 'Nominations';
 export const PROPOSAL_TABLE = 'Proposals';
 export const ELECTABLE_TABLE = 'Electables';
+export const EMERGENCY_CONTACTS_TABLE = 'EmergencyContacts';

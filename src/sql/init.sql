@@ -232,4 +232,13 @@ CREATE TABLE IF NOT EXISTS "Nominations" (
 
 INSERT INTO Nominations (refuser, refpost, refelection, accepted)  VALUES ('aa0000bb-s', 'Macapär', 1, 'YES');
 
+CREATE TABLE IF NOT EXISTS "EmergencyContacts" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "name" TEXT NOT NULL,
+  "type" TEXT NOT NULL,
+  "phone" TEXT NOT NULL,
+	"refuser" TEXT NOT NULL,
+  FOREIGN KEY("refuser") REFERENCES "Users"("username")
+);
+
 END TRANSACTION;
