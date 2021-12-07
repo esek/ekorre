@@ -306,8 +306,8 @@ export class ElectionAPI {
     try {
       await knex(ELECTABLE_TABLE).insert(electableRows);
     } catch (err) {
-      logger.debug(`Could not insert all electables for election with ID ${electionId} due to error\n\t${JSON.stringify(err)}`);
-      throw new ServerError('Kunde inte lägga till alla valbara poster');
+      logger.debug(`Could not insert electables for election with ID ${electionId} due to error:\n\t${JSON.stringify(err)}`);
+      throw new ServerError('Kunde inte lägga alla valbara poster');
     }
 
     return true;
@@ -326,7 +326,7 @@ export class ElectionAPI {
     const res = await knex(ELECTABLE_TABLE)
       .delete()
       .where('refelection', electionId)
-      .and.whereIn('refpost', postnames);
+      .whereIn('refpost', postnames);
 
     if (res !== postnames.length) {
       logger.debug(`Could not delete all electables for election with ID ${electionId}`);

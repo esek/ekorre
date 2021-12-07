@@ -539,7 +539,9 @@ test('adding valid electables to election', async () => {
 test('adding mixed valid and non-valid electables to election', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
   await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
-  await expect(api.addElectables(electionId, ['Macapär', 'Not a post'])).rejects.toThrowError(ServerError);
+  await expect(api.addElectables(electionId, ['Macapär', 'Not a post'])).rejects.toThrowError(
+    ServerError,
+  );
   await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
 });
 
@@ -552,9 +554,11 @@ test('adding duplicate electables', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
 
   // I samma anrop
-  await expect(api.addElectables(electionId, ['Macapär', 'Macapär'])).rejects.toThrowError(ServerError);
+  await expect(api.addElectables(electionId, ['Macapär', 'Macapär'])).rejects.toThrowError(
+    ServerError,
+  );
   await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
-  
+
   // I olika anrop
   await expect(api.addElectables(electionId, ['Macapär'])).resolves.toBeTruthy();
   await expect(api.addElectables(electionId, ['Macapär'])).rejects.toThrowError(ServerError);
@@ -562,22 +566,68 @@ test('adding duplicate electables', async () => {
 });
 
 test('removing valid electables from non-existant election', async () => {
-  await expect(api.removeElectables('Not an election ID', ['Macapär'])).rejects.toThrowError(ServerError);
+  await expect(api.removeElectables('Not an election ID', ['Macapär'])).rejects.toThrowError(
+    ServerError,
+  );
 });
 
-test.todo('removing valid electables from election');
+test('removing valid electables from election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
+  await expect(api.getAllElectables(electionId)).resolves.toEqual(
+    expect.arrayContaining(['Macapär', 'Teknokrat']),
+  );
+  await expect(api.removeElectables(electionId, ['Macapär'])).resolves.toBeTruthy();
+  await expect(api.getAllElectables(electionId)).resolves.toEqual(['Teknokrat']);
+});
 
-test.todo('removing mixed valid and non-valid electables from election');
+test('removing mixed valid and non-valid electables from election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat', 'Cophös'], false);
+  
+  await expect(api.getAllElectables(electionId)).resolves.toEqual(
+    expect.arrayContaining(['Macapär', 'Teknokrat', 'Cophös']),
+  );
 
-test.todo('removing empty list of electables from election');
+  await expect(api.removeElectables(electionId, ['Macapär', 'Not an electable'])).rejects.toThrowError(ServerError);
+  
+  // Kontrollera att Macapär trots allt togs bort
+  const electablesLeft = await api.getAllElectables(electionId);
+  expect(electablesLeft).toHaveLength(2);
+  expect(electablesLeft).toEqual(expect.arrayContaining(['Teknokrat', 'Cophös']));
+});
 
-test.todo('removing valid electable not in election');
+test('removing empty list of electables from election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.removeElectables(electionId, [])).rejects.toThrowError(BadRequestError);
+  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+});
 
-test.todo('setting hidden nominations');
+test('removing valid electable not in election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.removeElectables(electionId, ['Macapär'])).rejects.toThrowError(ServerError);
+});
 
-test.todo('setting hidden nominations on non-existant election');
+test('setting hidden nominations', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  expect((await api.getLatestElections(1))[0].nominationsHidden).toBeFalsy();
 
-test.todo('opening non-existant election');
+  // Faktiskt byte
+  await expect(api.setHiddenNominations(electionId, true)).resolves.toBeTruthy();
+  expect((await api.getLatestElections(1))[0].nominationsHidden).toBeTruthy();
+
+  // Kolla att man kan ändra tillbaka
+  await expect(api.setHiddenNominations(electionId, false)).resolves.toBeTruthy();
+  expect((await api.getLatestElections(1))[0].nominationsHidden).toBeFalsy();
+});
+
+test('setting hidden nominations on non-existant election', async () => {
+  await expect(api.setHiddenNominations('Not an election ID', false)).resolves.toBeFalsy();
+});
+
+test('opening non-existant election', async () => {
+  await expect(api.openElection('Not an election ID')).rejects.toThrowError(BadRequestError);
+});
 
 test.todo('opening election');
 
