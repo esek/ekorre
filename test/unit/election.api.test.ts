@@ -756,11 +756,26 @@ test('nominating already done nomination does not overwrite answer', async () =>
   );
 });
 
-test.todo('nominating non-electable post');
+test('nominating non-electable post', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await expect(api.openElection(electionId)).resolves.toBeTruthy();
+  await expect(api.nominate('aa0000bb-s', ['Not a postname'])).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
+});
 
-test.todo('nominating non-existant user');
+test('nominating non-existant user', async () => {
+  const electionId = await api.createElection('aa0000bb-s', ['Macapär'], false);
+  await expect(api.openElection(electionId)).resolves.toBeTruthy();
+  await expect(api.nominate('Not an user', ['Macapär'])).rejects.toThrowError(ServerError);
+  await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
+});
 
-test.todo('nominating without postnames');
+test('nominating without postnames', async () => {
+  const electionId = await api.createElection('aa0000bb-s', ['Macapär'], false);
+  await expect(api.openElection(electionId)).resolves.toBeTruthy();
+  await expect(api.nominate('aa0000bb-s', [])).rejects.toThrowError(BadRequestError);
+  await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
+});
 
 test.todo('nominating mixed valid and invalid postnames');
 
