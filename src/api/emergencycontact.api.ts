@@ -23,14 +23,14 @@ class EmergencyContactAPI {
     phone: string,
     type: EmergencyContactType,
   ): Promise<boolean> {
-    const removed = await knex<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).insert({
+    const added = await knex<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).insert({
       name,
       phone,
       type,
       refuser: username,
     });
 
-    if (removed[0] < 1) {
+    if (added[0] < 1) {
       throw new ServerError('Kunde inte lägga till nödkontakten');
     }
 

@@ -4,6 +4,13 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.7] - 2021-12-07
+
+### Tillagt
+- Databastabell för nödkontakter
+- Queries och Mutations för att hämta, lägga till och ta bort nödkontakter
+- Tester för nödkontakter
+
 ## [0.2.6] - 2021-12-05
 
 ### Tillagt
