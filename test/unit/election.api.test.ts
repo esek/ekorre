@@ -452,7 +452,7 @@ test('creating election with created, but never opened, previous election', asyn
 
   // Vi vill se till att ett nytt val faktiskt inte skapades
   expect((await api.getLatestElections(1))[0]).toMatchObject({
-    refcreator: 'aa0000bb-s'
+    refcreator: 'aa0000bb-s',
   });
 });
 
@@ -463,7 +463,7 @@ test('creating election with previous created, opened, but not closed election',
 
   // Vi vill se till att ett nytt val faktiskt inte skapades
   expect((await api.getLatestElections(1))[0]).toMatchObject({
-    refcreator: 'aa0000bb-s'
+    refcreator: 'aa0000bb-s',
   });
 });
 
@@ -473,19 +473,21 @@ test('creating election with previous created, opened and closed election', asyn
   await api.closeElection();
 
   // Vårt nya val borde ha förra ID:t + 1
-  await expect(
-    api.createElection('bb1111cc-s', [], false)
-  ).resolves.toEqual((Number.parseInt(electionId, 10) ?? -20) + 1);
+  await expect(api.createElection('bb1111cc-s', [], false)).resolves.toEqual(
+    (Number.parseInt(electionId, 10) ?? -20) + 1,
+  );
 
   // Vi vill se till att ett nytt val faktiskt inte skapades
   expect((await api.getLatestElections(1))[0]).toMatchObject({
-    refcreator: 'bb1111cc-s'
+    refcreator: 'bb1111cc-s',
   });
 });
 
 test('creating election with invalid electables', async () => {
-  await expect(api.createElection('aa0000bb-s', ['Not a post', 'Neither is this'], true)).rejects.toThrowError(ServerError);
-  
+  await expect(
+    api.createElection('aa0000bb-s', ['Not a post', 'Neither is this'], true),
+  ).rejects.toThrowError(ServerError);
+
   // Om valet inte skapades är detta `undefined`
   const election = (await api.getLatestElections(1))[0];
 
@@ -498,8 +500,10 @@ test('creating election with invalid electables', async () => {
 });
 
 test('creating election with mixed valid and invalid electables', async () => {
-  await expect(api.createElection('aa0000bb-s', ['Not a post', 'Macapär'], true)).rejects.toThrowError(ServerError);
-  
+  await expect(
+    api.createElection('aa0000bb-s', ['Not a post', 'Macapär'], true),
+  ).rejects.toThrowError(ServerError);
+
   // Om valet inte skapades är detta `undefined`
   const election = (await api.getLatestElections(1))[0];
 
@@ -511,21 +515,63 @@ test('creating election with mixed valid and invalid electables', async () => {
   await expect(api.getAllElectables(election.id)).rejects.toThrowError(NotFoundError);
 });
 
-test.todo('adding valid electables to non-existant election');
+test('adding valid electables to non-existant election', async () => {
+  await expect(api.addElectables('Not an election Id', ['Macapär'])).rejects.toThrowError(
+    ServerError,
+  );
+});
 
-test.todo('adding valid electables to election');
+test('adding valid electables to election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.addElectables(electionId, ['Macapär'])).resolves.toBeTruthy();
+  await expect(api.getAllElectables(electionId)).resolves.toEqual(['Macapär']);
 
-test.todo('adding mixed valid and non-valid electables to election');
+  // Fungerar också för öppet val
+  await expect(api.openElection(electionId)).resolves.toBeTruthy();
+  await expect(api.getAllElectables(electionId)).resolves.toEqual(['Macapär']);
+  await expect(api.addElectables(electionId, ['Cophös'])).resolves.toBeTruthy();
+  await expect(api.getAllElectables(electionId)).resolves.toEqual(
+    expect.arrayContaining(['Macapär', 'Cophös']),
+  );
+});
 
-test.todo('adding empty list of electables to election');
+test('adding mixed valid and non-valid electables to election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.addElectables(electionId, ['Macapär', 'Not a post'])).rejects.toThrowError(ServerError);
+  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+});
 
-test.todo('removing valid electables from non-existant election');
+test('adding empty list of electables to election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await expect(api.addElectables(electionId, [])).rejects.toThrowError(BadRequestError);
+});
+
+test('adding duplicate electables', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+
+  // I samma anrop
+  await expect(api.addElectables(electionId, ['Macapär', 'Macapär'])).rejects.toThrowError(ServerError);
+  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  
+  // I olika anrop
+  await expect(api.addElectables(electionId, ['Macapär'])).resolves.toBeTruthy();
+  await expect(api.addElectables(electionId, ['Macapär'])).rejects.toThrowError(ServerError);
+  await expect(api.getAllElectables(electionId)).resolves.toEqual(['Macapär']);
+});
+
+test('removing valid electables from non-existant election', async () => {
+  await expect(api.removeElectables('Not an election ID', ['Macapär'])).rejects.toThrowError(ServerError);
+});
 
 test.todo('removing valid electables from election');
 
 test.todo('removing mixed valid and non-valid electables from election');
 
 test.todo('removing empty list of electables from election');
+
+test.todo('removing valid electable not in election');
 
 test.todo('setting hidden nominations');
 
