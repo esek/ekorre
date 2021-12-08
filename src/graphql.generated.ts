@@ -261,6 +261,7 @@ export type Mutation = {
   removeFileFromMeeting: Scalars['Boolean'];
   removeHistoryEntry: Scalars['Boolean'];
   removeMeeting: Scalars['Boolean'];
+  removeProposal: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
   /** Only possible during open election, so electionId is known */
@@ -439,6 +440,13 @@ export type MutationRemoveHistoryEntryArgs = {
 
 export type MutationRemoveMeetingArgs = {
   id: Scalars['ID'];
+};
+
+
+export type MutationRemoveProposalArgs = {
+  electionId: Scalars['ID'];
+  postname: Scalars['String'];
+  username: Scalars['String'];
 };
 
 
@@ -1359,6 +1367,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeFileFromMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveFileFromMeetingArgs, 'fileType' | 'meetingId'>>;
   removeHistoryEntry?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHistoryEntryArgs, 'postname' | 'start' | 'username'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
+  removeProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProposalArgs, 'electionId' | 'postname' | 'username'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
   respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postname'>>;

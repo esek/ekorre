@@ -79,6 +79,9 @@ const electionResolver: Resolvers = {
     propose: async (_, { electionId, username, postname }) => {
       return api.propose(electionId, username, postname);
     },
+    removeProposal: async (_, { electionId, username, postname }) => {
+      return api.removeProposal(electionId, username, postname);
+    },
   },
   Election: {
     // Vi fyller ut resolvern med de saker som

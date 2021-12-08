@@ -924,3 +924,27 @@ test('proposing non-existant election', async () => {
   await expect(api.propose('Not an electio', 'bb1111cc-s', 'Macapär')).rejects.toThrowError(ServerError);
   await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
 });
+
+test('removing proposal', async () => {
+  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
+  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.propose(electionId, 'bb1111cc-s', 'Macapär')).resolves.toBeTruthy();
+  await expect(api.getAllProposals(electionId)).resolves.toEqual([
+    {
+      refelection: electionId,
+      refuser: 'bb1111cc-s',
+      refpost: 'Macapär',
+    }
+  ]);
+  await expect(api.removeProposal(electionId, 'bb1111cc-s', 'Macapär')).resolves.toBeTruthy();
+
+  // Kolla att den faktiskt togs bort
+  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+});
+
+test('removing non-existant proposal', async () => {
+  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
+  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.removeProposal(electionId, 'aa0000bb-s', 'Macapär')).rejects.toThrowError(ServerError);
+  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+});

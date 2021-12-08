@@ -39,6 +39,7 @@ type Mutation {
   "Only possible during open election, so electionId is known"
   respondToNomination(postname: String!, accepts: NominationAnswer!): Boolean!
   propose(electionId: ID!, username: String!, postname: String!): Boolean!
+  removeProposal(electionId: ID!, username: String!, postname: String!): Boolean!
 }
 
 type Election {

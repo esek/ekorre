@@ -532,4 +532,30 @@ export class ElectionAPI {
       throw new ServerError(`Kunde inte föreslå användaren ${username} till posten ${postname}`);
     }
   }
+
+  /**
+   * Försöker ta bort en av valberedningens förslag till en post.
+   * @param electionId ID på valet
+   * @param username Användarnamn på föreslagen person
+   * @param postname Namnet på posten personen föreslagits till
+   * @throws `ServerError` om förslaget inte kunde tas bort (eller det aldrig fanns)
+   */
+  async removeProposal(electionId: string, username: string, postname: string): Promise<boolean> {
+    const res = await knex<DatabaseProposal>(PROPOSAL_TABLE).delete().where({
+      refelection: electionId,
+      refuser: username,
+      refpost: postname,
+    });
+
+    if (res === 0) {
+      logger.error(
+        `Could not delete proposal for user ${username} and post ${postname} in election with ID ${electionId}}`,
+      );
+      throw new ServerError(
+        `Kunde inte ta bort föreslaget för användaren ${username} till posten ${postname}, vilket kan bero på att föreslaget inte fanns`,
+      );
+    }
+
+    return true;
+  }
 }
