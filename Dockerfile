@@ -1,4 +1,4 @@
-FROM node:15-alpine
+FROM node:16-alpine
 WORKDIR /srv/app
 
 # Kopiera både package.json och pacakge-lock.json

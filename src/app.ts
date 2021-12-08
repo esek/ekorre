@@ -18,7 +18,7 @@ import { COOKIES, verifyToken } from './auth';
 import config from './config';
 import { createDataLoader } from './dataloaders';
 import { batchAccessResources } from './dataloaders/accessresources.dataloader';
-import { batchElectionsFunction } from './dataloaders/election/election.dataloader';
+import { batchElectionsFunction } from './dataloaders/election.dataloader';
 import { batchFilesFunction } from './dataloaders/file.dataloader';
 import { batchPostsFunction } from './dataloaders/post.dataloader';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
