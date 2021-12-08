@@ -1,0 +1,80 @@
+# import User from 'user.graphql'
+# import Post from 'post.graphql'
+
+scalar DateTime
+
+"""
+Queries and mutations that relies on an election being open
+does not take an `electionId` parameter.
+"""
+
+type Query {
+  openElection: Election
+  latestElections(limit: Int): [Election]!
+  election(electionId: ID!): Election
+  elections(electionIds: [ID!]!): [Election]!
+
+  """
+  Used if nominations are hidden but an election-admin wants too see nominations
+  """
+  hiddenNominations(electionId: ID!, answer: NominationAnswer): [Nomination]!
+
+  "A users own nominations should always be available to them"
+  myNominations(electionId: ID!, answer: NominationAnswer): [Nomination]!
+  numberOfNominations(electionId: ID!, postname: String): Int!
+  numberOfProposals(electionId: ID!, postname: String): Int!
+}
+
+type Mutation {
+  createElection(electables: [String]!, nominationsHidden: Boolean!): ID!
+  addElectables(electionId: ID!, postnames: [String!]): Boolean!
+  removeElectables(electionId: ID!, postnames: [String!]): Boolean!
+  setHiddenNominations(electionId: ID!, hidden: Boolean!): Boolean!
+  openElection(electionId: ID!): Boolean!
+  closeElection: Boolean!
+
+  "Only possible during open election, so electionId is known"
+  nominate(username: String!, postnames: [String!]!): Boolean!
+
+  "Only possible during open election, so electionId is known"
+  respondToNomination(postname: String!, accepts: NominationAnswer!): Boolean!
+  propose(electionId: ID!, username: String!, postname: String!): Boolean!
+  removeProposal(electionId: ID!, username: String!, postname: String!): Boolean!
+}
+
+type Election {
+  id: ID!
+  creator: User!
+  createdAt: DateTime!
+  openedAt: DateTime
+  closedAt: DateTime
+  open: Boolean!
+
+  "Which posts can be elected in the election"
+  electables: [Post]!
+  proposals: [Proposal]
+
+  "Is only available if `nominationsHidden` is `false`"
+  acceptedNominations: [Nomination]
+
+  "Whether accepted nominations are to be hidden"
+  nominationsHidden: Boolean!
+}
+
+"Valberedningens förslag"
+type Proposal {
+  user: User!
+  post: Post!
+}
+
+type Nomination {
+  user: User!
+  post: Post!
+  accepted: NominationAnswer!
+}
+
+enum NominationAnswer {
+  YES
+  NO
+  NO_ANSWER
+}

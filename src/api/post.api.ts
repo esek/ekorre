@@ -3,9 +3,9 @@ import { BadRequestError, NotFoundError, ServerError } from '../errors/RequestEr
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '../graphql.generated';
 import { Logger } from '../logger';
 import { StrictObject } from '../models/base';
-import { midnightTimestamp, stripObject } from '../util';
 import type { DatabasePost, DatabasePostHistory } from '../models/db/post';
 import { validateNonEmptyArray } from '../services/validation.service';
+import { midnightTimestamp, stripObject } from '../util';
 import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
 import knex from './knex';
 
@@ -413,7 +413,7 @@ export class PostAPI {
     if (res === 0) {
       throw new NotFoundError('HistoryEntry hittades inte och kunde inte tas bort');
     }
-    
+
     return true;
   }
 }
