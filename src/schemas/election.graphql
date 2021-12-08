@@ -12,7 +12,7 @@ type Query {
   openElection: Election
   latestElections(limit: Int): [Election]!
   election(electionId: ID!): Election
-  elections(electiondIds: [ID!]!): [Election]!
+  elections(electionIds: [ID!]!): [Election]!
 
   """
   Used if nominations are hidden but an election-admin wants too see nominations

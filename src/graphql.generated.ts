@@ -716,7 +716,7 @@ export type QueryElectionArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryElectionsArgs = {
-  electiondIds: Array<Scalars['ID']>;
+  electionIds: Array<Scalars['ID']>;
 };
 
 
@@ -1418,7 +1418,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
   election?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType, RequireFields<QueryElectionArgs, 'electionId'>>;
-  elections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryElectionsArgs, 'electiondIds'>>;
+  elections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryElectionsArgs, 'electionIds'>>;
   emergencyContacts?: Resolver<Array<ResolversTypes['EmergencyContact']>, ParentType, ContextType, RequireFields<QueryEmergencyContactsArgs, 'username'>>;
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;

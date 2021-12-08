@@ -23,9 +23,9 @@ const electionResolver: Resolvers = {
     election: async (_, { electionId }, ctx) => {
       return ctx.electionDataLoader.load(electionId);
     },
-    elections: async (_, { electiondIds }, ctx) => {
+    elections: async (_, { electionIds }, ctx) => {
       return Promise.all(
-        electiondIds.map(async (id) => {
+        electionIds.map(async (id) => {
           return ctx.electionDataLoader.load(id);
         }),
       );
