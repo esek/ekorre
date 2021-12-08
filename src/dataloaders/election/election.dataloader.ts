@@ -41,7 +41,7 @@ export const batchElectionsFunction = async (
       );
       throw new ServerError('Något gick fel då möten försökte laddas in');
     }
-    electionMap.set(e.id, e);
+    electionMap.set(e.id.toString(), e); // Knex & GraphQL does not agree on type of ID
   });
 
   // All keys need a value; electionnames without value
