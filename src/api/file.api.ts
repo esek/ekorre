@@ -180,7 +180,8 @@ class FileAPI {
 
   async searchFiles(search: string): Promise<DatabaseFile[]> {
     const files = await knex<DatabaseFile>(FILE_TABLE)
-      .where('name', 'like', `%${search}%`)
+      .whereNot({ type: FileType.Folder }) // dont include folders in search
+      .andWhere('name', 'like', `%${search}%`)
       .orWhere('id', 'like', `%${search}%`);
 
     validateNonEmptyArray(files, 'Inga filer hittades');
