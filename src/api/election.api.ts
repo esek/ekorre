@@ -498,25 +498,38 @@ export class ElectionAPI {
       refpost: postname,
     });
 
-    return res > 0;
+    if (res === 0) {
+      throw new NotFoundError('Kunde inte hitta nomineringen, eller så är valet stängt!');
+    }
+
+    return true;
   }
 
   /**
    * Lägger till ett förslag från valberedningen för en post. Kontrollerar
    * inte att det finns lika många platser (`Post.spots`) som förslag,
    * då det minskar prestanda, och valberedningen kan välja att
-   * överföreslå.
+   * överföreslå. Kontrollerar inte heller om posten är valbar;
+   * det får valberedningen lösa!
    * @param electionId ID på ett val
    * @param username Användarnamn på den som ska föreslås
    * @param postname Posten användaren ska föreslås på
    */
   async propose(electionId: string, username: string, postname: string): Promise<boolean> {
-    const res = await knex<DatabaseProposal>(PROPOSAL_TABLE).insert({
-      refelection: electionId,
-      refuser: username,
-      refpost: postname,
-    });
-
-    return res[0] > 0;
+    try {
+      await knex<DatabaseProposal>(PROPOSAL_TABLE).insert({
+        refelection: electionId,
+        refuser: username,
+        refpost: postname,
+      });
+      return true;
+    } catch (err) {
+      logger.error(
+        `Could not insert proposal for user ${username} and post ${postname} in election with ID ${electionId} due to error:\n\t${JSON.stringify(
+          err,
+        )}`,
+      );
+      throw new ServerError(`Kunde inte föreslå användaren ${username} till posten ${postname}`);
+    }
   }
 }

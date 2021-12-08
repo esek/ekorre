@@ -17,38 +17,4 @@ interface ElectionResponse {
   };
 }
 
-const CREATE_ELECTION_QUERY = `
-  mutation {
-    createElection(electables: ["Macapär"], nominationsHidden: false)
-  }
-`;
-
-const OPEN_ELECTION_QUERY = `
-  {
-    openElection {
-      id
-      electables {
-        postname
-      }
-      proposals {
-        user {
-          username
-        }
-      }
-      nominations {
-        user {
-          username
-        }
-        post {
-          postname
-        }
-      }
-    }
-  }
-`;
-
-const NOMINATION_QUERY = `
-  nom
-`;
-
 test.todo('getting nominations when nominations are hidden');
