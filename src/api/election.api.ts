@@ -258,9 +258,12 @@ export class ElectionAPI {
       .select('refpost')
       .where('refelection', electionId);
 
-    const refposts = electableRows.map((e) => e.refpost);
+    validateNonEmptyArray(
+      electableRows,
+      `Hittade inga valbara poster för valet med ID ${electionId}`,
+    );
 
-    validateNonEmptyArray(refposts, `Hittade inga valbara poster för valet med ID ${electionId}`);
+    const refposts = electableRows.map((e) => e.refpost);
 
     return refposts;
   }
@@ -280,9 +283,7 @@ export class ElectionAPI {
   ): Promise<string> {
     // Vi försäkrar oss om att det senaste valet är stängt
     const lastElection = (await this.getLatestElections(1))[0];
-    if (lastElection == null) {
-      // Fortsätt
-    } else if (lastElection.open || lastElection.closedAt == null) {
+    if (lastElection != null && (lastElection?.open || lastElection?.closedAt == null)) {
       throw new BadRequestError(
         'Det finns ett öppet val, eller ett val som väntar på att bli öppnat redan.',
       );
