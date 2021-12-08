@@ -401,11 +401,17 @@ export class ElectionAPI {
         openedAt: Date.now(), // Current timestamp
         open: true,
       })
-      .where('id', electionId)
+      .where({
+        id: electionId,
+        openedAt: null, // Annars återställer vi ju timestamp om vi öppnar redan öppet val
+        open: false,
+      })
       .whereNull('closedAt');
 
     if (res === 0) {
-      throw new BadRequestError('Antingen är valet redan stängt, eller så finns det inte.');
+      throw new BadRequestError(
+        'Antingen är valet redan öppet eller stängt, eller så finns det inte.',
+      );
     }
 
     return true;

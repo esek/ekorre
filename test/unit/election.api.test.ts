@@ -689,6 +689,21 @@ test('opening already closed election', async () => {
   expect(election.open).toBeFalsy();
 });
 
+test('opening already opened election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await expect(api.openElection(electionId)).resolves.toBeTruthy();
+  const [election] = await api.getMultipleElections([electionId]);
+  expect(election).not.toBeNull();
+
+  // Nu testar vi att stänga igen, borde ej gå igenom
+  await expect(api.openElection(electionId)).rejects.toThrowError(BadRequestError);
+
+  // openedAt ska inte ha uppdaterats!
+  const [election2] = await api.getMultipleElections([electionId]);
+  expect(election2).not.toBeNull();
+  expect(election2).toMatchObject(election);
+});
+
 test('closing multiple elections', async () => {
   // Vi ska egentligen inte ha flera möten
   // öppna samtidigt, men har någon fuckat med databasen
