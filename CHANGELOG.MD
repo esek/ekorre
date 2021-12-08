@@ -4,6 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2021-11-28
+
+### Tillagt
+ - Lägger till API för elections, se [!69](https://gitlab.com/esektionen/projekt/ekorre/-/merge_requests/69)
+ - `notEmpty` util-filter
+ 
 ## [0.2.7] - 2021-12-07
 
 ### Tillagt
@@ -15,11 +21,13 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Tillagt
 - Mutation för att skicka mail med hjälp av [ebrev](https://gitlab.com/esektionen/projekt/ebrev)
+
 ## [0.2.5] - 2021-11-29
 
 ### Tillagt
 - `setUserPostEnd`-mutation för att sätta när personer går av sin post
 - `removeHistoryEntry`-mutation för att ta bort `HistoryEntry`s
+- `midnightTimestamp`-utility för att få timestamp för 00:00:00.000 och 23:59:59.999 på ett `Date`
 
 ### Borttaget
 - `removeUserFromPost`-mutation för att ta bort en användare från alla `HistoryEntries` för en post

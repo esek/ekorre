@@ -18,6 +18,7 @@ import { COOKIES, verifyToken } from './auth';
 import config from './config';
 import { createDataLoader } from './dataloaders';
 import { batchAccessResources } from './dataloaders/accessresources.dataloader';
+import { batchElectionsFunction } from './dataloaders/election/election.dataloader';
 import { batchFilesFunction } from './dataloaders/file.dataloader';
 import { batchPostsFunction } from './dataloaders/post.dataloader';
 import { batchUsersFunction } from './dataloaders/user.dataloader';
@@ -103,6 +104,7 @@ const schema = makeExecutableSchema({
         postDataLoader: createDataLoader(batchPostsFunction),
         fileDataLoader: createDataLoader(batchFilesFunction),
         accessResourceDataloader: createDataLoader(batchAccessResources),
+        electionDataLoader: createDataLoader(batchElectionsFunction),
       };
     },
     debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
