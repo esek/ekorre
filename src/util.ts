@@ -55,6 +55,5 @@ export const stripObject = <E, T extends E>(obj: E): Partial<T> => {
  */
 export const notEmpty = <ValueType>(value: ValueType | null | undefined): value is ValueType => {
   if (value === null || value === undefined) return false;
-  const testDummy: ValueType = value;
   return true;
 };
