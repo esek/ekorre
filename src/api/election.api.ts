@@ -47,7 +47,7 @@ export class ElectionAPI {
       .first();
 
     if (e == null) {
-      throw new NotFoundError('Hittade inga öppna möten');
+      throw new NotFoundError('Hittade inga öppna val');
     }
 
     return e;
