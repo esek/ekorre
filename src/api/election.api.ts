@@ -417,7 +417,7 @@ export class ElectionAPI {
   async closeElection(): Promise<boolean> {
     const res = await knex<DatabaseElection>(ELECTION_TABLE)
       .update({
-        closedAt: knex.fn.now(), // Current timestamp
+        closedAt: Date.now(),
         open: false,
       })
       .where({ open: true });
