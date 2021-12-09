@@ -2,7 +2,7 @@ import { Response } from 'express';
 
 import { UserAPI } from '../api/user.api';
 import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '../auth';
-import { COOKIE } from '../config';
+import config from '../config';
 import { Resolvers } from '../graphql.generated';
 import type { TokenType } from '../models/auth';
 import { reduce } from '../reducers';
@@ -10,6 +10,7 @@ import { userReduce } from '../reducers/user.reducer';
 import { validateCasTicket } from '../services/cas.service';
 
 const api = new UserAPI();
+const { COOKIE } = config;
 
 /**
  * Helper to attach refresh token to the response object
