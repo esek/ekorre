@@ -35,7 +35,7 @@ build:
 
 lint:
   stage: test
-  image: node:15
+  image: node:16
   # Make sure docker info is not run and get some node info
   before_script:
     - node --version
@@ -50,7 +50,7 @@ tests:
   tags:
     - docker
   image:
-    name: node:15-alpine
+    name: node:16-alpine
   before_script:
     - node --version
     - npm ci

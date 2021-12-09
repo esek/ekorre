@@ -116,9 +116,9 @@ const electionResolver: Resolvers = {
       return reduce(p, proposalReduce);
     },
     acceptedNominations: async (model) => {
-      // Eftersom denne bara ska returneras om valadmin tillåter
+      // Eftersom denna bara ska returneras om valadmin tillåter
       // det kontrollerar vi detta här. I fallet att admin vill se dold
-      // finns används `hiddenNominations`
+      // används `hiddenNominations`
       if (model.nominationsHidden ?? true) {
         return null;
       }

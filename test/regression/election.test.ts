@@ -1,14 +1,22 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 
-import { RequestErrorResponse } from '../../src/errors/RequestErrors';
-import { Election, NominationAnswer } from '../../src/graphql.generated';
-import knex from '../../src/api/knex';
+import {
+  ELECTABLE_TABLE,
+  ELECTION_TABLE,
+  NOMINATION_TABLE,
+  PROPOSAL_TABLE,
+} from '../../src/api/constants';
 import { ElectionAPI } from '../../src/api/election.api';
-import { DatabaseElection, DatabaseElectable, DatabaseProposal, DatabaseNomination } from '../../src/models/db/election';
-import { ELECTABLE_TABLE, ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE } from '../../src/api/constants';
-import { AXIOS_CONFIG } from '../utils/axiosConfig';
+import knex from '../../src/api/knex';
+import { Election, NominationAnswer } from '../../src/graphql.generated';
+import {
+  DatabaseElection,
+  DatabaseElectable,
+  DatabaseProposal,
+  DatabaseNomination,
+} from '../../src/models/db/election';
 import { ApiRequest, GraphqlResponse } from '../models/test';
-
+import { AXIOS_CONFIG } from '../utils/axiosConfig';
 
 const api = new ElectionAPI();
 interface ElectionResponse {
@@ -70,7 +78,9 @@ test('getting nominations when nominations are hidden', async () => {
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', ['Macapär'])).resolves.toBeTruthy();
   await expect(api.nominate('bb1111cc-s', ['Macapär', 'Teknokrat'])).resolves.toBeTruthy();
-  await expect(api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes)).resolves.toBeTruthy();
+  await expect(
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+  ).resolves.toBeTruthy();
   expect((await api.getAllNominations(electionId, NominationAnswer.Yes)).length).toBeGreaterThan(0);
 
   const electionData = {
@@ -96,13 +106,13 @@ test('getting nominations when nominations are hidden', async () => {
     .post<ApiRequest, GraphqlResponse<ElectionResponse>>('/', electionData)
     .then((res) => {
       expect(res.data.data.openElection.id).toEqual(electionId.toString());
-      
+
       const { acceptedNominations } = res.data.data.openElection;
 
       // För att göra typescript glad
       if (acceptedNominations == null) throw new Error('Should no longer be null');
       if (acceptedNominations[0] == null) throw new Error('Should no longer be null');
-      
+
       // Borde bara se accepterade nomineringen
       expect(acceptedNominations).toHaveLength(1);
       expect(acceptedNominations[0].accepted).toEqual(NominationAnswer.Yes);
