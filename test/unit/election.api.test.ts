@@ -915,7 +915,7 @@ test('proposing', async () => {
       refelection: electionId,
       refuser: 'bb1111cc-s',
       refpost: 'Macapär',
-    }
+    },
   ]);
 });
 
@@ -929,14 +929,18 @@ test('proposing non-existant user', async () => {
 test('proposing non-existant post', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
   await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
-  await expect(api.propose(electionId, 'bb1111cc-s', 'Not a post')).rejects.toThrowError(ServerError);
+  await expect(api.propose(electionId, 'bb1111cc-s', 'Not a post')).rejects.toThrowError(
+    ServerError,
+  );
   await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
 });
 
 test('proposing non-existant election', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
   await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
-  await expect(api.propose('Not an electio', 'bb1111cc-s', 'Macapär')).rejects.toThrowError(ServerError);
+  await expect(api.propose('Not an electio', 'bb1111cc-s', 'Macapär')).rejects.toThrowError(
+    ServerError,
+  );
   await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
 });
 
@@ -949,7 +953,7 @@ test('removing proposal', async () => {
       refelection: electionId,
       refuser: 'bb1111cc-s',
       refpost: 'Macapär',
-    }
+    },
   ]);
   await expect(api.removeProposal(electionId, 'bb1111cc-s', 'Macapär')).resolves.toBeTruthy();
 
@@ -960,6 +964,8 @@ test('removing proposal', async () => {
 test('removing non-existant proposal', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
   await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
-  await expect(api.removeProposal(electionId, 'aa0000bb-s', 'Macapär')).rejects.toThrowError(ServerError);
+  await expect(api.removeProposal(electionId, 'aa0000bb-s', 'Macapär')).rejects.toThrowError(
+    ServerError,
+  );
   await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
 });

@@ -1,9 +1,9 @@
-import { ElectionAPI } from '../../api/election.api';
-import { NotFoundError, ServerError } from '../../errors/RequestErrors';
-import { Logger } from '../../logger';
-import { ElectionResponse } from '../../models/mappers';
-import { reduce } from '../../reducers';
-import { electionReduce } from '../../reducers/election/election.reducer';
+import { ElectionAPI } from '../api/election.api';
+import { NotFoundError, ServerError } from '../errors/RequestErrors';
+import { Logger } from '../logger';
+import { ElectionResponse } from '../models/mappers';
+import { reduce } from '../reducers';
+import { electionReduce } from '../reducers/election/election.reducer';
 
 const logger = Logger.getLogger('ElectionDataLoader');
 
