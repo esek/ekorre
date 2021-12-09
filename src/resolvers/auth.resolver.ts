@@ -2,6 +2,7 @@ import { Response } from 'express';
 
 import { UserAPI } from '../api/user.api';
 import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '../auth';
+import { COOKIE } from '../config';
 import { Resolvers } from '../graphql.generated';
 import type { TokenType } from '../models/auth';
 import { reduce } from '../reducers';
@@ -26,6 +27,7 @@ const attachCookie = (
     httpOnly: true,
     secure: true,
     sameSite: 'none',
+    domain: COOKIE.DOMAIN,
     maxAge: EXPIRE_MINUTES[tokenType] * 1000 * 60,
   });
 };

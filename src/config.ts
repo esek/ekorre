@@ -40,6 +40,13 @@ const LU = {
   CAS: (process.env.LU_CAS as string) ?? 'https://idpv4.lu.se',
 };
 
+/** Cookie auth
+ * @param {string} domain - The base domain for your app
+ */
+const COOKIE = {
+  DOMAIN: (process.env.COOKIE_DOMAIN as string) ?? '',
+};
+
 const config = {
   PORT: parseInt(process.env.PORT ?? '5000', 10),
   HOST: process.env.HOST ?? '0.0.0.0',
@@ -47,6 +54,7 @@ const config = {
   EBREV,
   CORS,
   LU,
+  COOKIE
 };
 
 export default config;
