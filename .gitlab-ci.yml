@@ -4,38 +4,52 @@
 # Mentioned here: https://blog.callr.tech/building-docker-images-with-gitlab-ci-best-practices/
 
 # do not use "latest" here, if you want this to work in the future
-image: docker:19-dind
+image: docker:latest
 
 stages:
   - test
   - build
-  - push
+  - deploy
 
-variables:
-  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+.remote_docker:
+  variables:
+    DOCKER_HOST: ssh://root@$DESTINATION_HOST
+    PROJECT_NAME: ekorre # This should not contain any special chars
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -t rsa $DESTINATION_HOST >> ~/.ssh/known_hosts
 
-before_script:
-  # docker login asks for the password to be passed through stdin for security
-  # we use $CI_JOB_TOKEN here which is a special token provided by GitLab
-  - echo -n $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin $CI_REGISTRY
-  - docker info
-
-build:
+docker build:
+  # Use the official docker image.
   stage: build
-  only:
-    - master
-    - main
-    - /^release-[0-9]\.[0-9]\.[0-9]$/
-    # Brancher med suffixet `-run-build` kör build
-    - /.?-run-build$/
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  # Default branch leaves tag empty (= latest tag)
+  # All other branches are tagged with the escaped branch name (commit ref slug)
   script:
-    - docker build -t $CONTAINER_TEST_IMAGE .
-    - docker push $CONTAINER_TEST_IMAGE
-
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+        tag=""
+        echo "Running on default branch '$CI_DEFAULT_BRANCH': tag = 'latest'"
+      else
+        tag=":$CI_COMMIT_REF_SLUG"
+        echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
+      fi
+    - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}" .
+    - docker push "$CI_REGISTRY_IMAGE${tag}"
+    - docker image prune -af --filter "until=48h"
+  # Run this job in a branch where a Dockerfile exists
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      exists:
+        - Dockerfile
 lint:
   stage: test
-  image: node:16
+  image: node:16-alpine
   # Make sure docker info is not run and get some node info
   before_script:
     - node --version
@@ -68,37 +82,25 @@ tests:
     # bash not default shell on alpine
     - bash -c kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' ) && echo "Killed dev server"
 
-# # Here, the goal is to tag the "master" branch as "latest"
-push latest:
-  variables:
-    # We are just playing with Docker here. 
-    # We do not need GitLab to clone the source code.
-    GIT_STRATEGY: none
-  stage: push
+deploy image:
+  stage: deploy
+  extends: .remote_docker
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker pull $CI_REGISTRY_IMAGE:latest
+    
+    # Remove old container
+    - docker stop $PROJECT_NAME 2> /dev/null || true
+    - docker rm --force $PROJECT_NAME 2> /dev/null || true
+    - docker image prune -f --filter "label=project=$PROJECT_NAME"
+    
+    - docker run
+      --name $PROJECT_NAME
+      --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`ekorre.esek.se\`)"
+      --network=traefik
+      -d $CI_REGISTRY_IMAGE:latest
+  environment:
+    name: production
+    url: https://ekorre.esek.se
   only:
-    # Only "master" should be tagged "latest"
-    - master
     - main
-  script:
-    # Because we have no guarantee that this job will be picked up by the same runner 
-    # that built the image in the previous step, we pull it again locally
-    - docker pull $CONTAINER_TEST_IMAGE
-    # Then we tag it "latest"
-    - docker tag $CONTAINER_TEST_IMAGE $CI_REGISTRY_IMAGE:latest
-    # Annnd we push it.
-    - docker push $CI_REGISTRY_IMAGE:latest
-
-# Finally, the goal here is to Docker tag any Git tag
-# GitLab will start a new pipeline everytime a Git tag is created, which is pretty awesome
-push tag:
-  variables:
-    # Again, we do not need the source code here. Just playing with Docker.
-    GIT_STRATEGY: none
-  stage: push
-  only:
-    # We want this job to be run on tags only.
-    - tags
-  script:
-    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
