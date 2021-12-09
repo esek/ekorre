@@ -1,4 +1,4 @@
-import { ServerError } from '../errors/RequestErrors';
+import { BadRequestError, ServerError } from '../errors/RequestErrors';
 import { ResolverType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseAccess } from '../models/db/access';
@@ -230,11 +230,11 @@ export class AccessAPI {
 
     // if we have anything to add
     if (slugs) {
-      const inserts = await q.insert(
-        slugs.map((s) => ({ refaccessresource: s, resolverName, resolverType })),
-      );
-
-      if (inserts.length < 1) {
+      try {
+        await q.insert(
+          slugs.map((s) => ({ refaccessresource: s, resolverName, resolverType })),
+        );
+      } catch {
         throw new ServerError('Kunde inte skapa mappningen av resursen');
       }
     }
