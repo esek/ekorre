@@ -96,6 +96,7 @@ deploy image:
     
     - docker run
       --name $PROJECT_NAME
+      --env ALLOWED_ORIGINS=*
       --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`ekorre.esek.se\`)"
       --network=traefik
       -d $CI_REGISTRY_IMAGE:latest
