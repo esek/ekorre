@@ -4,12 +4,17 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.3.1] - 2021-12-08
+## [0.3.2] - 2021-12-09
 
 ### Ändrat
 - Uppdaterat deps
 - Docker image nu Node 16
 - Mindre ändringar och stavfel
+## [0.3.1] - 2021-12-08
+
+### Ändrat
+- Sätter constraint att resolversen `login` och `casLogin` aldrig kan ha en
+rad i `AccessMapping`
 
 ## [0.3.0] - 2021-12-08
 

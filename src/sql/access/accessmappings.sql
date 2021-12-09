@@ -5,4 +5,7 @@ CREATE TABLE "AccessMappings" (
   "resolverName" TEXT NOT NULL,
 	FOREIGN KEY("refaccessresource") REFERENCES "AccessResources"("slug")
   CONSTRAINT "uniqueMapping" UNIQUE ("refaccessresource", "resolverType", "resolverName")
+  -- Stupid to disallow login for not logged in users
+  CONSTRAINT "noLoginMapping" CHECK ("resolverName" <> "login")
+  CONSTRAINT "noCasLoginMapping" CHECK ("resolverName" <> "casLogin")
 );
