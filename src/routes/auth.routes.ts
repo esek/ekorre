@@ -15,6 +15,7 @@ const cookieOptions = (tokenType: TokenType): CookieOptions => {
     secure: true,
     sameSite: 'none',
     maxAge: EXPIRE_MINUTES[tokenType] * 60 * 1000,
+    domain: config.COOKIE.DOMAIN,
   };
 };
 
