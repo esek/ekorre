@@ -2,6 +2,7 @@ import { CookieOptions, Router } from 'express';
 
 import { UserAPI } from '../api/user.api';
 import { COOKIES, EXPIRE_MINUTES, invalidateTokens, issueToken, verifyToken } from '../auth';
+import config from '../config';
 import { TokenType, TokenValue } from '../models/auth';
 
 const authRoute = Router();
@@ -49,6 +50,9 @@ authRoute.post('/refresh', (req, res) => {
       // Attach them
       res.cookie(COOKIES.accessToken, newAccessToken, cookieOptions('accessToken'));
       res.cookie(COOKIES.refreshToken, newRefreshToken, cookieOptions('refreshToken'));
+
+      // Attach the cookie domain beging used in the frontend
+      res.setHeader('X-E-Cookie-Domain', config.COOKIE.DOMAIN);
 
       return res.sendStatus(200);
     } catch (error) {
