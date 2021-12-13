@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { UserAPI } from '../api/user.api';
 import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '../auth';
 import config from '../config';
+import { ServerError } from '../errors/RequestErrors';
 import { Resolvers } from '../graphql.generated';
 import type { TokenType } from '../models/auth';
 import { reduce } from '../reducers';
@@ -67,10 +68,11 @@ const authResolver: Resolvers = {
       const username = await validateCasTicket(token, referer ?? '');
 
       if (!username) {
-        throw new Error();
+        throw new ServerError('Användaren kunde inte hittas');
       }
 
-      const user = await api.getSingleUser(username);
+      // Catch not found user and return null
+      const user = await api.getSingleUser(username).catch(() => null);
 
       const exists = user != null;
 

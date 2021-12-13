@@ -59,13 +59,16 @@ const postresolver: Resolvers = {
   },
   User: {
     posts: async ({ username }, _, ctx) => {
-      const posts = reduce(await api.getPostsForUser(username), postReduce);
-      posts.forEach((p) => {
+      const posts = await api.getPostsForUser(username).catch(() => []);
+      const reduced = reduce(posts, postReduce);
+
+      reduced.forEach((p) => {
         // Vi vill inte ladda in dessa fler gånger
         // i samma request, så vi sparar dem i vår dataloader
         ctx.postDataLoader.prime(p.postname, p);
       });
-      return posts;
+
+      return reduced;
     },
     userPostHistory: async ({ username }, _, ctx) => {
       const entries = await api.getHistoryEntriesForUser(username);
