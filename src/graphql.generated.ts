@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse, MeetingResponse, AccessResourceResponse, ElectionResponse, ProposalResponse, NominationResponse } from './models/mappers';
+import type { ArticleResponse, FileResponse, MeetingResponse, AccessResourceResponse, ElectionResponse, ProposalResponse, NominationResponse, HeHeResponse } from './models/mappers';
 import type { Context } from './models/context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -151,6 +151,13 @@ export type GroupedPost = {
   utskott: Utskott;
 };
 
+export type HeHe = {
+  number: Scalars['Int'];
+  year: Scalars['Int'];
+  uploader: User;
+  file: File;
+};
+
 export type HistoryEntry = {
   end?: Maybe<Scalars['Date']>;
   holder: User;
@@ -235,6 +242,7 @@ export type Mutation = {
   addElectables: Scalars['Boolean'];
   addEmergencyContact: Scalars['Boolean'];
   addFileToMeeting: Scalars['Boolean'];
+  addHehe: Scalars['Boolean'];
   addMeeting: Scalars['Boolean'];
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
@@ -259,6 +267,7 @@ export type Mutation = {
   removeElectables: Scalars['Boolean'];
   removeEmergencyContact: Scalars['Boolean'];
   removeFileFromMeeting: Scalars['Boolean'];
+  removeHehe: Scalars['Boolean'];
   removeHistoryEntry: Scalars['Boolean'];
   removeMeeting: Scalars['Boolean'];
   removeProposal: Scalars['Boolean'];
@@ -312,6 +321,13 @@ export type MutationAddFileToMeetingArgs = {
   fileId: Scalars['ID'];
   fileType: MeetingDocumentType;
   meetingId: Scalars['ID'];
+};
+
+
+export type MutationAddHeheArgs = {
+  fileId: Scalars['ID'];
+  number: Scalars['Int'];
+  year: Scalars['Int'];
 };
 
 
@@ -427,6 +443,12 @@ export type MutationRemoveEmergencyContactArgs = {
 export type MutationRemoveFileFromMeetingArgs = {
   fileType: MeetingDocumentType;
   meetingId: Scalars['ID'];
+};
+
+
+export type MutationRemoveHeheArgs = {
+  number: Scalars['Int'];
+  year: Scalars['Int'];
 };
 
 
@@ -617,11 +639,14 @@ export type Query = {
   fileSystem: FileSystemResponse;
   files: Array<File>;
   groupedPosts: Array<Maybe<GroupedPost>>;
+  hehe?: Maybe<HeHe>;
+  hehes: Array<Maybe<HeHe>>;
   /** Used if nominations are hidden but an election-admin wants too see nominations */
   hiddenNominations: Array<Maybe<Nomination>>;
   individualAccess?: Maybe<Access>;
   latestBoardMeetings: Array<Maybe<Meeting>>;
   latestElections: Array<Maybe<Election>>;
+  latestHehe: Array<Maybe<HeHe>>;
   latestnews: Array<Maybe<Article>>;
   me?: Maybe<Me>;
   meeting?: Maybe<Meeting>;
@@ -769,6 +794,25 @@ export type QueryGroupedPostsArgs = {
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
  */
+export type QueryHeheArgs = {
+  number: Scalars['Int'];
+  year: Scalars['Int'];
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryHehesArgs = {
+  year: Scalars['Int'];
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryHiddenNominationsArgs = {
   answer?: Maybe<NominationAnswer>;
   electionId: Scalars['ID'];
@@ -799,6 +843,15 @@ export type QueryLatestBoardMeetingsArgs = {
  */
 export type QueryLatestElectionsArgs = {
   limit?: Maybe<Scalars['Int']>;
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryLatestHeheArgs = {
+  limit: Scalars['Int'];
 };
 
 
@@ -1130,6 +1183,7 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   FileType: FileType;
   GroupedPost: ResolverTypeWrapper<Omit<GroupedPost, 'posts'> & { posts: Array<ResolversTypes['Post']> }>;
+  HeHE: ResolverTypeWrapper<Omit<HeHe, 'uploader' | 'file'> & { uploader: ResolversTypes['User'], file: ResolversTypes['File'] }>;
   HistoryEntry: ResolverTypeWrapper<Omit<HistoryEntry, 'holder'> & { holder: ResolversTypes['User'] }>;
   Me: ResolverTypeWrapper<Omit<Me, 'user'> & { user?: Maybe<ResolversTypes['User']> }>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
@@ -1177,6 +1231,7 @@ export type ResolversParentTypes = ResolversObject<{
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
   GroupedPost: Omit<GroupedPost, 'posts'> & { posts: Array<ResolversParentTypes['Post']> };
+  HeHE: Omit<HeHe, 'uploader' | 'file'> & { uploader: ResolversParentTypes['User'], file: ResolversParentTypes['File'] };
   HistoryEntry: Omit<HistoryEntry, 'holder'> & { holder: ResolversParentTypes['User'] };
   Me: Omit<Me, 'user'> & { user?: Maybe<ResolversParentTypes['User']> };
   Float: Scalars['Float'];
@@ -1308,6 +1363,14 @@ export type GroupedPostResolvers<ContextType = Context, ParentType extends Resol
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type HeHeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HeHE'] = ResolversParentTypes['HeHE']> = ResolversObject<{
+  number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  uploader?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  file?: Resolver<ResolversTypes['File'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type HistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HistoryEntry'] = ResolversParentTypes['HistoryEntry']> = ResolversObject<{
   end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   holder?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
@@ -1343,6 +1406,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddElectablesArgs, 'electionId'>>;
   addEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddEmergencyContactArgs, 'name' | 'phone' | 'type'>>;
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'fileId' | 'fileType' | 'meetingId'>>;
+  addHehe?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddHeheArgs, 'fileId' | 'number' | 'year'>>;
   addMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'postname' | 'usernames'>>;
@@ -1365,6 +1429,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId'>>;
   removeEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveEmergencyContactArgs, 'id'>>;
   removeFileFromMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveFileFromMeetingArgs, 'fileType' | 'meetingId'>>;
+  removeHehe?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHeheArgs, 'number' | 'year'>>;
   removeHistoryEntry?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHistoryEntryArgs, 'postname' | 'start' | 'username'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
   removeProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProposalArgs, 'electionId' | 'postname' | 'username'>>;
@@ -1424,10 +1489,13 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
   groupedPosts?: Resolver<Array<Maybe<ResolversTypes['GroupedPost']>>, ParentType, ContextType, RequireFields<QueryGroupedPostsArgs, 'includeInactive'>>;
+  hehe?: Resolver<Maybe<ResolversTypes['HeHE']>, ParentType, ContextType, RequireFields<QueryHeheArgs, 'number' | 'year'>>;
+  hehes?: Resolver<Array<Maybe<ResolversTypes['HeHE']>>, ParentType, ContextType, RequireFields<QueryHehesArgs, 'year'>>;
   hiddenNominations?: Resolver<Array<Maybe<ResolversTypes['Nomination']>>, ParentType, ContextType, RequireFields<QueryHiddenNominationsArgs, 'electionId'>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
   latestBoardMeetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryLatestBoardMeetingsArgs, never>>;
   latestElections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryLatestElectionsArgs, never>>;
+  latestHehe?: Resolver<Array<Maybe<ResolversTypes['HeHE']>>, ParentType, ContextType, RequireFields<QueryLatestHeheArgs, 'limit'>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
@@ -1489,6 +1557,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;
   GroupedPost?: GroupedPostResolvers<ContextType>;
+  HeHE?: HeHeResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
   Me?: MeResolvers<ContextType>;
   Meeting?: MeetingResolvers<ContextType>;

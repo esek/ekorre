@@ -54,3 +54,8 @@ export type NominationResponse = Partial<Omit<Nomination, 'user' | 'post'>> & {
   user: Partial<User>;
   post: Partial<Post>;
 };
+
+export type HeHeResponse = Partial<Omit<HeHe, 'uploader' | 'file'>> & {
+  uploader: Partial<User>;
+  file: Partial<File>;
+};

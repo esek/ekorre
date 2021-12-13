@@ -1,0 +1,17 @@
+type Query {
+  hehe(number: Int!, year: Int!): HeHE
+  hehes(year: Int!): [HeHE]!
+  latestHehe(limit: Int!): [HeHE]!
+}
+
+type Mutation {
+  addHehe(fileId: ID!, number: Int!, year: Int!): Boolean!
+  removeHehe(number: Int!, year: Int!): Boolean!
+}
+
+type HeHE {
+  number: Int!
+  year: Int!
+  uploader: User!,
+  file: File!
+}

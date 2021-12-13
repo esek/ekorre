@@ -18,6 +18,7 @@ generates:
         Election: ./models/mappers#ElectionResponse
         Proposal: ./models/mappers#ProposalResponse
         Nomination: ./models/mappers#NominationResponse
+        HeHe: ./models/mappers#HeHeResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"

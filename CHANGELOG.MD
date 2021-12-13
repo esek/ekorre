@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2021-12-13
+
+### Tillagt
+- Lägger till API för HeHE
+
 ## [0.3.2] - 2021-12-09
 
 ### Ändrat
