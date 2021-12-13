@@ -99,6 +99,7 @@ deploy image:
       --env ALLOWED_ORIGINS=*
       --env COOKIE_DOMAIN=esek.se
       --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`ekorre.esek.se\`)"
+      --label "traefik.http.routers.$PROJECT_NAME.middlewares=cors@file"
       --network=traefik
       -d $CI_REGISTRY_IMAGE:latest
   environment:
