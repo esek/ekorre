@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse, MeetingResponse, AccessResourceResponse, ElectionResponse, ProposalResponse, NominationResponse, HeHeResponse } from './models/mappers';
+import type { ArticleResponse, FileResponse, MeetingResponse, AccessResourceResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse } from './models/mappers';
 import type { Context } from './models/context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -151,7 +151,7 @@ export type GroupedPost = {
   utskott: Utskott;
 };
 
-export type HeHe = {
+export type Hehe = {
   number: Scalars['Int'];
   year: Scalars['Int'];
   uploader: User;
@@ -639,14 +639,14 @@ export type Query = {
   fileSystem: FileSystemResponse;
   files: Array<File>;
   groupedPosts: Array<Maybe<GroupedPost>>;
-  hehe?: Maybe<HeHe>;
-  hehes: Array<Maybe<HeHe>>;
+  hehe?: Maybe<Hehe>;
+  hehes: Array<Maybe<Hehe>>;
   /** Used if nominations are hidden but an election-admin wants too see nominations */
   hiddenNominations: Array<Maybe<Nomination>>;
   individualAccess?: Maybe<Access>;
   latestBoardMeetings: Array<Maybe<Meeting>>;
   latestElections: Array<Maybe<Election>>;
-  latestHehe: Array<Maybe<HeHe>>;
+  latestHehe: Array<Maybe<Hehe>>;
   latestnews: Array<Maybe<Article>>;
   me?: Maybe<Me>;
   meeting?: Maybe<Meeting>;
@@ -851,7 +851,7 @@ export type QueryLatestElectionsArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryLatestHeheArgs = {
-  limit: Scalars['Int'];
+  limit?: Maybe<Scalars['Int']>;
 };
 
 
@@ -1183,7 +1183,7 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   FileType: FileType;
   GroupedPost: ResolverTypeWrapper<Omit<GroupedPost, 'posts'> & { posts: Array<ResolversTypes['Post']> }>;
-  HeHE: ResolverTypeWrapper<Omit<HeHe, 'uploader' | 'file'> & { uploader: ResolversTypes['User'], file: ResolversTypes['File'] }>;
+  Hehe: ResolverTypeWrapper<HeheResponse>;
   HistoryEntry: ResolverTypeWrapper<Omit<HistoryEntry, 'holder'> & { holder: ResolversTypes['User'] }>;
   Me: ResolverTypeWrapper<Omit<Me, 'user'> & { user?: Maybe<ResolversTypes['User']> }>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
@@ -1231,7 +1231,7 @@ export type ResolversParentTypes = ResolversObject<{
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
   GroupedPost: Omit<GroupedPost, 'posts'> & { posts: Array<ResolversParentTypes['Post']> };
-  HeHE: Omit<HeHe, 'uploader' | 'file'> & { uploader: ResolversParentTypes['User'], file: ResolversParentTypes['File'] };
+  Hehe: HeheResponse;
   HistoryEntry: Omit<HistoryEntry, 'holder'> & { holder: ResolversParentTypes['User'] };
   Me: Omit<Me, 'user'> & { user?: Maybe<ResolversParentTypes['User']> };
   Float: Scalars['Float'];
@@ -1363,7 +1363,7 @@ export type GroupedPostResolvers<ContextType = Context, ParentType extends Resol
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type HeHeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HeHE'] = ResolversParentTypes['HeHE']> = ResolversObject<{
+export type HeheResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Hehe'] = ResolversParentTypes['Hehe']> = ResolversObject<{
   number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   uploader?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
@@ -1489,13 +1489,13 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
   groupedPosts?: Resolver<Array<Maybe<ResolversTypes['GroupedPost']>>, ParentType, ContextType, RequireFields<QueryGroupedPostsArgs, 'includeInactive'>>;
-  hehe?: Resolver<Maybe<ResolversTypes['HeHE']>, ParentType, ContextType, RequireFields<QueryHeheArgs, 'number' | 'year'>>;
-  hehes?: Resolver<Array<Maybe<ResolversTypes['HeHE']>>, ParentType, ContextType, RequireFields<QueryHehesArgs, 'year'>>;
+  hehe?: Resolver<Maybe<ResolversTypes['Hehe']>, ParentType, ContextType, RequireFields<QueryHeheArgs, 'number' | 'year'>>;
+  hehes?: Resolver<Array<Maybe<ResolversTypes['Hehe']>>, ParentType, ContextType, RequireFields<QueryHehesArgs, 'year'>>;
   hiddenNominations?: Resolver<Array<Maybe<ResolversTypes['Nomination']>>, ParentType, ContextType, RequireFields<QueryHiddenNominationsArgs, 'electionId'>>;
   individualAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
   latestBoardMeetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryLatestBoardMeetingsArgs, never>>;
   latestElections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryLatestElectionsArgs, never>>;
-  latestHehe?: Resolver<Array<Maybe<ResolversTypes['HeHE']>>, ParentType, ContextType, RequireFields<QueryLatestHeheArgs, 'limit'>>;
+  latestHehe?: Resolver<Array<Maybe<ResolversTypes['Hehe']>>, ParentType, ContextType, RequireFields<QueryLatestHeheArgs, never>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
@@ -1557,7 +1557,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;
   GroupedPost?: GroupedPostResolvers<ContextType>;
-  HeHE?: HeHeResolvers<ContextType>;
+  Hehe?: HeheResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
   Me?: MeResolvers<ContextType>;
   Meeting?: MeetingResolvers<ContextType>;

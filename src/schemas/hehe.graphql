@@ -1,7 +1,7 @@
 type Query {
-  hehe(number: Int!, year: Int!): HeHE
-  hehes(year: Int!): [HeHE]!
-  latestHehe(limit: Int!): [HeHE]!
+  hehe(number: Int!, year: Int!): Hehe
+  hehes(year: Int!): [Hehe]!
+  latestHehe(limit: Int): [Hehe]!
 }
 
 type Mutation {
@@ -9,7 +9,7 @@ type Mutation {
   removeHehe(number: Int!, year: Int!): Boolean!
 }
 
-type HeHE {
+type Hehe {
   number: Int!
   year: Int!
   uploader: User!,

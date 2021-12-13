@@ -1,24 +1,29 @@
 import { NotFoundError, ServerError } from '../errors/RequestErrors';
 import { Logger } from '../logger';
-import { DatabaseHeHe } from '../models/db/hehe';
+import { DatabaseHehe } from '../models/db/hehe';
 import { validateNonEmptyArray } from '../services/validation.service';
 import { HEHE_TABLE } from './constants';
 import knex from './knex';
 
-const logger = Logger.getLogger('HeHeAPI');
+const logger = Logger.getLogger('HeheAPI');
 
-export class HeHeAPI {
+export class HeheAPI {
   /**
    * Hämtar ett antal HeHE, sorterat efter nummer och år.
-   * @param limit Antal HeHE som ska hämtas
+   * @param limit Antal HeHE som ska hämtas, om `undefined`/`null` ges alla
    * @param sortOrder Hur nummer och år ska sorteras
    */
-  async getAllHeHes(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<DatabaseHeHe[]> {
-    const h = await knex<DatabaseHeHe>(HEHE_TABLE)
+  async getAllHehes(limit?: number, sortOrder: 'desc' | 'asc' = 'desc'): Promise<DatabaseHehe[]> {
+    const query = knex<DatabaseHehe>(HEHE_TABLE)
       .select('*')
       .orderBy('number', sortOrder)
-      .orderBy('year', sortOrder)
-      .limit(limit);
+      .orderBy('year', sortOrder);
+
+    if (limit != null) {
+      query.limit(limit);
+    }
+
+    const h = await query;
 
     validateNonEmptyArray(h, 'Hittade inga HeHE');
 
@@ -30,8 +35,8 @@ export class HeHeAPI {
    * @param number Nummer på tidningen
    * @param year Vilket år tidningen publicerades
    */
-  async getHeHe(number: number, year: number): Promise<DatabaseHeHe> {
-    const h = await knex<DatabaseHeHe>(HEHE_TABLE)
+  async getHehe(number: number, year: number): Promise<DatabaseHehe> {
+    const h = await knex<DatabaseHehe>(HEHE_TABLE)
       .where({
         number,
         year,
@@ -45,8 +50,8 @@ export class HeHeAPI {
     return h;
   }
 
-  async getHehesByYear(year: number): Promise<DatabaseHeHe[]> {
-    const h = await knex<DatabaseHeHe>(HEHE_TABLE).where({
+  async getHehesByYear(year: number): Promise<DatabaseHehe[]> {
+    const h = await knex<DatabaseHehe>(HEHE_TABLE).where({
       year,
     });
 
@@ -61,14 +66,14 @@ export class HeHeAPI {
    * @param number Nummer på tidningen
    * @param year Vilket år tidningen publicerades
    */
-  async addHeHe(
+  async addHehe(
     uploaderUsername: string,
     fileId: string,
     number: number,
     year: number,
   ): Promise<boolean> {
     try {
-      await knex<DatabaseHeHe>(HEHE_TABLE).insert({
+      await knex<DatabaseHehe>(HEHE_TABLE).insert({
         refuploader: uploaderUsername,
         reffile: fileId,
         number,
@@ -92,8 +97,8 @@ export class HeHeAPI {
    * @param number Nummer på tidningen
    * @param year Vilket år tidningen publicerades
    */
-  async removeHeHe(number: number, year: number): Promise<boolean> {
-    const res = await knex<DatabaseHeHe>(HEHE_TABLE).delete().where({
+  async removeHehe(number: number, year: number): Promise<boolean> {
+    const res = await knex<DatabaseHehe>(HEHE_TABLE).delete().where({
       number,
       year,
     });

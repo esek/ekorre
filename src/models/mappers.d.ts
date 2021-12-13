@@ -18,6 +18,7 @@ import {
   Election,
   Nomination,
   Proposal,
+  Hehe,
 } from '../graphql.generated';
 
 export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {
@@ -55,7 +56,7 @@ export type NominationResponse = Partial<Omit<Nomination, 'user' | 'post'>> & {
   post: Partial<Post>;
 };
 
-export type HeHeResponse = Partial<Omit<HeHe, 'uploader' | 'file'>> & {
+export type HeheResponse = Omit<Hehe, 'uploader' | 'file'> & {
   uploader: Partial<User>;
   file: Partial<File>;
 };
