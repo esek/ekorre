@@ -18,7 +18,7 @@ if (process.env.DB_CLIENT === 'sqlite') {
   // parallellt (vilket sqlite INTE gillar). Default är 30000.
   // Vi använder även fejk-klockor i Jest, vilket troligen kan
   // jävlas
-  k.raw('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 9000000000000;').then();
+  k.raw('PRAGMA foreign_keys = ON;').then();
 } else {
   k = Knex({
     client: process.env.DB_CLIENT ?? 'mysql2',
