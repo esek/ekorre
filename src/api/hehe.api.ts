@@ -15,7 +15,6 @@ export class HeheAPI {
    */
   async getAllHehes(limit?: number, sortOrder: 'desc' | 'asc' = 'desc'): Promise<DatabaseHehe[]> {
     const query = knex<DatabaseHehe>(HEHE_TABLE)
-      .select('*')
       .orderBy('year', sortOrder)
       .orderBy('number', sortOrder);
 
