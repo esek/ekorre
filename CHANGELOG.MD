@@ -9,6 +9,9 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Tillagt
 - Lägger till API för HeHE
 
+### Ändrat
+- Ökar `busy_timeout` för SQLite-anslutning för att förhindra att parallella test ger `SQLITE_BUSY`
+
 ## [0.3.2] - 2021-12-09
 
 ### Ändrat
