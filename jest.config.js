@@ -3,6 +3,9 @@ module.exports = {
   preset: 'ts-jest/presets/default',
   testEnvironment: 'node',
   collectCoverage: true,
+  // SQLite ogillar skarpt när man kör för mycket parallellt,
+  // så istället för antal kärnor - 1 kör vi 75% av det
+  maxWorkers: '75%',
   // Alla JS, JSX, TS, TSX-filer i src, men inte models, genererad kod
   // eller resolvers (anrop till API:n via HTTP ger inte coverage)
   collectCoverageFrom: [
