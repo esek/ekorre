@@ -53,7 +53,7 @@ test('getting all HeHEs without limit, ascending order', async () => {
   };
   const localHehe1 = {
     ...DUMMY_HEHE,
-    year: 2021
+    year: 2021,
   };
 
   // Lägg till våra HeHE
@@ -61,7 +61,9 @@ test('getting all HeHEs without limit, ascending order', async () => {
 
   // Kontrollerar att de kommer i exakt rätt ordning
   await expect(api.getAllHehes(undefined, 'asc')).resolves.toEqual([
-    DUMMY_HEHE, localHehe0, localHehe1
+    DUMMY_HEHE,
+    localHehe0,
+    localHehe1,
   ]);
 });
 
@@ -72,7 +74,7 @@ test('getting all HeHEs without limit, descending order', async () => {
   };
   const localHehe1 = {
     ...DUMMY_HEHE,
-    year: 2021
+    year: 2021,
   };
 
   // Lägg till våra HeHE
@@ -80,7 +82,9 @@ test('getting all HeHEs without limit, descending order', async () => {
 
   // Kontrollerar att de kommer i exakt rätt ordning
   await expect(api.getAllHehes(undefined, 'desc')).resolves.toEqual([
-    localHehe1, localHehe0, DUMMY_HEHE
+    localHehe1,
+    localHehe0,
+    DUMMY_HEHE,
   ]);
 });
 
@@ -91,7 +95,7 @@ test('getting all HeHEs with limit', async () => {
   };
   const localHehe1 = {
     ...DUMMY_HEHE,
-    year: 2021
+    year: 2021,
   };
 
   // Lägg till våra HeHE
@@ -104,13 +108,20 @@ test('getting all HeHEs when none exists', async () => {
   await expect(api.getAllHehes()).rejects.toThrowError(NotFoundError);
 });
 
-test.todo('getting single HeHE');
+test('getting single HeHE', async () => {
+  await knex<DatabaseHehe>(HEHE_TABLE).insert(DUMMY_HEHE);
+  await expect(api.getHehe(DUMMY_HEHE.number, DUMMY_HEHE.year)).resolves.toMatchObject(DUMMY_HEHE);
+});
 
-test.todo('getting non-existant single HeHE');
+test('getting non-existant single HeHE', async () => {
+  await expect(api.getHehe(0, 1999)).rejects.toThrowError(NotFoundError);
+});
 
 test.todo('getting multiple HeHEs by year');
 
-test.todo('getting multiple HeHEs by year when none exists');
+test('getting multiple HeHEs by year when none exists', async () => {
+  await expect(api.getHehesByYear(1999)).rejects.toThrowError(NotFoundError);
+});
 
 test.todo('adding HeHE');
 
