@@ -145,6 +145,7 @@ def migrate_to_ekorre():
       }
     })
 
+    print(res.text)
     print(session.cookies)
 
     GET_MEETING_ID_QUERY = """
