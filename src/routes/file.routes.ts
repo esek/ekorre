@@ -62,7 +62,7 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   const path = body?.path ?? '/';
   const dbFile = await fileApi.saveFile(file, accessType, path, res.locals.user.username);
 
-  return res.send(dbFile);
+  return res.send(reduce(dbFile, fileReduce));
 });
 
 filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res) => {
@@ -98,13 +98,11 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
 
   try {
     await userApi.updateUser(username, { photoUrl: dbFile.folderLocation });
-    return res.send(dbFile);
+    return res.send(reduce(dbFile, fileReduce));
   } catch (e) {
     const error = e as RequestError;
     return res.status(error.code).send(error.message);
   }
-
-  return res.send(reduce(dbFile, fileReduce));
 });
 
 // Host static files
