@@ -53,7 +53,7 @@ export class PostAPI {
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
   async getPosts(limit?: number, includeInactive = true): Promise<DatabasePost[]> {
-    const query = knex<DatabasePost>(POSTS_TABLE).where('active', includeInactive);
+    const query = knex<DatabasePost>(POSTS_TABLE);
 
     if (!includeInactive) {
       query.where('active', true);
