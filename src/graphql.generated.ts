@@ -852,6 +852,7 @@ export type QueryLatestElectionsArgs = {
  */
 export type QueryLatestHeheArgs = {
   limit?: Maybe<Scalars['Int']>;
+  sortOrder?: Maybe<SortOrder>;
 };
 
 
@@ -1031,6 +1032,11 @@ export type SendEmailOptions = {
   body?: Maybe<Scalars['String']>;
 };
 
+export enum SortOrder {
+  Asc = 'asc',
+  Desc = 'desc'
+}
+
 export type UpdateUser = {
   address?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['String']>;
@@ -1205,6 +1211,7 @@ export type ResolversTypes = ResolversObject<{
   Query: ResolverTypeWrapper<{}>;
   ResolverType: ResolverType;
   SendEmailOptions: SendEmailOptions;
+  SortOrder: SortOrder;
   UpdateUser: UpdateUser;
   User: ResolverTypeWrapper<Omit<User, 'access' | 'posts' | 'userPostHistory'> & { access: ResolversTypes['Access'], posts: Array<ResolversTypes['Post']>, userPostHistory: Array<Maybe<ResolversTypes['UserPostHistoryEntry']>> }>;
   UserPostHistoryEntry: ResolverTypeWrapper<Omit<UserPostHistoryEntry, 'post'> & { post: ResolversTypes['Post'] }>;

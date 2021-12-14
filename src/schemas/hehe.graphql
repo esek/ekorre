@@ -1,7 +1,7 @@
 type Query {
   hehe(number: Int!, year: Int!): Hehe
   hehes(year: Int!): [Hehe]!
-  latestHehe(limit: Int): [Hehe]!
+  latestHehe(limit: Int, sortOrder: SortOrder): [Hehe]!
 }
 
 type Mutation {
@@ -14,4 +14,9 @@ type Hehe {
   year: Int!
   uploader: User!,
   file: File!
+}
+
+enum SortOrder {
+  asc,
+  desc
 }

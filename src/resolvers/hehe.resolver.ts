@@ -26,8 +26,8 @@ const heheResolver: Resolvers = {
       const h = await api.getHehesByYear(year);
       return reduce(h, heheReduce);
     },
-    latestHehe: async (_, { limit }) => {
-      const h = await api.getAllHehes(limit ?? undefined);
+    latestHehe: async (_, { limit, sortOrder }) => {
+      const h = await api.getAllHehes(limit ?? undefined, sortOrder ?? undefined);
       return reduce(h, heheReduce);
     },
   },
