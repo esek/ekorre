@@ -115,7 +115,7 @@ test('loading multiple existant and non-existant posts', async () => {
 test('loading non-existant post', async () => {
   const fakePostname = 'This is not a valid username.com!';
   const pl = createDataLoader(batchPostsFunction);
-  await expect(pl.load(fakePostname)).rejects.toThrow('Inga poster hittades');
+  await expect(pl.load(fakePostname)).rejects.toThrowError();
   expect(apiSpy).toHaveBeenCalledTimes(1);
 });
 

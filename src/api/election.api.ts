@@ -8,7 +8,6 @@ import {
   DatabaseNomination,
   DatabaseProposal,
 } from '../models/db/election';
-import { validateNonEmptyArray } from '../services/validation.service';
 import { ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE, ELECTABLE_TABLE } from './constants';
 import knex from './knex';
 
@@ -63,8 +62,6 @@ export class ElectionAPI {
   ): Promise<DatabaseElection[]> {
     const e = await knex<DatabaseElection>(ELECTION_TABLE).whereIn('id', electionIds);
 
-    validateNonEmptyArray(e, 'Hittade inte något möte alls');
-
     return e;
   }
 
@@ -87,11 +84,6 @@ export class ElectionAPI {
       })
       .where(`${NOMINATION_TABLE}.refelection`, electionId)
       .where(`${NOMINATION_TABLE}.refpost`, postname);
-
-    validateNonEmptyArray(
-      n,
-      `Hittade inga nomineringar för posten ${postname} för mötet med ID ${electionId}`,
-    );
 
     return n;
   }
@@ -124,8 +116,6 @@ export class ElectionAPI {
     }
 
     const n = await query;
-
-    validateNonEmptyArray(n, `Hittade inga nomineringar för mötet med ID ${electionId}`);
 
     return n;
   }
@@ -162,8 +152,6 @@ export class ElectionAPI {
     // Vi måste kontrollera att nomineringar är för
     // en valid electable
     const n = await query;
-
-    validateNonEmptyArray(n, `Hittade inga nomineringar för användaren ${username}`);
 
     return n;
   }
@@ -243,8 +231,6 @@ export class ElectionAPI {
   async getAllProposals(electionId: string): Promise<DatabaseProposal[]> {
     const p = await knex<DatabaseProposal>(PROPOSAL_TABLE).where('refelection', electionId);
 
-    validateNonEmptyArray(p, `Hittade inte Valberedningens förslag för valet med ID ${electionId}`);
-
     return p;
   }
 
@@ -257,11 +243,6 @@ export class ElectionAPI {
     const electableRows = await knex<DatabaseElectable>(ELECTABLE_TABLE)
       .select('refpost')
       .where('refelection', electionId);
-
-    validateNonEmptyArray(
-      electableRows,
-      `Hittade inga valbara poster för valet med ID ${electionId}`,
-    );
 
     const refposts = electableRows.map((e) => e.refpost);
 
