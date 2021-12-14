@@ -1,0 +1,22 @@
+type Query {
+  hehe(number: Int!, year: Int!): Hehe
+  hehes(year: Int!): [Hehe]!
+  latestHehe(limit: Int, sortOrder: SortOrder): [Hehe]!
+}
+
+type Mutation {
+  addHehe(fileId: ID!, number: Int!, year: Int!): Boolean!
+  removeHehe(number: Int!, year: Int!): Boolean!
+}
+
+type Hehe {
+  number: Int!
+  year: Int!
+  uploader: User!,
+  file: File!
+}
+
+enum SortOrder {
+  asc,
+  desc
+}
