@@ -56,16 +56,24 @@ meetings = {}
 
 def append_file(filename: str, year: str) -> None:
     # Hitta typ av möte med regex
-    meeting_type_match = re.search(
-        r"(ht|s|vm|vt|smextra)(?:\d{1,2})?-.*\.pdf", filename).group(0)
+    try:
+      meeting_type_match = re.search(
+      r"(ht|s|vm|vt|smextra)(?:\d{1,2})?-.*\.pdf", filename).group(1)
+    except:
+      print(f"AAAH okänd mötestyp för år {year}: {filename}!")
+      sys.exit(1)
 
     if meeting_type_match == "ht":
         meeting_type = "HTM"
         number = -1
     elif meeting_type_match == "s":
         meeting_type = "SM"
-        number = int(
-            re.search(r"s(\d{1,2})-\d{,2}-.*\.pdf", filename).group(0))
+        try:
+          number = int(
+              re.search(r"s(\d+)(?:-\d+)?-.*\.pdf", filename).group(1))
+        except AttributeError:
+          print(f"AAAAH kunde inte hitta vilket styrelsemöte följande var: {filename}")
+          sys.exit(1)
     elif meeting_type_match == "vm":
         meeting_type = "VM"
         number = -1
@@ -74,14 +82,15 @@ def append_file(filename: str, year: str) -> None:
         number = -1
     elif meeting_type_match == "smextra":
         meeting_type = "Extra"
-        number = int(
-            re.search(r"smextra(\d{1,2})-\d{,2}-.*\.pdf", filename).group(0))
-    else:
-        print(f"AAAH okänd mötestyp för år {year}: {filename}!")
-        sys.exit(1)
+        try:
+          number = int(
+              re.search(r"smextra(\d{1,2})(?:-\d{,2})?-.*\.pdf", filename).group(1))
+        except AttributeError:
+          print(f"AAAAH kunde inte hitta vilket extramöte följande var: {filename}")
+          sys.exit(1)
 
     document_type_match = re.search(
-        r".*-(kallelse|handlingar|sena handlingar|protokoll|bilaga)", filename).group(0)
+        r".*-(kallelse|handlingar|sena handlingar|protokoll|bilaga)", filename).group(1)
 
     if document_type_match == "kallelse":
       document_type = "summons"
@@ -97,7 +106,7 @@ def append_file(filename: str, year: str) -> None:
       print(f"AAAAH okänd dokumenttyp för år {year}: {filename}")
       sys.exit(1)
 
-    if year not in meetings.keys:
+    if year not in meetings.keys():
         meetings[year] = []
     
     meetings[year].append({
@@ -122,9 +131,9 @@ if __name__ == "__main__":
         raise ValueError("Not proper input dir, should be moteshandlingar")
 
     for year_dir in os.listdir(root_dir):
-        print(f"Parsing filenames for ")
-        for filename in year_dir:
-            append_file(filaname, year_dir)
+        print(f"Parsing filenames for {year_dir}")
+        for filename in os.listdir(os.path.join(root_dir, year_dir)):
+            append_file(filename, year_dir)
     
     print(meetings)
     #migrate_to_ekorre()
