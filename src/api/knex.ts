@@ -16,7 +16,9 @@ if (process.env.DB_CLIENT === 'sqlite') {
   //
   // Vi ökar även timeout, då våra tester vill göra väldigt mycket
   // parallellt (vilket sqlite INTE gillar). Default är 30000.
-  k.raw('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 1200000;').then();
+  // Vi använder även fejk-klockor i Jest, vilket troligen kan
+  // jävlas
+  k.raw('PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 9000000000000;').then();
 } else {
   k = Knex({
     client: process.env.DB_CLIENT ?? 'mysql2',

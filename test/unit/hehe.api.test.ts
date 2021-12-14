@@ -1,7 +1,7 @@
 import { FILE_TABLE, HEHE_TABLE } from '../../src/api/constants';
 import { HeheAPI } from '../../src/api/hehe.api';
 import knex from '../../src/api/knex';
-import { NotFoundError } from '../../src/errors/RequestErrors';
+import { NotFoundError, ServerError } from '../../src/errors/RequestErrors';
 import { AccessType, FileType } from '../../src/graphql.generated';
 import { DatabaseFile } from '../../src/models/db/file';
 import { DatabaseHehe } from '../../src/models/db/hehe';
@@ -117,16 +117,55 @@ test('getting non-existant single HeHE', async () => {
   await expect(api.getHehe(0, 1999)).rejects.toThrowError(NotFoundError);
 });
 
-test.todo('getting multiple HeHEs by year');
+test('getting multiple HeHEs by year', async () => {
+  const localHehe0 = {
+    ...DUMMY_HEHE,
+    number: 2,
+  };
+  const localHehe1 = {
+    ...DUMMY_HEHE,
+    year: 2021,
+  };
+
+  // Lägg till våra HeHE
+  await knex<DatabaseHehe>(HEHE_TABLE).insert([localHehe0, localHehe1, DUMMY_HEHE]);
+
+  const res = await api.getHehesByYear(DUMMY_HEHE.year);
+
+  expect(res).toHaveLength(2);
+  expect(res).toEqual(expect.arrayContaining([DUMMY_HEHE, localHehe0]));
+});
 
 test('getting multiple HeHEs by year when none exists', async () => {
   await expect(api.getHehesByYear(1999)).rejects.toThrowError(NotFoundError);
 });
 
-test.todo('adding HeHE');
+test('adding HeHE', async () => {
+  await expect(api.getAllHehes()).rejects.toThrowError(NotFoundError);
+  await expect(
+    api.addHehe(DUMMY_HEHE.refuploader, DUMMY_HEHE.reffile, DUMMY_HEHE.number, DUMMY_HEHE.year),
+  ).resolves.toBeTruthy();
+  await expect(api.getAllHehes()).resolves.toEqual([DUMMY_HEHE]);
+});
 
-test.todo('adding duplicate HeHE');
+test('adding duplicate HeHE', async () => {
+  await expect(api.getAllHehes()).rejects.toThrowError(NotFoundError);
+  await expect(
+    api.addHehe(DUMMY_HEHE.refuploader, DUMMY_HEHE.reffile, DUMMY_HEHE.number, DUMMY_HEHE.year),
+  ).resolves.toBeTruthy();
+  await expect(
+    api.addHehe(DUMMY_HEHE.refuploader, DUMMY_HEHE.reffile, DUMMY_HEHE.number, DUMMY_HEHE.year),
+  ).rejects.toThrowError(ServerError);
+  await expect(api.getAllHehes()).resolves.toEqual([DUMMY_HEHE]);
+});
 
-test.todo('removing HeHE');
+test('removing HeHE', async () => {
+  await expect(api.getAllHehes()).rejects.toThrowError(NotFoundError);
+  await knex<DatabaseHehe>(HEHE_TABLE).insert(DUMMY_HEHE);
+  await expect(api.getAllHehes()).resolves.toHaveLength(1);
+  await expect(api.removeHehe(DUMMY_HEHE.number, DUMMY_HEHE.year)).resolves.toBeTruthy();
+});
 
-test.todo('removing non-existant HeHE');
+test('removing non-existant HeHE', async () => {
+  await expect(api.removeHehe(0, 1999)).rejects.toThrowError(ServerError);
+});
