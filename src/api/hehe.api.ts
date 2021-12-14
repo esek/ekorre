@@ -9,15 +9,15 @@ const logger = Logger.getLogger('HeheAPI');
 
 export class HeheAPI {
   /**
-   * Hämtar ett antal HeHE, sorterat efter nummer och år.
+   * Hämtar ett antal HeHE, sorterat efter först år och sen nummer.
    * @param limit Antal HeHE som ska hämtas, om `undefined`/`null` ges alla
    * @param sortOrder Hur nummer och år ska sorteras
    */
   async getAllHehes(limit?: number, sortOrder: 'desc' | 'asc' = 'desc'): Promise<DatabaseHehe[]> {
     const query = knex<DatabaseHehe>(HEHE_TABLE)
       .select('*')
-      .orderBy('number', sortOrder)
-      .orderBy('year', sortOrder);
+      .orderBy('year', sortOrder)
+      .orderBy('number', sortOrder);
 
     if (limit != null) {
       query.limit(limit);
