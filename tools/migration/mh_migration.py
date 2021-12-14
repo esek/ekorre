@@ -37,6 +37,8 @@ alla möteshandlingar själva.
 import os
 import sys
 import re
+import getpass
+import requests as req
 
 """
 {
@@ -44,14 +46,15 @@ import re
     {
       meeting_type: <"SM" | "HTM" | "VM" | "VTM" | "Extra">,
       document_type: <"summons" | "documents" | "lateDocuments" | "protocol" | "appendix">,
-      number: <Int>
+      number: <Int>,
+      filename: <string>
     },
     # ...
   ],
   # ...
 }
 """
-meetings = {}
+meeting_docs = {}
 
 
 def append_file(filename: str, year: str) -> None:
@@ -106,20 +109,79 @@ def append_file(filename: str, year: str) -> None:
       print(f"AAAAH okänd dokumenttyp för år {year}: {filename}")
       sys.exit(1)
 
-    if year not in meetings.keys():
-        meetings[year] = []
+    if year not in meeting_docs.keys():
+        meeting_docs[year] = []
     
-    meetings[year].append({
+    meeting_docs[year].append({
       "meeting_type": meeting_type,
       "document_type": document_type,
       "number": number,
+      "filename": filename,
     })
 
 
 def migrate_to_ekorre():
-    username = input("Username: ")
-    password = input("Password: ")
+    base_api_url = sys.argv[2]
+    LOGIN_QUERY = """
+      mutation login($username: String!, $password: String!) {
+        login(username: $username, password: $password) {
+          username
+        }
+    }
+    """
 
+    #username = input("Username: ")
+    #password = getpass.getpass(prompt="Password: ")
+
+    username = "aa0000bb-s"
+    password = "test"
+
+    session = req.Session()
+    res = session.post(base_api_url, json={
+      "query": LOGIN_QUERY,
+      "variables": {
+        "username": username,
+        "password": password
+      }
+    })
+
+    print(session.cookies)
+
+    GET_MEETING_ID_QUERY = """
+      {
+        meeting(id: $id) {
+          id
+        }
+      }
+    """
+
+    ADD_MEETING_QUERY = """
+      mutation {
+        addMeeting(type: $meetingType, number: $number, year: $year)
+      }
+    """
+
+    ADD_FILE_TO_MEETING_QUERY = """
+      mutation {
+        addFileToMeeting(meetingId: $meetingId, fileId: $fileId, fileType: $fileType)
+      }
+    """
+
+    for year in meeting_docs.keys():
+      print(f"Uploading fiels for year {year}")
+      for meeting_doc in meeting_docs[year]:
+        with open(meeting_doc['filename'], 'rb') as f:
+          data = {
+            "body": {
+              "path": f"/moteshandlingar/{year}/"
+            },
+            "files": {
+              "file": f.read()
+            }
+          }
+        file_res = session.post(f"{base_api_url}/files/upload", data=data)
+        print(file_res.text)
+        sys.exit(0)
 
 if __name__ == "__main__":
     # Vi antar att första argumentet passed är ett dir med alla år (`moteshandlingar`)
@@ -133,7 +195,6 @@ if __name__ == "__main__":
     for year_dir in os.listdir(root_dir):
         print(f"Parsing filenames for {year_dir}")
         for filename in os.listdir(os.path.join(root_dir, year_dir)):
-            append_file(filename, year_dir)
+            append_file(os.path.join(root_dir, year_dir, filename), year_dir)
     
-    print(meetings)
-    #migrate_to_ekorre()
+    migrate_to_ekorre()
