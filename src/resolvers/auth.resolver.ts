@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { UnauthorizedError } from 'type-graphql';
 
 import { UserAPI } from '../api/user.api';
 import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '../auth';
@@ -37,20 +38,20 @@ const attachCookie = (
 const authResolver: Resolvers = {
   Mutation: {
     login: async (_, { username, password }, { response }) => {
-      const user = await api.loginUser(username, password);
+      try {
+        const user = await api.loginUser(username, password);
 
-      if (!user) {
-        return null;
+        const refresh = issueToken({ username }, 'refreshToken');
+        const access = issueToken({ username }, 'accessToken');
+  
+        // Attach a refresh token to the response object
+        attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
+        attachCookie(COOKIES.accessToken, access, 'accessToken', response);
+  
+        return reduce(user, userReduce);
+      } catch {
+        throw new UnauthorizedError();
       }
-
-      const refresh = issueToken({ username }, 'refreshToken');
-      const access = issueToken({ username }, 'accessToken');
-
-      // Attach a refresh token to the response object
-      attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
-      attachCookie(COOKIES.accessToken, access, 'accessToken', response);
-
-      return reduce(user, userReduce);
     },
     logout: (_, __, { response, refreshToken, accessToken }) => {
       // Invalidate both access- and refreshtoken

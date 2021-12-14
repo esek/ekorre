@@ -152,7 +152,7 @@ test('login with incorrect credentials', async () => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeNull();
       expect(res.data.errors).not.toBeNull();
-      expect(res.data.errors?.[0].statusCode).toBe(404);
+      expect(res.data.errors?.[0].statusCode).toBe(401);
       expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
@@ -198,7 +198,7 @@ test('login with incorrect username', async () => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeNull();
       expect(res.data.errors).not.toBeNull();
-      expect(res.data.errors?.[0].statusCode).toBe(404);
+      expect(res.data.errors?.[0].statusCode).toBe(401);
       expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
@@ -221,7 +221,7 @@ test('login with empty credentials', async () => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeFalsy();
       expect(res.data.errors).not.toBeNull();
-      expect(res.data.errors?.[0].statusCode).toBe(404);
+      expect(res.data.errors?.[0].statusCode).toBe(401);
       expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
@@ -267,7 +267,7 @@ test('login with empty username', async () => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeNull();
       expect(res.data.errors).not.toBeNull();
-      expect(res.data.errors?.[0].statusCode).toBe(404);
+      expect(res.data.errors?.[0].statusCode).toBe(401);
       expect(res.headers['set-cookie']).toBe(undefined);
     } else {
       fail('Did not get proper response from the server');
