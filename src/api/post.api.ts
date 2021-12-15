@@ -4,7 +4,6 @@ import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '../graphql.genera
 import { Logger } from '../logger';
 import { StrictObject } from '../models/base';
 import type { DatabasePost, DatabasePostHistory } from '../models/db/post';
-import { validateNonEmptyArray } from '../services/validation.service';
 import { midnightTimestamp, stripObject } from '../util';
 import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
 import knex from './knex';
@@ -65,8 +64,6 @@ export class PostAPI {
 
     const posts = await query;
 
-    validateNonEmptyArray(posts, 'Inga poster hittades');
-
     return posts;
   }
 
@@ -99,8 +96,6 @@ export class PostAPI {
 
     const posts = await query;
 
-    validateNonEmptyArray(posts, 'Inga poster hittades');
-
     return posts;
   }
 
@@ -131,8 +126,6 @@ export class PostAPI {
 
     const posts = await query;
 
-    validateNonEmptyArray(posts, 'Inga poster hittades');
-
     return posts;
   }
 
@@ -151,8 +144,6 @@ export class PostAPI {
     }
 
     const posts = await query;
-
-    validateNonEmptyArray(posts, 'Inga poster hittades');
 
     return posts;
   }
@@ -308,8 +299,6 @@ export class PostAPI {
     const entries = await knex<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
       refpost,
     });
-
-    validateNonEmptyArray(entries, 'Ingen posthistorik hittades');
 
     return entries;
   }

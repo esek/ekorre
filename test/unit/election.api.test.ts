@@ -137,9 +137,7 @@ test('getting multiple elections', async () => {
 });
 
 test('getting multiple meetings when none exists', async () => {
-  await expect(api.getMultipleElections(['1', '2', '69', '905393'])).rejects.toThrowError(
-    NotFoundError,
-  );
+  await expect(api.getMultipleElections(['1', '2', '69', '905393'])).resolves.toHaveLength(0);
 });
 
 test('getting nominations for post', async () => {
@@ -161,7 +159,7 @@ test('getting nominations for post', async () => {
       },
     ]),
   );
-  await expect(api.getNominations(electionId, 'Teknokrat')).rejects.toThrowError(NotFoundError);
+  await expect(api.getNominations(electionId, 'Teknokrat')).resolves.toHaveLength(0);
 });
 
 test('nominations for non-electables are hidden', async () => {
@@ -176,10 +174,8 @@ test('nominations for non-electables are hidden', async () => {
   // Denna nominering borde aldrig synas!
   await expect(api.getNumberOfNominations(electionId)).resolves.toEqual(0);
   await expect(api.getNumberOfNominations(electionId, 'Macapär')).resolves.toEqual(0);
-  await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
-  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).rejects.toThrowError(
-    NotFoundError,
-  );
+  await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
+  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toHaveLength(0);
 });
 
 test('getting all nominations with specified answer', async () => {
@@ -281,9 +277,9 @@ test('getting all nominations when none exists', async () => {
   );
   await api.openElection(electionId);
 
-  await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
-  await expect(api.getAllNominations(electionId, NominationAnswer.NoAnswer)).rejects.toThrowError(
-    NotFoundError,
+  await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
+  await expect(api.getAllNominations(electionId, NominationAnswer.NoAnswer)).resolves.toHaveLength(
+    0,
   );
 });
 
@@ -381,11 +377,9 @@ test('getting all nominations for user when none exists', async () => {
   );
   await api.openElection(electionId);
 
-  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).rejects.toThrowError(
-    NotFoundError,
-  );
-  await expect(api.getAllNominations(electionId, NominationAnswer.NoAnswer)).rejects.toThrowError(
-    NotFoundError,
+  await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toHaveLength(0);
+  await expect(api.getAllNominations(electionId, NominationAnswer.NoAnswer)).resolves.toHaveLength(
+    0,
   );
 });
 
@@ -447,7 +441,7 @@ test('getting all proposals when none exists', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
   await api.openElection(electionId);
 
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
 
 test('getting all electables', async () => {
@@ -459,7 +453,7 @@ test('getting all electables', async () => {
 
 test('getting all electables when none exists', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
-  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
 });
 
 test('creating election returns its ID', async () => {
@@ -518,7 +512,7 @@ test('creating election with invalid electables', async () => {
   expect(election).toMatchObject({
     refcreator: 'aa0000bb-s',
   });
-  await expect(api.getAllElectables(election.id)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllElectables(election.id)).resolves.toHaveLength(0);
 });
 
 test('creating election with mixed valid and invalid electables', async () => {
@@ -534,7 +528,7 @@ test('creating election with mixed valid and invalid electables', async () => {
   expect(election).toMatchObject({
     refcreator: 'aa0000bb-s',
   });
-  await expect(api.getAllElectables(election.id)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllElectables(election.id)).resolves.toHaveLength(0);
 });
 
 test('adding valid electables to non-existant election', async () => {
@@ -545,7 +539,7 @@ test('adding valid electables to non-existant election', async () => {
 
 test('adding valid electables to election', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
-  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
   await expect(api.addElectables(electionId, ['Macapär'])).resolves.toBeTruthy();
   await expect(api.getAllElectables(electionId)).resolves.toEqual(['Macapär']);
 
@@ -560,11 +554,11 @@ test('adding valid electables to election', async () => {
 
 test('adding mixed valid and non-valid electables to election', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
-  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
   await expect(api.addElectables(electionId, ['Macapär', 'Not a post'])).rejects.toThrowError(
     ServerError,
   );
-  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
 });
 
 test('adding empty list of electables to election', async () => {
@@ -579,7 +573,7 @@ test('adding duplicate electables', async () => {
   await expect(api.addElectables(electionId, ['Macapär', 'Macapär'])).rejects.toThrowError(
     ServerError,
   );
-  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
 
   // I olika anrop
   await expect(api.addElectables(electionId, ['Macapär'])).resolves.toBeTruthy();
@@ -625,21 +619,21 @@ test('removing mixed valid and non-valid electables from election', async () => 
 
 test('removing empty list of electables from election', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
-  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
   await expect(api.removeElectables(electionId, [])).rejects.toThrowError(BadRequestError);
-  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
 });
 
 test('removing valid electable not in election', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
-  await expect(api.getAllElectables(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
   await expect(api.removeElectables(electionId, ['Macapär'])).rejects.toThrowError(ServerError);
 });
 
 test('setting an empty array of electables in an existing election', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
   await expect(api.setElectables(electionId, [])).resolves.toBeTruthy();
-  await expect(api.getAllElectables(electionId)).rejects.toThrow(NotFoundError);
+  await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
 });
 
 test('overriding existing electables', async () => {
@@ -787,22 +781,24 @@ test('nominating already done nomination does not overwrite answer', async () =>
 test('nominating non-electable post', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
-  await expect(api.nominate('aa0000bb-s', ['Not a postname'])).rejects.toThrowError(NotFoundError);
-  await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.nominate('aa0000bb-s', ['Not a postname'])).rejects.toThrowError(
+    BadRequestError,
+  );
+  await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
 });
 
 test('nominating non-existant user', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär'], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('Not an user', ['Macapär'])).rejects.toThrowError(ServerError);
-  await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
 });
 
 test('nominating without postnames', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär'], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', [])).rejects.toThrowError(BadRequestError);
-  await expect(api.getAllNominations(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
 });
 
 test('nominating mixed valid and invalid postnames', async () => {
@@ -921,7 +917,7 @@ test('respond to valid nomination after election close', async () => {
 
 test('proposing', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.propose(electionId, 'bb1111cc-s', 'Macapär')).resolves.toBeTruthy();
   await expect(api.getAllProposals(electionId)).resolves.toEqual([
     {
@@ -934,32 +930,32 @@ test('proposing', async () => {
 
 test('proposing non-existant user', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.propose(electionId, 'Not an user', 'Macapär')).rejects.toThrowError(ServerError);
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
 
 test('proposing non-existant post', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.propose(electionId, 'bb1111cc-s', 'Not a post')).rejects.toThrowError(
     ServerError,
   );
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
 
 test('proposing non-existant election', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.propose('Not an electio', 'bb1111cc-s', 'Macapär')).rejects.toThrowError(
     ServerError,
   );
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
 
 test('removing proposal', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.propose(electionId, 'bb1111cc-s', 'Macapär')).resolves.toBeTruthy();
   await expect(api.getAllProposals(electionId)).resolves.toEqual([
     {
@@ -971,14 +967,14 @@ test('removing proposal', async () => {
   await expect(api.removeProposal(electionId, 'bb1111cc-s', 'Macapär')).resolves.toBeTruthy();
 
   // Kolla att den faktiskt togs bort
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
 
 test('removing non-existant proposal', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], false);
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.removeProposal(electionId, 'aa0000bb-s', 'Macapär')).rejects.toThrowError(
     ServerError,
   );
-  await expect(api.getAllProposals(electionId)).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });

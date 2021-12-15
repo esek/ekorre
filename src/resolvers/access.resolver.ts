@@ -26,10 +26,10 @@ const accessresolver: Resolvers = {
   },
   User: {
     access: async ({ username }) => {
-      const indAccess = await accessApi.getIndividualAccess(username).catch(() => []);
-      const posts = await postApi.getPostsForUser(username).catch(() => []);
+      const indAccess = await accessApi.getIndividualAccess(username);
+      const posts = await postApi.getPostsForUser(username);
       const postNames = posts.map((e) => e.postname);
-      const postAccess = await accessApi.getAccessForPosts(postNames, false).catch(() => []);
+      const postAccess = await accessApi.getAccessForPosts(postNames, false);
 
       return accessReducer([...indAccess, ...postAccess]);
     },

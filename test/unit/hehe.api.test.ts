@@ -105,7 +105,7 @@ test('getting all HeHEs with limit', async () => {
 });
 
 test('getting all HeHEs when none exists', async () => {
-  await expect(api.getAllHehes()).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllHehes()).resolves.toHaveLength(0);
 });
 
 test('getting single HeHE', async () => {
@@ -137,11 +137,11 @@ test('getting multiple HeHEs by year', async () => {
 });
 
 test('getting multiple HeHEs by year when none exists', async () => {
-  await expect(api.getHehesByYear(1999)).rejects.toThrowError(NotFoundError);
+  await expect(api.getHehesByYear(1999)).resolves.toHaveLength(0);
 });
 
 test('adding HeHE', async () => {
-  await expect(api.getAllHehes()).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllHehes()).resolves.toHaveLength(0);
   await expect(
     api.addHehe(DUMMY_HEHE.refuploader, DUMMY_HEHE.reffile, DUMMY_HEHE.number, DUMMY_HEHE.year),
   ).resolves.toBeTruthy();
@@ -149,7 +149,7 @@ test('adding HeHE', async () => {
 });
 
 test('adding duplicate HeHE', async () => {
-  await expect(api.getAllHehes()).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllHehes()).resolves.toHaveLength(0);
   await expect(
     api.addHehe(DUMMY_HEHE.refuploader, DUMMY_HEHE.reffile, DUMMY_HEHE.number, DUMMY_HEHE.year),
   ).resolves.toBeTruthy();
@@ -160,7 +160,7 @@ test('adding duplicate HeHE', async () => {
 });
 
 test('removing HeHE', async () => {
-  await expect(api.getAllHehes()).rejects.toThrowError(NotFoundError);
+  await expect(api.getAllHehes()).resolves.toHaveLength(0);
   await knex<DatabaseHehe>(HEHE_TABLE).insert(DUMMY_HEHE);
   await expect(api.getAllHehes()).resolves.toHaveLength(1);
   await expect(api.removeHehe(DUMMY_HEHE.number, DUMMY_HEHE.year)).resolves.toBeTruthy();

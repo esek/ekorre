@@ -68,8 +68,7 @@ const accessMappingResolver: Resolvers = {
     accessMappings: async (_, { type, name }) => {
       // Get all mappings
       const mappings = await accessApi
-        .getAccessMapping(name ?? undefined, type ?? undefined)
-        .catch(() => []);
+        .getAccessMapping(name ?? undefined, type ?? undefined);
 
       // Create temporary object to group mappings by resolver name
       const obj: TempMappingObject = {};

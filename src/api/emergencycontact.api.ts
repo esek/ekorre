@@ -2,7 +2,6 @@ import { ServerError } from '../errors/RequestErrors';
 import { EmergencyContactType } from '../graphql.generated';
 import { Logger } from '../logger';
 import { DatabaseEmergencyContact } from '../models/db/emergencycontact';
-import { validateNonEmptyArray } from '../services/validation.service';
 import { EMERGENCY_CONTACTS_TABLE } from './constants';
 import knex from './knex';
 
@@ -14,8 +13,6 @@ class EmergencyContactAPI {
       'refuser',
       username,
     );
-
-    validateNonEmptyArray(contacts, 'Inga nödkontakter hittades');
 
     return contacts;
   }

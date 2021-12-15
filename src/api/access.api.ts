@@ -5,7 +5,6 @@ import type { DatabaseAccess } from '../models/db/access';
 import { DatabaseAccessMapping } from '../models/db/accessmapping';
 import { DatabasePost, DatabasePostHistory } from '../models/db/post';
 import { DatabaseAccessResource } from '../models/db/resource';
-import { validateNonEmptyArray } from '../services/validation.service';
 import {
   ACCESS_MAPPINGS_TABLE,
   ACCESS_RESOURCES_TABLE,
@@ -198,11 +197,6 @@ export class AccessAPI {
     }
 
     const resources = await q;
-
-    validateNonEmptyArray(
-      resources,
-      `Ingen accessmappning hittades: ${resolverType?.toString() ?? ''} ${resolverName ?? ''}`,
-    );
 
     return resources;
   }
