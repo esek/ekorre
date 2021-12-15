@@ -1,10 +1,9 @@
 import { Response } from 'express';
-import { UnauthorizedError } from 'type-graphql';
 
 import { UserAPI } from '../api/user.api';
 import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '../auth';
 import config from '../config';
-import { ServerError } from '../errors/RequestErrors';
+import { ServerError, UnauthenticatedError } from '../errors/RequestErrors';
 import { Resolvers } from '../graphql.generated';
 import type { TokenType } from '../models/auth';
 import { reduce } from '../reducers';
@@ -50,7 +49,7 @@ const authResolver: Resolvers = {
   
         return reduce(user, userReduce);
       } catch {
-        throw new UnauthorizedError();
+        throw new UnauthenticatedError('Inloggningen misslyckades');
       }
     },
     logout: (_, __, { response, refreshToken, accessToken }) => {
