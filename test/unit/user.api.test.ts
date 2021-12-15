@@ -185,7 +185,7 @@ test('get non-existat user', async () => {
 test('get multiple non-existant users', async () => {
   await expect(
     api.getMultipleUsers(['fake as shit username', 'and another one here']),
-  ).rejects.toThrowError(NotFoundError);
+  ).resolves.toHaveLength(0);
 });
 
 test('updating existing user', async () => {
@@ -234,8 +234,8 @@ test('search for user by name that exists', async () => {
   expect((await api.searchUser('kalle')).length).toBe(1);
 });
 
-test('search for non existing user', async () => {
-  await expect(api.searchUser('Albert')).rejects.toThrow('Inga användare hittades');
+test('search for non-existant user', async () => {
+  await expect(api.searchUser('Albert')).resolves.toHaveLength(0);
 });
 
 // Test för att återställa password

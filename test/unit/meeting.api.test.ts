@@ -149,7 +149,7 @@ test('finding non-existant meeting', async () => {
 test('finding multiple non-existant meetings', async () => {
   await expect(
     api.getMultipleMeetings({ type: MeetingType.Sm, number: 5000, year: 0 }),
-  ).rejects.toThrowError(NotFoundError);
+  ).resolves.toHaveLength(0);
 });
 
 test('adding file to meeting', async () => {

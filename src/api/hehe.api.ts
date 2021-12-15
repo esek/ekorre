@@ -1,7 +1,6 @@
 import { NotFoundError, ServerError } from '../errors/RequestErrors';
 import { Logger } from '../logger';
 import { DatabaseHehe } from '../models/db/hehe';
-import { validateNonEmptyArray } from '../services/validation.service';
 import { HEHE_TABLE } from './constants';
 import knex from './knex';
 
@@ -23,8 +22,6 @@ export class HeheAPI {
     }
 
     const h = await query;
-
-    validateNonEmptyArray(h, 'Hittade inga HeHE');
 
     return h;
   }
@@ -53,8 +50,6 @@ export class HeheAPI {
     const h = await knex<DatabaseHehe>(HEHE_TABLE).where({
       year,
     });
-
-    validateNonEmptyArray(h, `Hittade inga HeHE för året ${year}`);
 
     return h;
   }

@@ -11,7 +11,6 @@ import type { NewUser } from '../graphql.generated';
 import { Logger } from '../logger';
 import { DatabaseForgotPassword } from '../models/db/forgotpassword';
 import { DatabaseUser } from '../models/db/user';
-import { validateNonEmptyArray } from '../services/validation.service';
 import { PASSWORD_RESET_TABLE, USER_TABLE } from './constants';
 import knex from './knex';
 
@@ -74,8 +73,6 @@ export class UserAPI {
   async getMultipleUsers(usernames: string[] | readonly string[]): Promise<DatabaseUser[]> {
     const u = await knex<DatabaseUser>(USER_TABLE).whereIn('username', usernames);
 
-    validateNonEmptyArray(u, 'Inga användare hittades');
-
     return u;
   }
 
@@ -84,8 +81,6 @@ export class UserAPI {
       .where('username', 'like', `%${search}%`)
       .orWhere('firstName', 'like', `%${search}%`)
       .orWhere('lastName', 'like', `%${search}%`);
-
-    validateNonEmptyArray(users, 'Inga användare hittades');
 
     return users;
   }
