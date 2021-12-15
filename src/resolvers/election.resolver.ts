@@ -61,6 +61,9 @@ const electionResolver: Resolvers = {
     removeElectables: async (_, { electionId, postnames }) => {
       return api.removeElectables(electionId, postnames ?? []);
     },
+    setElectables: async (_, { electionId, postnames }) => {
+      return api.setElectables(electionId, postnames);
+    },
     setHiddenNominations: async (_, { electionId, hidden }) => {
       return api.setHiddenNominations(electionId, hidden);
     },

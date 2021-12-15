@@ -29,6 +29,7 @@ type Mutation {
   createElection(electables: [String]!, nominationsHidden: Boolean!): ID!
   addElectables(electionId: ID!, postnames: [String!]): Boolean!
   removeElectables(electionId: ID!, postnames: [String!]): Boolean!
+  setElectables(electionId: ID!, postnames: [String!]!): Boolean!
   setHiddenNominations(electionId: ID!, hidden: Boolean!): Boolean!
   openElection(electionId: ID!): Boolean!
   closeElection: Boolean!

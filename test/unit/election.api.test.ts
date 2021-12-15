@@ -636,6 +636,19 @@ test('removing valid electable not in election', async () => {
   await expect(api.removeElectables(electionId, ['Macapär'])).rejects.toThrowError(ServerError);
 });
 
+test('setting an empty array of electables in an existing election', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await expect(api.setElectables(electionId, [])).resolves.toBeTruthy();
+  await expect(api.getAllElectables(electionId)).rejects.toThrow(NotFoundError);
+});
+
+test('overriding existing electables', async () => {
+  const electionId = await api.createElection('aa0000bb-s', [], false);
+  await expect(api.addElectables(electionId, ['Macapär', 'Teknokrat'])).resolves.toBeTruthy();
+  await expect(api.setElectables(electionId, ['Cophös'])).resolves.toBeTruthy();
+  await expect(api.getAllElectables(electionId)).resolves.toEqual(['Cophös']);
+});
+
 test('setting hidden nominations', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
   expect((await api.getLatestElections(1))[0].nominationsHidden).toBeFalsy();
