@@ -17,7 +17,6 @@ export class ElectionAPI {
   /**
    * @param limit Gräns på antal möten. Om null ges alla möten
    * @returns Senaste mötet som skapades
-   * @throws `NotFoundError`
    */
   async getLatestElections(limit?: number): Promise<DatabaseElection[]> {
     const query = knex<DatabaseElection>(ELECTION_TABLE).select('*').orderBy('id', 'desc');
@@ -27,10 +26,6 @@ export class ElectionAPI {
     }
 
     const e = await query;
-
-    if (e == null) {
-      throw new NotFoundError('Hittade inga val');
-    }
 
     return e;
   }
@@ -71,7 +66,6 @@ export class ElectionAPI {
    * @param electionId ID på ett val
    * @param postname Namnet på posten
    * @returns Lista över nomineringar
-   * @throws `NotFoundError`
    */
   async getNominations(electionId: string, postname: string): Promise<DatabaseNomination[]> {
     // prettier-ignore
@@ -95,7 +89,6 @@ export class ElectionAPI {
    * @param electionId ID på ett val
    * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
    * @returns Lista över nomineringar
-   * @throws `NotFoundError`
    */
   async getAllNominations(
     electionId: string,
@@ -127,7 +120,6 @@ export class ElectionAPI {
    * @param username Användarnamnet
    * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
    * @returns Lista över nomineringar
-   * @throws `NotFoundError`
    */
   async getAllNominationsForUser(
     electionId: string,
