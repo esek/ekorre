@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/indent */
-import { NotFoundError, BadRequestError, ServerError } from '../errors/RequestErrors';
+import { BadRequestError, NotFoundError, ServerError } from '../errors/RequestErrors';
 import { NominationAnswer } from '../graphql.generated';
 import { Logger } from '../logger';
 import {
@@ -345,6 +345,37 @@ export class ElectionAPI {
     if (res !== postnames.length) {
       logger.debug(`Could not delete all electables for election with ID ${electionId}`);
       throw new ServerError('Kunde inte ta bort alla valbara poster');
+    }
+
+    return true;
+  }
+
+  /**
+   * Försöker att lägga till alla poster som valbara i det specificerade valet.
+   * @param electionId ID på ett val
+   * @param postnames Lista på postnamn
+   */
+  async setElectables(electionId: string, postnames: string[]): Promise<boolean> {
+    const q = knex<DatabaseElectable>(ELECTABLE_TABLE);
+
+    try {
+      // Remove existing electables
+      await q.where({ refelection: electionId }).delete();
+
+      if (postnames.length > 0) {
+        const electableRows: DatabaseElectable[] = postnames.map((postname) => {
+          return { refelection: electionId, refpost: postname };
+        });
+
+        await knex(ELECTABLE_TABLE).insert(electableRows);
+      }
+    } catch (err) {
+      logger.debug(
+        `Could not insert electables for election with ID ${electionId} due to error:\n\t${JSON.stringify(
+          err,
+        )}`,
+      );
+      throw new ServerError('Kunde inte lägga alla valbara poster');
     }
 
     return true;

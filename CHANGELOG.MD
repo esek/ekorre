@@ -9,6 +9,10 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Ändrat
 - Efter diskussion kastar saker som är på formatet `[SomeType]!` i GraphQL-schemas 404, utan returnerar nu istället tomma listor.
 
+## [0.4.1] - 2021-12-15
+### Tillagt
+- SetElection mutation för att skriva över elections
+
 ## [0.4.0] - 2021-12-13
 
 ### Tillagt
