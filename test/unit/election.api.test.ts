@@ -633,7 +633,7 @@ test('removing valid electable not in election', async () => {
 test('setting an empty array of electables in an existing election', async () => {
   const electionId = await api.createElection('aa0000bb-s', [], false);
   await expect(api.setElectables(electionId, [])).resolves.toBeTruthy();
-  await expect(api.getAllElectables(electionId)).rejects.toThrow(NotFoundError);
+  await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
 });
 
 test('overriding existing electables', async () => {
