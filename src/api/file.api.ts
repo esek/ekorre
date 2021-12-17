@@ -8,7 +8,6 @@ import { NotFoundError, ServerError } from '../errors/RequestErrors';
 import { AccessType, FileSystemResponsePath, FileType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseFile } from '../models/db/file';
-import { validateNonEmptyArray } from '../services/validation.service';
 import { FILE_TABLE } from './constants';
 import knex from './knex';
 
@@ -145,15 +144,13 @@ class FileAPI {
   }
 
   async getMultipleFiles(type?: FileType) {
-    let files: DatabaseFile[];
+    const query = knex<DatabaseFile>(FILE_TABLE);
 
     if (type) {
-      files = await knex<DatabaseFile>(FILE_TABLE).where('type', type);
+      query.where('type', type);
     }
 
-    files = await knex<DatabaseFile>(FILE_TABLE);
-
-    validateNonEmptyArray(files, 'Inga filer hittades');
+    const files = await query;
 
     return files;
   }
@@ -183,8 +180,6 @@ class FileAPI {
       .whereNot({ type: FileType.Folder }) // dont include folders in search
       .andWhere('name', 'like', `%${search}%`)
       .orWhere('id', 'like', `%${search}%`);
-
-    validateNonEmptyArray(files, 'Inga filer hittades');
 
     return files;
   }

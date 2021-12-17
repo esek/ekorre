@@ -1,7 +1,7 @@
 import type { IMiddleware, IMiddlewareFunction } from 'graphql-middleware';
 
 import { AccessAPI } from '../../api/access.api';
-import RequestError, { ForbiddenError, UnauthenticatedError } from '../../errors/RequestErrors';
+import RequestError, { ForbiddenError, NotFoundError, UnauthenticatedError } from '../../errors/RequestErrors';
 import { ResolverType } from '../../graphql.generated';
 import { Logger } from '../../logger';
 import { Context } from '../../models/context';
@@ -28,6 +28,10 @@ const checkAuthMiddleware: IMiddlewareFunction<unknown, Context> = async (
        * @throws if no mapping (and will resolve below)
        */
       const access = await api.getAccessMapping(resolverName, resolverType);
+
+      if (access.length === 0) {
+        throw new NotFoundError(`Ingen accessmapping hittades för resursen ${resolverName}`);
+      }
 
       const username = context.getUsername();
 

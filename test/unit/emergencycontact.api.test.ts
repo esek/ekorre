@@ -36,9 +36,7 @@ afterAll(async () => {
 });
 
 test('get empty emergency contacts for user', async () => {
-  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).rejects.toThrowError(
-    NotFoundError,
-  );
+  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(0);
 });
 
 test('add emergency contact to user that exists', async () => {
@@ -90,7 +88,5 @@ test('remove emergency contact that does exist', async () => {
     emergencyContactApi.removeEmergencyContact(DUMMY_USER.username, contact.id),
   ).resolves.toBe(true);
 
-  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).rejects.toThrow(
-    NotFoundError,
-  );
+  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(0);
 });

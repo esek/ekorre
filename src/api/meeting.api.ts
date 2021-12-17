@@ -3,7 +3,6 @@ import { BadRequestError, NotFoundError, ServerError } from '../errors/RequestEr
 import { MeetingDocumentType, MeetingType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseMeeting } from '../models/db/meeting';
-import { validateNonEmptyArray } from '../services/validation.service';
 import { stripObject } from '../util';
 import { MEETING_TABLE } from './constants';
 import knex from './knex';
@@ -27,8 +26,6 @@ export class MeetingAPI {
       .select('*')
       .orderBy('id', sortOrder)
       .limit(limit);
-
-    validateNonEmptyArray(m, 'Hittade inga möten');
 
     return m;
   }
@@ -56,8 +53,6 @@ export class MeetingAPI {
       throw new ServerError('Mötessökningen misslyckades');
     }
 
-    validateNonEmptyArray(m, 'Hittade inga möten');
-
     return m;
   }
 
@@ -81,8 +76,6 @@ export class MeetingAPI {
     if (m === null) {
       throw new ServerError('Mötessökningen misslyckades');
     }
-
-    validateNonEmptyArray(m, 'Hittade inga möten');
 
     return m;
   }

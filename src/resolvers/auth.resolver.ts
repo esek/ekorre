@@ -3,7 +3,7 @@ import { Response } from 'express';
 import { UserAPI } from '../api/user.api';
 import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '../auth';
 import config from '../config';
-import { ServerError } from '../errors/RequestErrors';
+import { ServerError, UnauthenticatedError } from '../errors/RequestErrors';
 import { Resolvers } from '../graphql.generated';
 import type { TokenType } from '../models/auth';
 import { reduce } from '../reducers';
@@ -37,20 +37,20 @@ const attachCookie = (
 const authResolver: Resolvers = {
   Mutation: {
     login: async (_, { username, password }, { response }) => {
-      const user = await api.loginUser(username, password);
+      try {
+        const user = await api.loginUser(username, password);
 
-      if (!user) {
-        return null;
+        const refresh = issueToken({ username }, 'refreshToken');
+        const access = issueToken({ username }, 'accessToken');
+  
+        // Attach a refresh token to the response object
+        attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
+        attachCookie(COOKIES.accessToken, access, 'accessToken', response);
+  
+        return reduce(user, userReduce);
+      } catch {
+        throw new UnauthenticatedError('Inloggningen misslyckades');
       }
-
-      const refresh = issueToken({ username }, 'refreshToken');
-      const access = issueToken({ username }, 'accessToken');
-
-      // Attach a refresh token to the response object
-      attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
-      attachCookie(COOKIES.accessToken, access, 'accessToken', response);
-
-      return reduce(user, userReduce);
     },
     logout: (_, __, { response, refreshToken, accessToken }) => {
       // Invalidate both access- and refreshtoken

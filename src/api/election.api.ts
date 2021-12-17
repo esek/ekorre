@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/indent */
-import { NotFoundError, BadRequestError, ServerError } from '../errors/RequestErrors';
+import { BadRequestError, NotFoundError, ServerError } from '../errors/RequestErrors';
 import { NominationAnswer } from '../graphql.generated';
 import { Logger } from '../logger';
 import {
@@ -8,7 +8,6 @@ import {
   DatabaseNomination,
   DatabaseProposal,
 } from '../models/db/election';
-import { validateNonEmptyArray } from '../services/validation.service';
 import { ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE, ELECTABLE_TABLE } from './constants';
 import knex from './knex';
 
@@ -18,7 +17,6 @@ export class ElectionAPI {
   /**
    * @param limit Gräns på antal möten. Om null ges alla möten
    * @returns Senaste mötet som skapades
-   * @throws `NotFoundError`
    */
   async getLatestElections(limit?: number): Promise<DatabaseElection[]> {
     const query = knex<DatabaseElection>(ELECTION_TABLE).select('*').orderBy('id', 'desc');
@@ -28,10 +26,6 @@ export class ElectionAPI {
     }
 
     const e = await query;
-
-    if (e == null) {
-      throw new NotFoundError('Hittade inga val');
-    }
 
     return e;
   }
@@ -63,8 +57,6 @@ export class ElectionAPI {
   ): Promise<DatabaseElection[]> {
     const e = await knex<DatabaseElection>(ELECTION_TABLE).whereIn('id', electionIds);
 
-    validateNonEmptyArray(e, 'Hittade inte något möte alls');
-
     return e;
   }
 
@@ -74,7 +66,6 @@ export class ElectionAPI {
    * @param electionId ID på ett val
    * @param postname Namnet på posten
    * @returns Lista över nomineringar
-   * @throws `NotFoundError`
    */
   async getNominations(electionId: string, postname: string): Promise<DatabaseNomination[]> {
     // prettier-ignore
@@ -88,11 +79,6 @@ export class ElectionAPI {
       .where(`${NOMINATION_TABLE}.refelection`, electionId)
       .where(`${NOMINATION_TABLE}.refpost`, postname);
 
-    validateNonEmptyArray(
-      n,
-      `Hittade inga nomineringar för posten ${postname} för mötet med ID ${electionId}`,
-    );
-
     return n;
   }
 
@@ -103,7 +89,6 @@ export class ElectionAPI {
    * @param electionId ID på ett val
    * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
    * @returns Lista över nomineringar
-   * @throws `NotFoundError`
    */
   async getAllNominations(
     electionId: string,
@@ -125,8 +110,6 @@ export class ElectionAPI {
 
     const n = await query;
 
-    validateNonEmptyArray(n, `Hittade inga nomineringar för mötet med ID ${electionId}`);
-
     return n;
   }
 
@@ -137,7 +120,6 @@ export class ElectionAPI {
    * @param username Användarnamnet
    * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
    * @returns Lista över nomineringar
-   * @throws `NotFoundError`
    */
   async getAllNominationsForUser(
     electionId: string,
@@ -162,8 +144,6 @@ export class ElectionAPI {
     // Vi måste kontrollera att nomineringar är för
     // en valid electable
     const n = await query;
-
-    validateNonEmptyArray(n, `Hittade inga nomineringar för användaren ${username}`);
 
     return n;
   }
@@ -243,8 +223,6 @@ export class ElectionAPI {
   async getAllProposals(electionId: string): Promise<DatabaseProposal[]> {
     const p = await knex<DatabaseProposal>(PROPOSAL_TABLE).where('refelection', electionId);
 
-    validateNonEmptyArray(p, `Hittade inte Valberedningens förslag för valet med ID ${electionId}`);
-
     return p;
   }
 
@@ -257,11 +235,6 @@ export class ElectionAPI {
     const electableRows = await knex<DatabaseElectable>(ELECTABLE_TABLE)
       .select('refpost')
       .where('refelection', electionId);
-
-    validateNonEmptyArray(
-      electableRows,
-      `Hittade inga valbara poster för valet med ID ${electionId}`,
-    );
 
     const refposts = electableRows.map((e) => e.refpost);
 
@@ -372,6 +345,37 @@ export class ElectionAPI {
     if (res !== postnames.length) {
       logger.debug(`Could not delete all electables for election with ID ${electionId}`);
       throw new ServerError('Kunde inte ta bort alla valbara poster');
+    }
+
+    return true;
+  }
+
+  /**
+   * Försöker att lägga till alla poster som valbara i det specificerade valet.
+   * @param electionId ID på ett val
+   * @param postnames Lista på postnamn
+   */
+  async setElectables(electionId: string, postnames: string[]): Promise<boolean> {
+    const q = knex<DatabaseElectable>(ELECTABLE_TABLE);
+
+    try {
+      // Remove existing electables
+      await q.where({ refelection: electionId }).delete();
+
+      if (postnames.length > 0) {
+        const electableRows: DatabaseElectable[] = postnames.map((postname) => {
+          return { refelection: electionId, refpost: postname };
+        });
+
+        await knex(ELECTABLE_TABLE).insert(electableRows);
+      }
+    } catch (err) {
+      logger.debug(
+        `Could not insert electables for election with ID ${electionId} due to error:\n\t${JSON.stringify(
+          err,
+        )}`,
+      );
+      throw new ServerError('Kunde inte lägga alla valbara poster');
     }
 
     return true;

@@ -291,9 +291,7 @@ test('deleting user from post', async () => {
   const removed = await api.removeHistoryEntry(DUMMY_USER.username, np.name, startDate);
   expect(removed).toBe(true);
 
-  await expect(api.getPostsForUser(DUMMY_USER.username)).rejects.toThrowError(
-    'Inga poster hittades',
-  );
+  await expect(api.getPostsForUser(DUMMY_USER.username)).resolves.toHaveLength(0);
 });
 
 test('modifying post in allowed way', async () => {
