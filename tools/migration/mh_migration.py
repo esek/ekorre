@@ -169,7 +169,7 @@ def migrate_to_ekorre():
     """
 
     for year in meeting_docs.keys():
-      print(f"Uploading fiels for year {year}")
+      print(f"Uploading files for year {year}")
       for meeting_doc in meeting_docs[year]:
         with open(meeting_doc['filename'], 'rb') as f:
           data = {
