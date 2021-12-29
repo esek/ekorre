@@ -19,8 +19,16 @@ export const sortBatchResult = <T extends K[keyof K], K>(
     return new Array<NotFoundError>(expectedKeys.length).fill(new NotFoundError(errorMsg));
   }
 
+  // To get from O(n^2) to O(2n) we first map our values to their
+  // own key values
+  const mappedValues = new Map<K[keyof K], K>();
+  receivedValues.forEach((v) => {
+    mappedValues.set(v[comparisonProperty], v);
+  });
+
+  // Then we go through all expected keys. Since get is O(1),
+  // we only really ever go through two arrays once each
   return expectedKeys.map((key) => {
-    // This may be O(n^2), but still better than reading multiple times from disk (hopefully...)
-    return receivedValues.find(value => value[comparisonProperty] === key) || new NotFoundError(errorMsg);
+    return mappedValues.get(key) || new NotFoundError(errorMsg);
   });
 };

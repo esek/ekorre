@@ -7,7 +7,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.5.1] - 2021-12-29
 
 ### Ändrat
-- Fixar DataLoaders genom en ny sorterings-util, `sortBatchResult`.
+- Flyttar om i DataLoaders genom en ny sorterings-util, `sortBatchResult`.
 
 ## [0.5.0] - 2021-12-14
 
