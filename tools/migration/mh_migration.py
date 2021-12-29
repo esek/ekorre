@@ -141,11 +141,11 @@ def migrate_to_ekorre():
     }
     """
 
-    #username = input("Username: ")
-    #password = getpass.getpass(prompt="Password: ")
+    username = input("Username: ")
+    password = getpass.getpass(prompt="Password: ")
 
-    username = "aa0000bb-s"
-    password = "test"
+    #username = "aa0000bb-s"
+    #password = "test"
 
     res = req.post(base_api_url, json={
         "query": LOGIN_QUERY,
