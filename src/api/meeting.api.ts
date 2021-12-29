@@ -85,8 +85,9 @@ export class MeetingAPI {
    * @param type
    * @param number
    * @param year
+   * @returns ID på skapat möte
    */
-  async createMeeting(type: MeetingType, number?: number, year?: number): Promise<boolean> {
+  async createMeeting(type: MeetingType, number?: number, year?: number): Promise<string> {
     // Vi tar i år om inget år ges
     const safeYear = (Number.isSafeInteger(year) ? year : new Date().getFullYear()) as number;
 
@@ -125,21 +126,26 @@ export class MeetingAPI {
     }
 
     try {
-      await knex<DatabaseMeeting>(MEETING_TABLE).insert({
+      const meetingId = (await knex<DatabaseMeeting>(MEETING_TABLE).insert({
         type,
         number: safeNbr,
         year: safeYear,
-      });
+      }, 'id'))[0];
+
+      if (meetingId == null) {
+        throw new Error();
+      }
+
+      return meetingId;
     } catch (err) {
       const logStr = `Failed to create meeting with values: ${Logger.pretty({
         type,
         number,
         year,
-      })}`;
+      })} due to error: ${JSON.stringify(err)}`;
       logger.error(logStr);
       throw new ServerError('Attans! Mötet kunde inte skapas!');
     }
-    return true;
   }
 
   /**

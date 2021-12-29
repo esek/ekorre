@@ -42,6 +42,7 @@ import re
 import getpass
 import requests as req
 from http.cookies import BaseCookie
+from dataclasses import dataclass
 
 """
 {
@@ -59,6 +60,16 @@ from http.cookies import BaseCookie
 """
 meeting_docs = {}
 
+@dataclass
+class MeetingDoc:
+  meeting_type: str
+  document_type: str
+  number: int
+  file_path: str
+  year: int
+
+  def local_id(self) -> str:
+    return f"{self.meeting_type}{self.number}-{self.year}"
 
 def append_file(filename: str, year: str) -> None:
     # Hitta typ av möte med regex
@@ -117,12 +128,7 @@ def append_file(filename: str, year: str) -> None:
     if year not in meeting_docs.keys():
         meeting_docs[year] = []
 
-    meeting_docs[year].append({
-        "meeting_type": meeting_type,
-        "document_type": document_type,
-        "number": number,
-        "filename": filename,
-    })
+    meeting_docs[year].append(MeetingDoc(meeting_type, document_type, number, filename, year))
 
 
 def migrate_to_ekorre():
@@ -168,30 +174,58 @@ def migrate_to_ekorre():
     """
 
     ADD_MEETING_QUERY = """
-      mutation {
-        addMeeting(type: $meetingType, number: $number, year: $year)
+      mutation addMeeting($type: MeetingType!, $number: Int, $year: Int) {
+        addMeeting(type: $type, number: $number, year: $year)
       }
     """
 
     ADD_FILE_TO_MEETING_QUERY = """
-      mutation {
+      mutation addFileToMeeting($meetingId: ID!, $fileId: ID!, $fileType: MeetingDocumentType!) {
         addFileToMeeting(meetingId: $meetingId, fileId: $fileId, fileType: $fileType)
       }
     """
 
+    # Map of unique meeting IDs to the IDs used by ekorre
+    already_added_meetings = {}
+
     for year in meeting_docs.keys():
         print(f"Uploading files for year {year}")
         for meeting_doc in meeting_docs[year]:
+            print(meeting_doc.local_id())
             data = {
                 "body": {
                     "path": f"/moteshandlingar/{year}/"
                 },
             }
-            with open(meeting_doc['filename'], 'rb') as f:
+            with open(meeting_doc.file_path, "rb") as f:
                 file_res = req.post(
                     f"{base_api_url}/files/upload", data=data, files={'file': f.read()}, cookies=cookie_jar)
-            print(file_res.text)
-            sys.exit(0)
+            file_id = file_res.json()["id"]
+
+            if meeting_doc.local_id() not in already_added_meetings.keys():
+              meeting_id = req.post(f"{base_api_url}/", json={
+                "query": ADD_MEETING_QUERY,
+                "variables": {
+                  "type": meeting_doc.meeting_type,
+                  "number": meeting_doc.number,
+                  "year": int(meeting_doc.year),
+                }
+              }).json()["data"]["addMeeting"]
+
+              already_added_meetings.update({meeting_doc.local_id(): meeting_id})
+            
+            # Lägg till dokumentet till detta mötet
+            res = req.post(f"{base_api_url}/", json={
+              "query": ADD_FILE_TO_MEETING_QUERY,
+              "variables": {
+                "meetingId": already_added_meetings[meeting_doc.local_id()],
+                "fileId": file_id,
+                "fileType": meeting_doc.document_type,
+              }
+            })
+
+            if res.status_code != 200:
+              print(f"WARNING: Failed to add file {meeting_doc.document_type} to meeting {meeting_doc.local_id()}")
 
 
 if __name__ == "__main__":
