@@ -20,7 +20,7 @@ export const sortBatchResult = <T extends K[keyof K], K>(
   }
 
   return expectedKeys.map((key) => {
-    // This may be O(2n), but still better than reading multiple times from disk (hopefully...)
+    // This may be O(n^2), but still better than reading multiple times from disk (hopefully...)
     return receivedValues.find(value => value[comparisonProperty] === key) || new NotFoundError(errorMsg);
   });
 };
