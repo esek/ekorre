@@ -1,9 +1,9 @@
 import { ElectionAPI } from '../api/election.api';
-import { NotFoundError, ServerError } from '../errors/RequestErrors';
 import { Logger } from '../logger';
 import { ElectionResponse } from '../models/mappers';
 import { reduce } from '../reducers';
 import { electionReduce } from '../reducers/election/election.reducer';
+import { sortBatchResult } from './util';
 
 const logger = Logger.getLogger('ElectionDataLoader');
 
@@ -29,26 +29,8 @@ export const batchElectionsFunction = async (
   if (apiResponse === null) return [];
   const elections = reduce(apiResponse, electionReduce);
 
-  // We want array as Map of username to election object
-  const electionMap = new Map<string, ElectionResponse>();
-
-  elections.forEach((e) => {
-    if (e.id == null) {
-      logger.error(
-        `Ett oväntat fel påträffades i election-dataloadern; Ett election-ID var null eller undefined, vilket aldrig bör ske.\n Värdet på e var ${JSON.stringify(
-          e,
-        )}`,
-      );
-      throw new ServerError('Något gick fel då möten försökte laddas in');
-    }
-    electionMap.set(e.id.toString(), e); // Knex & GraphQL does not agree on type of ID
-  });
-
-  // All keys need a value; electionnames without value
-  // in map are replaced by error
-  const results = electionIds.map((id): ElectionResponse | Error => {
-    return electionMap.get(id) || new NotFoundError(`No result for election with ID ${id}`);
-  });
-
-  return results;
+  return sortBatchResult<string, ElectionResponse>(electionIds, 'id', elections.map((e) => {
+    // IDs i Knex, SQL och GraphQL är rätt fucky
+    return {...e, id: e.id?.toString() ?? ''};
+  }), 'Election not found');
 };
