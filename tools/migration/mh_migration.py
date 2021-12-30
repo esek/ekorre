@@ -44,15 +44,20 @@ import requests as req
 from http.cookies import BaseCookie
 from dataclasses import dataclass
 
+# Some ANSI color codes for terminal
+ANSI_CLEAR_ALL = "\033[0m"
+ANSI_BOLD = "\033[1m"
+ANSI_RED = "\033[31m"
+
+
+def make_bold_red(s: str) -> str:
+    return ANSI_BOLD + ANSI_RED + s + ANSI_CLEAR_ALL
+
+
 """
 {
   <year>: [
-    {
-      meeting_type: <"SM" | "HTM" | "VM" | "VTM" | "Extra">,
-      document_type: <"summons" | "documents" | "lateDocuments" | "protocol" | "appendix">,
-      number: <Int>,
-      filename: <string>
-    },
+      MeetingDoc(...)
     # ...
   ],
   # ...
@@ -60,16 +65,21 @@ from dataclasses import dataclass
 """
 meeting_docs = {}
 
+
 @dataclass
 class MeetingDoc:
-  meeting_type: str
-  document_type: str
-  number: int
-  file_path: str
-  year: int
+    meeting_type: str  # "SM" | "HTM" | "VM" | "VTM" | "Extra"
+    document_type: str  # "summons" | "documents" | "lateDocuments" | "protocol" | "appendix"
+    number: int
+    file_path: str
+    year: int
 
-  def local_id(self) -> str:
-    return f"{self.meeting_type}{self.number}-{self.year}"
+    def local_meeting_id(self) -> str:
+        return f"{self.meeting_type}{self.number}-{self.year}"
+
+    def local_document_id(self) -> str:
+        return f"{self.meeting_type}{self.number}-{self.year}-{self.document_type}"
+
 
 def append_file(filename: str, year: str) -> None:
     # Hitta typ av möte med regex
@@ -77,7 +87,7 @@ def append_file(filename: str, year: str) -> None:
         meeting_type_match = re.search(
             r"(ht|s|vm|vt|smextra)(?:\d{1,2})?-.*\.pdf", filename).group(1)
     except:
-        print(f"AAAH okänd mötestyp för år {year}: {filename}!")
+        print(f"{make_bold_red('AAAAH')} okänd mötestyp för år {year}: {filename}!")
         sys.exit(1)
 
     if meeting_type_match == "ht":
@@ -90,7 +100,7 @@ def append_file(filename: str, year: str) -> None:
                 re.search(r"s(\d+)(?:-\d+)?-.*\.pdf", filename).group(1))
         except AttributeError:
             print(
-                f"AAAAH kunde inte hitta vilket styrelsemöte följande var: {filename}")
+                f"{make_bold_red('AAAAH')} kunde inte hitta vilket styrelsemöte följande var: {filename}")
             sys.exit(1)
     elif meeting_type_match == "vm":
         meeting_type = "VM"
@@ -105,7 +115,7 @@ def append_file(filename: str, year: str) -> None:
                 re.search(r"smextra(\d{1,2})(?:-\d{,2})?-.*\.pdf", filename).group(1))
         except AttributeError:
             print(
-                f"AAAAH kunde inte hitta vilket extramöte följande var: {filename}")
+                f"{make_bold_red('AAAAH')} kunde inte hitta vilket extramöte följande var: {filename}")
             sys.exit(1)
 
     document_type_match = re.search(
@@ -122,13 +132,25 @@ def append_file(filename: str, year: str) -> None:
     elif document_type_match == "bilaga":
         document_type = "appendix"
     else:
-        print(f"AAAAH okänd dokumenttyp för år {year}: {filename}")
+        print(f"{make_bold_red('AAAAH')} okänd dokumenttyp för år {year}: {filename}")
         sys.exit(1)
 
     if year not in meeting_docs.keys():
         meeting_docs[year] = []
 
-    meeting_docs[year].append(MeetingDoc(meeting_type, document_type, number, filename, year))
+    meeting_docs[year].append(MeetingDoc(
+        meeting_type, document_type, number, filename, year))
+
+
+def check_duplicate_docs():
+    seen_document_ids = []
+    for year in meeting_docs:
+        for meeting_doc in meeting_docs[year]:
+            if (lid := meeting_doc.local_document_id()) in seen_document_ids:
+                print(
+                    f"{make_bold_red('WARNING')}: Duplicate document found, manually check {lid}")
+            else:
+                seen_document_ids.append(lid)
 
 
 def migrate_to_ekorre():
@@ -165,14 +187,6 @@ def migrate_to_ekorre():
     for cookie in bc.items():
         cookie_jar.set(cookie[1].key, cookie[1].value)
 
-    GET_MEETING_ID_QUERY = """
-      {
-        meeting(id: $id) {
-          id
-        }
-      }
-    """
-
     ADD_MEETING_QUERY = """
       mutation addMeeting($type: MeetingType!, $number: Int, $year: Int) {
         addMeeting(type: $type, number: $number, year: $year)
@@ -191,7 +205,6 @@ def migrate_to_ekorre():
     for year in meeting_docs.keys():
         print(f"Uploading files for year {year}")
         for meeting_doc in meeting_docs[year]:
-            print(meeting_doc.local_id())
             data = {
                 "body": {
                     "path": f"/moteshandlingar/{year}/"
@@ -202,30 +215,32 @@ def migrate_to_ekorre():
                     f"{base_api_url}/files/upload", data=data, files={'file': f.read()}, cookies=cookie_jar)
             file_id = file_res.json()["id"]
 
-            if meeting_doc.local_id() not in already_added_meetings.keys():
-              meeting_id = req.post(f"{base_api_url}/", json={
-                "query": ADD_MEETING_QUERY,
-                "variables": {
-                  "type": meeting_doc.meeting_type,
-                  "number": meeting_doc.number,
-                  "year": int(meeting_doc.year),
-                }
-              }).json()["data"]["addMeeting"]
+            if meeting_doc.local_meeting_id() not in already_added_meetings.keys():
+                meeting_id = req.post(f"{base_api_url}/", json={
+                    "query": ADD_MEETING_QUERY,
+                    "variables": {
+                        "type": meeting_doc.meeting_type,
+                        "number": meeting_doc.number,
+                        "year": int(meeting_doc.year),
+                    }
+                }).json()["data"]["addMeeting"]
 
-              already_added_meetings.update({meeting_doc.local_id(): meeting_id})
-            
+                already_added_meetings.update(
+                    {meeting_doc.local_meeting_id(): meeting_id})
+
             # Lägg till dokumentet till detta mötet
             res = req.post(f"{base_api_url}/", json={
-              "query": ADD_FILE_TO_MEETING_QUERY,
-              "variables": {
-                "meetingId": already_added_meetings[meeting_doc.local_id()],
-                "fileId": file_id,
-                "fileType": meeting_doc.document_type,
-              }
+                "query": ADD_FILE_TO_MEETING_QUERY,
+                "variables": {
+                    "meetingId": already_added_meetings[meeting_doc.local_meeting_id()],
+                    "fileId": file_id,
+                    "fileType": meeting_doc.document_type,
+                }
             })
 
             if res.status_code != 200:
-              print(f"WARNING: Failed to add file {meeting_doc.document_type} to meeting {meeting_doc.local_id()}")
+                print(
+                    f"{make_bold_red('WARNING')}: Failed to add file {meeting_doc.document_type} to meeting {meeting_doc.local_meeting_id()}")
 
 
 if __name__ == "__main__":
@@ -242,4 +257,5 @@ if __name__ == "__main__":
         for filename in os.listdir(os.path.join(root_dir, year_dir)):
             append_file(os.path.join(root_dir, year_dir, filename), year_dir)
 
+    check_duplicate_docs()
     migrate_to_ekorre()
