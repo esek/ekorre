@@ -4,6 +4,15 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2021-12-29
+
+### Tillagt
+- `tools/migration` för migreringsverktyg från gamla DB `esek12`
+
+### Ändrat
+- `meeting` har nu även bilagor i form av `appendix` för bakåtkompabilitet
+- `addMeeting` returnerar nu ID på skapade mötet, likt `createElection`
+
 ## [0.5.0] - 2021-12-14
 
 ### Ändrat

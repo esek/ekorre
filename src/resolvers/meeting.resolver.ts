@@ -36,6 +36,12 @@ const meetingResolver: Resolvers = {
       }
       return null;
     },
+    appendix: async ({ appendix }, _, ctx) => {
+      if (appendix?.id != null) {
+        return ctx.fileDataLoader.load(appendix.id);
+      }
+      return null;
+    },
   },
   Query: {
     meeting: async (_, { id }) => {
