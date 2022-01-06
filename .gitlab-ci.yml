@@ -6,6 +6,9 @@
 # do not use "latest" here, if you want this to work in the future
 image: docker:latest
 
+variables:
+  NODE_VERSION: 16-alpine
+
 stages:
   - test
   - build
@@ -39,7 +42,7 @@ docker build:
         tag=":$CI_COMMIT_REF_SLUG"
         echo "Running on branch '$CI_COMMIT_BRANCH': tag = $tag"
       fi
-    - docker build --pull -t "$CI_REGISTRY_IMAGE${tag}" .
+    - docker build --build-arg "NODE_VERSION=$NODE_VERSION" --pull -t "$CI_REGISTRY_IMAGE${tag}" .
     - docker push "$CI_REGISTRY_IMAGE${tag}"
     - docker image prune -af --filter "until=48h"
   # Run this job in a branch where a Dockerfile exists
@@ -49,14 +52,18 @@ docker build:
         - Dockerfile
 lint:
   stage: test
-  image: node:16-alpine
+  image: "node:$NODE_VERSION"
   # Make sure docker info is not run and get some node info
   before_script:
     - node --version
+    - npm ci --cache .npm --prefer-offline
   script:
-    - npm ci
     - npx eslint src
     - npx eslint test
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - .npm/
 
 tests:
   stage: test
@@ -64,14 +71,14 @@ tests:
   tags:
     - docker
   image:
-    name: node:16-alpine
+    name: "node:$NODE_VERSION"
   before_script:
     - node --version
-    - npm ci
+    - npm ci --cache .npm --prefer-offline
+  script:
     - apk update
     - apk add bash sqlite
     - ./test/utils/test-server-startup.sh
-  script:
     - npm run test:ci
   artifacts:
     paths:
@@ -81,8 +88,14 @@ tests:
   after_script:
     # bash not default shell on alpine
     - bash -c kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' ) && echo "Killed dev server"
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - .npm/
 
 deploy image:
+  variables:
+    DEPLOY_URL: "ekorre.esek.se"
   stage: deploy
   extends: .remote_docker
   script:
@@ -96,13 +109,13 @@ deploy image:
     
     - docker run
       --name $PROJECT_NAME
-      --env ALLOWED_ORIGINS=*
+      --env ALLOWED_ORIGINS=https://efterphest.esek.se
       --env COOKIE_DOMAIN=esek.se
-      --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`ekorre.esek.se\`)"
-      --network=traefik
+      --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`$DEPLOY_URL\`)"
       -d $CI_REGISTRY_IMAGE:latest
   environment:
     name: production
-    url: https://ekorre.esek.se
+    url: $DEPLOY_URL
   only:
     - main
+  needs: ['docker build', 'tests']
