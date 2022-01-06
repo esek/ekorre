@@ -2,6 +2,7 @@ import { POSTS_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
 import { createDataLoader, useDataLoader } from '../../src/dataloaders';
 import { batchPostsFunction, postApi } from '../../src/dataloaders/post.dataloader';
+import { NotFoundError } from '../../src/errors/RequestErrors';
 import { Post, PostType, Utskott } from '../../src/graphql.generated';
 import { DatabasePost } from '../../src/models/db/post';
 import { reduce } from '../../src/reducers';
@@ -10,15 +11,6 @@ import { postReduce } from '../../src/reducers/post.reducer';
 // Vi kontrollerar antal anrop till API:n
 const apiSpy = jest.spyOn(postApi, 'getMultiplePosts');
 const mockPosts: DatabasePost[] = [
-  {
-    active: true,
-    description: 'Är med i automatiska tester',
-    interviewRequired: false,
-    postType: PostType.N,
-    postname: 'Testmästare',
-    spots: 2,
-    utskott: Utskott.Infu,
-  },
   {
     active: true,
     description: 'Minskar InfUs budget',
@@ -36,6 +28,15 @@ const mockPosts: DatabasePost[] = [
     postname: 'Tinderchef',
     spots: 69,
     utskott: Utskott.Styrelsen,
+  },
+  {
+    active: true,
+    description: 'Är med i automatiska tester',
+    interviewRequired: false,
+    postType: PostType.N,
+    postname: 'Testmästare',
+    spots: 2,
+    utskott: Utskott.Infu,
   },
 ];
 
@@ -106,7 +107,7 @@ test('loading multiple existant and non-existant posts', async () => {
         expect(post).toMatchObject(mockPost);
       } else {
         // We expect an error for the fake one
-        await expect(pl.load(name)).rejects.toThrow(`No result for postname ${name}`);
+        await expect(pl.load(name)).rejects.toThrowError(NotFoundError);
       }
     }),
   );

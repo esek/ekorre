@@ -4,8 +4,8 @@ module.exports = {
   testEnvironment: 'node',
   collectCoverage: true,
   // SQLite ogillar skarpt när man kör för mycket parallellt,
-  // så istället för antal kärnor - 1 kör vi 75% av det
-  maxWorkers: '75%',
+  // så istället för antal kärnor - 1 kör 50% av max (dis make dest dlow).
+  maxWorkers: '50%',
   // Alla JS, JSX, TS, TSX-filer i src, men inte models, genererad kod
   // eller resolvers (anrop till API:n via HTTP ger inte coverage)
   collectCoverageFrom: [
