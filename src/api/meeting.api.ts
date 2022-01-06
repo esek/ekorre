@@ -186,7 +186,7 @@ export class MeetingAPI {
       .update(ref, fileId);
     if (res === 0) {
       throw new ServerError(
-        `Antingen finns detta möte inte, eller så finns dokument av typen ${fileType} redan på detta möte (${})!`,
+        `Antingen finns detta möte inte, eller så finns dokument av typen ${fileType} redan på detta möte!`,
       );
     }
 
