@@ -4,9 +4,12 @@ import { ParamsDictionary } from 'express-serve-static-core';
 
 import FileAPI from '../../api/file.api';
 import { COOKIES, verifyToken } from '../../auth';
+import { userApi } from '../../dataloaders/user.dataloader';
 import { UnauthenticatedError } from '../../errors/RequestErrors';
-import { AccessType, User } from '../../graphql.generated';
+import { AccessType } from '../../graphql.generated';
 import { Logger } from '../../logger';
+import { TokenValue } from '../../models/auth';
+import { DatabaseUser } from '../../models/db/user';
 
 const logger = Logger.getLogger('RestAuth');
 
@@ -20,7 +23,7 @@ export type RequestHandlerWithLocals = RequestHandler<
   unknown,
   unknown,
   { token?: string },
-  { user?: User; getUser: () => User }
+  { user?: DatabaseUser; getUser: () => Promise<DatabaseUser> }
 >;
 
 export const setUser: RequestHandlerWithLocals = (req, res, next) => {
@@ -35,7 +38,11 @@ export const setUser: RequestHandlerWithLocals = (req, res, next) => {
     token = token.replace('Bearer ', '');
   }
 
-  res.locals.getUser = () => verifyToken<User>(token, 'accessToken');
+  res.locals.getUser = async () => {
+    const { username } = verifyToken<TokenValue>(token, 'accessToken');
+
+    return userApi.getSingleUser(username);
+  };
 
   next();
 };
@@ -45,9 +52,9 @@ export const setUser: RequestHandlerWithLocals = (req, res, next) => {
  * also sets res.locals.user to the authenticated user on success
  */
 
-export const verifyAuthenticated: RequestHandlerWithLocals = (_req, res, next) => {
+export const verifyAuthenticated: RequestHandlerWithLocals = async (_req, res, next) => {
   try {
-    const user: User = res.locals.getUser();
+    const user = await res.locals.getUser();
     res.locals.user = user;
 
     if (!user) {
@@ -89,7 +96,7 @@ export const verifyFileReadAccess =
       }
 
       try {
-        const user: User = res.locals.getUser();
+        const user = await res.locals.getUser();
 
         if (file.accessType === AccessType.Admin && user) {
           // TODO: Verify that user is admin
