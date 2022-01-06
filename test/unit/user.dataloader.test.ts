@@ -1,5 +1,5 @@
 import { USER_TABLE } from '../../src/api/constants';
-import knex from '../../src/api/knex';
+import knexInstance from '../../src/api/knex';
 import { createDataLoader } from '../../src/dataloaders';
 import { batchUsersFunction, userApi } from '../../src/dataloaders/user.dataloader';
 import { NotFoundError } from '../../src/errors/RequestErrors';
@@ -50,11 +50,11 @@ beforeEach(() => {
 
 beforeAll(async () => {
   // Insert fake users
-  await knex<DatabaseUser>(USER_TABLE).insert(mockUsers);
+  await knexInstance<DatabaseUser>(USER_TABLE).insert(mockUsers);
 });
 
 afterAll(async () => {
-  await knex<DatabaseUser>(USER_TABLE)
+  await knexInstance<DatabaseUser>(USER_TABLE)
     .delete()
     .whereIn(
       'username',

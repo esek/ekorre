@@ -1,5 +1,5 @@
 import { FILE_TABLE, MEETING_TABLE } from '../../src/api/constants';
-import knex from '../../src/api/knex';
+import knexInstance from '../../src/api/knex';
 import { MeetingAPI } from '../../src/api/meeting.api';
 import { BadRequestError, NotFoundError, ServerError } from '../../src/errors/RequestErrors';
 import {
@@ -26,20 +26,20 @@ const DUMMY_FILE: DatabaseFile = {
 
 beforeEach(async () => {
   // Delete all rows
-  await knex<DatabaseMeeting>(MEETING_TABLE).delete().where('id', '!=', 'null');
+  await knexInstance<DatabaseMeeting>(MEETING_TABLE).delete().where('id', '!=', 'null');
 });
 
 // Vi sparar databasen före och lägger tillbaka den efter
 let dbBefore: DatabaseMeeting[];
 beforeAll(async () => {
-  dbBefore = await knex<DatabaseMeeting>(MEETING_TABLE).select('*');
-  await knex<DatabaseFile>(FILE_TABLE).insert(DUMMY_FILE);
+  dbBefore = await knexInstance<DatabaseMeeting>(MEETING_TABLE).select('*');
+  await knexInstance<DatabaseFile>(FILE_TABLE).insert(DUMMY_FILE);
 });
 
 afterAll(async () => {
-  await knex<DatabaseMeeting>(MEETING_TABLE).delete().where('id', '!=', 'null');
-  await knex<DatabaseMeeting>(MEETING_TABLE).insert(dbBefore);
-  await knex<DatabaseFile>(FILE_TABLE).delete().where('id', DUMMY_FILE.id);
+  await knexInstance<DatabaseMeeting>(MEETING_TABLE).delete().where('id', '!=', 'null');
+  await knexInstance<DatabaseMeeting>(MEETING_TABLE).insert(dbBefore);
+  await knexInstance<DatabaseFile>(FILE_TABLE).delete().where('id', DUMMY_FILE.id);
 });
 
 test('creating valid VTM/HTM/VM specifying year but not number', async () => {

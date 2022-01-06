@@ -9,7 +9,7 @@ import { AccessType, FileSystemResponsePath, FileType } from '../graphql.generat
 import { Logger } from '../logger';
 import type { DatabaseFile } from '../models/db/file';
 import { FILE_TABLE } from './constants';
-import knex from './knex';
+import knexInstance from './knex';
 
 const {
   FILES: { ROOT },
@@ -62,7 +62,7 @@ class FileAPI {
         type,
       };
 
-      await knex<DatabaseFile>(FILE_TABLE).insert(newFile);
+      await knexInstance<DatabaseFile>(FILE_TABLE).insert(newFile);
 
       return newFile;
     } catch (err) {
@@ -104,7 +104,7 @@ class FileAPI {
         type: FileType.Folder,
       };
 
-      await knex<DatabaseFile>(FILE_TABLE).insert(dbData);
+      await knexInstance<DatabaseFile>(FILE_TABLE).insert(dbData);
 
       logger.info(`Created folder ${name} with hash ${hash}`);
 
@@ -133,7 +133,7 @@ class FileAPI {
     fs.rmSync(location, { recursive: true });
 
     // Delete file from DB
-    await knex<DatabaseFile>(FILE_TABLE)
+    await knexInstance<DatabaseFile>(FILE_TABLE)
       .where('id', id)
       .delete()
       .catch(() => {
@@ -144,7 +144,7 @@ class FileAPI {
   }
 
   async getMultipleFiles(type?: FileType) {
-    const query = knex<DatabaseFile>(FILE_TABLE);
+    const query = knexInstance<DatabaseFile>(FILE_TABLE);
 
     if (type) {
       query.where('type', type);
@@ -156,7 +156,7 @@ class FileAPI {
   }
 
   async getMultipleFilesById(ids: readonly string[]): Promise<DatabaseFile[]> {
-    const f = await knex<DatabaseFile>(FILE_TABLE).whereIn('id', ids);
+    const f = await knexInstance<DatabaseFile>(FILE_TABLE).whereIn('id', ids);
     return f;
   }
 
@@ -166,7 +166,7 @@ class FileAPI {
    * @returns FileData
    */
   async getFileData(id: string): Promise<DatabaseFile> {
-    const file = await knex<DatabaseFile>(FILE_TABLE).where('id', id).first();
+    const file = await knexInstance<DatabaseFile>(FILE_TABLE).where('id', id).first();
 
     if (!file) {
       throw new NotFoundError('Filen kunde inte hittas');
@@ -176,7 +176,7 @@ class FileAPI {
   }
 
   async searchFiles(search: string): Promise<DatabaseFile[]> {
-    const files = await knex<DatabaseFile>(FILE_TABLE)
+    const files = await knexInstance<DatabaseFile>(FILE_TABLE)
       .whereNot({ type: FileType.Folder }) // dont include folders in search
       .andWhere('name', 'like', `%${search}%`)
       .orWhere('id', 'like', `%${search}%`);
@@ -226,7 +226,7 @@ class FileAPI {
       const pathNames = folderTrimmed.split('/').filter((p) => p);
 
       // Get details for all folders from DB
-      const dbPaths = await knex<DatabaseFile>(FILE_TABLE)
+      const dbPaths = await knexInstance<DatabaseFile>(FILE_TABLE)
         .where('id', 'in', pathNames)
         .select('id', 'name');
 
@@ -239,7 +239,7 @@ class FileAPI {
       }
 
       // Get details for all files in current directory from DB
-      const files = await knex<DatabaseFile>(FILE_TABLE).where('id', 'in', fileIds);
+      const files = await knexInstance<DatabaseFile>(FILE_TABLE).where('id', 'in', fileIds);
 
       return [files, dbPaths];
     } catch (err) {

@@ -7,7 +7,7 @@ import {
   PROPOSAL_TABLE,
 } from '../../src/api/constants';
 import { ElectionAPI } from '../../src/api/election.api';
-import knex from '../../src/api/knex';
+import knexInstance from '../../src/api/knex';
 import { Election, NominationAnswer } from '../../src/graphql.generated';
 import {
   DatabaseElection,
@@ -47,17 +47,17 @@ let preTestNominationTable: DatabaseNomination[];
 
 const clearDatabase = async () => {
   // Vi sätter `where` till något som alltid är sant
-  await knex<DatabaseElectable>(ELECTABLE_TABLE).delete().whereNotNull('refelection');
-  await knex<DatabaseProposal>(PROPOSAL_TABLE).delete().whereNotNull('refelection');
-  await knex<DatabaseNomination>(NOMINATION_TABLE).delete().whereNotNull('refelection');
-  await knex<DatabaseElection>(ELECTION_TABLE).delete().whereNotNull('id');
+  await knexInstance<DatabaseElectable>(ELECTABLE_TABLE).delete().whereNotNull('refelection');
+  await knexInstance<DatabaseProposal>(PROPOSAL_TABLE).delete().whereNotNull('refelection');
+  await knexInstance<DatabaseNomination>(NOMINATION_TABLE).delete().whereNotNull('refelection');
+  await knexInstance<DatabaseElection>(ELECTION_TABLE).delete().whereNotNull('id');
 };
 
 beforeAll(async () => {
-  preTestElectionTable = await knex<DatabaseElection>(ELECTION_TABLE).select('*');
-  preTestElectableTable = await knex<DatabaseElectable>(ELECTABLE_TABLE).select('*');
-  preTestProposalTable = await knex<DatabaseProposal>(PROPOSAL_TABLE).select('*');
-  preTestNominationTable = await knex<DatabaseNomination>(NOMINATION_TABLE).select('*');
+  preTestElectionTable = await knexInstance<DatabaseElection>(ELECTION_TABLE).select('*');
+  preTestElectableTable = await knexInstance<DatabaseElectable>(ELECTABLE_TABLE).select('*');
+  preTestProposalTable = await knexInstance<DatabaseProposal>(PROPOSAL_TABLE).select('*');
+  preTestNominationTable = await knexInstance<DatabaseNomination>(NOMINATION_TABLE).select('*');
   await clearDatabase();
 });
 
@@ -67,10 +67,10 @@ afterEach(async () => {
 
 afterAll(async () => {
   // Sätt in cachade värden igen
-  await knex<DatabaseElection>(ELECTION_TABLE).insert(preTestElectionTable);
-  await knex<DatabaseElectable>(ELECTABLE_TABLE).insert(preTestElectableTable);
-  await knex<DatabaseProposal>(PROPOSAL_TABLE).insert(preTestProposalTable);
-  await knex<DatabaseNomination>(NOMINATION_TABLE).insert(preTestNominationTable);
+  await knexInstance<DatabaseElection>(ELECTION_TABLE).insert(preTestElectionTable);
+  await knexInstance<DatabaseElectable>(ELECTABLE_TABLE).insert(preTestElectableTable);
+  await knexInstance<DatabaseProposal>(PROPOSAL_TABLE).insert(preTestProposalTable);
+  await knexInstance<DatabaseNomination>(NOMINATION_TABLE).insert(preTestNominationTable);
 });
 
 test('getting nominations when nominations are hidden', async () => {

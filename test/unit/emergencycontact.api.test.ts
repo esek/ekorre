@@ -1,6 +1,6 @@
 import { EMERGENCY_CONTACTS_TABLE, USER_TABLE } from '../../src/api/constants';
 import EmergencyContactAPI from '../../src/api/emergencycontact.api';
-import knex from '../../src/api/knex';
+import knexInstance from '../../src/api/knex';
 import { UserAPI } from '../../src/api/user.api';
 import { NotFoundError, ServerError } from '../../src/errors/RequestErrors';
 import { EmergencyContact, EmergencyContactType, NewUser } from '../../src/graphql.generated';
@@ -29,10 +29,10 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await knex<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE)
+  await knexInstance<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE)
     .delete()
     .where('refuser', DUMMY_USER.username);
-  await knex<DatabaseUser>(USER_TABLE).delete().where('username', DUMMY_USER.username);
+  await knexInstance<DatabaseUser>(USER_TABLE).delete().where('username', DUMMY_USER.username);
 });
 
 test('get empty emergency contacts for user', async () => {

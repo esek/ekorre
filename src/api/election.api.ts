@@ -9,7 +9,7 @@ import {
   DatabaseProposal,
 } from '../models/db/election';
 import { ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE, ELECTABLE_TABLE } from './constants';
-import knex from './knex';
+import knexInstance from './knex';
 
 const logger = Logger.getLogger('ElectionAPI');
 
@@ -19,7 +19,7 @@ export class ElectionAPI {
    * @returns Senaste mötet som skapades
    */
   async getLatestElections(limit?: number): Promise<DatabaseElection[]> {
-    const query = knex<DatabaseElection>(ELECTION_TABLE).select('*').orderBy('id', 'desc');
+    const query = knexInstance<DatabaseElection>(ELECTION_TABLE).select('*').orderBy('id', 'desc');
 
     if (limit != null) {
       query.limit(limit);
@@ -35,7 +35,7 @@ export class ElectionAPI {
    * @throws `NotFoundError`
    */
   async getOpenElection(): Promise<DatabaseElection> {
-    const e = await knex<DatabaseElection>(ELECTION_TABLE)
+    const e = await knexInstance<DatabaseElection>(ELECTION_TABLE)
       .where('open', true)
       .orderBy('createdAt', 'desc')
       .first();
@@ -55,7 +55,7 @@ export class ElectionAPI {
   async getMultipleElections(
     electionIds: string[] | readonly string[],
   ): Promise<DatabaseElection[]> {
-    const e = await knex<DatabaseElection>(ELECTION_TABLE).whereIn('id', electionIds);
+    const e = await knexInstance<DatabaseElection>(ELECTION_TABLE).whereIn('id', electionIds);
 
     return e;
   }
@@ -69,7 +69,7 @@ export class ElectionAPI {
    */
   async getNominations(electionId: string, postname: string): Promise<DatabaseNomination[]> {
     // prettier-ignore
-    const n = await knex<DatabaseNomination>(NOMINATION_TABLE)
+    const n = await knexInstance<DatabaseNomination>(NOMINATION_TABLE)
       .leftJoin<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
         q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
           `${ELECTABLE_TABLE}.refpost`,
@@ -95,7 +95,7 @@ export class ElectionAPI {
     answer?: NominationAnswer,
   ): Promise<DatabaseNomination[]> {
     // prettier-ignore
-    const query = knex<DatabaseNomination>(NOMINATION_TABLE)
+    const query = knexInstance<DatabaseNomination>(NOMINATION_TABLE)
       .join<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
       q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
         `${ELECTABLE_TABLE}.refpost`,
@@ -127,7 +127,7 @@ export class ElectionAPI {
     answer?: NominationAnswer,
   ): Promise<DatabaseNomination[]> {
     // prettier-ignore
-    const query = knex<DatabaseNomination>(NOMINATION_TABLE)
+    const query = knexInstance<DatabaseNomination>(NOMINATION_TABLE)
       .join<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
       q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
         `${ELECTABLE_TABLE}.refpost`,
@@ -158,7 +158,7 @@ export class ElectionAPI {
    */
   async getNumberOfNominations(electionId: string, postname?: string): Promise<number> {
     // prettier-ignore
-    const query = knex(NOMINATION_TABLE)
+    const query = knexInstance(NOMINATION_TABLE)
       .leftJoin<DatabaseElectable>(ELECTABLE_TABLE, (q) => {// eslint-disable indent
       q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
         `${ELECTABLE_TABLE}.refpost`,
@@ -194,7 +194,7 @@ export class ElectionAPI {
    * @returns Ett heltal (`number`)
    */
   async getNumberOfProposals(electionId: string, postname?: string): Promise<number> {
-    const query = knex(PROPOSAL_TABLE)
+    const query = knexInstance(PROPOSAL_TABLE)
       .where('refelection', electionId)
       .count<Record<string, number>>('refelection AS count');
 
@@ -221,7 +221,7 @@ export class ElectionAPI {
    * @param electionId ID på ett val
    */
   async getAllProposals(electionId: string): Promise<DatabaseProposal[]> {
-    const p = await knex<DatabaseProposal>(PROPOSAL_TABLE).where('refelection', electionId);
+    const p = await knexInstance<DatabaseProposal>(PROPOSAL_TABLE).where('refelection', electionId);
 
     return p;
   }
@@ -232,7 +232,7 @@ export class ElectionAPI {
    * @returns Lista på `postnames`
    */
   async getAllElectables(electionId: string): Promise<string[]> {
-    const electableRows = await knex<DatabaseElectable>(ELECTABLE_TABLE)
+    const electableRows = await knexInstance<DatabaseElectable>(ELECTABLE_TABLE)
       .select('refpost')
       .where('refelection', electionId);
 
@@ -263,7 +263,7 @@ export class ElectionAPI {
     }
 
     const electionId = (
-      await knex<DatabaseElection>(ELECTION_TABLE).insert(
+      await knexInstance<DatabaseElection>(ELECTION_TABLE).insert(
         {
           refcreator: creatorUsername,
           nominationsHidden,
@@ -283,7 +283,7 @@ export class ElectionAPI {
       });
 
       try {
-        await knex(ELECTABLE_TABLE).insert(electableRows);
+        await knexInstance(ELECTABLE_TABLE).insert(electableRows);
       } catch (err) {
         logger.debug(
           `Could not insert electables when creating election with ID ${electionId} due to error:\n\t${JSON.stringify(
@@ -314,7 +314,7 @@ export class ElectionAPI {
     });
 
     try {
-      await knex(ELECTABLE_TABLE).insert(electableRows);
+      await knexInstance(ELECTABLE_TABLE).insert(electableRows);
     } catch (err) {
       logger.debug(
         `Could not insert electables for election with ID ${electionId} due to error:\n\t${JSON.stringify(
@@ -337,7 +337,7 @@ export class ElectionAPI {
       throw new BadRequestError('Inga postnamn specificerade');
     }
 
-    const res = await knex(ELECTABLE_TABLE)
+    const res = await knexInstance(ELECTABLE_TABLE)
       .delete()
       .where('refelection', electionId)
       .whereIn('refpost', postnames);
@@ -356,7 +356,7 @@ export class ElectionAPI {
    * @param postnames Lista på postnamn
    */
   async setElectables(electionId: string, postnames: string[]): Promise<boolean> {
-    const q = knex<DatabaseElectable>(ELECTABLE_TABLE);
+    const q = knexInstance<DatabaseElectable>(ELECTABLE_TABLE);
 
     try {
       // Remove existing electables
@@ -367,7 +367,7 @@ export class ElectionAPI {
           return { refelection: electionId, refpost: postname };
         });
 
-        await knex(ELECTABLE_TABLE).insert(electableRows);
+        await knexInstance(ELECTABLE_TABLE).insert(electableRows);
       }
     } catch (err) {
       logger.debug(
@@ -388,7 +388,7 @@ export class ElectionAPI {
    * @returns Om en ändring gjordes eller ej
    */
   async setHiddenNominations(electionId: string, hidden: boolean): Promise<boolean> {
-    const res = await knex<DatabaseElection>(ELECTION_TABLE)
+    const res = await knexInstance<DatabaseElection>(ELECTION_TABLE)
       .update('nominationsHidden', hidden)
       .where('id', electionId);
     return res > 0;
@@ -400,7 +400,7 @@ export class ElectionAPI {
    */
   async openElection(electionId: string): Promise<boolean> {
     // Markerar valet som öppet, men bara om det inte redan stängts
-    const res = await knex<DatabaseElection>(ELECTION_TABLE)
+    const res = await knexInstance<DatabaseElection>(ELECTION_TABLE)
       .update({
         openedAt: Date.now(), // Current timestamp
         open: true,
@@ -426,7 +426,7 @@ export class ElectionAPI {
    * då endast ett ska kunna vara öppet samtidigt.
    */
   async closeElection(): Promise<boolean> {
-    const res = await knex<DatabaseElection>(ELECTION_TABLE)
+    const res = await knexInstance<DatabaseElection>(ELECTION_TABLE)
       .update({
         closedAt: Date.now(),
         open: false,
@@ -481,7 +481,7 @@ export class ElectionAPI {
       // Om nomineringen redan finns, ignorera den
       // utan att ge error för att inte avslöja
       // vad som finns i databasen redan
-      await knex<DatabaseNomination>(NOMINATION_TABLE)
+      await knexInstance<DatabaseNomination>(NOMINATION_TABLE)
         .insert(nominationRows)
         .onConflict(['refelection', 'refuser', 'refpost'])
         .ignore();
@@ -503,7 +503,7 @@ export class ElectionAPI {
     accepts: NominationAnswer,
   ): Promise<boolean> {
     const openElection = await this.getOpenElection();
-    const res = await knex<DatabaseNomination>(NOMINATION_TABLE).update('accepted', accepts).where({
+    const res = await knexInstance<DatabaseNomination>(NOMINATION_TABLE).update('accepted', accepts).where({
       refelection: openElection.id,
       refuser: username,
       refpost: postname,
@@ -528,7 +528,7 @@ export class ElectionAPI {
    */
   async propose(electionId: string, username: string, postname: string): Promise<boolean> {
     try {
-      await knex<DatabaseProposal>(PROPOSAL_TABLE).insert({
+      await knexInstance<DatabaseProposal>(PROPOSAL_TABLE).insert({
         refelection: electionId,
         refuser: username,
         refpost: postname,
@@ -552,7 +552,7 @@ export class ElectionAPI {
    * @throws `ServerError` om förslaget inte kunde tas bort (eller det aldrig fanns)
    */
   async removeProposal(electionId: string, username: string, postname: string): Promise<boolean> {
-    const res = await knex<DatabaseProposal>(PROPOSAL_TABLE).delete().where({
+    const res = await knexInstance<DatabaseProposal>(PROPOSAL_TABLE).delete().where({
       refelection: electionId,
       refuser: username,
       refpost: postname,

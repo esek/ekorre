@@ -5,7 +5,7 @@ import { Logger } from '../logger';
 import type { DatabaseMeeting } from '../models/db/meeting';
 import { stripObject } from '../util';
 import { MEETING_TABLE } from './constants';
-import knex from './knex';
+import knexInstance from './knex';
 
 const logger = Logger.getLogger('MeetingAPI');
 
@@ -22,7 +22,7 @@ export class MeetingAPI {
    * @param sortOrder
    */
   async getAllMeetings(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<DatabaseMeeting[]> {
-    const m = await knex<DatabaseMeeting>(MEETING_TABLE)
+    const m = await knexInstance<DatabaseMeeting>(MEETING_TABLE)
       .select('*')
       .orderBy('id', sortOrder)
       .limit(limit);
@@ -36,7 +36,7 @@ export class MeetingAPI {
    * @throws `NotFoundError` om mötet ej kan hittas
    */
   async getSingleMeeting(id: string): Promise<DatabaseMeeting> {
-    const m = await knex<DatabaseMeeting>(MEETING_TABLE).where({ id }).first();
+    const m = await knexInstance<DatabaseMeeting>(MEETING_TABLE).where({ id }).first();
 
     if (m == null) {
       throw new NotFoundError('Mötet kunde inte hittas');
@@ -47,7 +47,7 @@ export class MeetingAPI {
 
   async getMultipleMeetings(params: GetMeetingParams): Promise<DatabaseMeeting[]> {
     const safeParams = stripObject(params);
-    const m = await knex<DatabaseMeeting>(MEETING_TABLE).where(safeParams);
+    const m = await knexInstance<DatabaseMeeting>(MEETING_TABLE).where(safeParams);
 
     if (m === null) {
       throw new ServerError('Mötessökningen misslyckades');
@@ -62,7 +62,7 @@ export class MeetingAPI {
    * returneras alla
    */
   async getLatestBoardMeetings(limit?: number): Promise<DatabaseMeeting[]> {
-    const query = knex<DatabaseMeeting>(MEETING_TABLE)
+    const query = knexInstance<DatabaseMeeting>(MEETING_TABLE)
       .where({ type: MeetingType.Sm })
       .orderBy('number', 'desc')
       .orderBy('year', 'desc');
@@ -96,7 +96,7 @@ export class MeetingAPI {
     // vi det från databasen
     let safeNbr = number;
     if (!Number.isSafeInteger(safeNbr)) {
-      const lastNbr = await knex<DatabaseMeeting>(MEETING_TABLE)
+      const lastNbr = await knexInstance<DatabaseMeeting>(MEETING_TABLE)
         .select('number')
         .where({ type, year: safeYear })
         .orderBy('number', 'desc')
@@ -113,7 +113,7 @@ export class MeetingAPI {
     }
 
     // Kontrollera att vi inte har dubblettmöte
-    const possibleDouble = await knex<DatabaseMeeting>(MEETING_TABLE)
+    const possibleDouble = await knexInstance<DatabaseMeeting>(MEETING_TABLE)
       .where({
         type,
         number: safeNbr,
@@ -126,7 +126,7 @@ export class MeetingAPI {
     }
 
     try {
-      const meetingId = (await knex<DatabaseMeeting>(MEETING_TABLE).insert({
+      const meetingId = (await knexInstance<DatabaseMeeting>(MEETING_TABLE).insert({
         type,
         number: safeNbr,
         year: safeYear,
@@ -154,7 +154,7 @@ export class MeetingAPI {
    * @throws `NotFoundError` om mötet ej kunde tas bort
    */
   async removeMeeting(id: string): Promise<boolean> {
-    const res = await knex<DatabaseMeeting>(MEETING_TABLE).delete().where({ id });
+    const res = await knexInstance<DatabaseMeeting>(MEETING_TABLE).delete().where({ id });
 
     if (res === 0) {
       throw new NotFoundError('Mötet kunde inte hittas');
@@ -180,13 +180,13 @@ export class MeetingAPI {
 
     // Uppdaterar mötesdokumentet för ett möte,
     // om detta dokument inte redan finns
-    const res = await knex<DatabaseMeeting>(MEETING_TABLE)
+    const res = await knexInstance<DatabaseMeeting>(MEETING_TABLE)
       .where('id', meetingId)
       .whereNull(ref)
       .update(ref, fileId);
     if (res === 0) {
       throw new ServerError(
-        `Antingen finns detta möte inte, eller så finns dokument av typen ${fileType} redan på detta möte!`,
+        `Antingen finns detta möte inte, eller så finns dokument av typen ${fileType} redan på detta möte (${})!`,
       );
     }
 
@@ -207,7 +207,7 @@ export class MeetingAPI {
    */
   async removeFileFromMeeting(meetingId: string, fileType: MeetingDocumentType): Promise<boolean> {
     const ref = `ref${fileType}`;
-    const res = await knex<DatabaseMeeting>(MEETING_TABLE).where('id', meetingId).update(ref, null);
+    const res = await knexInstance<DatabaseMeeting>(MEETING_TABLE).where('id', meetingId).update(ref, null);
     if (res === 0) {
       throw new ServerError(
         `Kunde inte ta bort mötesdokument, troligen existerar inte mötet med id ${meetingId}`,

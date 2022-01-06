@@ -13,7 +13,7 @@ import {
   POSTS_TABLE,
   POST_ACCESS_TABLE,
 } from './constants';
-import knex from './knex';
+import knexInstance from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
 
@@ -32,7 +32,7 @@ export class AccessAPI {
    * @param username användaren
    */
   async getIndividualAccess(username: string): Promise<DatabaseJoinedAccess[]> {
-    const res = await knex<DatabaseAccess>(IND_ACCESS_TABLE)
+    const res = await knexInstance<DatabaseAccess>(IND_ACCESS_TABLE)
       .where({
         refname: username,
       })
@@ -46,7 +46,7 @@ export class AccessAPI {
    * @param postname posten
    */
   async getPostAccess(postname: string): Promise<DatabaseJoinedAccess[]> {
-    const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE)
+    const res = await knexInstance<DatabaseAccess>(POST_ACCESS_TABLE)
       .where({
         refname: postname,
       })
@@ -62,7 +62,7 @@ export class AccessAPI {
    * @param newaccess den nya accessen
    */
   private async setAccess(table: string, ref: string, newaccess: string[]): Promise<boolean> {
-    await knex<DatabaseAccess>(table)
+    await knexInstance<DatabaseAccess>(table)
       .where({
         refname: ref,
       })
@@ -75,7 +75,7 @@ export class AccessAPI {
     }));
 
     if (inserts.length > 0) {
-      const status = await knex<DatabaseAccess>(table).insert(inserts);
+      const status = await knexInstance<DatabaseAccess>(table).insert(inserts);
       return status[0] > 0;
     }
 
@@ -122,7 +122,7 @@ export class AccessAPI {
     posts: string[],
     includeInactivePosts = false,
   ): Promise<DatabaseJoinedAccess[]> {
-    const query = knex<DatabaseAccess>(POST_ACCESS_TABLE)
+    const query = knexInstance<DatabaseAccess>(POST_ACCESS_TABLE)
       .whereIn('refname', posts)
       .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
       .select<DatabaseJoinedAccess[]>('*', `${ACCESS_RESOURCES_TABLE}.description`);
@@ -144,7 +144,7 @@ export class AccessAPI {
    * @returns A list of all the accessable resources
    */
   async getUserPostAccess(username: string) {
-    const res = await knex<DatabaseAccess>(POST_ACCESS_TABLE)
+    const res = await knexInstance<DatabaseAccess>(POST_ACCESS_TABLE)
       .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
       .join<DatabasePostHistory>(POSTS_HISTORY_TABLE, 'refpost', 'refname')
       .where({
@@ -186,7 +186,7 @@ export class AccessAPI {
     resolverName?: string,
     resolverType?: ResolverType,
   ): Promise<DatabaseAccessMapping[]> {
-    const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
+    const q = knexInstance<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
 
     if (resolverName) {
       q.where({ resolverName });
@@ -213,7 +213,7 @@ export class AccessAPI {
     resolverType: ResolverType,
     slugs?: string[],
   ): Promise<boolean> {
-    const q = knex<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
+    const q = knexInstance<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
 
     await q
       .where({
