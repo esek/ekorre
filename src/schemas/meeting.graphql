@@ -7,7 +7,7 @@ type Query {
 }
 
 type Mutation {
-  addMeeting(type: MeetingType!, number: Int, year: Int): Boolean!
+  addMeeting(type: MeetingType!, number: Int, year: Int): ID!
   removeMeeting(id: ID!): Boolean!
   addFileToMeeting(meetingId: ID!, fileId: ID!, fileType: MeetingDocumentType!): Boolean!
   removeFileFromMeeting(meetingId: ID!, fileType: MeetingDocumentType!): Boolean!
@@ -33,6 +33,9 @@ type Meeting {
   documents: File
   lateDocuments: File
   protocol: File
+  
+  "Bilaga"
+  appendix: File
 }
 
 enum MeetingType {
@@ -54,11 +57,14 @@ enum MeetingType {
 }
 
 enum MeetingDocumentType {
-    "Kallelse"
+  "Kallelse"
   summons
 
   "Handlingar"
   documents
   lateDocuments
   protocol
+
+  "Bilaga"
+  appendix
 }

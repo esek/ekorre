@@ -174,10 +174,12 @@ CREATE TABLE IF NOT EXISTS "Meetings" (
   "refdocuments" TEXT,
   "reflateDocuments" TEXT,
   "refprotocol" TEXT,
+  "refappendix" TEXT,
   FOREIGN KEY("refsummons") REFERENCES "Files"("id"),
   FOREIGN KEY("refdocuments") REFERENCES "Files"("id"),
   FOREIGN KEY("reflateDocuments") REFERENCES "Files"("id"),
   FOREIGN KEY("refprotocol") REFERENCES "Files"("id"),
+  FOREIGN KEY("refappendix") REFERENCES "Files"("id"),
   CONSTRAINT "uniqueMeeting" UNIQUE ("type", "number", "year")
 );
 
