@@ -4,6 +4,10 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.1] - 2021-12-29
+
+### Ändrat
+- Flyttar om i DataLoaders genom en ny sorterings-util, `sortBatchResult`.
 ## [0.6.0] - 2021-12-29
 
 ### Tillagt

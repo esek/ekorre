@@ -2,6 +2,7 @@ import { USER_TABLE } from '../../src/api/constants';
 import knex from '../../src/api/knex';
 import { createDataLoader } from '../../src/dataloaders';
 import { batchUsersFunction, userApi } from '../../src/dataloaders/user.dataloader';
+import { NotFoundError } from '../../src/errors/RequestErrors';
 import { DatabaseUser } from '../../src/models/db/user';
 import { reduce } from '../../src/reducers';
 import { userReduce } from '../../src/reducers/user.reducer';
@@ -9,16 +10,6 @@ import { userReduce } from '../../src/reducers/user.reducer';
 // Vi kontrollerar antal anrop till API:n
 const apiSpy = jest.spyOn(userApi, 'getMultipleUsers');
 const mockUsers: DatabaseUser[] = [
-  {
-    username: 'dataloaderTestUser0',
-    passwordHash: 'ddddddddddddddddddddddd',
-    passwordSalt: 'duvetvad', // E-votes salt för samtliga valkoder före 2021
-    firstName: 'Falle',
-    lastName: 'Testsson',
-    email: 'no-reply@esek.se',
-    class: 'E18',
-    isFuncUser: false,
-  },
   {
     username: 'dataloaderTestUser1',
     passwordHash: 'hhhhhhhh',
@@ -37,6 +28,16 @@ const mockUsers: DatabaseUser[] = [
     lastName: 'Testsson',
     email: 'no-reply@esek.se',
     class: 'C18',
+    isFuncUser: false,
+  },
+  {
+    username: 'dataloaderTestUser0',
+    passwordHash: 'ddddddddddddddddddddddd',
+    passwordSalt: 'duvetvad', // E-votes salt för samtliga valkoder före 2021
+    firstName: 'Falle',
+    lastName: 'Testsson',
+    email: 'no-reply@esek.se',
+    class: 'E18',
     isFuncUser: false,
   },
 ];
@@ -109,7 +110,7 @@ test('loading multiple existant and non-existant users', async () => {
         expect(user).toMatchObject(mockUser);
       } else {
         // We expect an error for the fake one
-        await expect(dl.load(name)).rejects.toThrow(`No result for username ${name}`);
+        await expect(dl.load(name)).rejects.toThrowError(NotFoundError);
       }
     }),
   );
@@ -119,6 +120,6 @@ test('loading multiple existant and non-existant users', async () => {
 test('loading non-existant user', async () => {
   const fakeUsername = 'This is not a valid username.com!';
   const dl = createDataLoader(batchUsersFunction);
-  await expect(dl.load(fakeUsername)).rejects.toThrowError();
+  await expect(dl.load(fakeUsername)).rejects.toThrowError(NotFoundError);
   expect(apiSpy).toHaveBeenCalledTimes(1);
 });
