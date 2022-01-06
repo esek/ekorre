@@ -6,6 +6,7 @@ import { UserAPI } from '../api/user.api';
 import config from '../config';
 import RequestError from '../errors/RequestErrors';
 import { AccessType } from '../graphql.generated';
+import { Logger } from '../logger';
 import {
   setUser,
   verifyAuthenticated,
@@ -18,6 +19,7 @@ const filesRoute = Router();
 
 const fileApi = new FileAPI();
 const userApi = new UserAPI();
+const logger = Logger.getLogger('FileRoutes');
 
 export interface UploadFileRequest {
   body: {
@@ -73,10 +75,27 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
     return res.status(400).send('File missing');
   }
 
-  const username = res.locals.user?.username;
+  const { user } = res.locals;
 
-  if (!username) {
+  if (!user) {
     return res.status(401).send();
+  }
+
+  const { username, photoUrl } = user;
+
+  // If user has an existing avatar, delete it
+  if (photoUrl) {
+    const existingFileId = photoUrl.split('/').pop() ?? ''; // Get the last part of the url (the file id)
+
+    // remove the file (no need to wait for it or handle if it fails)
+    try {
+      fileApi.deleteFile(existingFileId);
+      logger.info(`Deleted existing avatar for user ${username}, fileId: ${existingFileId}`);
+    } catch {
+      logger.error(
+        `Failed to remove existing avatar for user ${username}, fileId: ${existingFileId}`,
+      );
+    }
   }
 
   let path = 'avatars';
