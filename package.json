@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "0.5.1",
+  "version": "0.6.1",
   "description": "E-Sektionens backend",
   "main": "src/app.ts",
   "scripts": {
