@@ -69,11 +69,11 @@ def parse_papers_dir(papers_dir: str) -> List[Hehe]:
 def upload_papers(papers: List[Hehe]) -> None:
     base_api_url = sys.argv[2]
 
-    #username = input("Username: ")
-    #password = getpass.getpass(prompt="Password: ")
+    username = input("Username: ")
+    password = getpass.getpass(prompt="Password: ")
 
-    username = "aa0000bb-s"
-    password = "test"
+    #username = "aa0000bb-s"
+    #password = "test"
 
     cookie_jar = get_ekorre_auth_tokens(base_api_url, username, password)
 
