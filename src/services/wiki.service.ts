@@ -1,4 +1,4 @@
-import { AxiosInstance, default as axios } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import setCookieParser, { Cookie } from 'set-cookie-parser';
 
 import config from '../config';
@@ -59,7 +59,6 @@ class EWiki {
 
       // Something else went wrong
       if (data.login.result !== 'Success') {
-        logger.warn(`Sometihing went wrong: ${data.login}`);
         return false;
       }
 
@@ -68,7 +67,7 @@ class EWiki {
       this.isAuthenticated = true;
       return true;
     } catch (err) {
-      logger.error(`Failed to login to wiki: ${err}`);
+      logger.error(`Failed to login to wiki ${err as string}`);
 
       this.isAuthenticated = false;
       return false;
@@ -104,7 +103,7 @@ class EWiki {
 
       return data.query.users[0].editcount ?? 0;
     } catch (err) {
-      logger.error(`Failed to get user edits: ${err}`);
+      logger.error(`Failed to get user edits: ${err as string}`);
 
       return 0;
     }
@@ -117,11 +116,9 @@ class EWiki {
       cookie: this.cookie,
     };
 
-    return this.axios.request<T>({
-      url: this.url(params),
-      method,
-      headers,
-    });
+    return this.axios
+      .request<T>({ url: this.url(params), method, headers })
+      .then((res) => ({ data: res.data, headers: res.headers as Record<string, string> }));
   }
 
   private url(params: URLSearchParams) {
