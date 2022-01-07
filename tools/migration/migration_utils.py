@@ -21,7 +21,7 @@ def make_bold_red(s: str) -> str:
     return ANSI_BOLD + ANSI_RED + s + ANSI_CLEAR_ALL
 
 def print_warning(msg: str, warning="WARNING") -> None:
-    f"{make_bold_red(warning)}: {msg}" 
+    print(f"{make_bold_red(warning)}: {msg}", flush=True)
 
 def get_ekorre_auth_tokens(base_api_url: str, username: str, password: str) -> req.cookies.RequestsCookieJar:
     """
@@ -54,6 +54,8 @@ def get_ekorre_auth_tokens(base_api_url: str, username: str, password: str) -> r
 
     for cookie in bc.items():
         cookie_jar.set(cookie[1].key, cookie[1].value)
+    
+    return cookie_jar
 
 def upload_file_to_ekorre(base_api_url: str, cookie_jar: req.cookies.RequestsCookieJar, file_path: str, upload_path="/") -> str:
     """
@@ -86,6 +88,9 @@ def upload_file_to_ekorre(base_api_url: str, cookie_jar: req.cookies.RequestsCoo
         file_res = req.post(
             f"{base_api_url}/files/upload", data=data, files={'file': f.read()}, cookies=cookie_jar)
     
+    if file_res.status_code != 200:
+        print_warning(f"Got status code {file_res.status_code} when trying to upload {file_path}")
+
     return file_res.json()["id"]
 
 if __name__ == "__main__":

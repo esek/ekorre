@@ -51,13 +51,14 @@ class Hehe:
 def parse_papers_dir(papers_dir: str) -> List[Hehe]:
     res = []
     for filename in os.listdir(papers_dir):
-        search_res = re.search(r"(\d)-(\d).pdf", filename)
+        search_res = re.search(r"(\d+)-(\d+).pdf", filename)
         if not search_res:
             print_warning(
                 f"Could not parse file {filename}, considering uploading manually!")
         else:
             new_hehe = Hehe(number=int(search_res.group(2)),
-                            year=int(search_res.group(1)), file_path=filename)
+                            year=int(search_res.group(1)),
+                            file_path=os.path.join(papers_dir, filename))
             if new_hehe in res:
                 print_warning(f"Duplicate file found! Check {str(new_hehe)}!")
             else:
@@ -78,14 +79,17 @@ def upload_papers(papers: List[Hehe]) -> None:
 
     ADD_HEHE_QUERY = """
         mutation addHehe($fileId: ID!, $number: Int!, $year: Int!) {
-            addHehe(fileId: $meetingId, number: $number, year: $year)
+            addHehe(fileId: $fileId, number: $number, year: $year)
         }
     """
 
     print("Uploading papers...")
     for paper in tqdm(papers):
         # Först laddar vi upp filen
-        file_id = upload_file_to_ekorre(base_api_url, cookie_jar, paper.file_path, "/hehe/")
+        file_id = upload_file_to_ekorre(
+            base_api_url, cookie_jar, paper.file_path, "/hehe/")
+
+        # Sen lägger vi upp denna filen som en ny HeHE
         res = req.post(f"{base_api_url}/", json={
             "query": ADD_HEHE_QUERY,
             "variables": {
@@ -94,6 +98,12 @@ def upload_papers(papers: List[Hehe]) -> None:
                 "year": paper.year,
             }
         })
+
+        if res.status_code != 200:
+            print_warning(
+                f"Received status code {res.status_code} for paper {str(paper)}")
+        if res.json()["data"] is None or not res.json()["data"]["addHehe"]:
+            print_warning(f"Something went wrong when uploading {str(paper)}")
 
 
 if __name__ == "__main__":
