@@ -97,7 +97,7 @@ def upload_papers(papers: List[Hehe]) -> None:
                 "number": paper.number,
                 "year": paper.year,
             }
-        })
+        }, cookies=cookie_jar)
 
         if res.status_code != 200:
             print_warning(
