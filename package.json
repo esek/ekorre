@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "E-Sektionens backend",
   "main": "src/app.ts",
   "scripts": {
@@ -57,6 +57,7 @@
     "knex": "^0.95.15",
     "mysql2": "^2.2.5",
     "regenerator-runtime": "^0.13.7",
+    "set-cookie-parser": "^2.4.8",
     "showdown": "^1.9.1",
     "source-map-support": "^0.5.19",
     "ts-node": "^9.0.0",
@@ -76,6 +77,7 @@
     "@types/jest": "^27.0.1",
     "@types/jsdom": "^16.2.13",
     "@types/jsonwebtoken": "^8.5.0",
+    "@types/set-cookie-parser": "^2.4.2",
     "@types/showdown": "^1.9.3",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",

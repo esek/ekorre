@@ -6,11 +6,23 @@ import { TokenValue } from '../models/auth';
 import { reduce } from '../reducers';
 import { userReduce } from '../reducers/user.reducer';
 import { sendEmail } from '../services/email.service';
+import EWiki from '../services/wiki.service';
 import { stripObject } from '../util';
 
 const api = new UserAPI();
+const wiki = new EWiki();
 
 const userResolver: Resolvers = {
+  User: {
+    wikiEdits: async ({ username }) => {
+      if (!username) {
+        return 0;
+      }
+
+      const edits = await wiki.getNbrOfUserEdits(username);
+      return edits;
+    },
+  },
   Query: {
     me: async (_, __, { accessToken, refreshToken }) => {
       const access = verifyToken<TokenValue>(accessToken, 'accessToken');
