@@ -1,5 +1,5 @@
 import { USER_TABLE, PASSWORD_RESET_TABLE } from '../../src/api/constants';
-import knex from '../../src/api/knex';
+import db from '../../src/api/knex';
 import { UserAPI } from '../../src/api/user.api';
 import {
   BadRequestError,
@@ -34,16 +34,16 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
-  await knex(USER_TABLE)
+  await db(USER_TABLE)
     .delete()
     .whereIn('username', [mockNewUser1.username, `funcUser_${mockNewUser1.username}`]);
   // Delete EVERYTHING
-  await knex(PASSWORD_RESET_TABLE).delete().where('token', '=', null);
+  await db(PASSWORD_RESET_TABLE).delete().where('token', '=', null);
   jest.useRealTimers();
 });
 
 afterAll(async () => {
-  await knex(USER_TABLE)
+  await db(USER_TABLE)
     .delete()
     .whereIn('username', [mockNewUser0.username, mockNewUser1.username]);
 });

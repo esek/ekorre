@@ -1,5 +1,5 @@
 import { POSTS_TABLE } from '../../src/api/constants';
-import knex from '../../src/api/knex';
+import db from '../../src/api/knex';
 import { createDataLoader, useDataLoader } from '../../src/dataloaders';
 import { batchPostsFunction, postApi } from '../../src/dataloaders/post.dataloader';
 import { NotFoundError } from '../../src/errors/RequestErrors';
@@ -48,11 +48,11 @@ beforeEach(() => {
 
 beforeAll(async () => {
   // Insert fake users
-  await knex<DatabasePost>(POSTS_TABLE).insert(mockPosts);
+  await db<DatabasePost>(POSTS_TABLE).insert(mockPosts);
 });
 
 afterAll(async () => {
-  await knex<DatabasePost>(POSTS_TABLE)
+  await db<DatabasePost>(POSTS_TABLE)
     .delete()
     .whereIn(
       'postname',

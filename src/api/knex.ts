@@ -1,9 +1,9 @@
-import Knex from 'knex';
+import { knex, Knex } from 'knex';
 
 let k: Knex;
 
 if (process.env.DB_CLIENT === 'sqlite') {
-  k = Knex({
+  k = knex({
     client: 'sqlite',
     connection: {
       filename: process.env.DB_FILE ?? '',
@@ -20,7 +20,7 @@ if (process.env.DB_CLIENT === 'sqlite') {
   // jävlas
   k.raw('PRAGMA foreign_keys = ON;').then();
 } else {
-  k = Knex({
+  k = knex({
     client: process.env.DB_CLIENT ?? 'mysql2',
     connection: {
       host: process.env.DB_HOST ?? 'localhost',
@@ -28,6 +28,6 @@ if (process.env.DB_CLIENT === 'sqlite') {
   });
 }
 
-const knex = k;
+const db = k;
 
-export default knex;
+export default db;

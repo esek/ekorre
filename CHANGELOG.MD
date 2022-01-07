@@ -4,6 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2022-01-06
+
+### Ändrat
+- Uppdaterat `Knex` typ 1 miljon versioner, och uppdaterat kod därefter
+- Bytt namn på `knex`-instansen till `db` för att stödja nya `KNex`-namespaces
+
 ## [0.6.2] - 2022-01-06
 
 ### Ändrat

@@ -3,13 +3,13 @@ import { EmergencyContactType } from '../graphql.generated';
 import { Logger } from '../logger';
 import { DatabaseEmergencyContact } from '../models/db/emergencycontact';
 import { EMERGENCY_CONTACTS_TABLE } from './constants';
-import knex from './knex';
+import db from './knex';
 
 const logger = Logger.getLogger('EmergencyContactApi');
 
 class EmergencyContactAPI {
   async getEmergencyContacts(username: string): Promise<DatabaseEmergencyContact[]> {
-    const contacts = await knex<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).where(
+    const contacts = await db<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).where(
       'refuser',
       username,
     );
@@ -24,7 +24,7 @@ class EmergencyContactAPI {
     type: EmergencyContactType,
   ): Promise<boolean> {
     try {
-      await knex<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).insert({
+      await db<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).insert({
         name,
         phone,
         type,
@@ -39,7 +39,7 @@ class EmergencyContactAPI {
   }
 
   async removeEmergencyContact(username: string, id: number): Promise<boolean> {
-    const removed = await knex<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE)
+    const removed = await db<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE)
       .where({ refuser: username, id })
       .delete();
 
