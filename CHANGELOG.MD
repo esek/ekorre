@@ -8,6 +8,12 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - Uppdaterat `Knex` typ 1 miljon versioner, och uppdaterat kod därefter
+- Bytt namn på `knex`-instansen till `db` för att stödja nya `KNex`-namespaces
+
+## [0.6.2] - 2022-01-06
+
+### Ändrat
+- När man byter profilbild så tas nu gamla profilbilden bort från databasen och filsystemet.
 
 ## [0.6.1] - 2021-12-29
 
