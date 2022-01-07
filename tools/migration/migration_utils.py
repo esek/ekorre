@@ -78,15 +78,13 @@ def upload_file_to_ekorre(base_api_url: str, cookie_jar: req.cookies.RequestsCoo
         Filens ID på servern
     """
 
-    data = {
-        "body": {
-            "path": upload_path
-        },
+    body = {
+        "path": upload_path
     }
 
     with open(file_path, "rb") as f:
         file_res = req.post(
-            f"{base_api_url}/files/upload", data=data, files={'file': f.read()}, cookies=cookie_jar)
+            f"{base_api_url}/files/upload", data=body, files={'file': f.read()}, cookies=cookie_jar)
     
     if file_res.status_code != 200:
         print_warning(f"Got status code {file_res.status_code} when trying to upload {file_path}")
