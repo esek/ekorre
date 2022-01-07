@@ -8,17 +8,24 @@ import { WikiEditCountResponse, WikiLoginResponse } from '../models/wiki';
 const { WIKI } = config;
 const logger = Logger.getLogger('WikiService');
 
+/**
+ * Service to talk to E-Wiki
+ * Requires the WIKI-configuration variables in `/src/config.ts`
+ * to be set or it will always return 0
+ */
 class EWiki {
   private axios: AxiosInstance;
   private isAuthenticated: boolean;
   private cookies: Cookie[];
 
   constructor() {
+    // Create axios instance
     this.axios = axios.create({
       baseURL: WIKI.URL,
       withCredentials: true,
     });
 
+    // Set default parameters
     this.isAuthenticated = false;
     this.cookies = [];
   }
@@ -33,6 +40,7 @@ class EWiki {
   /**
    * Logs in the user with the provided env-variables
    * @param token A token needed to login
+   * @returns A promise that resolves when the login is complete
    */
   private async login(token?: string): Promise<boolean> {
     const params = new URLSearchParams({
@@ -74,7 +82,14 @@ class EWiki {
     }
   }
 
-  public async getNbrOfUserEdits(username: string): Promise<number> {
+  /**
+   * Fetches the edit count of a single user
+   * If the user is not authenticated, it will try to login
+   * If the request still fails, it will retry once before returning 0
+   * @param {string} username The username of the user to fetch the edit count for
+   * @param {boolean} retrying Whether this is a retry or not
+   */
+  public async getNbrOfUserEdits(username: string, retrying: boolean = false): Promise<number> {
     if (!this.isAuthenticated) {
       await this.login();
     }
@@ -90,10 +105,10 @@ class EWiki {
       const { data } = await this.request<WikiEditCountResponse>(params);
 
       // Unauthorized, we need to reauthenticate
-      if (data.error?.code === 'readapidenied') {
+      if (data.error?.code === 'readapidenied' && !retrying) {
         logger.info('Unauthorized, reauthenticating');
         this.isAuthenticated = false;
-        return this.getNbrOfUserEdits(username);
+        return this.getNbrOfUserEdits(username, true);
       }
 
       // User does not have a wiki account
@@ -108,8 +123,13 @@ class EWiki {
       return 0;
     }
   }
-
-  private request<T>(params: URLSearchParams, method: 'get' | 'post' = 'get') {
+  /**
+   * Helper method to make requests to the Wiki-API.
+   * @param params The query parameters to send, (will always include format=json)
+   * @param method The HTTP method to use, defaults to `GET`
+   * @returns An axios response containing data of type `<T>` and the response headers
+   */
+  private async request<T>(params: URLSearchParams, method: 'get' | 'post' = 'get') {
     params.append('format', 'json');
 
     const headers = {
@@ -121,6 +141,11 @@ class EWiki {
       .then((res) => ({ data: res.data, headers: res.headers as Record<string, string> }));
   }
 
+  /**
+   * Helper method to convert the query parameters to a url
+   * @param params Search parameters to add to the url
+   * @returns The url with the query parameters
+   */
   private url(params: URLSearchParams) {
     params.append('format', 'json');
     return `/api.php?${params.toString()}`;
