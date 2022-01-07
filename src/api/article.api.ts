@@ -7,7 +7,7 @@ import type { DatabaseArticle } from '../models/db/article';
 import { convertMarkdownToHtml } from '../reducers/article.reducer';
 import { stripObject, toUTC } from '../util';
 import { ARTICLE_TABLE } from './constants';
-import knexInstance from './knex';
+import db from './knex';
 
 // Refs används när en annan databas innehåller informationen,
 // så denna innehåller bara en referens för att kunna hitta
@@ -27,7 +27,7 @@ export class ArticleAPI {
    * Hämta alla artiklar
    */
   async getAllArticles(): Promise<DatabaseArticle[]> {
-    const allArticles = await knexInstance<DatabaseArticle>(ARTICLE_TABLE);
+    const allArticles = await db<DatabaseArticle>(ARTICLE_TABLE);
 
     return allArticles;
   }
@@ -36,7 +36,7 @@ export class ArticleAPI {
    * Hämtar alla nyhetsartiklar
    */
   async getAllNewsArticles(): Promise<DatabaseArticle[]> {
-    const allNewsArticles = await knexInstance<DatabaseArticle>(ARTICLE_TABLE)
+    const allNewsArticles = await db<DatabaseArticle>(ARTICLE_TABLE)
       .where('articletype', 'news')
       .orderBy('createdat', 'desc');
 
@@ -44,7 +44,7 @@ export class ArticleAPI {
   }
 
   async getAllInformationArticles(): Promise<DatabaseArticle[]> {
-    const allInformationArticles = await knexInstance<DatabaseArticle>(ARTICLE_TABLE).where(
+    const allInformationArticles = await db<DatabaseArticle>(ARTICLE_TABLE).where(
       'articletype',
       'information',
     );
@@ -72,7 +72,7 @@ export class ArticleAPI {
       search.refcreator = creator;
     }
 
-    const newsArticleModels = await knexInstance<DatabaseArticle>(ARTICLE_TABLE)
+    const newsArticleModels = await db<DatabaseArticle>(ARTICLE_TABLE)
       .where(search)
       .andWhere('createdAt', '<', before)
       .andWhere('createdAt', '>', after);
@@ -101,7 +101,7 @@ export class ArticleAPI {
       return null;
     }
 
-    const article = await knexInstance<DatabaseArticle>(ARTICLE_TABLE).where('id', dbId).first();
+    const article = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', dbId).first();
 
     return article ?? null;
   }
@@ -116,7 +116,7 @@ export class ArticleAPI {
     // Ts låter en inte indexera nycklar i params med foreach
     const safeParams = stripObject(params);
 
-    const article = await knexInstance<DatabaseArticle>(ARTICLE_TABLE).where(safeParams);
+    const article = await db<DatabaseArticle>(ARTICLE_TABLE).where(safeParams);
 
     return article ?? null;
   }
@@ -126,7 +126,7 @@ export class ArticleAPI {
    * @param nbr antal artiklar
    */
   async getLatestNews(limit: number): Promise<DatabaseArticle[] | null> {
-    const lastestNews = await knexInstance<DatabaseArticle>(ARTICLE_TABLE)
+    const lastestNews = await db<DatabaseArticle>(ARTICLE_TABLE)
       .where('articleType', 'news')
       .orderBy('createdat', 'desc')
       .limit(limit);
@@ -153,7 +153,7 @@ export class ArticleAPI {
       reflastupdateby: creator,
     };
 
-    const res = await knexInstance<DatabaseArticle>(ARTICLE_TABLE).insert(article);
+    const res = await db<DatabaseArticle>(ARTICLE_TABLE).insert(article);
 
     return {
       ...article,
@@ -174,7 +174,7 @@ export class ArticleAPI {
 
     update.lastUpdatedAt = toUTC(new Date());
 
-    const res = await knexInstance<DatabaseArticle>(ARTICLE_TABLE).where('id', id).update(update);
+    const res = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', id).update(update);
 
     return res > 0;
   }

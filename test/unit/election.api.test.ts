@@ -5,7 +5,7 @@ import {
   PROPOSAL_TABLE,
 } from '../../src/api/constants';
 import { ElectionAPI } from '../../src/api/election.api';
-import knexInstance from '../../src/api/knex';
+import db from '../../src/api/knex';
 import { BadRequestError, NotFoundError, ServerError } from '../../src/errors/RequestErrors';
 import { NominationAnswer } from '../../src/graphql.generated';
 import {
@@ -24,10 +24,10 @@ let preTestNominationTable: DatabaseNomination[];
 
 const clearDatabase = async () => {
   // Vi sätter `where` till något som alltid är sant
-  await knexInstance<DatabaseElectable>(ELECTABLE_TABLE).delete().whereNotNull('refelection');
-  await knexInstance<DatabaseProposal>(PROPOSAL_TABLE).delete().whereNotNull('refelection');
-  await knexInstance<DatabaseNomination>(NOMINATION_TABLE).delete().whereNotNull('refelection');
-  await knexInstance<DatabaseElection>(ELECTION_TABLE).delete().whereNotNull('id');
+  await db<DatabaseElectable>(ELECTABLE_TABLE).delete().whereNotNull('refelection');
+  await db<DatabaseProposal>(PROPOSAL_TABLE).delete().whereNotNull('refelection');
+  await db<DatabaseNomination>(NOMINATION_TABLE).delete().whereNotNull('refelection');
+  await db<DatabaseElection>(ELECTION_TABLE).delete().whereNotNull('id');
 };
 
 /**
@@ -44,7 +44,7 @@ const addDummyElections = async (
   const queries = [];
   for (let i = 0; i < n; i -= -1) {
     queries.push(
-      knexInstance<DatabaseElection>(ELECTION_TABLE).insert({
+      db<DatabaseElection>(ELECTION_TABLE).insert({
         refcreator: creatorUsername,
         nominationsHidden,
         openedAt: Date.now() + 100,
@@ -60,10 +60,10 @@ const addDummyElections = async (
 };
 
 beforeAll(async () => {
-  preTestElectionTable = await knexInstance<DatabaseElection>(ELECTION_TABLE).select('*');
-  preTestElectableTable = await knexInstance<DatabaseElectable>(ELECTABLE_TABLE).select('*');
-  preTestProposalTable = await knexInstance<DatabaseProposal>(PROPOSAL_TABLE).select('*');
-  preTestNominationTable = await knexInstance<DatabaseNomination>(NOMINATION_TABLE).select('*');
+  preTestElectionTable = await db<DatabaseElection>(ELECTION_TABLE).select('*');
+  preTestElectableTable = await db<DatabaseElectable>(ELECTABLE_TABLE).select('*');
+  preTestProposalTable = await db<DatabaseProposal>(PROPOSAL_TABLE).select('*');
+  preTestNominationTable = await db<DatabaseNomination>(NOMINATION_TABLE).select('*');
   await clearDatabase();
 });
 
@@ -73,10 +73,10 @@ afterEach(async () => {
 
 afterAll(async () => {
   // Sätt in cachade värden igen
-  await knexInstance<DatabaseElection>(ELECTION_TABLE).insert(preTestElectionTable);
-  await knexInstance<DatabaseElectable>(ELECTABLE_TABLE).insert(preTestElectableTable);
-  await knexInstance<DatabaseProposal>(PROPOSAL_TABLE).insert(preTestProposalTable);
-  await knexInstance<DatabaseNomination>(NOMINATION_TABLE).insert(preTestNominationTable);
+  await db<DatabaseElection>(ELECTION_TABLE).insert(preTestElectionTable);
+  await db<DatabaseElectable>(ELECTABLE_TABLE).insert(preTestElectableTable);
+  await db<DatabaseProposal>(PROPOSAL_TABLE).insert(preTestProposalTable);
+  await db<DatabaseNomination>(NOMINATION_TABLE).insert(preTestNominationTable);
 });
 
 test('finding latest elections without limit', async () => {
@@ -89,7 +89,7 @@ test('finding latest elections with limit', async () => {
   await addDummyElections('aa0000bb-s', true, 5);
 
   // Vi gör senaste valet unikt så vi kan identifiera det
-  await knexInstance<DatabaseElection>(ELECTION_TABLE).insert({
+  await db<DatabaseElection>(ELECTION_TABLE).insert({
     refcreator: 'bb1111cc-s',
     nominationsHidden: false,
   });
@@ -105,7 +105,7 @@ test('getting open election', async () => {
   await addDummyElections('aa0000bb-s', true, 3);
   await expect(api.getOpenElection()).rejects.toThrowError(NotFoundError);
 
-  await knexInstance<DatabaseElection>(ELECTION_TABLE).insert({
+  await db<DatabaseElection>(ELECTION_TABLE).insert({
     refcreator: 'bb1111cc-s',
     nominationsHidden: false,
     openedAt: Date.now() + 100,
@@ -164,7 +164,7 @@ test('getting nominations for post', async () => {
 
 test('nominations for non-electables are hidden', async () => {
   const electionId = await api.createElection('bb1111cc-s', [], false);
-  await knexInstance<DatabaseNomination>(NOMINATION_TABLE).insert({
+  await db<DatabaseNomination>(NOMINATION_TABLE).insert({
     refelection: electionId,
     refuser: 'aa0000bb-s',
     refpost: 'Macapär', // Valid post, men inte electable
@@ -715,7 +715,7 @@ test('closing multiple elections', async () => {
   // Vi ska egentligen inte ha flera möten
   // öppna samtidigt, men har någon fuckat med databasen
   // ska man kunna stänga alla och få en varning
-  await knexInstance<DatabaseElection>(ELECTION_TABLE).insert([
+  await db<DatabaseElection>(ELECTION_TABLE).insert([
     {
       refcreator: 'aa0000bb-s',
       openedAt: Date.now() + 100,

@@ -12,7 +12,7 @@ import { Logger } from '../logger';
 import { DatabaseForgotPassword } from '../models/db/forgotpassword';
 import { DatabaseUser } from '../models/db/user';
 import { PASSWORD_RESET_TABLE, USER_TABLE } from './constants';
-import knexInstance from './knex';
+import db from './knex';
 
 const logger = Logger.getLogger('UserAPI');
 
@@ -48,7 +48,7 @@ export class UserAPI {
    * Returnerar alla lagarade användare.
    */
   async getAllUsers(): Promise<DatabaseUser[]> {
-    const u = await knexInstance<DatabaseUser>(USER_TABLE).select('*');
+    const u = await db<DatabaseUser>(USER_TABLE).select('*');
     return u;
   }
 
@@ -57,7 +57,7 @@ export class UserAPI {
    * @param username det unika användarnamnet
    */
   async getSingleUser(username: string): Promise<DatabaseUser> {
-    const u = await knexInstance<DatabaseUser>(USER_TABLE).where({ username }).first();
+    const u = await db<DatabaseUser>(USER_TABLE).where({ username }).first();
 
     if (u == null) {
       throw new NotFoundError('Användaren kunde inte hittas');
@@ -71,13 +71,13 @@ export class UserAPI {
    * @param usernames användarnamnen
    */
   async getMultipleUsers(usernames: string[] | readonly string[]): Promise<DatabaseUser[]> {
-    const u = await knexInstance<DatabaseUser>(USER_TABLE).whereIn('username', usernames);
+    const u = await db<DatabaseUser>(USER_TABLE).whereIn('username', usernames);
 
     return u;
   }
 
   async searchUser(search: string): Promise<DatabaseUser[]> {
-    const users = await knexInstance<DatabaseUser>(USER_TABLE)
+    const users = await db<DatabaseUser>(USER_TABLE)
       .where('username', 'like', `%${search}%`)
       .orWhere('firstName', 'like', `%${search}%`)
       .orWhere('lastName', 'like', `%${search}%`);
@@ -91,7 +91,7 @@ export class UserAPI {
    * @param password lösenordet i plaintext
    */
   async loginUser(username: string, password: string): Promise<DatabaseUser> {
-    const u = await knexInstance<DatabaseUser>(USER_TABLE)
+    const u = await db<DatabaseUser>(USER_TABLE)
       .select('*')
       .where({
         username,
@@ -116,7 +116,7 @@ export class UserAPI {
    * @param newPassword det nya lösenordet i plaintext
    */
   async changePassword(username: string, oldPassword: string, newPassword: string): Promise<void> {
-    const query = knexInstance<DatabaseUser>(USER_TABLE).select('*').where({
+    const query = db<DatabaseUser>(USER_TABLE).select('*').where({
       username,
     });
     const u = await query.first();
@@ -179,7 +179,7 @@ export class UserAPI {
       isFuncUser,
     };
 
-    await knexInstance<DatabaseUser>(USER_TABLE)
+    await db<DatabaseUser>(USER_TABLE)
       .insert(user)
       .catch(() => {
         // If failed, it's 99% because the username exists
@@ -197,7 +197,7 @@ export class UserAPI {
       throw new BadRequestError('Användarnamn kan inte uppdateras');
     }
 
-    const res = await knexInstance<DatabaseUser>(USER_TABLE).where('username', username).update(partial);
+    const res = await db<DatabaseUser>(USER_TABLE).where('username', username).update(partial);
 
     if (res <= 0) {
       throw new BadRequestError('Något gick fel');
@@ -205,7 +205,7 @@ export class UserAPI {
   }
 
   async requestPasswordReset(username: string): Promise<string> {
-    const table = knexInstance<DatabaseForgotPassword>(PASSWORD_RESET_TABLE);
+    const table = db<DatabaseForgotPassword>(PASSWORD_RESET_TABLE);
 
     const token = crypto.randomBytes(24).toString('hex');
 
@@ -227,7 +227,7 @@ export class UserAPI {
   }
 
   async validateResetPasswordToken(username: string, token: string): Promise<boolean> {
-    const row = await knexInstance<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
+    const row = await db<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
       .where('username', username)
       .where('token', token)
       .first();
@@ -236,7 +236,7 @@ export class UserAPI {
   }
 
   async resetPassword(token: string, username: string, password: string): Promise<void> {
-    const q = knexInstance<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
+    const q = db<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
       .where('token', token)
       .andWhere('username', username)
       .first();
@@ -249,7 +249,7 @@ export class UserAPI {
     }
 
     // Update password for user
-    await knexInstance<DatabaseUser>(USER_TABLE)
+    await db<DatabaseUser>(USER_TABLE)
       .where('username', username)
       .update(this.generateSaltAndHash(password));
 

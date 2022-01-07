@@ -6,7 +6,7 @@ import { StrictObject } from '../models/base';
 import type { DatabasePost, DatabasePostHistory } from '../models/db/post';
 import { midnightTimestamp, stripObject } from '../util';
 import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
-import knexInstance from './knex';
+import db from './knex';
 
 const logger = Logger.getLogger('PostAPI');
 
@@ -52,7 +52,7 @@ export class PostAPI {
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
   async getPosts(limit?: number, includeInactive = true): Promise<DatabasePost[]> {
-    const query = knexInstance<DatabasePost>(POSTS_TABLE);
+    const query = db<DatabasePost>(POSTS_TABLE);
 
     if (!includeInactive) {
       query.where('active', true);
@@ -68,7 +68,7 @@ export class PostAPI {
   }
 
   async getPost(postname: string): Promise<DatabasePost | null> {
-    const post = await knexInstance<DatabasePost>(POSTS_TABLE)
+    const post = await db<DatabasePost>(POSTS_TABLE)
       .whereRaw('LOWER(postname) = ?', [postname.toLowerCase()])
       .first();
 
@@ -88,7 +88,7 @@ export class PostAPI {
     postnames: string[] | readonly string[],
     includeInactive = true,
   ): Promise<DatabasePost[]> {
-    const query = knexInstance<DatabasePost>(POSTS_TABLE).whereIn('postname', postnames);
+    const query = db<DatabasePost>(POSTS_TABLE).whereIn('postname', postnames);
 
     if (!includeInactive) {
       query.where('active', true);
@@ -105,7 +105,7 @@ export class PostAPI {
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
   async getPostsForUser(username: string, includeInactive = true): Promise<DatabasePost[]> {
-    const refposts = await knexInstance<DatabasePostHistory>(POSTS_HISTORY_TABLE)
+    const refposts = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .where({
         refuser: username,
       })
@@ -115,7 +115,7 @@ export class PostAPI {
       })
       .select('refpost');
 
-    const query = knexInstance<DatabasePost>(POSTS_TABLE).whereIn(
+    const query = db<DatabasePost>(POSTS_TABLE).whereIn(
       'postname',
       refposts.map((e) => e.refpost),
     );
@@ -135,7 +135,7 @@ export class PostAPI {
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
   async getPostsFromUtskott(utskott: Utskott, includeInactive = true): Promise<DatabasePost[]> {
-    const query = knexInstance<DatabasePost>(POSTS_TABLE).where({
+    const query = db<DatabasePost>(POSTS_TABLE).where({
       utskott,
     });
 
@@ -173,7 +173,7 @@ export class PostAPI {
       throw new ServerError('Användaren kunde inte läggas till');
     }
 
-    const res = await knexInstance<DatabasePostHistory>(POSTS_HISTORY_TABLE).insert(insert);
+    const res = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE).insert(insert);
     return res[0] > 0;
   }
 
@@ -198,7 +198,7 @@ export class PostAPI {
       throw new BadRequestError('Denna posten finns redan');
     }
 
-    const res = await knexInstance<DatabasePost>(POSTS_TABLE).insert({
+    const res = await db<DatabasePost>(POSTS_TABLE).insert({
       postname: name,
       utskott,
       postType,
@@ -234,7 +234,7 @@ export class PostAPI {
         s = checkPostTypeAndSpots(entry.postType, entry.spots);
       } else {
         // Vi måste kolla i databasen vad denna post har för postType
-        const dbPostType = await knexInstance<PostType>(POSTS_TABLE)
+        const dbPostType = await db<PostType>(POSTS_TABLE)
           .select('postType')
           .where('postname', name)
           .returning('posttype')
@@ -249,7 +249,7 @@ export class PostAPI {
       }
     } else if (entry.postType !== undefined) {
       // Vi har ingen ny spots, men vi har postType => kollar efter posts i DB
-      const dbSpots = await knexInstance<number>(POSTS_TABLE)
+      const dbSpots = await db<number>(POSTS_TABLE)
         .select('postType')
         .where('postname', name)
         .returning('number')
@@ -257,7 +257,7 @@ export class PostAPI {
       s = checkPostTypeAndSpots(entry.postType, dbSpots);
     } else {
       // Vi vill inte uppdatera något av dem
-      const res = await knexInstance<DatabasePost>(POSTS_TABLE).where('postname', name).update(update);
+      const res = await db<DatabasePost>(POSTS_TABLE).where('postname', name).update(update);
       return res > 0;
     }
 
@@ -266,7 +266,7 @@ export class PostAPI {
       throw new BadRequestError('Ogiltig kombination av post och antal platser');
     }
 
-    const res = await knexInstance<DatabasePost>(POSTS_TABLE)
+    const res = await db<DatabasePost>(POSTS_TABLE)
       .where('postname', name)
       .update({ ...update, spots: s });
 
@@ -279,7 +279,7 @@ export class PostAPI {
    * @returns Om en uppdatering gjordes
    */
   async activatePost(postname: string): Promise<boolean> {
-    const res = await knexInstance<DatabasePost>(POSTS_TABLE).update('active', true).where({ postname });
+    const res = await db<DatabasePost>(POSTS_TABLE).update('active', true).where({ postname });
 
     return res > 0;
   }
@@ -290,13 +290,13 @@ export class PostAPI {
    * @returns Om en uppdatering gjordes
    */
   async deactivatePost(postname: string): Promise<boolean> {
-    const res = await knexInstance<DatabasePost>(POSTS_TABLE).update('active', false).where({ postname });
+    const res = await db<DatabasePost>(POSTS_TABLE).update('active', false).where({ postname });
 
     return res > 0;
   }
 
   async getHistoryEntries(refpost: string): Promise<DatabasePostHistory[]> {
-    const entries = await knexInstance<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
+    const entries = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
       refpost,
     });
 
@@ -304,7 +304,7 @@ export class PostAPI {
   }
 
   async getHistoryEntriesForUser(refuser: string): Promise<DatabasePostHistory[]> {
-    const entries = await knexInstance<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
+    const entries = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
       refuser,
     });
 
@@ -322,7 +322,7 @@ export class PostAPI {
     const timestamp = safeDate.getTime();
 
     // Om `end` är `null` har man inte gått av posten
-    const i = await knexInstance<DatabasePostHistory>(POSTS_HISTORY_TABLE)
+    const i = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .where('start', '<=', timestamp)
       .andWhere((q) => {
         // Antingen är end efter datumet, eller så är det null (inte gått av)
@@ -356,7 +356,7 @@ export class PostAPI {
     start: Date,
     end: Date,
   ): Promise<boolean> {
-    const res = await knexInstance<DatabasePostHistory>(POSTS_HISTORY_TABLE)
+    const res = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .update('end', midnightTimestamp(end, 'before'))
       .where({
         refuser: username,
@@ -384,7 +384,7 @@ export class PostAPI {
     start: Date,
     end?: Date,
   ): Promise<boolean> {
-    const query = knexInstance<DatabasePostHistory>(POSTS_HISTORY_TABLE)
+    const query = db<DatabasePostHistory>(POSTS_HISTORY_TABLE)
       .delete()
       .where({
         refuser: username,

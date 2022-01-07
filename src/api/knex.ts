@@ -28,6 +28,6 @@ if (process.env.DB_CLIENT === 'sqlite') {
   });
 }
 
-const knexInstance = k;
+const db = k;
 
-export default knexInstance;
+export default db;

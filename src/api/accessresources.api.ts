@@ -3,7 +3,7 @@ import { AccessResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
 import { DatabaseAccessResource } from '../models/db/resource';
 import { ACCESS_RESOURCES_TABLE } from './constants';
-import knexInstance from './knex';
+import db from './knex';
 
 const logger = Logger.getLogger('ResourcesAPI');
 
@@ -18,7 +18,7 @@ class ResourcesAPI {
     type?: AccessResourceType,
     slugs?: string[],
   ): Promise<DatabaseAccessResource[]> {
-    const q = knexInstance<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE);
+    const q = db<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE);
 
     if (type) {
       q.where('resourceType', type);
@@ -37,7 +37,7 @@ class ResourcesAPI {
    * @returns Access resources as presented in the database
    */
   async getResource(slug: string): Promise<DatabaseAccessResource> {
-    const resouce = await knexInstance<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
+    const resouce = await db<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
       .where('slug', slug)
       .first();
 
@@ -63,7 +63,7 @@ class ResourcesAPI {
     description: string,
     resourceType: AccessResourceType,
   ): Promise<boolean> {
-    const [id] = await knexInstance<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).insert({
+    const [id] = await db<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE).insert({
       slug,
       description,
       name,
@@ -84,7 +84,7 @@ class ResourcesAPI {
    * @returns {boolean} True if successful
    */
   async removeResouce(slug: string): Promise<boolean> {
-    const res = await knexInstance<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
+    const res = await db<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE)
       .where('slug', slug)
       .delete();
 
