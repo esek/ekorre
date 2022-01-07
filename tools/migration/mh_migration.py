@@ -36,14 +36,15 @@ Vi ignorerar helt enkelt helt databasen och bara laddar upp
 alla möteshandlingar själva.
 """
 
-import os
-import sys
-import re
 import getpass
-import requests as req
+import os
+import re
+import sys
 from dataclasses import dataclass
 
-from migration_utils.migration_utils import get_ekorre_auth_tokens, make_bold_red 
+import requests as req
+
+from migration_utils import get_ekorre_auth_tokens, print_warning
 
 """
 {
@@ -78,7 +79,7 @@ def append_file(filename: str, year: str) -> None:
         meeting_type_match = re.search(
             r"(ht|s|vm|vt|smextra)(?:\d{1,2})?-.*\.pdf", filename).group(1)
     except:
-        print(f"{make_bold_red('AAAAH')} okänd mötestyp för år {year}: {filename}!")
+        print_warning(f"Okänd mötestyp för år {year}: {filename}!", warning="AAAAH")
         sys.exit(1)
 
     if meeting_type_match == "ht":
@@ -90,8 +91,8 @@ def append_file(filename: str, year: str) -> None:
             number = int(
                 re.search(r"s(\d+)(?:-\d+)?-.*\.pdf", filename).group(1))
         except AttributeError:
-            print(
-                f"{make_bold_red('AAAAH')} kunde inte hitta vilket styrelsemöte följande var: {filename}")
+            print_warning(
+                f"Kunde inte hitta vilket styrelsemöte följande var: {filename}", warning="AAAAH")
             sys.exit(1)
     elif meeting_type_match == "vm":
         meeting_type = "VM"
@@ -105,8 +106,7 @@ def append_file(filename: str, year: str) -> None:
             number = int(
                 re.search(r"smextra(\d{1,2})(?:-\d{,2})?-.*\.pdf", filename).group(1))
         except AttributeError:
-            print(
-                f"{make_bold_red('AAAAH')} kunde inte hitta vilket extramöte följande var: {filename}")
+            print_warning(f"Kunde inte hitta vilket extramöte följande var: {filename}", warning="AAAAH")
             sys.exit(1)
 
     document_type_match = re.search(
@@ -123,7 +123,7 @@ def append_file(filename: str, year: str) -> None:
     elif document_type_match == "bilaga":
         document_type = "appendix"
     else:
-        print(f"{make_bold_red('AAAAH')} okänd dokumenttyp för år {year}: {filename}")
+        print_warning(f"Okänd dokumenttyp för år {year}: {filename}", warning="AAAAH")
         sys.exit(1)
 
     if year not in meeting_docs.keys():
@@ -138,8 +138,7 @@ def check_duplicate_docs():
     for year in meeting_docs:
         for meeting_doc in meeting_docs[year]:
             if (lid := meeting_doc.local_document_id()) in seen_document_ids:
-                print(
-                    f"{make_bold_red('WARNING')}: Duplicate document found, manually check {lid}")
+                print_warning(f"Duplicate document found, manually check {lid}")
             else:
                 seen_document_ids.append(lid)
 
@@ -208,8 +207,7 @@ def migrate_to_ekorre():
             })
 
             if res.status_code != 200:
-                print(
-                    f"{make_bold_red('WARNING')}: Failed to add file {meeting_doc.document_type} to meeting {meeting_doc.local_meeting_id()}")
+                print_warning(f"Failed to add file {meeting_doc.document_type} to meeting {meeting_doc.local_meeting_id()}")
 
 
 if __name__ == "__main__":
