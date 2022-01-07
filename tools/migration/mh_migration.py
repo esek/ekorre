@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Author: Emil Eriksson (E18)
+Author: Emil Eriksson (E18) <eje1999@gmail.com>
 Usage: mh_migration.py <moteshandlingar dir> <API URL>
 
 Detta skriptet är till för att migrera mötesdokument från det gamla systemet,
@@ -41,18 +41,9 @@ import sys
 import re
 import getpass
 import requests as req
-from http.cookies import BaseCookie
 from dataclasses import dataclass
 
-# Some ANSI color codes for terminal
-ANSI_CLEAR_ALL = "\033[0m"
-ANSI_BOLD = "\033[1m"
-ANSI_RED = "\033[31m"
-
-
-def make_bold_red(s: str) -> str:
-    return ANSI_BOLD + ANSI_RED + s + ANSI_CLEAR_ALL
-
+from migration_utils.migration_utils import get_ekorre_auth_tokens, make_bold_red 
 
 """
 {
@@ -155,13 +146,6 @@ def check_duplicate_docs():
 
 def migrate_to_ekorre():
     base_api_url = sys.argv[2]
-    LOGIN_QUERY = """
-      mutation login($username: String!, $password: String!) {
-        login(username: $username, password: $password) {
-          username
-        }
-    }
-    """
 
     username = input("Username: ")
     password = getpass.getpass(prompt="Password: ")
@@ -169,23 +153,8 @@ def migrate_to_ekorre():
     #username = "aa0000bb-s"
     #password = "test"
 
-    res = req.post(base_api_url, json={
-        "query": LOGIN_QUERY,
-        "variables": {
-            "username": username,
-            "password": password
-        }
-    })
+    cookie_jar = get_ekorre_auth_tokens(base_api_url, username, password)
 
-    # requests leker inte snällt med localhost...
-    # Så vi måste ladda in kakors rådata, och sen skapa
-    # nya som gäller för alla domäner
-    cookie_jar = req.cookies.RequestsCookieJar()
-    bc = BaseCookie()
-    bc.load(res.headers['Set-Cookie'])
-
-    for cookie in bc.items():
-        cookie_jar.set(cookie[1].key, cookie[1].value)
 
     ADD_MEETING_QUERY = """
       mutation addMeeting($type: MeetingType!, $number: Int, $year: Int) {
