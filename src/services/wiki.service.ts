@@ -89,7 +89,7 @@ class EWiki {
    * @param {string} username The username of the user to fetch the edit count for
    * @param {boolean} retrying Whether this is a retry or not
    */
-  public async getNbrOfUserEdits(username: string, retrying: boolean = false): Promise<number> {
+  public async getNbrOfUserEdits(username: string, retrying = false): Promise<number> {
     if (!this.isAuthenticated) {
       await this.login();
     }
