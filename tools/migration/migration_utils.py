@@ -20,6 +20,8 @@ def make_bold_red(s: str) -> str:
 
     return ANSI_BOLD + ANSI_RED + s + ANSI_CLEAR_ALL
 
+def print_warning(msg: str, warning="WARNING") -> None:
+    f"{make_bold_red(warning)}: {msg}" 
 
 def get_ekorre_auth_tokens(base_api_url: str, username: str, password: str) -> req.cookies.RequestsCookieJar:
     """
