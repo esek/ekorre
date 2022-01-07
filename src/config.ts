@@ -47,6 +47,12 @@ const COOKIE = {
   DOMAIN: (process.env.COOKIE_DOMAIN as string) ?? '',
 };
 
+const WIKI = {
+  URL: process.env.WIKI_BASE_URL ?? '',
+  USERNAME: process.env.WIKI_USERNAME ?? '',
+  PASSWORD: process.env.WIKI_PASSWORD ?? '',
+};
+
 const config = {
   PORT: parseInt(process.env.PORT ?? '5000', 10),
   HOST: process.env.HOST ?? '0.0.0.0',
@@ -54,7 +60,8 @@ const config = {
   EBREV,
   CORS,
   LU,
-  COOKIE
+  COOKIE,
+  WIKI,
 };
 
 export default config;

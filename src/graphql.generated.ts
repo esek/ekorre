@@ -1075,6 +1075,7 @@ export type User = {
   userPostHistory: Array<Maybe<UserPostHistoryEntry>>;
   username: Scalars['String'];
   website?: Maybe<Scalars['String']>;
+  wikiEdits: Scalars['Int'];
   zipCode?: Maybe<Scalars['String']>;
 };
 
@@ -1551,6 +1552,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   userPostHistory?: Resolver<Array<Maybe<ResolversTypes['UserPostHistoryEntry']>>, ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  wikiEdits?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   zipCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
