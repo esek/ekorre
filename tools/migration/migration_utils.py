@@ -55,6 +55,38 @@ def get_ekorre_auth_tokens(base_api_url: str, username: str, password: str) -> r
     for cookie in bc.items():
         cookie_jar.set(cookie[1].key, cookie[1].value)
 
+def upload_file_to_ekorre(base_api_url: str, cookie_jar: req.cookies.RequestsCookieJar, file_path: str, upload_path="/") -> str:
+    """
+    Laddar upp en fil till `ekorre` på definierad `path`, och returnerar `file_id`.
+    
+    Parameters
+    ----------
+    base_api_url : str
+        Bas-URL till ekorre-API:n
+    cookie_jar : req.cookies.RequestsCookieJar
+        cookie jar med auth till `ekorre`. Fås av `migration_utils.get_ekorre_auth_tokens()`
+    file_path : str
+        Var filen som ska laddas upp hittas lokalt
+    upload_path : str, default=\"/\"
+        Vart filen ska laddas upp på filservern
+
+    Returns
+    -------
+    file_id : str
+        Filens ID på servern
+    """
+
+    data = {
+        "body": {
+            "path": upload_path
+        },
+    }
+
+    with open(file_path, "rb") as f:
+        file_res = req.post(
+            f"{base_api_url}/files/upload", data=data, files={'file': f.read()}, cookies=cookie_jar)
+    
+    return file_res.json()["id"]
 
 if __name__ == "__main__":
     print("Detta skript innehåller utils, och ska ej köras direkt. Importera där det passar.")

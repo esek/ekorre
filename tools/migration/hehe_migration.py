@@ -25,16 +25,18 @@ import re
 import sys
 from dataclasses import dataclass
 from typing import List
+from tqdm import tqdm
 
 import requests as req
 
-from migration_utils import get_ekorre_auth_tokens, print_warning
+from migration_utils import get_ekorre_auth_tokens, print_warning, upload_file_to_ekorre
 
 
 @dataclass
 class Hehe:
     number: int
     year: int
+    file_path: str
 
     def __eq__(self, other: object) -> bool:
         if (self.__class__ != other.__class__):
@@ -51,10 +53,11 @@ def parse_papers_dir(papers_dir: str) -> List[Hehe]:
     for filename in os.listdir(papers_dir):
         search_res = re.search(r"(\d)-(\d).pdf", filename)
         if not search_res:
-            print_warning(f"Could not parse file {filename}, considering uploading manually!")
+            print_warning(
+                f"Could not parse file {filename}, considering uploading manually!")
         else:
             new_hehe = Hehe(number=int(search_res.group(2)),
-                            year=int(search_res.group(1)))
+                            year=int(search_res.group(1)), file_path=filename)
             if new_hehe in res:
                 print_warning(f"Duplicate file found! Check {str(new_hehe)}!")
             else:
@@ -72,6 +75,26 @@ def upload_papers(papers: List[Hehe]) -> None:
     password = "test"
 
     cookie_jar = get_ekorre_auth_tokens(base_api_url, username, password)
+
+    ADD_HEHE_QUERY = """
+        mutation addHehe($fileId: ID!, $number: Int!, $year: Int!) {
+            addHehe(fileId: $meetingId, number: $number, year: $year)
+        }
+    """
+
+    print("Uploading papers...")
+    for paper in tqdm(papers):
+        # Först laddar vi upp filen
+        file_id = upload_file_to_ekorre(base_api_url, cookie_jar, paper.file_path, "/hehe/")
+        res = req.post(f"{base_api_url}/", json={
+            "query": ADD_HEHE_QUERY,
+            "variables": {
+                "fileId": file_id,
+                "number": paper.number,
+                "year": paper.year,
+            }
+        })
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
