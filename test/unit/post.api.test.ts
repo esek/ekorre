@@ -1,5 +1,5 @@
 import { POSTS_HISTORY_TABLE, POSTS_TABLE, USER_TABLE } from '../../src/api/constants';
-import knex from '../../src/api/knex';
+import db from '../../src/api/knex';
 import { PostAPI } from '../../src/api/post.api';
 import { UserAPI } from '../../src/api/user.api';
 import {
@@ -57,11 +57,11 @@ const mp: ModifyPost = {
 };
 
 const removePost = async (postname: string) => {
-  await knex(POSTS_TABLE).delete().where({ postname });
+  await db(POSTS_TABLE).delete().where({ postname });
 };
 
 const removePostHistory = async (username: string) => {
-  await knex(POSTS_HISTORY_TABLE).delete().where({ refuser: username });
+  await db(POSTS_HISTORY_TABLE).delete().where({ refuser: username });
 };
 
 const clearDb = () => {
@@ -79,7 +79,7 @@ afterEach(clearDb);
 
 afterAll(async () => {
   clearDb();
-  await knex<DatabaseUser>(USER_TABLE).delete().where('username', DUMMY_USER.username);
+  await db<DatabaseUser>(USER_TABLE).delete().where('username', DUMMY_USER.username);
 });
 
 test('getting all posts', async () => {
