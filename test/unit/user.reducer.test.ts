@@ -29,5 +29,6 @@ test('that password is reduced properly', () => {
     },
     posts: [],
     userPostHistory: [],
+    wikiEdits: 0,
   });
 });

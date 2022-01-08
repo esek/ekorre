@@ -4,6 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2022-01-07
+
+### Tillagt
+- Lagt till `wikiEdits` fält för användare
+- `WikiService` skapad för kommunikation mellan E-Wiki och Ekorre.
+
 ## [0.7.0] - 2022-01-06
 
 ### Ändrat
