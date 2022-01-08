@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Author: Emil Eriksson (E18)
+Author: Emil Eriksson (E18) <eje1999@gmail.com>
 Usage: mh_migration.py <moteshandlingar dir> <API URL>
 
 Detta skriptet är till för att migrera mötesdokument från det gamla systemet,
@@ -36,23 +36,15 @@ Vi ignorerar helt enkelt helt databasen och bara laddar upp
 alla möteshandlingar själva.
 """
 
-import os
-import sys
-import re
 import getpass
-import requests as req
-from http.cookies import BaseCookie
+import os
+import re
+import sys
 from dataclasses import dataclass
 
-# Some ANSI color codes for terminal
-ANSI_CLEAR_ALL = "\033[0m"
-ANSI_BOLD = "\033[1m"
-ANSI_RED = "\033[31m"
+import requests as req
 
-
-def make_bold_red(s: str) -> str:
-    return ANSI_BOLD + ANSI_RED + s + ANSI_CLEAR_ALL
-
+from migration_utils import get_ekorre_auth_tokens, print_warning, upload_file_to_ekorre
 
 """
 {
@@ -71,8 +63,8 @@ class MeetingDoc:
     meeting_type: str  # "SM" | "HTM" | "VM" | "VTM" | "Extra"
     document_type: str  # "summons" | "documents" | "lateDocuments" | "protocol" | "appendix"
     number: int
-    file_path: str
     year: int
+    file_path: str
 
     def local_meeting_id(self) -> str:
         return f"{self.meeting_type}{self.number}-{self.year}"
@@ -87,7 +79,8 @@ def append_file(filename: str, year: str) -> None:
         meeting_type_match = re.search(
             r"(ht|s|vm|vt|smextra)(?:\d{1,2})?-.*\.pdf", filename).group(1)
     except:
-        print(f"{make_bold_red('AAAAH')} okänd mötestyp för år {year}: {filename}!")
+        print_warning(
+            f"Okänd mötestyp för år {year}: {filename}!", warning="AAAAH")
         sys.exit(1)
 
     if meeting_type_match == "ht":
@@ -99,8 +92,8 @@ def append_file(filename: str, year: str) -> None:
             number = int(
                 re.search(r"s(\d+)(?:-\d+)?-.*\.pdf", filename).group(1))
         except AttributeError:
-            print(
-                f"{make_bold_red('AAAAH')} kunde inte hitta vilket styrelsemöte följande var: {filename}")
+            print_warning(
+                f"Kunde inte hitta vilket styrelsemöte följande var: {filename}", warning="AAAAH")
             sys.exit(1)
     elif meeting_type_match == "vm":
         meeting_type = "VM"
@@ -114,8 +107,8 @@ def append_file(filename: str, year: str) -> None:
             number = int(
                 re.search(r"smextra(\d{1,2})(?:-\d{,2})?-.*\.pdf", filename).group(1))
         except AttributeError:
-            print(
-                f"{make_bold_red('AAAAH')} kunde inte hitta vilket extramöte följande var: {filename}")
+            print_warning(
+                f"Kunde inte hitta vilket extramöte följande var: {filename}", warning="AAAAH")
             sys.exit(1)
 
     document_type_match = re.search(
@@ -132,7 +125,8 @@ def append_file(filename: str, year: str) -> None:
     elif document_type_match == "bilaga":
         document_type = "appendix"
     else:
-        print(f"{make_bold_red('AAAAH')} okänd dokumenttyp för år {year}: {filename}")
+        print_warning(
+            f"Okänd dokumenttyp för år {year}: {filename}", warning="AAAAH")
         sys.exit(1)
 
     if year not in meeting_docs.keys():
@@ -147,21 +141,14 @@ def check_duplicate_docs():
     for year in meeting_docs:
         for meeting_doc in meeting_docs[year]:
             if (lid := meeting_doc.local_document_id()) in seen_document_ids:
-                print(
-                    f"{make_bold_red('WARNING')}: Duplicate document found, manually check {lid}")
+                print_warning(
+                    f"Duplicate document found, manually check {lid}")
             else:
                 seen_document_ids.append(lid)
 
 
 def migrate_to_ekorre():
     base_api_url = sys.argv[2]
-    LOGIN_QUERY = """
-      mutation login($username: String!, $password: String!) {
-        login(username: $username, password: $password) {
-          username
-        }
-    }
-    """
 
     username = input("Username: ")
     password = getpass.getpass(prompt="Password: ")
@@ -169,23 +156,7 @@ def migrate_to_ekorre():
     #username = "aa0000bb-s"
     #password = "test"
 
-    res = req.post(base_api_url, json={
-        "query": LOGIN_QUERY,
-        "variables": {
-            "username": username,
-            "password": password
-        }
-    })
-
-    # requests leker inte snällt med localhost...
-    # Så vi måste ladda in kakors rådata, och sen skapa
-    # nya som gäller för alla domäner
-    cookie_jar = req.cookies.RequestsCookieJar()
-    bc = BaseCookie()
-    bc.load(res.headers['Set-Cookie'])
-
-    for cookie in bc.items():
-        cookie_jar.set(cookie[1].key, cookie[1].value)
+    cookie_jar = get_ekorre_auth_tokens(base_api_url, username, password)
 
     ADD_MEETING_QUERY = """
       mutation addMeeting($type: MeetingType!, $number: Int, $year: Int) {
@@ -205,15 +176,8 @@ def migrate_to_ekorre():
     for year in meeting_docs.keys():
         print(f"Uploading files for year {year}")
         for meeting_doc in meeting_docs[year]:
-            data = {
-                "body": {
-                    "path": f"/moteshandlingar/{year}/"
-                },
-            }
-            with open(meeting_doc.file_path, "rb") as f:
-                file_res = req.post(
-                    f"{base_api_url}/files/upload", data=data, files={'file': f.read()}, cookies=cookie_jar)
-            file_id = file_res.json()["id"]
+            file_id = upload_file_to_ekorre(
+                base_api_url, cookie_jar, meeting_doc.file_path, f"/moteshandlingar/{year}/")
 
             if meeting_doc.local_meeting_id() not in already_added_meetings.keys():
                 meeting_id = req.post(f"{base_api_url}/", json={
@@ -239,8 +203,8 @@ def migrate_to_ekorre():
             })
 
             if res.status_code != 200:
-                print(
-                    f"{make_bold_red('WARNING')}: Failed to add file {meeting_doc.document_type} to meeting {meeting_doc.local_meeting_id()}")
+                print_warning(
+                    f"Failed to add file {meeting_doc.document_type} to meeting {meeting_doc.local_meeting_id()}")
 
 
 if __name__ == "__main__":
