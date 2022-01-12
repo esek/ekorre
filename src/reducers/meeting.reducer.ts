@@ -27,7 +27,8 @@ export function meetingReduce(meeting: DatabaseMeeting): MeetingResponse {
   }
 
   // If a reference is missing, the documents is not to be added to response
-  const { refsummons, refdocuments, reflateDocuments, refprotocol, ...reduced } = meeting;
+  const { refsummons, refdocuments, reflateDocuments, refprotocol, refappendix, ...reduced } =
+    meeting;
   const m = {
     ...reduced,
     name,
@@ -38,6 +39,7 @@ export function meetingReduce(meeting: DatabaseMeeting): MeetingResponse {
   addIfRefNotNull(m, MeetingDocumentType.Documents, refdocuments);
   addIfRefNotNull(m, MeetingDocumentType.LateDocuments, reflateDocuments);
   addIfRefNotNull(m, MeetingDocumentType.Protocol, refprotocol);
+  addIfRefNotNull(m, MeetingDocumentType.Appendix, refappendix);
 
   return m;
 }
