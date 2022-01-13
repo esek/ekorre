@@ -1,7 +1,4 @@
 import { ApolloServer } from 'apollo-server-express';
-import { USER_TABLE } from '../../src/api/constants';
-import db from '../../src/api/knex';
-import { NewUser } from '../../src/graphql.generated';
 import apolloServerConfig from '../../src/serverconfig';
 
 const apolloServer = new ApolloServer(apolloServerConfig);
