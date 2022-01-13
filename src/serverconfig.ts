@@ -46,8 +46,8 @@ const apolloLogger = Logger.getLogger('Apollo');
 const apolloServerConfig: Config<ExpressContext> = {
   schema: applyMiddleware(schema, authMiddleware),
   context: ({ req, res }: ContextParams): Context => {
-    const accessToken = req.cookies[COOKIES.accessToken] ?? '';
-    const refreshToken = req.cookies[COOKIES.refreshToken] ?? '';
+    const accessToken = req?.cookies[COOKIES.accessToken] ?? '';
+    const refreshToken = req?.cookies[COOKIES.refreshToken] ?? '';
 
     return {
       accessToken,
