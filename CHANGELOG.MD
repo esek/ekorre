@@ -4,6 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2022-01-13
+
+### Ändrat
+- Splittar `app.ts` i `app.ts` och `serverconfig.ts` för att utnyttja Apollos `executeOperation` i nya intergrationstester
+- `test/regression` numera del av build, `test/integration/` ersätter viss funktionalitet
+
 ## [0.7.1] - 2022-01-07
 
 ### Tillagt

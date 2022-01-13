@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "E-Sektionens backend",
   "main": "src/app.ts",
   "scripts": {
@@ -14,10 +14,10 @@
     "lint": "eslint src",
     "lint:test": "eslint test",
     "test": "jest",
-    "test:ci": "jest test/unit test/integration && jest test/regression --coverage=false",
+    "test:prebuild": "jest test/unit test/integration",
     "test:unit": "jest test/unit",
-    "test:regression": "jest test/regression",
-    "test:integration": "jest test/integration"
+    "test:integration": "jest test/integration",
+    "test:regression": "jest test/regression --coverage=false"
   },
   "author": "Emil Blennow",
   "contributors": [
