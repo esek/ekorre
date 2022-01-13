@@ -2,8 +2,10 @@ import { ApolloServer } from 'apollo-server-express';
 
 import {
   ACCESS_RESOURCES_TABLE,
+  IND_ACCESS_TABLE,
   POSTS_HISTORY_TABLE,
   POSTS_TABLE,
+  POST_ACCESS_TABLE,
   USER_TABLE,
 } from '../../src/api/constants';
 import db from '../../src/api/knex';
@@ -25,13 +27,16 @@ const USER_WITH_ACCESS_AND_RESOURCES_QUERY = `
 			firstName
 			lastName
 			username
-		accessResources {
-			name
-			description
-			slug
-			resourceType
-		}
+      access {
+        web {
+          slug
+        }
+        doors {
+          slug
+        }
+      }
 	}
+}
 `;
 
 const CREATE_USER_MUTATION = `
@@ -113,12 +118,16 @@ const mockAccessResource1: AccessResource = {
 };
 
 const clearDb = async () => {
+  await Promise.all([
+    db(IND_ACCESS_TABLE).delete().where('refname', mockNewUser.username),
+    db(POST_ACCESS_TABLE).delete().where('refname', mockPost.name),
+  ]);
   await db(POSTS_HISTORY_TABLE).delete().where('refuser', mockNewUser.username);
   await db(POSTS_TABLE).delete().where('postname', mockPost.name);
   await db(USER_TABLE).delete().where('username', mockNewUser.username);
   await db(ACCESS_RESOURCES_TABLE)
     .delete()
-    .where('slug', [mockAccessResource0.slug, mockAccessResource1.slug]);
+    .whereIn('slug', [mockAccessResource0.slug, mockAccessResource1.slug]);
 };
 
 beforeAll(async () => {
@@ -156,7 +165,7 @@ test('setting and getting full access of user', async () => {
     variables: {
       usernames: [mockNewUser.username],
       postname: mockPost.name,
-    }
+    },
   });
 
   expect(addUsersToPostRes.errors).toBeUndefined();
@@ -182,4 +191,52 @@ test('setting and getting full access of user', async () => {
   expect(addAccessResourceRes0?.data?.addAccessResource).toBeTruthy();
   expect(addAccessResourceRes1.errors).toBeUndefined();
   expect(addAccessResourceRes1?.data?.addAccessResource).toBeTruthy();
+
+  // Set individual access and post access
+  const [setIndividualAccessRes, setPostAccessRes] = await Promise.all([
+    apolloServer.executeOperation({
+      query: SET_USER_ACCESS_MUTATION,
+      variables: {
+        username: mockNewUser.username,
+        access: [mockAccessResource0.slug, 'super-admin'], // We use some values defined by test db
+      },
+    }),
+    apolloServer.executeOperation({
+      query: SET_POST_ACCESS_MUTATION,
+      variables: {
+        postname: mockPost.name,
+        access: [mockAccessResource1.slug, 'bd', 'super-admin'],
+      },
+    }),
+  ]);
+
+  expect(setIndividualAccessRes.errors).toBeUndefined();
+  expect(setIndividualAccessRes?.data?.setIndividualAccess).toBeTruthy();
+  expect(setPostAccessRes.errors).toBeUndefined();
+  expect(setPostAccessRes?.data?.setPostAccess).toBeTruthy();
+
+  // Now we check if we get the correct total access!
+  const userWithAccessRes = await apolloServer.executeOperation({
+    query: USER_WITH_ACCESS_AND_RESOURCES_QUERY,
+    variables: {
+      username: mockNewUser.username,
+    },
+  });
+
+  expect(userWithAccessRes.errors).toBeUndefined();
+  expect(userWithAccessRes?.data?.user).toMatchObject({
+    firstName: mockNewUser.firstName,
+    lastName: mockNewUser.lastName,
+    username: mockNewUser.username,
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  expect(userWithAccessRes?.data?.user?.access?.doors).toEqual(
+    expect.arrayContaining([{ slug: mockAccessResource0.slug }, { slug: 'bd' }]),
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  expect(userWithAccessRes?.data?.user?.access?.web).toEqual(
+    expect.arrayContaining([{ slug: mockAccessResource1.slug }, { slug: 'super-admin' }]),
+  );
 });
