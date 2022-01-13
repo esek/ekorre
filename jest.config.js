@@ -7,11 +7,10 @@ module.exports = {
   // så istället för antal kärnor - 1 kör 50% av max (dis make dest dlow).
   maxWorkers: '50%',
   // Alla JS, JSX, TS, TSX-filer i src, men inte models, genererad kod
-  // eller resolvers (anrop till API:n via HTTP ger inte coverage)
+  // eller resolvers
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
-    '!src/**/*.{d,generated}.ts',
-    '!src/resolvers/*.{js,jsx,ts,tsx}',
+    '!src/**/*.{d,generated}.ts'
   ],
   setupFiles: ["dotenv/config"], // Så jest kommer åt .env
 };

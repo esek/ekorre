@@ -78,16 +78,14 @@ tests:
   script:
     - apk update
     - apk add bash sqlite
+    - ./test/utils/setup-env.sh
+    - npm run test:prebuild
     - ./test/utils/test-server-startup.sh
-    - npm run test:ci
+    - npm run test:regression
   artifacts:
     paths:
       - coverage
     expire_in: 1 week
-  # Kill the node server
-  after_script:
-    # bash not default shell on alpine
-    - bash -c kill -9 $( ps aux | grep '\snode\s' | awk '{print $2}' ) && echo "Killed dev server"
   cache:
     key: $CI_COMMIT_REF_SLUG
     paths:
