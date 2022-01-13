@@ -20,7 +20,7 @@ const USER_QUERY = `
   }
 `;
 
-test('get user', async () => {
+test('getting user', async () => {
   const userResponse = await apolloServer.executeOperation({
     query: USER_QUERY,
     variables: {

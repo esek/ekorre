@@ -6,9 +6,12 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.8.0] - 2022-01-13
 
+### Tillagt
+- Integrationstester, bl.a. för access
+
 ### Ändrat
 - Splittar `app.ts` i `app.ts` och `serverconfig.ts` för att utnyttja Apollos `executeOperation` i nya intergrationstester
-- `test/regression` numera del av build, `test/integration/` ersätter viss funktionalitet
+- `test/regression` numera separat, `test/integration/` ersätter viss funktionalitet
 
 ## [0.7.1] - 2022-01-07
 
