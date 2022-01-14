@@ -1,12 +1,17 @@
+import { ApolloServer } from 'apollo-server-express';
 import axios from 'axios';
 import { createWriteStream, ReadStream, rmSync } from 'fs';
 import { resolve } from 'path';
 import request from 'supertest';
 
+import { FILE_TABLE } from '../../src/api/constants';
 import FileAPI from '../../src/api/file.api';
+import db from '../../src/api/knex';
 import { app } from '../../src/app';
 import { COOKIES, issueToken } from '../../src/auth';
 import { AccessType, File as GqlFile, FileType } from '../../src/graphql.generated';
+import { DatabaseFile } from '../../src/models/db/file';
+import apolloServerConfig from '../../src/serverconfig';
 
 const fileApi = new FileAPI();
 
@@ -56,19 +61,19 @@ describe('uploading files', () => {
     return req;
   };
 
-  test('without a file', async () => {
+  it('fails without a file', async () => {
     await attachFile(TEST_USERNAME, false).expect(400);
   });
 
-  test('without a username', async () => {
+  it('fails without username', async () => {
     await attachFile('', true).expect(401);
   });
 
-  test('with username that does not exist', async () => {
+  it('fails with username that doesnt exist', async () => {
     await attachFile('ba1234js-s', true).expect(401);
   });
 
-  test('without accessstype', async () => {
+  it('can automatically set the accesstype', async () => {
     const res = await attachFile().expect(200);
 
     expect(res.body).toMatchObject({
@@ -81,7 +86,7 @@ describe('uploading files', () => {
     });
   });
 
-  test('with accesstype', async () => {
+  it('can explicitly set the accesstype', async () => {
     const res = await attachFile().field('accessType', AccessType.Authenticated).expect(200);
 
     expect(res.body).toMatchObject({
@@ -94,7 +99,7 @@ describe('uploading files', () => {
     });
   });
 
-  test('in subfolder', async () => {
+  it('can upload a file in a subfolder', async () => {
     const res = await attachFile().field('path', 'test-folder').expect(200);
 
     expect(res.body).toMatchObject({
@@ -109,7 +114,7 @@ describe('uploading files', () => {
   });
 
   // A request with multiple files should still just result in one file being uploaded
-  test('multiple files', async () => {
+  it('can handle multiple files', async () => {
     const res = await attachFile().attach('file', path).expect(200);
 
     expect(res.body).toMatchObject({
@@ -122,15 +127,15 @@ describe('uploading files', () => {
   });
 
   describe('avatars', () => {
-    test('without a file', async () => {
+    it('fails without a file', async () => {
       await attachFile(TEST_USERNAME, false, true).expect(400);
     });
 
-    test('without a username', async () => {
+    it('fails if there is no username', async () => {
       await attachFile('', true, true).expect(401);
     });
 
-    test('with a file', async () => {
+    it('uploads a file', async () => {
       const res = await attachFile(TEST_USERNAME, true, true).expect(200);
 
       expect(res.body).toMatchObject({
@@ -143,7 +148,7 @@ describe('uploading files', () => {
       });
     });
 
-    test('override existing', async () => {
+    it('overrides existing avatar', async () => {
       const res1 = await attachFile(TEST_USERNAME, true, true).expect(200);
 
       expect(res1.body).toMatchObject({
@@ -155,5 +160,232 @@ describe('uploading files', () => {
         type: FileType.Image,
       });
     });
+  });
+});
+
+describe('fetching files', () => {
+  const apolloServer = new ApolloServer({
+    ...apolloServerConfig,
+    context: (props) => {
+      if (typeof apolloServerConfig.context === 'function') {
+        return {
+          ...apolloServerConfig.context(props),
+          getUsername: () => TEST_USERNAME,
+        };
+      }
+
+      return {};
+    },
+  });
+
+  const TEST_FOLDER_NAME = 'test-folder';
+
+  const GET_FILES_QUERY = `
+    query($type: FileType) {
+      files(type: $type) {
+        id
+        name
+        type
+        folderLocation
+      }
+    }
+  `;
+
+  const GET_FILE_QUERY = `
+    query($id: ID!) {
+      file(id: $id) {
+        id
+        name
+        type
+        folderLocation
+        createdBy {
+          username
+        }
+      }
+    }
+  `;
+
+  const GET_FILESYSTEM_QUERY = `
+    query($folder: String!) {
+      fileSystem(folder: $folder) {
+        files {
+          id
+          name
+          type
+          folderLocation 
+        }
+        path {
+          id
+          name
+        }
+      }
+    }
+  `;
+
+  const SEARCH_FILES_QUERY = `
+    query($search: String!) {
+      searchFiles(search: $search) {
+        name
+        id
+      }
+    }
+  `;
+
+  const CREATE_FOLDER_MUTATION = `
+    mutation($path: String!, $name: String!) {
+      createFolder(path: $path, name: $name)
+    }
+  `;
+
+  const DELETE_FILE_MUTATION = `
+    mutation($id: ID!) {
+      deleteFile(id: $id)
+    }
+  `;
+
+  it('gets multiple files', async () => {
+    const res = await apolloServer.executeOperation({
+      query: GET_FILES_QUERY,
+    });
+
+    expect(res.errors).toBeUndefined();
+    expect(res.data?.files?.length).toBeGreaterThan(0);
+  });
+
+  it('gets files by type', async () => {
+    const res = await apolloServer.executeOperation({
+      query: GET_FILES_QUERY,
+      variables: {
+        type: FileType.Text,
+      },
+    });
+
+    expect(res.errors).toBeUndefined();
+    expect(res.data?.files?.length).toBeGreaterThan(0);
+
+    expect(res.data?.files).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'text.txt' })]),
+    );
+
+    expect(res.data?.files).toEqual(
+      expect.not.arrayContaining([expect.objectContaining({ type: FileType.Image })]),
+    );
+  });
+
+  it('gets a single file', async () => {
+    const testFileId = '098f6bcd4621d373cade4e832627b4f6.txt';
+
+    const res = await apolloServer.executeOperation({
+      query: GET_FILE_QUERY,
+      variables: {
+        id: testFileId,
+      },
+    });
+
+    expect(res.errors).toBeUndefined();
+    expect(res.data?.file).toMatchObject({
+      id: testFileId,
+      name: 'text.txt',
+      type: FileType.Text,
+    });
+  });
+
+  it('gets the correct files in the filesystem', async () => {
+    const res = await apolloServer.executeOperation({
+      query: GET_FILESYSTEM_QUERY,
+      variables: {
+        folder: '',
+      },
+    });
+
+    expect(res.errors).toBeUndefined();
+
+    expect(res.data?.fileSystem).toMatchObject({
+      files: expect.arrayContaining([
+        expect.objectContaining({
+          name: 'esek.png',
+        }),
+        expect.not.objectContaining({
+          name: 'text.txt', // this file is in a subfolder so it shouldn't be returned
+        }),
+      ]),
+      path: [],
+    });
+  });
+
+  it('fails if trying to serach for nothing', async () => {
+    const res = await apolloServer.executeOperation({
+      query: SEARCH_FILES_QUERY,
+      variables: {
+        search: '',
+      },
+    });
+
+    expect(res.errors).toBeDefined();
+    expect(res.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          errorType: 'BadRequestError',
+          message: 'Du måste ange en söksträng',
+        }),
+      ]),
+    );
+  });
+
+  it('can search for multiple files', async () => {
+    const res = await apolloServer.executeOperation({
+      query: SEARCH_FILES_QUERY,
+      variables: {
+        search: 'text',
+      },
+    });
+
+    expect(res.errors).toBeUndefined();
+
+    expect(res.data?.searchFiles.length).toBe(1);
+
+    expect(res.data?.searchFiles).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'text.txt',
+        }),
+      ]),
+    );
+  });
+
+  it('can create a folder', async () => {
+    const res = await apolloServer.executeOperation({
+      query: CREATE_FOLDER_MUTATION,
+
+      variables: {
+        name: TEST_FOLDER_NAME,
+        path: '',
+      },
+    });
+
+    expect(res.errors).toBeUndefined();
+    expect(res.data?.createFolder).toBe(true);
+  });
+
+  it('can delete the folder', async () => {
+    const folder = await db<DatabaseFile>(FILE_TABLE)
+      .where({
+        name: TEST_FOLDER_NAME,
+      })
+      .first();
+
+    if (!folder) {
+      fail('Folder not found');
+    }
+
+    const res = await apolloServer.executeOperation({
+      query: DELETE_FILE_MUTATION,
+      variables: {
+        id: folder.id,
+      },
+    });
+
+    expect(res.errors).toBeUndefined();
+    expect(res.data?.deleteFile).toBe(true);
   });
 });
