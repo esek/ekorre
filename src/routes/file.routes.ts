@@ -98,17 +98,7 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
     }
   }
 
-  let path = 'avatars';
-
-  if (!(await fileApi.getFileData('avatars').catch((_) => null))) {
-    const newPath = await fileApi.createFolder('', path, username, path);
-
-    if (!newPath) {
-      return res.status(500).send('Could not create directory');
-    }
-
-    path = newPath;
-  }
+  const path = 'avatars';
 
   const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = AccessType.Authenticated;

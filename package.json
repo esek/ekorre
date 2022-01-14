@@ -79,6 +79,7 @@
     "@types/jsonwebtoken": "^8.5.0",
     "@types/set-cookie-parser": "^2.4.2",
     "@types/showdown": "^1.9.3",
+    "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
     "eslint": "^7.9.0",
@@ -89,6 +90,7 @@
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2",
     "sqlite3": "^5.0.2",
+    "supertest": "^6.2.1",
     "ts-jest": "^27.0.5"
   }
 }

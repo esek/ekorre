@@ -21,10 +21,10 @@ const logger = Logger.getLogger('App');
 
 logger.log('Beginning startup...');
 
-(async () => {
-  // Starta server.
-  const app = express();
+// Starta server.
+export const app = express();
 
+(async () => {
   const corsOptions: CorsOptions = {
     origin: CORS.ALLOWED_ORIGINS,
     credentials: true,
