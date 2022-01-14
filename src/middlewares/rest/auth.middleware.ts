@@ -40,7 +40,6 @@ export const setUser: RequestHandlerWithLocals = (req, res, next) => {
 
   res.locals.getUser = async () => {
     const { username } = verifyToken<TokenValue>(token, 'accessToken');
-
     return userApi.getSingleUser(username);
   };
 
@@ -56,10 +55,6 @@ export const verifyAuthenticated: RequestHandlerWithLocals = async (_req, res, n
   try {
     const user = await res.locals.getUser();
     res.locals.user = user;
-
-    if (!user) {
-      throw new UnauthenticatedError('Inlogging krävs');
-    }
   } catch {
     res.status(401).send('Din token kunde inte valideras');
     return;
