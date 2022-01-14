@@ -169,7 +169,7 @@ describe('fetching files', () => {
     context: (props) => {
       if (typeof apolloServerConfig.context === 'function') {
         return {
-          ...apolloServerConfig.context(props),
+          ...(apolloServerConfig.context(props) as Record<string, unknown>),
           getUsername: () => TEST_USERNAME,
         };
       }
@@ -249,7 +249,7 @@ describe('fetching files', () => {
     });
 
     expect(res.errors).toBeUndefined();
-    expect(res.data?.files?.length).toBeGreaterThan(0);
+    expect((res.data?.files as GqlFile[])?.length).toBeGreaterThan(0);
   });
 
   it('gets files by type', async () => {
@@ -261,7 +261,7 @@ describe('fetching files', () => {
     });
 
     expect(res.errors).toBeUndefined();
-    expect(res.data?.files?.length).toBeGreaterThan(0);
+    expect((res.data?.files as GqlFile[])?.length).toBeGreaterThan(0);
 
     expect(res.data?.files).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'text.txt' })]),
@@ -308,8 +308,7 @@ describe('fetching files', () => {
         expect.not.objectContaining({
           name: 'text.txt', // this file is in a subfolder so it shouldn't be returned
         }),
-      ]),
-      path: [],
+      ]) as unknown[], // super ugly but ts complains
     });
   });
 
@@ -342,7 +341,7 @@ describe('fetching files', () => {
 
     expect(res.errors).toBeUndefined();
 
-    expect(res.data?.searchFiles.length).toBe(1);
+    expect((res.data?.searchFiles as GqlFile[])?.length).toBe(1);
 
     expect(res.data?.searchFiles).toEqual(
       expect.arrayContaining([
