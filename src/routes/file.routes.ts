@@ -87,9 +87,9 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
   if (photoUrl) {
     const existingFileId = photoUrl.split('/').pop() ?? ''; // Get the last part of the url (the file id)
 
-    // remove the file (no need to wait for it or handle if it fails)
+    // remove the file
     try {
-      fileApi.deleteFile(existingFileId);
+      await fileApi.deleteFile(existingFileId);
       logger.info(`Deleted existing avatar for user ${username}, fileId: ${existingFileId}`);
     } catch {
       logger.error(
