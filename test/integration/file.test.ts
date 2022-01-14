@@ -9,6 +9,7 @@ import FileAPI from '../../src/api/file.api';
 import db from '../../src/api/knex';
 import { app } from '../../src/app';
 import { COOKIES, issueToken } from '../../src/auth';
+import config from '../../src/config';
 import { AccessType, File as GqlFile, FileType } from '../../src/graphql.generated';
 import { DatabaseFile } from '../../src/models/db/file';
 import apolloServerConfig from '../../src/serverconfig';
@@ -22,6 +23,8 @@ const TEST_FILE_NAME = 'lorem-picusm.jpg';
 const TEST_USERNAME = 'no0000oh-s';
 
 const path = resolve(__dirname, '../data', TEST_FILE_NAME);
+
+const baseURL = (endpoint: string) => `${config.FILES.ENDPOINT}/${endpoint}`;
 
 describe('uploading files', () => {
   /* download example file */
@@ -50,7 +53,7 @@ describe('uploading files', () => {
     const token = issueToken({ username }, 'accessToken');
 
     const req = r
-      .post(`/files/upload${isAvatar ? '/avatar' : ''}`)
+      .post(baseURL(`/upload${isAvatar ? '/avatar' : ''}`))
       .field('name', TEST_FILE_NAME)
       .set('Cookie', [`${COOKIES.accessToken}=${token}`]);
 
@@ -387,4 +390,60 @@ describe('fetching files', () => {
     expect(res.errors).toBeUndefined();
     expect(res.data?.deleteFile).toBe(true);
   });
+});
+
+describe('reading files', () => {
+  const r = request(app);
+
+  const ESEK_IMAGE = 'c703198a20f148f392061060f651fdb3.png';
+  const TEXT_FILE = '6f837f0400bd1eb70f3648fc31343ecc/098f6bcd4621d373cade4e832627b4f6.txt';
+
+  const token = issueToken({ username: TEST_USERNAME }, 'accessToken');
+
+  /**
+   * Gets the content type from the response headers
+   * @param res request
+   */
+  const getContentType = (headers: Record<string, string>) => {
+    return headers['content-type'];
+  };
+
+  it('can read a public file', async () => {
+    const res = await r.get(baseURL(ESEK_IMAGE)).expect(200);
+    expect(getContentType(res.headers)).toBe('image/png');
+  });
+
+  it("can't read a file that requires authentication", async () => {
+    await r.get(baseURL(TEXT_FILE)).expect(403);
+  });
+
+  it('can get the token is in cookie', async () => {
+    const res = await r
+      .get(baseURL(TEXT_FILE))
+      .set('Cookie', `e-access-token=${token}`)
+      .expect(200);
+
+    expect(getContentType(res.headers)).toBe('text/plain; charset=UTF-8');
+  });
+
+  it('can get the token is in query', async () => {
+    const res = await r.get(baseURL(TEXT_FILE)).query({ token }).expect(200);
+    expect(getContentType(res.headers)).toBe('text/plain; charset=UTF-8');
+  });
+
+  it('can get the bearer token is in header', async () => {
+    const res = await r.get(baseURL(TEXT_FILE)).set('authorization', `Bearer ${token}`).expect(200);
+    expect(getContentType(res.headers)).toBe('text/plain; charset=UTF-8');
+  });
+
+  it('can get the token is in header', async () => {
+    const res = await r.get(baseURL(TEXT_FILE)).set('authorization', token).expect(200);
+    expect(getContentType(res.headers)).toBe('text/plain; charset=UTF-8');
+  });
+
+  it('returns 404 if the file is not found', async () => {
+    await r.get(baseURL('not-found.txt')).expect(404);
+  });
+
+  // TODO: Test cases for files that require specific access
 });
