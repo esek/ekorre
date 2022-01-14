@@ -163,6 +163,18 @@ describe('uploading files', () => {
         type: FileType.Image,
       });
     });
+
+    it('can handle multiple files', async () => {
+      const res = await attachFile(TEST_USERNAME, true, true).attach('file', path).expect(200);
+
+      expect(res.body).toMatchObject({
+        accessType: AccessType.Authenticated,
+        createdBy: {
+          username: TEST_USERNAME,
+        },
+        name: TEST_FILE_NAME,
+      });
+    });
   });
 });
 
