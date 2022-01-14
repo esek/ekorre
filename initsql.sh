@@ -1,4 +1,5 @@
-#! /bin/sh
+#!/bin/sh
+
 cp .env.example.dev .env
 DATABASE_PATH=sqlite_database.db
 FILES_PATH=$PWD/public.local
