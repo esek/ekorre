@@ -26,3 +26,23 @@ All files[^|]*\|[^|]*\s+([\d\.]+)
 vilket kan läggas till i GitLabs CI/CD-settings på hemsidan.
 
 Filer som testas av regressionstester (nära produktionsmiljö) ingår ej.
+
+
+## Supertest
+För HTTP testningar använder vi [supertest](https://github.com/visionmedia/supertest). Den spinnar upp en HTTP-server och möjliggör att testa de olika endpoints och metoder. 
+
+Exempelvis om du vill kolla statusen på ditt api:
+
+```js
+	import request from 'supertest';
+	...
+	const res = await request(app).get('/health').expect(200) // vi förväntar oss att servern returnerar en statuskod på 200
+
+	// vi förväntar oss att api:et returnerar responsen i json
+	expect(res.headers['content-type']).toMatch('application/json');
+
+	// Sen kontrollerar vi responsens body
+	expect(res.body).toEqual({
+		status: 'ok'
+	});
+```

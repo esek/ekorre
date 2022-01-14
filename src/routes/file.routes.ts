@@ -55,10 +55,6 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
     return res.status(400).send('File missing');
   }
 
-  if (!res.locals.user) {
-    return res.status(401).send('User missing');
-  }
-
   const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
@@ -77,19 +73,15 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
 
   const { user } = res.locals;
 
-  if (!user) {
-    return res.status(401).send();
-  }
-
   const { username, photoUrl } = user;
 
   // If user has an existing avatar, delete it
   if (photoUrl) {
     const existingFileId = photoUrl.split('/').pop() ?? ''; // Get the last part of the url (the file id)
 
-    // remove the file (no need to wait for it or handle if it fails)
+    // remove the file
     try {
-      fileApi.deleteFile(existingFileId);
+      await fileApi.deleteFile(existingFileId);
       logger.info(`Deleted existing avatar for user ${username}, fileId: ${existingFileId}`);
     } catch {
       logger.error(
@@ -98,17 +90,7 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
     }
   }
 
-  let path = 'avatars';
-
-  if (!(await fileApi.getFileData('avatars').catch((_) => null))) {
-    const newPath = await fileApi.createFolder('', path, username, path);
-
-    if (!newPath) {
-      return res.status(500).send('Could not create directory');
-    }
-
-    path = newPath;
-  }
+  const path = 'avatars';
 
   const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = AccessType.Authenticated;

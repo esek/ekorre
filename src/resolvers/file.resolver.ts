@@ -18,10 +18,6 @@ const filesResolver: Resolvers = {
     files: async (_, { type }) => {
       const files = await fileApi.getMultipleFiles(type ?? undefined);
 
-      if (!files) {
-        return [];
-      }
-
       return reduce(files, fileReduce);
     },
     file: async (_, { id }) => {
