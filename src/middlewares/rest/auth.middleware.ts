@@ -23,7 +23,7 @@ export type RequestHandlerWithLocals = RequestHandler<
   unknown,
   unknown,
   { token?: string },
-  { user?: DatabaseUser; getUser: () => Promise<DatabaseUser> }
+  { user: DatabaseUser; getUser: () => Promise<DatabaseUser> }
 >;
 
 export const setUser: RequestHandlerWithLocals = (req, res, next) => {

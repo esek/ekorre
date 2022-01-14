@@ -55,10 +55,6 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
     return res.status(400).send('File missing');
   }
 
-  if (!res.locals.user) {
-    return res.status(401).send('User missing');
-  }
-
   const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
@@ -76,10 +72,6 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
   }
 
   const { user } = res.locals;
-
-  if (!user) {
-    return res.status(401).send();
-  }
 
   const { username, photoUrl } = user;
 
