@@ -133,7 +133,10 @@ def append_file(filename: str, year: str) -> None:
         meeting_docs[year] = []
 
     meeting_docs[year].append(MeetingDoc(
-        meeting_type, document_type, number, filename, year))
+        meeting_type=meeting_type,
+        document_type=document_type,
+        number=number, year=year,
+        file_path=filename))
 
 
 def check_duplicate_docs():
