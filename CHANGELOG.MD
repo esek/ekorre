@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2022-01-15
+
+### Ändrat
+- Uppdaterat dependencies för `@graphql-codegen`
+
 ## [0.8.0] - 2022-01-13
 
 ### Tillagt
