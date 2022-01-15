@@ -5,13 +5,13 @@
 
 npm run dev > startup.tmp.log 2>&1 &
 
-env .env
+source $PWD/.env # För att få $PORT
 TIMEOUT=1000
 counter=0
 
 # Greppa efter startad server tills dess adress hittas,
 # räkna upp till timeout
-while ! grep -q "http://.*:$PORT" startup.tmp.log
+while ! grep -q "http://.*:${PORT}" startup.tmp.log
 do
   counter=$((counter + 1))
   if [[ counter -gt TIMEOUT ]]; then
