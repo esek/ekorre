@@ -5,7 +5,7 @@
 
 npm run dev > startup.tmp.log 2>&1 &
 
-PORT=$(cat .env | grep -o '(?<=PORT=)(\d+)')
+env .env
 TIMEOUT=1000
 counter=0
 
