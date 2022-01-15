@@ -14,7 +14,7 @@ counter=0
 while ! grep -q "http://.*:${PORT}" startup.tmp.log
 do
   counter=$((counter + 1))
-  if [[ counter -gt TIMEOUT ]]; then
+  if [ counter -gt TIMEOUT ]; then
     echo -e "Test dev server startup timed out\n"
     exit 1
   fi
