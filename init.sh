@@ -15,7 +15,7 @@ function finish {
 }
 trap finish EXIT
 
-./initsql.sh
+./initenv.sh
 
 echo "Installerar alla npm paket..."
 npm install

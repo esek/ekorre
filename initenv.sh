@@ -10,5 +10,5 @@ cp .env.example.dev .env
 sed -i'' -e "s:DB_FILE=.*:DB_FILE=${DATABASE_PATH}:g" .env # Undvik / i regex då paths innehåller det, -i'' för POSIX compliance
 
 echo "Fixar public mapp"
-cp -r public $FILES_PATH
+cp -r public/ $FILES_PATH
 sed -i'' -e "s:FILE_ROOT=.*:FILE_ROOT=${FILES_PATH}:g" .env

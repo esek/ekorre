@@ -78,7 +78,7 @@ tests:
   script:
     - apk update
     - apk add sqlite
-    - ./initsql.sh
+    - ./initenv.sh
     - npm run test:prebuild
     - ./test/utils/test-server-startup.sh
     - npm run test:regression
