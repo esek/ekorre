@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Startar och kollar efter en startad dev-server
 # tänkt att användas i CI-miljö

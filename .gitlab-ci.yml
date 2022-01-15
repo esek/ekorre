@@ -77,7 +77,7 @@ tests:
     - npm ci --cache .npm --prefer-offline
   script:
     - apk update
-    - apk add bash sqlite
+    - apk add sqlite
     - ./initsql.sh
     - npm run test:prebuild
     - ./test/utils/test-server-startup.sh
