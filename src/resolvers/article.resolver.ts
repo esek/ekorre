@@ -7,6 +7,7 @@ import { useDataLoader } from '../dataloaders';
 import { NewArticle, Resolvers } from '../graphql.generated';
 import { DatabaseArticle } from '../models/db/article';
 import { ArticleResponse } from '../models/mappers';
+import { reduce } from '../reducers';
 import { articleReducer } from '../reducers/article.reducer';
 
 const articleApi = new ArticleAPI();
@@ -130,17 +131,7 @@ const articleResolver: Resolvers = {
     addArticle: async (_, { entry }, ctx) => {
       // Special type of reduce
       const apiResponse = await articleApi.newArticle(ctx.getUsername(), entry);
-      const { refcreator, reflastupdateby, ...reduced } = apiResponse;
-      const a = {
-        ...reduced,
-        creator: {
-          username: refcreator,
-        },
-        lastUpdatedBy: {
-          username: reflastupdateby,
-        },
-      };
-      return a;
+      return articleReducer(apiResponse, true);
     },
     modifyArticle: (_, { articleId, entry }, ctx) =>
       articleApi.modifyArticle(articleId, ctx.getUsername(), entry),

@@ -60,7 +60,11 @@ test('creating, modyfying and deleting article', async () => {
     accessToken,
   );
 
+  const addArticleData = addArticleRes?.data?.addArticle as Article;
+
   expect(addArticleRes?.errors).toBeUndefined();
+  expect(addArticleData.slug).not.toBeNull();
+  expect(addArticleData.id).not.toBeNull();
   expect(addArticleRes?.data).toMatchObject({
     addArticle: {
       creator: {
