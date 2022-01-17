@@ -14,6 +14,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - `article`-resolver kräver inte längre användarnamn, utan använder `ctx.getUsername()`
+- Anrop till `app.listen()` flyttat till `src/index.ts` för att `jest` ska fungera
 
 ## [0.8.0] - 2022-01-13
 
