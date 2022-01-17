@@ -11,11 +11,14 @@ type BaseHeaders = {
 
 export type GraphqlResponse<Data = unknown, Headers = Record<string, string>> = {
   headers: BaseHeaders & Headers;
-  data: GraphqlResponseData;
+  data: {
+    data: Data,
+    errors?: RequestErrorResponse[];
+  };
 };
 
 export type GraphqlResponseData = {
-  data: Data | {
+  data: {
     [key: string]: unknown;
   };
   errors?: RequestErrorResponse[];
