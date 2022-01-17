@@ -136,21 +136,19 @@ export class ArticleAPI {
 
   /**
    * Lägger till en ny artikel
+   * @param creatorUsername Användarnamn på skaparen
    * @param entry artikel som ska läggas till
    */
-  async newArticle(entry: NewArticle): Promise<DatabaseArticle> {
+  async newArticle(creatorUsername: string, entry: NewArticle): Promise<DatabaseArticle> {
     // Lägger till dagens datum som createdAt och lastUpdatedAt
     // samt sätter creator som lastUpdateBy
-
-    const { creator, ...reduced } = entry;
-
     const article: DatabaseArticle = {
-      ...reduced,
+      ...entry,
       createdAt: toUTC(new Date()),
       lastUpdatedAt: toUTC(new Date()),
       tags: entry.tags ?? [],
-      refcreator: creator,
-      reflastupdateby: creator,
+      refcreator: creatorUsername,
+      reflastupdateby: creatorUsername,
     };
 
     const res = await db<DatabaseArticle>(ARTICLE_TABLE).insert(article);
@@ -164,18 +162,24 @@ export class ArticleAPI {
   /**
    * Modifierar en artikel; notera att vissa saker inte får
    * modifieras via API:n
+   * @param id Artikelns ID
+   * @param updaterUsername Användarnamn hos den som ändrat artikeln
    * @param entry Modifiering av existerande artikel
    */
-  async modifyArticle(id: number, entry: ModifyArticle): Promise<boolean> {
+  async modifyArticle(id: number, updaterUsername: string, entry: ModifyArticle): Promise<boolean> {
     const update: StrictObject = stripObject(entry);
     update.body = convertMarkdownToHtml(update.body ?? '');
-
-    // TODO: Add lastUpdatedBy using auth
+    update.lastUpdateBy = updaterUsername;
 
     update.lastUpdatedAt = toUTC(new Date());
 
     const res = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', id).update(update);
 
+    return res > 0;
+  }
+
+  async removeArticle(id: number): Promise<boolean> {
+    const res = await db<DatabaseArticle>(ARTICLE_TABLE).delete().where('id', id);
     return res > 0;
   }
 }

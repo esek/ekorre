@@ -4,7 +4,7 @@
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
 import { ArticleAPI } from '../api/article.api';
 import { useDataLoader } from '../dataloaders';
-import { Resolvers } from '../graphql.generated';
+import { NewArticle, Resolvers } from '../graphql.generated';
 import { DatabaseArticle } from '../models/db/article';
 import { ArticleResponse } from '../models/mappers';
 import { articleReducer } from '../reducers/article.reducer';
@@ -127,9 +127,9 @@ const articleResolver: Resolvers = {
     },
   },
   Mutation: {
-    addArticle: async (_, { entry }) => {
+    addArticle: async (_, { entry }, ctx) => {
       // Special type of reduce
-      const apiResponse = await articleApi.newArticle(entry);
+      const apiResponse = await articleApi.newArticle(ctx.getUsername(), entry);
       const { refcreator, reflastupdateby, ...reduced } = apiResponse;
       const a = {
         ...reduced,
@@ -142,7 +142,9 @@ const articleResolver: Resolvers = {
       };
       return a;
     },
-    modifyArticle: (_, { articleId, entry }) => articleApi.modifyArticle(articleId, entry),
+    modifyArticle: (_, { articleId, entry }, ctx) =>
+      articleApi.modifyArticle(articleId, ctx.getUsername(), entry),
+    removeArticle: (_, { articleId }) => articleApi.removeArticle(articleId),
   },
 };
 

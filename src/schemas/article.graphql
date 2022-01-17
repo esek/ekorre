@@ -13,6 +13,7 @@ type Query {
 type Mutation {
   addArticle(entry: NewArticle!): Article
   modifyArticle(articleId: Int!, entry: ModifyArticle!): Boolean!
+  removeArticle(articleId: Int!): Boolean!
 }
 
 "Body is saved as HTML serverside, but edited in MarkDown"
@@ -37,7 +38,6 @@ enum ArticleType {
 }
 
 input NewArticle {
-  creator: String!
   title: String!
   body: String!
   signature: String!
