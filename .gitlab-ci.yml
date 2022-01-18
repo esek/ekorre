@@ -55,6 +55,7 @@ lint:
   image: "node:$NODE_VERSION"
   # Make sure docker info is not run and get some node info
   before_script:
+    - apk add bash sqlite3
     - node --version
     - npm --version
     - npm ci --cache .npm --prefer-offline
