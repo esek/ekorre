@@ -57,6 +57,7 @@ lint:
   before_script:
     - node --version
     #- npm ci --cache .npm --prefer-offline
+    - npm --version
     - npm ci
   script:
     - npx eslint src
@@ -76,6 +77,7 @@ tests:
   before_script:
     - node --version
     #- npm ci --cache .npm --prefer-offline
+    - npm --version
     - npm ci
   script:
     - apk update
