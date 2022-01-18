@@ -77,7 +77,7 @@ tests:
     - npm ci --cache .npm --prefer-offline
   script:
     - apt update
-    - apt install bash ssqlite3
+    - apt install bash sqlite3
     - ./test/utils/setup-env.sh
     - npm run test:prebuild
     - ./test/utils/test-server-startup.sh
