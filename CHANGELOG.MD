@@ -7,7 +7,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.8.1] - 2022-01-18
 
 ### Ändrat
-- Uppdaterar `knex` till `1.0.1`, och lägger till `@vscode/sqlite3`
+- Uppdaterar `knex` till `1.0.1`, och ersätter `sqlite3` med `vscode/sqlite3`
 
 ## [0.8.0] - 2022-01-13
 

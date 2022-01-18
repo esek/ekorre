@@ -7,7 +7,7 @@
 image: docker:latest
 
 variables:
-  NODE_VERSION: 16-alpine
+  NODE_VERSION: 17-bullseye
 
 stages:
   - test
@@ -76,8 +76,8 @@ tests:
     - node --version
     - npm ci --cache .npm --prefer-offline
   script:
-    - apk update
-    - apk add bash
+    - apt update
+    - apt install bash ssqlite3
     - ./test/utils/setup-env.sh
     - npm run test:prebuild
     - ./test/utils/test-server-startup.sh
