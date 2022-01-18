@@ -55,6 +55,7 @@ lint:
   image: "node:$NODE_VERSION"
   # Make sure docker info is not run and get some node info
   before_script:
+    + apk add python3
     - node --version
     - npm ci --cache .npm --prefer-offline
   script:
@@ -77,7 +78,7 @@ tests:
     - npm ci --cache .npm --prefer-offline
   script:
     - apk update
-    - apk add bash sqlite
+    - apk add bash sqlite python3
     - ./test/utils/setup-env.sh
     - npm run test:prebuild
     - ./test/utils/test-server-startup.sh

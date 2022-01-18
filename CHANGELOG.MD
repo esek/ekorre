@@ -8,6 +8,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - Uppdaterar `knex` till `1.0.1`, och byter ut `sqlite3` dev. dep. till `@vscode/sqlite3`
+- `python3` tillagt som dependency för att kunna bygga `@vscode/sqlite3`
 
 ## [0.8.0] - 2022-01-13
 
