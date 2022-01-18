@@ -55,7 +55,8 @@ lint:
   image: "node:$NODE_VERSION"
   # Make sure docker info is not run and get some node info
   before_script:
-    + apk add python3
+    - apk update
+    - apk add python3
     - node --version
     - npm ci --cache .npm --prefer-offline
   script:
