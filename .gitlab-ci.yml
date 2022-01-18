@@ -55,6 +55,11 @@ lint:
   image: "node:$NODE_VERSION"
   # Make sure docker info is not run and get some node info
   before_script:
+    # Temporary workaround until @vscode/sqlite3 starts
+    # creating binaries, or Knex change default sqlite driver
+    - apk update
+    - apk add python3 make gcc
+    - npm config set python python3
     - node --version
     - npm --version
     - npm ci --cache .npm --prefer-offline
@@ -74,8 +79,14 @@ tests:
   image:
     name: "node:$NODE_VERSION"
   before_script:
+    # "Temporary" workaround until @vscode/sqlite3 starts
+    # creating binaries, or Knex change default sqlite driver
+    - apk update
+    - apk add python3 make gcc
+    - npm config set python python3
     - node --version
     - npm --version
+    - apk update
     - npm ci --cache .npm --prefer-offline
   script:
     - apk update
