@@ -56,14 +56,15 @@ lint:
   # Make sure docker info is not run and get some node info
   before_script:
     - node --version
+    #- npm ci --cache .npm --prefer-offline
     - npm ci
   script:
     - npx eslint src
     - npx eslint test
-  cache:
-    key: $CI_COMMIT_REF_SLUG
-    paths:
-      - .npm/
+  #cache:
+  #  key: $CI_COMMIT_REF_SLUG
+  #  paths:
+  #    - .npm/
 
 tests:
   stage: test
@@ -74,6 +75,7 @@ tests:
     name: "node:$NODE_VERSION"
   before_script:
     - node --version
+    #- npm ci --cache .npm --prefer-offline
     - npm ci
   script:
     - apk update
@@ -86,10 +88,10 @@ tests:
     paths:
       - coverage
     expire_in: 1 week
-  cache:
-    key: $CI_COMMIT_REF_SLUG
-    paths:
-      - .npm/
+  # cache:
+  #   key: $CI_COMMIT_REF_SLUG
+  #   paths:
+  #     - .npm/
 
 deploy image:
   variables:
