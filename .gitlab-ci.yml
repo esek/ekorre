@@ -56,7 +56,7 @@ lint:
   # Make sure docker info is not run and get some node info
   before_script:
     - apk update
-    - apk add bash sqlite3
+    - apk add bash sqlite
     - node --version
     - npm --version
     - npm ci --cache .npm --prefer-offline
@@ -81,7 +81,7 @@ tests:
     - npm ci --cache .npm --prefer-offline
   script:
     - apk update
-    - apk add bash sqlite3
+    - apk add bash sqlite
     - ./test/utils/setup-env.sh
     - npm run test:prebuild
     - ./test/utils/test-server-startup.sh
