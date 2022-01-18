@@ -16,6 +16,12 @@ WORKDIR $WORKING_DIR
 # where available (npm@5+)
 COPY package*.json ./
 
+# Temporary workaround until @vscode/sqlite3 starts
+# creating binaries, or Knex change default sqlite driver
+RUN apk update
+RUN npm config set python python3
+RUN apk add python3 make gcc libc-dev g++
+
 RUN npm ci
 
 # Bundle app source
