@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "E-Sektionens backend",
   "main": "src/app.ts",
   "scripts": {
@@ -54,7 +54,7 @@
     "graphql-scalars": "^1.13.6",
     "jsdom": "^16.5.2",
     "jsonwebtoken": "^8.5.1",
-    "knex": "^0.95.15",
+    "knex": "^1.0.1",
     "mysql2": "^2.2.5",
     "regenerator-runtime": "^0.13.7",
     "set-cookie-parser": "^2.4.8",
@@ -82,6 +82,7 @@
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^4.2.0",
     "@typescript-eslint/parser": "^4.2.0",
+    "@vscode/sqlite3": "^5.0.7",
     "eslint": "^7.9.0",
     "eslint-config-airbnb-typescript": "^10.0.0",
     "eslint-config-prettier": "^6.15.0",
@@ -89,7 +90,6 @@
     "jest": "^27.1.0",
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2",
-    "sqlite3": "^5.0.2",
     "supertest": "^6.2.1",
     "ts-jest": "^27.0.5"
   }
