@@ -58,7 +58,7 @@ lint:
     # Temporary workaround until @vscode/sqlite3 starts
     # creating binaries, or Knex change default sqlite driver
     - apk update
-    - apk add python3 make gcc
+    - apk add python3 make gcc libc-dev
     - npm config set python python3
     - node --version
     - npm --version
@@ -82,7 +82,7 @@ tests:
     # "Temporary" workaround until @vscode/sqlite3 starts
     # creating binaries, or Knex change default sqlite driver
     - apk update
-    - apk add python3 make gcc
+    - apk add python3 make gcc libc-dev
     - npm config set python python3
     - node --version
     - npm --version
