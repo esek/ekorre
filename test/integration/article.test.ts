@@ -155,10 +155,16 @@ test('creating, modyfying and deleting article', async () => {
     ARTICLE_QUERY,
     {
       id: addArticleData.id,
-      markdown: true, // So we can compare with mockUpdateArticle.body
+      markdown: true,
     },
     accessToken0,
   );
 
-  expect(nonExistantArticleRes?.errors).toThrowError(NotFoundError);
+  expect(nonExistantArticleRes?.errors).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        errorType: 'NotFoundError',
+      }),
+    ]),
+  );
 });

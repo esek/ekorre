@@ -16,6 +16,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `article`-resolver kräver inte längre användarnamn, utan använder `ctx.getUsername()`
 - Anrop till `app.listen()` flyttat till `src/index.ts` för att `jest` ska fungera
 - `modifyArticle` och `removeArticle` använder nu `ID!` istället för `Int!` för `articleId`-parametern
+- `ArticleAPI`s get-metoder uppdatera för att följa konventioner om `NotFoundError` för enskilda icke funna artiklar och tomma listor för när man förfrågar för flera artiklar.
 
 ## [0.8.0] - 2022-01-13
 

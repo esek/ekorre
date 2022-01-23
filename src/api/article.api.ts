@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { Maybe } from 'graphql/jsutils/Maybe';
-import { BadRequestError } from '../errors/RequestErrors';
+import { BadRequestError, NotFoundError } from '../errors/RequestErrors';
 
 import { ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
 import { StrictObject } from '../models/base';
@@ -85,7 +85,7 @@ export class ArticleAPI {
    * Returns the article with the specified id
    * @param id article id
    */
-  async getArticle({ id, slug }: GetArticleParams): Promise<DatabaseArticle | null> {
+  async getArticle({ id, slug }: GetArticleParams): Promise<DatabaseArticle> {
     let dbId = id;
 
     if (slug) {
@@ -99,34 +99,35 @@ export class ArticleAPI {
     }
 
     if (dbId == null) {
-      return null;
+      throw new BadRequestError('Inte en valid slug');
     }
 
     const article = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', dbId).first();
 
-    return article ?? null;
+    if (article == null) {
+      throw new NotFoundError('Artikeln kunde inte hittas');
+    }
+
+    return article;
   }
 
   /**
    * Returns a list of AticleModels from database WHERE params match.
    * @param params possible params are ArticleModel parts.
    */
-  async getArticles(params: Partial<DatabaseArticle>): Promise<DatabaseArticle[] | null> {
-    // Ta bort undefined, de ogillas SKARPT  av Knex.js
-
-    // Ts låter en inte indexera nycklar i params med foreach
+  async getArticles(params: Partial<DatabaseArticle>): Promise<DatabaseArticle[]> {
     const safeParams = stripObject(params);
 
     const article = await db<DatabaseArticle>(ARTICLE_TABLE).where(safeParams);
 
-    return article ?? null;
+    return article;
   }
 
   /**
    * Hämtar de senaste nyhetsartiklarna
    * @param nbr antal artiklar
    */
-  async getLatestNews(limit: number): Promise<DatabaseArticle[] | null> {
+  async getLatestNews(limit: number): Promise<DatabaseArticle[]> {
     const lastestNews = await db<DatabaseArticle>(ARTICLE_TABLE)
       .where('articleType', 'news')
       .orderBy('createdat', 'desc')
