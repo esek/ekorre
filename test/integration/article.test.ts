@@ -1,11 +1,7 @@
-import { ApolloServer } from 'apollo-server-express';
-
 import { issueToken } from '../../src/auth';
+import { NotFoundError } from '../../src/errors/RequestErrors';
 import { NewArticle, ModifyArticle, ArticleType, Article } from '../../src/graphql.generated';
-import apolloServerConfig from '../../src/serverconfig';
 import requestWithAuth from '../utils/requestWithAuth';
-
-const apolloServer = new ApolloServer(apolloServerConfig);
 
 const ARTICLE_FIELDS = `
 {
@@ -144,4 +140,25 @@ test('creating, modyfying and deleting article', async () => {
       username: TEST_USERNAME_1, // This should have been updated
     },
   });
+
+  const removeArticleRes = await requestWithAuth(
+    REMOVE_ARTICLE_MUTATION,
+    { articleId: addArticleData.id },
+    accessToken0,
+  );
+
+  expect(removeArticleRes?.errors).toBeUndefined();
+  expect(removeArticleRes?.data?.removeArticle).toBeTruthy();
+
+  // Now we check that the Article actually was removed
+  const nonExistantArticleRes = await requestWithAuth(
+    ARTICLE_QUERY,
+    {
+      id: addArticleData.id,
+      markdown: true, // So we can compare with mockUpdateArticle.body
+    },
+    accessToken0,
+  );
+
+  expect(nonExistantArticleRes?.errors).toThrowError(NotFoundError);
 });
