@@ -2,6 +2,8 @@
 
 Detta är mappen för tester som kan köras automatiskt. `ekorre` använder sig av `ts-jest` (se [dokumentation](https://kulshekhar.github.io/ts-jest/docs/)), en TypeScript-version av testningsramverket `jest` (se [dokumentation](https://jestjs.io/docs/getting-started)) för tester.
 
+Ett bra verktyg att använda när man skriver sina tester är VSCode+extentionet `Jest Runner`.
+
 * `unit/` är tester som helt enkelt testar funktioners funktionalitet, dvs. med en given (eller slumpad) input, förvänta en given output.
 * `integration/` är tester som kontrollerar att helheten fungerar, t.ex. ett API-anrop. I vårt fall gör vi detta vi Apollos `executeQuery`, vilket kan göras utan att starta en server.
 * `regression/` är regressionstester, dvs. tester som går några abstraktionslager uppåt. Dessa tester testar en given funktionalitet, t.ex. skickar en request till en API
@@ -46,3 +48,5 @@ Exempelvis om du vill kolla statusen på ditt api:
 		status: 'ok'
 	});
 ```
+
+Notera dock att `DataLoader` och falska timers *inte* fungerar bra ihop, då Dataloadern bara sitter och tickar för evigt. Därför kan användning av `supertest` leda till timeouts om man använder `jest.useFakeTimers()`. Då är det bättre att lägga till det som ett regressionstest, där jest och servern inte kör i samma Node-process.

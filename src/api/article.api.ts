@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { Maybe } from 'graphql/jsutils/Maybe';
+import { BadRequestError } from '../errors/RequestErrors';
 
 import { ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
 import { StrictObject } from '../models/base';
@@ -166,10 +167,19 @@ export class ArticleAPI {
    * @param updaterUsername Användarnamn hos den som ändrat artikeln
    * @param entry Modifiering av existerande artikel
    */
-  async modifyArticle(id: number, updaterUsername: string, entry: ModifyArticle): Promise<boolean> {
+  async modifyArticle(id: string, updaterUsername: string, entry: ModifyArticle): Promise<boolean> {
+    if (updaterUsername === '' || updaterUsername == null) {
+      throw new BadRequestError('Artiklar måste modifieras av inloggade användare');
+    }
+
     const update: StrictObject = stripObject(entry);
-    update.body = convertMarkdownToHtml(update.body ?? '');
-    update.lastUpdateBy = updaterUsername;
+
+    // We only want to update the body if it is passed
+    if (update.body != null) {
+      update.body = convertMarkdownToHtml(update.body ?? '');
+    }
+
+    update.reflastupdateby = updaterUsername;
 
     update.lastUpdatedAt = toUTC(new Date());
 
@@ -178,7 +188,7 @@ export class ArticleAPI {
     return res > 0;
   }
 
-  async removeArticle(id: number): Promise<boolean> {
+  async removeArticle(id: string): Promise<boolean> {
     const res = await db<DatabaseArticle>(ARTICLE_TABLE).delete().where('id', id);
     return res > 0;
   }
