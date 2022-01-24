@@ -7,11 +7,12 @@ skriven i TypeScript.
 
 Kort och gott:
 ```bash
+# Gå till tools-mappen
 # för linux och troligen mac
-sh init.sh
+sh tools/init.sh
 
 # för windows
-cmd init.bat
+cmd tools/init.bat
 ```
 
 ## Att använda ekorre i andra projekt (funktionella användare)

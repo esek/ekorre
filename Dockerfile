@@ -40,8 +40,8 @@ COPY --from=BUILD_IMAGE $WORKING_DIR/. ./.
 
 RUN apk update
 RUN apk add sqlite
-RUN chmod +x initenv.sh
-RUN ./initenv.sh
+RUN chmod +x tools/initenv.sh
+RUN ./tools/initenv.sh
 
 EXPOSE 5000
 CMD ["node", "build/app.js"]
