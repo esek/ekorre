@@ -1,6 +1,7 @@
 # GraphQL Auth Middleware
 
-Paketet `graphql-middleware` möjliggör en middlewarefunktion som körs på **alla** queries och mutations som görs mot Ekorres GraphQL API.
+Paketet `graphql-middleware` möjliggör en middlewarefunktion som körs på **alla** queries och mutations som görs mot Ekorres GraphQL API. Vad som beskrivs här är helt enkelt hur vi gör att användare kan göra olika saker med API:n, och hur dessa permissions
+dessutom sätts via API:n.
 
 ## Auth
 Funktionen [`checkAuthMiddleware`](auth.middleware.ts) hämtar namnet på resolvern som anropas, samt vilken typ av resolver det är. Det kan vara:
