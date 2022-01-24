@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { COOKIES, verifyToken } from '@/auth';
+import { UnauthenticatedError } from '@/errors/RequestErrors';
+import { Logger } from '@/logger';
+import { TokenValue } from '@/models/auth';
+import FileAPI from '@api/file';
+import { userApi } from '@dataloader/user';
+import { DatabaseUser } from '@db/user';
+import { AccessType } from '@generated/graphql';
 import { RequestHandler } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-
-import FileAPI from '../../api/file.api';
-import { COOKIES, verifyToken } from '../../auth';
-import { userApi } from '../../dataloaders/user.dataloader';
-import { UnauthenticatedError } from '../../errors/RequestErrors';
-import { AccessType } from '../../graphql.generated';
-import { Logger } from '../../logger';
-import { TokenValue } from '../../models/auth';
-import { DatabaseUser } from '../../models/db/user';
 
 const logger = Logger.getLogger('RestAuth');
 

@@ -1,5 +1,5 @@
-import { Resolvers } from '../graphql.generated';
-import { sendEmail } from '../services/email.service';
+import { Resolvers } from '@generated/graphql';
+import { sendEmail } from '@service/email';
 
 const emailResolver: Resolvers = {
   Mutation: {

@@ -1,5 +1,6 @@
+import { AccessResource, AccessResourceType } from '@generated/graphql';
+
 import ResourcesAPI from '../api/accessresources.api';
-import { AccessResource, AccessResourceType } from '../graphql.generated';
 import { sortBatchResult } from './util';
 
 // Om vi kör tester beh;ver vi denna konstant
@@ -18,5 +19,10 @@ export const batchAccessResources = async (
   const apiResponse = await api.getResources(AccessResourceType.Web, [...slugs]);
   if (apiResponse == null) return [];
 
-  return sortBatchResult<string, AccessResource>(slugs, 'slug', apiResponse, 'No result for access resource');
+  return sortBatchResult<string, AccessResource>(
+    slugs,
+    'slug',
+    apiResponse,
+    'No result for access resource',
+  );
 };

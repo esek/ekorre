@@ -1,24 +1,24 @@
 overwrite: true
 documents: null
 generates:
-  src/graphql.generated.ts:
+  src/models/generated/graphql.ts:
     config:
       useIndexSignature: true
       useTypeImports: true
-      contextType: ./models/context#Context
+      contextType: ../context#Context
       skipTypename: true
       scalars:
         Date: Date
         Object: Record<string, string>
       mappers:
-        Article: ./models/mappers#ArticleResponse
-        File: ./models/mappers#FileResponse
-        Meeting: ./models/mappers#MeetingResponse
-        AccessResource: ./models/mappers#AccessResourceResponse
-        Election: ./models/mappers#ElectionResponse
-        Proposal: ./models/mappers#ProposalResponse
-        Nomination: ./models/mappers#NominationResponse
-        Hehe: ./models/mappers#HeheResponse
+        Article: ../mappers#ArticleResponse
+        File: ../mappers#FileResponse
+        Meeting: ../mappers#MeetingResponse
+        AccessResource: ../mappers#AccessResourceResponse
+        Election: ../mappers#ElectionResponse
+        Proposal: ../mappers#ProposalResponse
+        Nomination: ../mappers#NominationResponse
+        Hehe: ../mappers#HeheResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"

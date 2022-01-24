@@ -1,10 +1,9 @@
+import { UnauthenticatedError } from '@/errors/RequestErrors';
+import { Logger } from '@/logger';
+import type { SecretStore, TokenBlacklistItem, TokenType } from '@/models/auth';
+import type { StrictObject } from '@/models/base';
 import { createHash, randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
-
-import { UnauthenticatedError } from './errors/RequestErrors';
-import { Logger } from './logger';
-import type { SecretStore, TokenBlacklistItem, TokenType } from './models/auth';
-import type { StrictObject } from './models/base';
 
 const logger = Logger.getLogger('Auth');
 

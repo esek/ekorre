@@ -1,7 +1,8 @@
-import { ServerError } from '../errors/RequestErrors';
-import { EmergencyContactType } from '../graphql.generated';
-import { Logger } from '../logger';
-import { DatabaseEmergencyContact } from '../models/db/emergencycontact';
+import { ServerError } from '@/errors/RequestErrors';
+import { Logger } from '@/logger';
+import { DatabaseEmergencyContact } from '@db/emergencycontact';
+import { EmergencyContactType } from '@generated/graphql';
+
 import { EMERGENCY_CONTACTS_TABLE } from './constants';
 import db from './knex';
 

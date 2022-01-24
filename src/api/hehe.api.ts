@@ -1,6 +1,7 @@
-import { NotFoundError, ServerError } from '../errors/RequestErrors';
-import { Logger } from '../logger';
-import { DatabaseHehe } from '../models/db/hehe';
+import { NotFoundError, ServerError } from '@/errors/RequestErrors';
+import { Logger } from '@/logger';
+import { DatabaseHehe } from '@db/hehe';
+
 import { HEHE_TABLE } from './constants';
 import db from './knex';
 

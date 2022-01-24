@@ -1,8 +1,7 @@
+import { EXPIRE_MINUTES, invalidateToken, issueToken, verifyToken } from '@/auth';
+import type { StrictObject } from '@/models/base';
 import { randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
-
-import { EXPIRE_MINUTES, invalidateToken, issueToken, verifyToken } from '../../src/auth';
-import type { StrictObject } from '../../src/models/base';
 
 interface TestType extends StrictObject {
   test: string;

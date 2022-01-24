@@ -44,8 +44,19 @@
 
     /* Module Resolution Options */
     // "moduleResolution": "node",            /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
-    // "baseUrl": "./src",                       /* Base directory to resolve non-absolute module names. */
-    // "paths": { },                           /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
+    "baseUrl": ".",                       /* Base directory to resolve non-absolute module names. */
+    "paths": {                                /* A series of entries which re-map imports to lookup locations relative to the 'baseUrl'. */
+      "@/*": ["./src/*"], // shortcut to src
+      "@generated/*": ["./src/models/generated/*"], // generated models
+      "@db/*": ["./src/models/db/*"], // database models
+      "@reducer/*": ["./src/reducers/*.reducer.ts"], // database models
+      "@api/*": ["./src/api/*.api.ts"], // apis
+      "@dataloader/*": ["./src/dataloaders/*.dataloader.ts"], // Dataloaders,
+      "@route/*": ["./src/routes/*.routes.ts"], // Routes,
+      "@middleware/*": ["./src/middlewares/*.middleware.ts"], // Middlewares
+      "@service/*": ["./src/services/*.service.ts"], // Middlewares
+      "@test/*": ["./test/*"], // Middlewares
+    },                          
     // "rootDirs": [],                        /* List of root folders whose combined content represents the structure of the project at runtime. */
     // "typeRoots": [],                       /* List of folders to include type definitions from. */
     // "types": [],                           /* Type declaration files to be included in compilation. */

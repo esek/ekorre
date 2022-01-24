@@ -1,8 +1,8 @@
-import { UserAPI } from '../api/user.api';
-import { NotFoundError } from '../errors/RequestErrors';
-import { User } from '../graphql.generated';
-import { reduce } from '../reducers';
-import { userReduce } from '../reducers/user.reducer';
+import { reduce } from '@/reducers';
+import { UserAPI } from '@api/user';
+import { User } from '@generated/graphql';
+import { userReduce } from '@reducer/user';
+
 import { sortBatchResult } from './util';
 
 // Om vi kör tester beh;ver vi denna konstant

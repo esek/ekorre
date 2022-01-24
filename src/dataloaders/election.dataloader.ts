@@ -1,8 +1,9 @@
-import { ElectionAPI } from '../api/election.api';
-import { Logger } from '../logger';
-import { ElectionResponse } from '../models/mappers';
-import { reduce } from '../reducers';
-import { electionReduce } from '../reducers/election/election.reducer';
+import { Logger } from '@/logger';
+import { ElectionResponse } from '@/models/mappers';
+import { reduce } from '@/reducers';
+import { ElectionAPI } from '@api/election';
+import { electionReduce } from '@reducer/election/election';
+
 import { sortBatchResult } from './util';
 
 const logger = Logger.getLogger('ElectionDataLoader');
@@ -29,8 +30,13 @@ export const batchElectionsFunction = async (
   if (apiResponse === null) return [];
   const elections = reduce(apiResponse, electionReduce);
 
-  return sortBatchResult<string, ElectionResponse>(electionIds, 'id', elections.map((e) => {
-    // IDs i Knex, SQL och GraphQL är rätt fucky
-    return {...e, id: e.id?.toString() ?? ''};
-  }), 'Election not found');
+  return sortBatchResult<string, ElectionResponse>(
+    electionIds,
+    'id',
+    elections.map((e) => {
+      // IDs i Knex, SQL och GraphQL är rätt fucky
+      return { ...e, id: e.id?.toString() ?? '' };
+    }),
+    'Election not found',
+  );
 };

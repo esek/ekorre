@@ -1,5 +1,5 @@
-import type { DatabaseElection } from '../../models/db/election';
-import type { ElectionResponse } from '../../models/mappers';
+import type { ElectionResponse } from '@/models/mappers';
+import type { DatabaseElection } from '@db/election';
 
 export function electionReduce(dbElection: DatabaseElection): ElectionResponse {
   const { refcreator, ...reduced } = dbElection;

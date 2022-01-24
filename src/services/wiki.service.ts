@@ -1,9 +1,8 @@
+import config from '@/config';
+import { Logger } from '@/logger';
+import { WikiEditCountResponse, WikiLoginResponse } from '@/models/wiki';
 import axios, { AxiosInstance } from 'axios';
 import setCookieParser, { Cookie } from 'set-cookie-parser';
-
-import config from '../config';
-import { Logger } from '../logger';
-import { WikiEditCountResponse, WikiLoginResponse } from '../models/wiki';
 
 const { WIKI } = config;
 const logger = Logger.getLogger('WikiService');

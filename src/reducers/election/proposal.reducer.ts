@@ -1,5 +1,5 @@
-import type { DatabaseProposal } from '../../models/db/election';
-import type { ProposalResponse } from '../../models/mappers';
+import type { ProposalResponse } from '@/models/mappers';
+import type { DatabaseProposal } from '@db/election';
 
 export function proposalReduce(dbProposal: DatabaseProposal): ProposalResponse {
   const { refuser, refpost } = dbProposal;

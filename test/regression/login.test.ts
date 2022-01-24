@@ -1,11 +1,10 @@
+import { COOKIES } from '@/auth';
+import { RequestErrorResponse } from '@/errors/RequestErrors';
+import { User } from '@generated/graphql';
+import { ApiRequest } from '@test/models/test';
+import { AXIOS_CONFIG } from '@test/utils/axiosConfig';
+import { extractToken } from '@test/utils/utils';
 import axios, { AxiosRequestConfig } from 'axios';
-
-import { COOKIES } from '../../src/auth';
-import { RequestErrorResponse } from '../../src/errors/RequestErrors';
-import { User } from '../../src/graphql.generated';
-import { ApiRequest } from '../models/test';
-import { AXIOS_CONFIG } from '../utils/axiosConfig';
-import { extractToken } from '../utils/utils';
 
 interface LoginResponse {
   headers: {

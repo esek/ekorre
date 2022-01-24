@@ -1,4 +1,8 @@
 /* eslint-disable class-methods-use-this */
+import { Logger } from '@/logger';
+import { DatabaseForgotPassword } from '@db/forgotpassword';
+import { DatabaseUser } from '@db/user';
+import type { NewUser } from '@generated/graphql';
 import crypto from 'crypto';
 
 import {
@@ -7,10 +11,6 @@ import {
   ServerError,
   UnauthenticatedError,
 } from '../errors/RequestErrors';
-import type { NewUser } from '../graphql.generated';
-import { Logger } from '../logger';
-import { DatabaseForgotPassword } from '../models/db/forgotpassword';
-import { DatabaseUser } from '../models/db/user';
 import { PASSWORD_RESET_TABLE, USER_TABLE } from './constants';
 import db from './knex';
 

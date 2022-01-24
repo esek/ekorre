@@ -110,7 +110,7 @@ Det är rekomenderat att du bekantar dig lite med de verktyg som används:
 #### graphql-codegen
 
 För att underlätta utveckling så används [graphql-codegen](https://graphql-code-generator.com/docs/plugins/typescript).
-Detta gör att en typescript fil vid namn 'graphql.generated.ts'
+Detta gör att en typescript fil vid namn 'graphql.ts' i mappen `src/models/generated`
 generas som innehåller typdefintioner för graphql frågor.
 Använd denna!
 

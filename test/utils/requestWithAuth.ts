@@ -1,10 +1,8 @@
+import { app } from '@/app/app';
+import { COOKIES } from '@/auth';
+import { StrictObject } from '@/models/base';
+import { GraphqlResponseData } from '@test/models/test';
 import request from 'supertest';
-import { Resolver } from 'type-graphql';
-
-import { app } from '../../src/app/app';
-import { COOKIES } from '../../src/auth';
-import { StrictObject } from '../../src/models/base';
-import { GraphqlResponseData } from '../models/test';
 
 const r = request(app);
 

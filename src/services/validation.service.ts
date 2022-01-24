@@ -1,4 +1,4 @@
-import { NotFoundError } from '../errors/RequestErrors';
+import { NotFoundError } from '@/errors/RequestErrors';
 
 /**
  * Checks if an array is empty and throws a NotFoundError if it is

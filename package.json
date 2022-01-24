@@ -5,10 +5,10 @@
   "main": "src/index.ts",
   "scripts": {
     "run": "node build/index.js",
-    "build": "tsc --project ./tsconfig.build.json",
+    "build": "tsc --project ./tsconfig.build.json && tscpaths -p tsconfig.json -s src -o build",
     "prestart": "npm run build",
     "start": "npm run run",
-    "dev": "nodemon -e ts,graphql --watch src --exec \"node --nolazy --inspect -r ts-node/register src/index.ts\"",
+    "dev": "nodemon -e ts,graphql --watch src --exec \"node --nolazy --inspect -r tsconfig-paths/register -r ts-node/register src/index.ts\"",
     "generate": "graphql-codegen --config codegen.yml",
     "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" \"test/**/*.ts\" --write",
     "lint": "eslint src",
@@ -91,6 +91,9 @@
     "prettier": "^2.1.2",
     "sqlite3": "^5.0.2",
     "supertest": "^6.2.1",
-    "ts-jest": "^27.0.5"
+    "ts-jest": "^27.0.5",
+    "tsconfig-paths": "^3.12.0",
+    "tsconfig-paths-jest": "^0.0.1",
+    "tscpaths": "^0.0.9"
   }
 }

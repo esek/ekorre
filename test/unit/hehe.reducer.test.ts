@@ -1,5 +1,5 @@
-import { heheReduce } from '../../src/reducers/hehe.reducer';
-import type { DatabaseHehe } from '../../src/models/db/hehe';
+import type { DatabaseHehe } from '@/models/db/hehe';
+import { heheReduce } from '@/reducers/hehe.reducer';
 
 test('reducing valid DatabaseHehe', () => {
   const dummyUploader = 'em5184er-s';
@@ -18,7 +18,7 @@ test('reducing valid DatabaseHehe', () => {
       username: dummyUploader,
     },
     file: {
-      id: dummyFile
-    }
+      id: dummyFile,
+    },
   });
 });

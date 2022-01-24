@@ -1,10 +1,11 @@
-import { ServerError } from '../errors/RequestErrors';
-import { ResolverType } from '../graphql.generated';
-import { Logger } from '../logger';
-import type { DatabaseAccess } from '../models/db/access';
-import { DatabaseAccessMapping } from '../models/db/accessmapping';
-import { DatabasePost, DatabasePostHistory } from '../models/db/post';
-import { DatabaseAccessResource } from '../models/db/resource';
+import { ServerError } from '@/errors/RequestErrors';
+import { Logger } from '@/logger';
+import type { DatabaseAccess } from '@db/access';
+import { DatabaseAccessMapping } from '@db/accessmapping';
+import { DatabasePost, DatabasePostHistory } from '@db/post';
+import { DatabaseAccessResource } from '@db/resource';
+import { ResolverType } from '@generated/graphql';
+
 import {
   ACCESS_MAPPINGS_TABLE,
   ACCESS_RESOURCES_TABLE,

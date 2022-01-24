@@ -1,4 +1,4 @@
-import { StrictObject } from './models/base';
+import { StrictObject } from '@/models/base';
 
 /**
  * Converts a date to UTC format

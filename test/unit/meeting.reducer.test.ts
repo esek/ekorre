@@ -1,6 +1,6 @@
-import { MeetingType } from '../../src/graphql.generated';
-import { DatabaseMeeting } from '../../src/models/db/meeting';
-import { meetingReduce } from '../../src/reducers/meeting.reducer';
+import { DatabaseMeeting } from '@/models/db/meeting';
+import { meetingReduce } from '@/reducers/meeting.reducer';
+import { MeetingType } from '@generated/graphql';
 
 const dummyDbMeeting: DatabaseMeeting = {
   id: '420',

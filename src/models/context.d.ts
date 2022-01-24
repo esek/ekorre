@@ -1,9 +1,8 @@
+import type { AccessResourceResponse, FileResponse } from '@/models/mappers';
+import type { Post, User } from '@generated/graphql';
 import { ExpressContext } from 'apollo-server-express';
 import type DataLoader from 'dataloader';
 import { Request, Response } from 'express';
-
-import type { Post, User } from '../graphql.generated';
-import type { AccessResourceResponse, FileResponse } from '../models/mappers';
 
 export type Context = {
   accessToken: string;

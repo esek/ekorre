@@ -1,6 +1,6 @@
-import AccessResourcesAPI from '../api/accessresources.api';
-import { ServerError } from '../errors/RequestErrors';
-import { Resolvers } from '../graphql.generated';
+import { ServerError } from '@/errors/RequestErrors';
+import AccessResourcesAPI from '@api/accessresources';
+import { Resolvers } from '@generated/graphql';
 
 const resourcesAPI = new AccessResourcesAPI();
 

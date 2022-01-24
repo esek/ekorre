@@ -1,3 +1,4 @@
+import { AccessType } from '@generated/graphql';
 import { Router, static as staticFiles } from 'express';
 import upload, { UploadedFile } from 'express-fileupload';
 
@@ -5,7 +6,6 @@ import FileAPI from '../api/file.api';
 import { UserAPI } from '../api/user.api';
 import config from '../config';
 import RequestError from '../errors/RequestErrors';
-import { AccessType } from '../graphql.generated';
 import { Logger } from '../logger';
 import {
   setUser,

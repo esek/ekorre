@@ -1,22 +1,16 @@
-import axios from 'axios';
-
+import { ELECTABLE_TABLE, ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE } from '@/api/constants';
+import db from '@/api/knex';
+import { ElectionAPI } from '@api/election';
 import {
-  ELECTABLE_TABLE,
-  ELECTION_TABLE,
-  NOMINATION_TABLE,
-  PROPOSAL_TABLE,
-} from '../../src/api/constants';
-import { ElectionAPI } from '../../src/api/election.api';
-import db from '../../src/api/knex';
-import { Election, NominationAnswer } from '../../src/graphql.generated';
-import {
-  DatabaseElection,
   DatabaseElectable,
-  DatabaseProposal,
+  DatabaseElection,
   DatabaseNomination,
-} from '../../src/models/db/election';
-import { ApiRequest, GraphqlResponse } from '../models/test';
-import { AXIOS_CONFIG } from '../utils/axiosConfig';
+  DatabaseProposal,
+} from '@db/election';
+import { Election, NominationAnswer } from '@generated/graphql';
+import { ApiRequest, GraphqlResponse } from '@test/models/test';
+import { AXIOS_CONFIG } from '@test/utils/axiosConfig';
+import axios from 'axios';
 
 const api = new ElectionAPI();
 interface ElectionResponse {

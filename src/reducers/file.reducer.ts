@@ -1,8 +1,7 @@
+import config from '@/config';
+import { FileResponse } from '@/models/mappers';
+import { DatabaseFile } from '@db/file';
 import { statSync } from 'fs';
-
-import config from '../config';
-import { DatabaseFile } from '../models/db/file';
-import { FileResponse } from '../models/mappers';
 
 const {
   FILES: { ENDPOINT, ROOT },

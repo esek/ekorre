@@ -1,13 +1,9 @@
-import { USER_TABLE, PASSWORD_RESET_TABLE } from '../../src/api/constants';
-import db from '../../src/api/knex';
-import { UserAPI } from '../../src/api/user.api';
-import {
-  BadRequestError,
-  NotFoundError,
-  UnauthenticatedError,
-} from '../../src/errors/RequestErrors';
-import { NewUser } from '../../src/graphql.generated';
-import { DatabaseUser } from '../../src/models/db/user';
+import { PASSWORD_RESET_TABLE, USER_TABLE } from '@/api/constants';
+import db from '@/api/knex';
+import { UserAPI } from '@/api/user.api';
+import { BadRequestError, NotFoundError, UnauthenticatedError } from '@/errors/RequestErrors';
+import { DatabaseUser } from '@/models/db/user';
+import { NewUser } from '@generated/graphql';
 
 const api = new UserAPI();
 
@@ -43,9 +39,7 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
-  await db(USER_TABLE)
-    .delete()
-    .whereIn('username', [mockNewUser0.username, mockNewUser1.username]);
+  await db(USER_TABLE).delete().whereIn('username', [mockNewUser0.username, mockNewUser1.username]);
 });
 
 test('create new valid non-funcUser user without email', async () => {

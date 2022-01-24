@@ -1,8 +1,7 @@
+import config from '@/config';
+import { ServerError } from '@/errors/RequestErrors';
+import { SendEmailOptions } from '@generated/graphql';
 import axios, { AxiosResponse } from 'axios';
-
-import config from '../config';
-import { ServerError } from '../errors/RequestErrors';
-import { SendEmailOptions } from '../graphql.generated';
 
 const {
   EBREV: { URL, API_TOKEN },

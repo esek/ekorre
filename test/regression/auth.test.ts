@@ -1,12 +1,11 @@
+import { COOKIES } from '@/auth';
+import { AccessAPI } from '@api/access';
+import ResourcesAPI from '@api/accessresources';
+import { AccessResource, AccessResourceType, ResolverType } from '@generated/graphql';
+import { ApiRequest, GraphqlResponse } from '@test/models/test';
+import { AXIOS_CONFIG } from '@test/utils/axiosConfig';
+import { extractToken } from '@test/utils/utils';
 import axios, { AxiosRequestConfig } from 'axios';
-
-import { AccessAPI } from '../../src/api/access.api';
-import ResourcesAPI from '../../src/api/accessresources.api';
-import { COOKIES } from '../../src/auth';
-import { AccessResource, AccessResourceType, ResolverType } from '../../src/graphql.generated';
-import { ApiRequest, GraphqlResponse } from '../models/test';
-import { AXIOS_CONFIG } from '../utils/axiosConfig';
-import { extractToken } from '../utils/utils';
 
 const accessApi = new AccessAPI();
 const resourcesApi = new ResourcesAPI();

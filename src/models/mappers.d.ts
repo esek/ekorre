@@ -11,15 +11,15 @@
 import {
   AccessResource,
   Article,
-  File,
-  User,
-  Post,
-  Meeting,
   Election,
-  Nomination,
-  Proposal,
+  File,
   Hehe,
-} from '../graphql.generated';
+  Meeting,
+  Nomination,
+  Post,
+  Proposal,
+  User,
+} from '@generated/graphql';
 
 export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {
   creator: Partial<User>;
