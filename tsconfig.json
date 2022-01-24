@@ -6,7 +6,6 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
       "@generated/*": ["./src/models/generated/*"],
       "@db/*": ["./src/models/db/*"],
       "@reducer/*": ["./src/reducers/*.reducer"],
@@ -15,7 +14,8 @@
       "@route/*": ["./src/routes/*.routes"],
       "@middleware/*": ["./src/middlewares/*.middleware"],
       "@service/*": ["./src/services/*.service"],
-      "@test/*": ["./test/*"]
+      "@test/*": ["./test/*"],
+      "@/*": ["./src/*"]
     },
     "esModuleInterop": true,
     "inlineSourceMap": true,
