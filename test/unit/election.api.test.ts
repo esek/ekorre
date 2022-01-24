@@ -1,6 +1,6 @@
 import { ELECTABLE_TABLE, ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE } from '@/api/constants';
 import db from '@/api/knex';
-import { BadRequestError, NotFoundError, ServerError } from '@/errors/RequestErrors';
+import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { ElectionAPI } from '@api/election';
 import {
   DatabaseElectable,

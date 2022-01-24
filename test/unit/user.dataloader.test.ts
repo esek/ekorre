@@ -2,7 +2,7 @@ import { USER_TABLE } from '@/api/constants';
 import db from '@/api/knex';
 import { createDataLoader } from '@/dataloaders';
 import { batchUsersFunction, userApi } from '@/dataloaders/user.dataloader';
-import { NotFoundError } from '@/errors/RequestErrors';
+import { NotFoundError } from '@/errors/request.errors';
 import { DatabaseUser } from '@/models/db/user';
 import { reduce } from '@/reducers';
 import { userReduce } from '@/reducers/user.reducer';

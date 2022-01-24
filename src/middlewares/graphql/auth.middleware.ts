@@ -2,7 +2,7 @@ import RequestError, {
   ForbiddenError,
   NotFoundError,
   UnauthenticatedError,
-} from '@/errors/RequestErrors';
+} from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { Context } from '@/models/context';
 import { AccessAPI } from '@api/access';

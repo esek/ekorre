@@ -1,7 +1,7 @@
 import { FILE_TABLE, MEETING_TABLE } from '@/api/constants';
 import db from '@/api/knex';
 import { MeetingAPI } from '@/api/meeting.api';
-import { BadRequestError, NotFoundError, ServerError } from '@/errors/RequestErrors';
+import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { DatabaseFile } from '@/models/db/file';
 import { DatabaseMeeting } from '@/models/db/meeting';
 import { AccessType, FileType, MeetingDocumentType, MeetingType } from '@generated/graphql';

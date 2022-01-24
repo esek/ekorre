@@ -1,4 +1,4 @@
-import RequestError from '@/errors/RequestErrors';
+import RequestError from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { GraphQLError } from 'graphql';
 

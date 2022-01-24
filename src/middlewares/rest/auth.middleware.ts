@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { COOKIES, verifyToken } from '@/auth';
-import { UnauthenticatedError } from '@/errors/RequestErrors';
+import { UnauthenticatedError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { TokenValue } from '@/models/auth';
 import FileAPI from '@api/file';

@@ -1,5 +1,5 @@
 import config from '@/config';
-import RequestError from '@/errors/RequestErrors';
+import RequestError from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { reduce } from '@/reducers';
 import FileAPI from '@api/file';

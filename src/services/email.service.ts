@@ -1,5 +1,5 @@
 import config from '@/config';
-import { ServerError } from '@/errors/RequestErrors';
+import { ServerError } from '@/errors/request.errors';
 import { SendEmailOptions } from '@generated/graphql';
 import axios, { AxiosResponse } from 'axios';
 

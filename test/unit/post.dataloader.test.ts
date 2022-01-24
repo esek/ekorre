@@ -2,7 +2,7 @@ import { POSTS_TABLE } from '@/api/constants';
 import db from '@/api/knex';
 import { createDataLoader, useDataLoader } from '@/dataloaders';
 import { batchPostsFunction, postApi } from '@/dataloaders/post.dataloader';
-import { NotFoundError } from '@/errors/RequestErrors';
+import { NotFoundError } from '@/errors/request.errors';
 import { DatabasePost } from '@/models/db/post';
 import { reduce } from '@/reducers';
 import { postReduce } from '@/reducers/post.reducer';

@@ -1,4 +1,4 @@
-import { UnauthenticatedError } from '@/errors/RequestErrors';
+import { UnauthenticatedError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import type { SecretStore, TokenBlacklistItem, TokenType } from '@/models/auth';
 import type { StrictObject } from '@/models/base';

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/indent */
-import { BadRequestError, NotFoundError, ServerError } from '@/errors/RequestErrors';
+import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import {
   DatabaseElectable,

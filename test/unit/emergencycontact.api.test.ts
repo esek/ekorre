@@ -2,7 +2,7 @@ import { EMERGENCY_CONTACTS_TABLE, USER_TABLE } from '@/api/constants';
 import EmergencyContactAPI from '@/api/emergencycontact.api';
 import db from '@/api/knex';
 import { UserAPI } from '@/api/user.api';
-import { ServerError } from '@/errors/RequestErrors';
+import { ServerError } from '@/errors/request.errors';
 import { DatabaseEmergencyContact } from '@/models/db/emergencycontact';
 import { DatabaseUser } from '@/models/db/user';
 import { EmergencyContact, EmergencyContactType, NewUser } from '@generated/graphql';

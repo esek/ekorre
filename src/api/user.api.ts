@@ -10,7 +10,7 @@ import {
   NotFoundError,
   ServerError,
   UnauthenticatedError,
-} from '../errors/RequestErrors';
+} from '../errors/request.errors';
 import { PASSWORD_RESET_TABLE, USER_TABLE } from './constants';
 import db from './knex';
 

@@ -1,7 +1,7 @@
 import { FILE_TABLE, HEHE_TABLE } from '@/api/constants';
 import { HeheAPI } from '@/api/hehe.api';
 import db from '@/api/knex';
-import { NotFoundError, ServerError } from '@/errors/RequestErrors';
+import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { DatabaseFile } from '@/models/db/file';
 import { DatabaseHehe } from '@/models/db/hehe';
 import { AccessType, FileType } from '@generated/graphql';

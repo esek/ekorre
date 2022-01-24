@@ -1,4 +1,4 @@
-import { NotFoundError, ServerError } from '@/errors/RequestErrors';
+import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { DatabaseHehe } from '@db/hehe';
 

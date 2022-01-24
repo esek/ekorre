@@ -1,5 +1,5 @@
 import { COOKIES } from '@/auth';
-import { RequestErrorResponse } from '@/errors/RequestErrors';
+import { RequestErrorResponse } from '@/errors/request.errors';
 import { User } from '@generated/graphql';
 import { ApiRequest } from '@test/models/test';
 import { AXIOS_CONFIG } from '@test/utils/axiosConfig';

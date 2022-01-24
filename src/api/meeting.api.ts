@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { BadRequestError, NotFoundError, ServerError } from '@/errors/RequestErrors';
+import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { stripObject } from '@/util';
 import type { DatabaseMeeting } from '@db/meeting';

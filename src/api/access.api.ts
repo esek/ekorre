@@ -1,4 +1,4 @@
-import { ServerError } from '@/errors/RequestErrors';
+import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import type { DatabaseAccess } from '@db/access';
 import { DatabaseAccessMapping } from '@db/accessmapping';

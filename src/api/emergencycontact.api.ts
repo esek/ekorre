@@ -1,4 +1,4 @@
-import { ServerError } from '@/errors/RequestErrors';
+import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { DatabaseEmergencyContact } from '@db/emergencycontact';
 import { EmergencyContactType } from '@generated/graphql';

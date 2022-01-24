@@ -1,5 +1,5 @@
 import { useDataLoader } from '@/dataloaders';
-import { BadRequestError } from '@/errors/RequestErrors';
+import { BadRequestError } from '@/errors/request.errors';
 import { reduce } from '@/reducers';
 import FileAPI from '@api/file';
 import { Resolvers } from '@generated/graphql';

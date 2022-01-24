@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { BadRequestError, NotFoundError } from '@/errors/RequestErrors';
+import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { stripObject, toUTC } from '@/util';
 import type { DatabaseArticle } from '@db/article';

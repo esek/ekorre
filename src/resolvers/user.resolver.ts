@@ -1,5 +1,5 @@
 import { hashWithSecret, verifyToken } from '@/auth';
-import { BadRequestError } from '@/errors/RequestErrors';
+import { BadRequestError } from '@/errors/request.errors';
 import { TokenValue } from '@/models/auth';
 import { reduce } from '@/reducers';
 import { stripObject } from '@/util';

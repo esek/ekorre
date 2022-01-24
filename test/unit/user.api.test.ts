@@ -1,7 +1,7 @@
 import { PASSWORD_RESET_TABLE, USER_TABLE } from '@/api/constants';
 import db from '@/api/knex';
 import { UserAPI } from '@/api/user.api';
-import { BadRequestError, NotFoundError, UnauthenticatedError } from '@/errors/RequestErrors';
+import { BadRequestError, NotFoundError, UnauthenticatedError } from '@/errors/request.errors';
 import { DatabaseUser } from '@/models/db/user';
 import { NewUser } from '@generated/graphql';
 

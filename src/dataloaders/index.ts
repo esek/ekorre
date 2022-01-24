@@ -1,4 +1,4 @@
-import { NotFoundError } from '@/errors/RequestErrors';
+import { NotFoundError } from '@/errors/request.errors';
 import type { StrictObject } from '@/models/base';
 import { Context } from '@/models/context';
 import DataLoader from 'dataloader';

@@ -1,4 +1,4 @@
-import { ServerError } from '@/errors/RequestErrors';
+import { ServerError } from '@/errors/request.errors';
 import AccessResourcesAPI from '@api/accessresources';
 import { Resolvers } from '@generated/graphql';
 
