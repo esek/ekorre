@@ -17,7 +17,7 @@ import {
   PostType,
   Utskott,
 } from '../../src/graphql.generated';
-import apolloServerConfig from '../../src/serverconfig';
+import apolloServerConfig from '../../src/app/serverconfig';
 
 const apolloServer = new ApolloServer(apolloServerConfig);
 

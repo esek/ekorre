@@ -1,5 +1,4 @@
 import { issueToken } from '../../src/auth';
-import { NotFoundError } from '../../src/errors/RequestErrors';
 import { NewArticle, ModifyArticle, ArticleType, Article } from '../../src/graphql.generated';
 import requestWithAuth from '../utils/requestWithAuth';
 
