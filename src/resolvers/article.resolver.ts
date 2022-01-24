@@ -4,10 +4,9 @@
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
 import { ArticleAPI } from '../api/article.api';
 import { useDataLoader } from '../dataloaders';
-import { NewArticle, Resolvers } from '../graphql.generated';
+import { Resolvers } from '../graphql.generated';
 import { DatabaseArticle } from '../models/db/article';
 import { ArticleResponse } from '../models/mappers';
-import { reduce } from '../reducers';
 import { articleReducer } from '../reducers/article.reducer';
 
 const articleApi = new ArticleAPI();

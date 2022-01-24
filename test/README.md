@@ -2,7 +2,7 @@
 
 Detta är mappen för tester som kan köras automatiskt. `ekorre` använder sig av `ts-jest` (se [dokumentation](https://kulshekhar.github.io/ts-jest/docs/)), en TypeScript-version av testningsramverket `jest` (se [dokumentation](https://jestjs.io/docs/getting-started)) för tester.
 
-Ett bra verktyg att använda när man skriver sina tester är VSCode+extentionet `Jest Runner`.
+Ett bra verktyg att använda när man skriver sina tester är VSCode-extentionet `Jest Runner`.
 
 * `unit/` är tester som helt enkelt testar funktioners funktionalitet, dvs. med en given (eller slumpad) input, förvänta en given output.
 * `integration/` är tester som kontrollerar att helheten fungerar, t.ex. ett API-anrop. I vårt fall gör vi detta vi Apollos `executeQuery`, vilket kan göras utan att starta en server.
