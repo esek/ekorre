@@ -4,13 +4,12 @@ Detta är mappen för tester som kan köras automatiskt. `ekorre` använder sig 
 
 Ett bra verktyg att använda när man skriver sina tester är VSCode-extentionet `Jest Runner`.
 
-* `unit/` är tester som helt enkelt testar funktioners funktionalitet, dvs. med en given (eller slumpad) input, förvänta en given output.
-* `integration/` är tester som kontrollerar att helheten fungerar, t.ex. ett API-anrop. I vårt fall gör vi detta vi Apollos `executeQuery`, vilket kan göras utan att starta en server.
-* `regression/` är regressionstester, dvs. tester som går några abstraktionslager uppåt. Dessa tester testar en given funktionalitet, t.ex. skickar en request till en API
-och förväntar sig ett svar. Ett regressionstest garanterar inte att de underliggande funktionerna fungerar, utan antar att de gör det om regressionstestet fungerar. Är främst till för att man inte
-förstör existerande funktionalitet.
+* `unit/` är tester som helt enkelt testar funktioners funktionalitet, dvs. med en given (eller slumpad) input, förvänta en given output. Dessa passar främst för t.ex. `src/api/**/*` och `src/reducers/**/*`
+* `integration/` är tester som kontrollerar att helheten fungerar, t.ex. ett API-anrop. I vårt fall gör vi detta vi Apollos `executeQuery`, vilket kan göras utan att starta en server. Om man vill testa med `auth`, eller om man behöver `Context` i det man använder, fungerar `util`-funktionen `requestWithAuth` bra.
+* `regression/` är regressionstester, dvs. tester som kontrollerar att man inte förstör funktionalitet som redan funkar med nya
+förändringar. Kräver att man kör en dev-server (`npm run dev`).
 
-Via `package.json:scripts` kan de olika testen köras via `npm test` (alla), `npm run test:unit`, `npm run test:integration` respektive `npm run test:regression`.
+Via `package.json:scripts` kan de olika testen köras via `npm test` (alla), `npm run test:unit`, `npm run test:integration` respektive `npm run test:regression`. `npm run test:prebuild` kör både `test:unit` och `test:integration`.
 
 Alla test ska ha namn på formen `*.test.ts`, där `*` ska vara filnamnet alternativ beskrivninga av test(en) i filen.
 
@@ -27,11 +26,10 @@ All files[^|]*\|[^|]*\s+([\d\.]+)
 
 vilket kan läggas till i GitLabs CI/CD-settings på hemsidan.
 
-Filer som testas av regressionstester (nära produktionsmiljö) ingår ej.
-
+Filer som testas av regressionstester (nära produktionsmiljö) ingår ej i coverage, vilket förklarar att vissa filer har lågt coverage, men ändå testas.
 
 ## Supertest
-För HTTP testningar använder vi [supertest](https://github.com/visionmedia/supertest). Den spinnar upp en HTTP-server och möjliggör att testa de olika endpoints och metoder. 
+För HTTP testningar använder vi [supertest](https://github.com/visionmedia/supertest). Den spinnar upp en HTTP-server och möjliggör att testa de olika endpoints och metoder.
 
 Exempelvis om du vill kolla statusen på ditt api:
 
@@ -48,5 +46,7 @@ Exempelvis om du vill kolla statusen på ditt api:
 		status: 'ok'
 	});
 ```
+
+`requestWithAuth` använder `supertest` internt, vilket förenklar requests.
 
 Notera dock att `DataLoader` och falska timers *inte* fungerar bra ihop, då Dataloadern bara sitter och tickar för evigt. Därför kan användning av `supertest` leda till timeouts om man använder `jest.useFakeTimers()`. Då är det bättre att lägga till det som ett regressionstest, där jest och servern inte kör i samma Node-process.

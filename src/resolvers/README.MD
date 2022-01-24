@@ -1,6 +1,6 @@
 # Resolvers
 
-Detta är den viktigaste delen av en Graphql api. Dessa hanterar
+Detta är den viktigaste delen av ett Graphql-API. Dessa hanterar
 alla queries och ser till att de returnera vettig data.
 För att göra det så användbart som möjligt så bör varje resolver
 sköta en grej och om en resolvers funktion uttökar en annan
@@ -44,7 +44,7 @@ Kolla runt lite i resolvers för att lista ut hur de fungerar. Notera att deras 
 är densamma som hur vi definierar typer i GraphQL-scheman!
 ### (n+1)-problemet och vår standardlösning
 
-Detta medför dock ett känt problem med GraphQL; n+1 problemet. Vi kan ju behöva göra en massa queries för att få `User`-objekt, vilket gör det väldigt långsamt att få fram artiklar. Problemet beskrivs bra i [denna](https://youtu.be/uCbFMZYQbxE) videon. Detta är något man måste lösa för att få en snabb och bra API.
+Detta medför dock ett känt problem med GraphQL; n+1 problemet. Vi kan ju behöva göra en massa queries för att få `User`-objekt, vilket gör det väldigt långsamt att få fram artiklar. Problemet beskrivs bra i [denna](https://youtu.be/uCbFMZYQbxE) videon. Detta är något man måste lösa för att få ett snabbt och bra API.
 
 I grunden går problemet ut på att om vi t.ex. ska ladda in flera `Article`-objekt, och varje objekt behöver ett `User`-objekt (som sköts av en annan del av API:n) måste vi skapa ett `User`-objekt för varje `Article`-objekt. Det kommer ju bli jättemånga queries snabbt! Vi vill lösa så att vi återanvänder `User`-objekt, om samma skulle dyka upp flera gånger.
 
