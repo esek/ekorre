@@ -8,6 +8,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Ändrat
 - Flyttat `graphql.generated.ts` från `src` -> `src/models/generated/graphql.ts`
+- `/src/errors/RequestErrors.ts` -> `src/errors/request.errors.ts` för enhetlighet
 - Path alias tillagt för:
   - `@/` - Allting inom `src`-mappen, t.ex. `@/auth`
   - `@api` - Alla apier, t.ex. `@api/file`
