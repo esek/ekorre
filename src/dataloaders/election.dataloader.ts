@@ -1,12 +1,9 @@
-import { Logger } from '@/logger';
 import { ElectionResponse } from '@/models/mappers';
 import { reduce } from '@/reducers';
 import { ElectionAPI } from '@api/election';
 import { electionReduce } from '@reducer/election/election';
 
 import { sortBatchResult } from './util';
-
-const logger = Logger.getLogger('ElectionDataLoader');
 
 // Om vi kör tester beh;ver vi denna konstant
 // för att kunna spionera på den
