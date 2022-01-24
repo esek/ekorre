@@ -1,11 +1,14 @@
+import RequestError, {
+  ForbiddenError,
+  NotFoundError,
+  UnauthenticatedError,
+} from '@/errors/request.errors';
+import { Logger } from '@/logger';
+import { Context } from '@/models/context';
+import { AccessAPI } from '@api/access';
+import { ResolverType } from '@generated/graphql';
+import { accessReducer } from '@reducer/access';
 import type { IMiddleware, IMiddlewareFunction } from 'graphql-middleware';
-
-import { AccessAPI } from '../../api/access.api';
-import RequestError, { ForbiddenError, NotFoundError, UnauthenticatedError } from '../../errors/RequestErrors';
-import { ResolverType } from '../../graphql.generated';
-import { Logger } from '../../logger';
-import { Context } from '../../models/context';
-import { accessReducer } from '../../reducers/access.reducer';
 
 const api = new AccessAPI();
 const logger = Logger.getLogger('GqlAuthMiddleware');

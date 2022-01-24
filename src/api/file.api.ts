@@ -1,13 +1,13 @@
+import config from '@/config';
+import { NotFoundError, ServerError } from '@/errors/request.errors';
+import { Logger } from '@/logger';
+import type { DatabaseFile } from '@db/file';
+import { AccessType, FileSystemResponsePath, FileType } from '@generated/graphql';
 import { createHash } from 'crypto';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
 import { extname } from 'path';
 
-import config from '../config';
-import { NotFoundError, ServerError } from '../errors/RequestErrors';
-import { AccessType, FileSystemResponsePath, FileType } from '../graphql.generated';
-import { Logger } from '../logger';
-import type { DatabaseFile } from '../models/db/file';
 import { FILE_TABLE } from './constants';
 import db from './knex';
 

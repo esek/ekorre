@@ -1,5 +1,5 @@
-import { DatabaseUser } from '../../src/models/db/user';
-import { userReduce } from '../../src/reducers/user.reducer';
+import { DatabaseUser } from '@/models/db/user';
+import { userReduce } from '@/reducers/user.reducer';
 
 const dummyDbUser: DatabaseUser = {
   username: 'kk6969öö-s',

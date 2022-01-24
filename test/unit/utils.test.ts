@@ -1,4 +1,4 @@
-import { toUTC, stripObject, midnightTimestamp } from '../../src/util';
+import { midnightTimestamp, stripObject, toUTC } from '@/util';
 
 test('Check time conversion Malmö to UTC', () => {
   const greatDay = new Date('March 13, 1999 17:48 UTC+1');

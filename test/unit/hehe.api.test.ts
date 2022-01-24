@@ -1,10 +1,10 @@
-import { FILE_TABLE, HEHE_TABLE } from '../../src/api/constants';
-import { HeheAPI } from '../../src/api/hehe.api';
-import db from '../../src/api/knex';
-import { NotFoundError, ServerError } from '../../src/errors/RequestErrors';
-import { AccessType, FileType } from '../../src/graphql.generated';
-import { DatabaseFile } from '../../src/models/db/file';
-import { DatabaseHehe } from '../../src/models/db/hehe';
+import { FILE_TABLE, HEHE_TABLE } from '@/api/constants';
+import { HeheAPI } from '@/api/hehe.api';
+import db from '@/api/knex';
+import { NotFoundError, ServerError } from '@/errors/request.errors';
+import { DatabaseFile } from '@/models/db/file';
+import { DatabaseHehe } from '@/models/db/hehe';
+import { AccessType, FileType } from '@generated/graphql';
 
 const api = new HeheAPI();
 

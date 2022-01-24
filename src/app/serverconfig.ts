@@ -1,28 +1,27 @@
+import { COOKIES, verifyToken } from '@/auth';
+import { createDataLoader } from '@/dataloaders';
+import { Logger } from '@/logger';
+import { TokenValue } from '@/models/auth';
+import type { Context, ContextParams } from '@/models/context';
+import * as Resolvers from '@/resolvers';
+import { batchAccessResources } from '@dataloader/accessresources';
+import { batchElectionsFunction } from '@dataloader/election';
+import { batchFilesFunction } from '@dataloader/file';
+import { batchPostsFunction } from '@dataloader/post';
+import { batchUsersFunction } from '@dataloader/user';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { authMiddleware } from '@middleware/graphql/auth';
+import { errorHandler } from '@middleware/graphql/errorhandler';
 import {
-  ApolloServerPluginLandingPageGraphQLPlayground,
   ApolloServerPluginLandingPageDisabled,
+  ApolloServerPluginLandingPageGraphQLPlayground,
   Config,
 } from 'apollo-server-core';
 import { ExpressContext } from 'apollo-server-express';
 import { applyMiddleware } from 'graphql-middleware';
 import { DateResolver } from 'graphql-scalars';
-
-import { COOKIES, verifyToken } from '../auth';
-import { createDataLoader } from '../dataloaders';
-import { batchAccessResources } from '../dataloaders/accessresources.dataloader';
-import { batchElectionsFunction } from '../dataloaders/election.dataloader';
-import { batchFilesFunction } from '../dataloaders/file.dataloader';
-import { batchPostsFunction } from '../dataloaders/post.dataloader';
-import { batchUsersFunction } from '../dataloaders/user.dataloader';
-import { Logger } from '../logger';
-import { authMiddleware } from '../middlewares/graphql/auth.middleware';
-import { errorHandler } from '../middlewares/graphql/errorhandler.middleware';
-import { TokenValue } from '../models/auth';
-import type { Context, ContextParams } from '../models/context';
-import * as Resolvers from '../resolvers/index';
 
 // Ladda alla scheman från .graphql filer
 const typeDefs = loadSchemaSync('./src/schemas/*.graphql', {

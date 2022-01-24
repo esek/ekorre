@@ -1,8 +1,8 @@
-import { HeheAPI } from '../api/hehe.api';
-import { reduce } from '../reducers';
-import { heheReduce } from '../reducers/hehe.reducer';
-import { useDataLoader } from '../dataloaders';
-import { Resolvers } from '../graphql.generated';
+import { useDataLoader } from '@/dataloaders';
+import { reduce } from '@/reducers';
+import { HeheAPI } from '@api/hehe';
+import { Resolvers } from '@generated/graphql';
+import { heheReduce } from '@reducer/hehe';
 
 const api = new HeheAPI();
 
@@ -15,7 +15,7 @@ const heheResolver: Resolvers = {
     file: useDataLoader((model, context) => ({
       dataLoader: context.fileDataLoader,
       key: model.file.id,
-    }))
+    })),
   },
   Query: {
     hehe: async (_, { number, year }) => {
@@ -32,7 +32,8 @@ const heheResolver: Resolvers = {
     },
   },
   Mutation: {
-    addHehe: async (_, { fileId, number, year }, ctx) => api.addHehe(ctx.getUsername(), fileId, number, year),
+    addHehe: async (_, { fileId, number, year }, ctx) =>
+      api.addHehe(ctx.getUsername(), fileId, number, year),
     removeHehe: async (_, { number, year }) => api.removeHehe(number, year),
   },
 };

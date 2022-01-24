@@ -1,5 +1,5 @@
-import type { DatabaseNomination } from '../../models/db/election';
-import type { NominationResponse } from '../../models/mappers';
+import type { NominationResponse } from '@/models/mappers';
+import type { DatabaseNomination } from '@db/election';
 
 export function nominationReduce(dbNomination: DatabaseNomination): NominationResponse {
   const { refuser, refpost, ...reduced } = dbNomination;

@@ -1,4 +1,4 @@
-import { AccessResourceType } from '../../graphql.generated';
+import { AccessResourceType } from '@generated/graphql';
 
 export type DatabaseAccessResource = {
   slug: string;

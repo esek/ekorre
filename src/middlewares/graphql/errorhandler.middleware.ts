@@ -1,7 +1,6 @@
+import RequestError from '@/errors/request.errors';
+import { Logger } from '@/logger';
 import { GraphQLError } from 'graphql';
-
-import RequestError from '../../errors/RequestErrors';
-import { Logger } from '../../logger';
 
 const logger = Logger.getLogger('GraphQLErrorHandler');
 

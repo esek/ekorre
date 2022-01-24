@@ -1,11 +1,11 @@
-import { USER_TABLE } from '../../src/api/constants';
-import db from '../../src/api/knex';
-import { createDataLoader } from '../../src/dataloaders';
-import { batchUsersFunction, userApi } from '../../src/dataloaders/user.dataloader';
-import { NotFoundError } from '../../src/errors/RequestErrors';
-import { DatabaseUser } from '../../src/models/db/user';
-import { reduce } from '../../src/reducers';
-import { userReduce } from '../../src/reducers/user.reducer';
+import { USER_TABLE } from '@/api/constants';
+import db from '@/api/knex';
+import { createDataLoader } from '@/dataloaders';
+import { batchUsersFunction, userApi } from '@/dataloaders/user.dataloader';
+import { NotFoundError } from '@/errors/request.errors';
+import { DatabaseUser } from '@/models/db/user';
+import { reduce } from '@/reducers';
+import { userReduce } from '@/reducers/user.reducer';
 
 // Vi kontrollerar antal anrop till API:n
 const apiSpy = jest.spyOn(userApi, 'getMultipleUsers');

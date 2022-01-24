@@ -1,5 +1,3 @@
-import { ApolloServer } from 'apollo-server-express';
-
 import {
   ACCESS_RESOURCES_TABLE,
   IND_ACCESS_TABLE,
@@ -7,8 +5,9 @@ import {
   POSTS_TABLE,
   POST_ACCESS_TABLE,
   USER_TABLE,
-} from '../../src/api/constants';
-import db from '../../src/api/knex';
+} from '@/api/constants';
+import db from '@/api/knex';
+import apolloServerConfig from '@/app/serverconfig';
 import {
   AccessResource,
   AccessResourceType,
@@ -16,8 +15,8 @@ import {
   NewUser,
   PostType,
   Utskott,
-} from '../../src/graphql.generated';
-import apolloServerConfig from '../../src/app/serverconfig';
+} from '@generated/graphql';
+import { ApolloServer } from 'apollo-server-express';
 
 const apolloServer = new ApolloServer(apolloServerConfig);
 

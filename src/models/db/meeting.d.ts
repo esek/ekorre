@@ -1,4 +1,4 @@
-import type { Meeting } from '../../graphql.generated';
+import type { Meeting } from '@generated/graphql';
 
 // prettier-ignore
 export type DatabaseMeeting = Omit<Meeting, 'name' | 'summons' | 'documents' | 'lateDocuments' | 'protocol' | 'appendix'

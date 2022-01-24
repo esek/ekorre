@@ -1,5 +1,5 @@
-import { DatabaseJoinedAccess } from '../api/access.api';
-import { Access, AccessResourceType } from '../graphql.generated';
+import { DatabaseJoinedAccess } from '@api/access';
+import { Access, AccessResourceType } from '@generated/graphql';
 
 /**
  * Reduce database access arrays to an access object

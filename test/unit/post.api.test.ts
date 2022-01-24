@@ -1,19 +1,11 @@
-import { POSTS_HISTORY_TABLE, POSTS_TABLE, USER_TABLE } from '../../src/api/constants';
-import db from '../../src/api/knex';
-import { PostAPI } from '../../src/api/post.api';
-import { UserAPI } from '../../src/api/user.api';
-import {
-  Access,
-  ModifyPost,
-  NewPost,
-  NewUser,
-  Post,
-  PostType,
-  Utskott,
-} from '../../src/graphql.generated';
-import { DatabaseUser } from '../../src/models/db/user';
-import { postReduce } from '../../src/reducers/post.reducer';
-import { midnightTimestamp } from '../../src/util';
+import { POSTS_HISTORY_TABLE, POSTS_TABLE, USER_TABLE } from '@/api/constants';
+import db from '@/api/knex';
+import { PostAPI } from '@/api/post.api';
+import { UserAPI } from '@/api/user.api';
+import { DatabaseUser } from '@/models/db/user';
+import { postReduce } from '@/reducers/post.reducer';
+import { midnightTimestamp } from '@/util';
+import { Access, ModifyPost, NewPost, NewUser, Post, PostType, Utskott } from '@generated/graphql';
 
 const api = new PostAPI();
 const userApi = new UserAPI();

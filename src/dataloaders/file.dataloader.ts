@@ -1,7 +1,8 @@
-import FileAPI from '../api/file.api';
-import { FileResponse } from '../models/mappers';
-import { reduce } from '../reducers';
-import { fileReduce } from '../reducers/file.reducer';
+import { FileResponse } from '@/models/mappers';
+import { reduce } from '@/reducers';
+import FileAPI from '@api/file';
+import { fileReduce } from '@reducer/file';
+
 import { sortBatchResult } from './util';
 
 // Om vi kör tester beh;ver vi denna konstant
@@ -24,7 +25,6 @@ export const batchFilesFunction = async (
    */
   const apiResponse = await fileApi.getMultipleFilesById(fileIds);
   if (apiResponse == null) return [];
-
 
   const files = reduce(apiResponse, fileReduce);
 

@@ -1,12 +1,12 @@
 /* eslint-disable class-methods-use-this */
+import { BadRequestError, NotFoundError } from '@/errors/request.errors';
+import { StrictObject } from '@/models/base';
+import { stripObject, toUTC } from '@/util';
+import type { DatabaseArticle } from '@db/article';
+import { ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
+import { convertMarkdownToHtml } from '@reducer/article';
 import { Maybe } from 'graphql/jsutils/Maybe';
-import { BadRequestError, NotFoundError } from '../errors/RequestErrors';
 
-import { ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
-import { StrictObject } from '../models/base';
-import type { DatabaseArticle } from '../models/db/article';
-import { convertMarkdownToHtml } from '../reducers/article.reducer';
-import { stripObject, toUTC } from '../util';
 import { ARTICLE_TABLE } from './constants';
 import db from './knex';
 

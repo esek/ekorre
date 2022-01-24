@@ -1,5 +1,5 @@
-import { DatabaseHehe } from '../models/db/hehe';
-import { HeheResponse } from '../models/mappers';
+import { HeheResponse } from '@/models/mappers';
+import { DatabaseHehe } from '@db/hehe';
 
 export const heheReduce = (dbHehe: DatabaseHehe): HeheResponse => {
   const { refuploader, reffile, ...reduced } = dbHehe;
@@ -10,6 +10,6 @@ export const heheReduce = (dbHehe: DatabaseHehe): HeheResponse => {
     },
     file: {
       id: reffile,
-    }
+    },
   };
 };

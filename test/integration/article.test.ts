@@ -1,6 +1,6 @@
-import { issueToken } from '../../src/auth';
-import { NewArticle, ModifyArticle, ArticleType, Article } from '../../src/graphql.generated';
-import requestWithAuth from '../utils/requestWithAuth';
+import { issueToken } from '@/auth';
+import { Article, ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
+import requestWithAuth from '@test/utils/requestWithAuth';
 
 const ARTICLE_FIELDS = `
 {

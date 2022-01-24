@@ -1,5 +1,5 @@
+import apolloServerConfig from '@/app/serverconfig';
 import { ApolloServer } from 'apollo-server-express';
-import apolloServerConfig from '../../src/app/serverconfig';
 
 const apolloServer = new ApolloServer(apolloServerConfig);
 
@@ -25,7 +25,7 @@ test('getting user', async () => {
     query: USER_QUERY,
     variables: {
       username: 'no0000oh-s', // Used in dev database
-    }
+    },
   });
 
   expect(userResponse.errors).toBeUndefined();

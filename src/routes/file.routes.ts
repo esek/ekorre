@@ -1,19 +1,14 @@
+import config from '@/config';
+import RequestError from '@/errors/request.errors';
+import { Logger } from '@/logger';
+import { reduce } from '@/reducers';
+import FileAPI from '@api/file';
+import { UserAPI } from '@api/user';
+import { AccessType } from '@generated/graphql';
+import { setUser, verifyAuthenticated, verifyFileReadAccess } from '@middleware/rest/auth';
+import { fileReduce } from '@reducer/file';
 import { Router, static as staticFiles } from 'express';
 import upload, { UploadedFile } from 'express-fileupload';
-
-import FileAPI from '../api/file.api';
-import { UserAPI } from '../api/user.api';
-import config from '../config';
-import RequestError from '../errors/RequestErrors';
-import { AccessType } from '../graphql.generated';
-import { Logger } from '../logger';
-import {
-  setUser,
-  verifyAuthenticated,
-  verifyFileReadAccess,
-} from '../middlewares/rest/auth.middleware';
-import { reduce } from '../reducers';
-import { fileReduce } from '../reducers/file.reducer';
 
 const filesRoute = Router();
 

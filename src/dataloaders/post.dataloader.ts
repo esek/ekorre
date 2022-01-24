@@ -1,8 +1,8 @@
-import { PostAPI } from '../api/post.api';
-import { NotFoundError } from '../errors/RequestErrors';
-import { Post } from '../graphql.generated';
-import { reduce } from '../reducers';
-import { postReduce } from '../reducers/post.reducer';
+import { reduce } from '@/reducers';
+import { PostAPI } from '@api/post';
+import { Post } from '@generated/graphql';
+import { postReduce } from '@reducer/post';
+
 import { sortBatchResult } from './util';
 
 // Om vi kör tester beh;ver vi denna konstant

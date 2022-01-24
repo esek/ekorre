@@ -1,4 +1,4 @@
-import type { Election, Nomination, Proposal } from '../../graphql.generated';
+import type { Election, Nomination, Proposal } from '@generated/graphql';
 
 export type DatabaseElection = Omit<Election, 'creator' | 'electables' | 'proposals'> & {
   refcreator: string;

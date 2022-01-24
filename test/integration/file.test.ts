@@ -1,18 +1,17 @@
+import { FILE_TABLE } from '@/api/constants';
+import db from '@/api/knex';
+import { app } from '@/app/app';
+import apolloServerConfig from '@/app/serverconfig';
+import { COOKIES, issueToken } from '@/auth';
+import config from '@/config';
+import FileAPI from '@api/file';
+import { DatabaseFile } from '@db/file';
+import { AccessType, File as GqlFile, FileType } from '@generated/graphql';
 import { ApolloServer } from 'apollo-server-express';
 import axios from 'axios';
 import { createWriteStream, ReadStream, rmSync } from 'fs';
 import { resolve } from 'path';
 import request from 'supertest';
-
-import { FILE_TABLE } from '../../src/api/constants';
-import FileAPI from '../../src/api/file.api';
-import db from '../../src/api/knex';
-import { app } from '../../src/app/app';
-import { COOKIES, issueToken } from '../../src/auth';
-import config from '../../src/config';
-import { AccessType, File as GqlFile, FileType } from '../../src/graphql.generated';
-import { DatabaseFile } from '../../src/models/db/file';
-import apolloServerConfig from '../../src/app/serverconfig';
 
 const fileApi = new FileAPI();
 

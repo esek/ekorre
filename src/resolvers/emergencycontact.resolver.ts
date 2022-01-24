@@ -1,5 +1,5 @@
-import EmergencyContactAPI from '../api/emergencycontact.api';
-import type { Resolvers } from '../graphql.generated';
+import EmergencyContactAPI from '@api/emergencycontact';
+import type { Resolvers } from '@generated/graphql';
 
 const ecApi = new EmergencyContactAPI();
 

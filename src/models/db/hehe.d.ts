@@ -1,6 +1,6 @@
-import { Hehe } from '../../graphql.generated';
+import { Hehe } from '@generated/graphql';
 
 export type DatabaseHehe = Omit<Hehe, 'uploader' | 'file'> & {
-  refuploader: string,
-  reffile: string,
+  refuploader: string;
+  reffile: string;
 };

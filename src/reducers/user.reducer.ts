@@ -1,6 +1,6 @@
-import config from '../config';
-import { Access, User } from '../graphql.generated';
-import { DatabaseUser } from '../models/db/user';
+import config from '@/config';
+import { DatabaseUser } from '@db/user';
+import { Access, User } from '@generated/graphql';
 
 export function userReduce(user: DatabaseUser): User {
   // Provide a stub for access to be resolved later.

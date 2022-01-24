@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/indent */
-import { BadRequestError, NotFoundError, ServerError } from '../errors/RequestErrors';
-import { NominationAnswer } from '../graphql.generated';
-import { Logger } from '../logger';
+import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
+import { Logger } from '@/logger';
 import {
   DatabaseElectable,
   DatabaseElection,
   DatabaseNomination,
   DatabaseProposal,
-} from '../models/db/election';
-import { ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE, ELECTABLE_TABLE } from './constants';
+} from '@db/election';
+import { NominationAnswer } from '@generated/graphql';
+
+import { ELECTABLE_TABLE, ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE } from './constants';
 import db from './knex';
 
 const logger = Logger.getLogger('ElectionAPI');
