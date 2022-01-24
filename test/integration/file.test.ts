@@ -7,12 +7,12 @@ import request from 'supertest';
 import { FILE_TABLE } from '../../src/api/constants';
 import FileAPI from '../../src/api/file.api';
 import db from '../../src/api/knex';
-import { app } from '../../src/app';
+import { app } from '../../src/app/app';
 import { COOKIES, issueToken } from '../../src/auth';
 import config from '../../src/config';
 import { AccessType, File as GqlFile, FileType } from '../../src/graphql.generated';
 import { DatabaseFile } from '../../src/models/db/file';
-import apolloServerConfig from '../../src/serverconfig';
+import apolloServerConfig from '../../src/app/serverconfig';
 
 const fileApi = new FileAPI();
 
