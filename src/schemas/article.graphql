@@ -12,12 +12,15 @@ type Query {
 
 type Mutation {
   addArticle(entry: NewArticle!): Article
-  modifyArticle(articleId: Int!, entry: ModifyArticle!): Boolean!
+  modifyArticle(articleId: ID!, entry: ModifyArticle!): Boolean!
+  removeArticle(articleId: ID!): Boolean!
 }
 
 "Body is saved as HTML serverside, but edited in MarkDown"
 type Article {
   id: ID
+
+  "Used in URLs, but identification is done using only tail (id)"
   slug: String
   creator: User!
   lastUpdatedBy: User!
@@ -37,7 +40,6 @@ enum ArticleType {
 }
 
 input NewArticle {
-  creator: String!
   title: String!
   body: String!
   signature: String!

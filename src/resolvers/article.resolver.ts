@@ -127,22 +127,14 @@ const articleResolver: Resolvers = {
     },
   },
   Mutation: {
-    addArticle: async (_, { entry }) => {
+    addArticle: async (_, { entry }, ctx) => {
       // Special type of reduce
-      const apiResponse = await articleApi.newArticle(entry);
-      const { refcreator, reflastupdateby, ...reduced } = apiResponse;
-      const a = {
-        ...reduced,
-        creator: {
-          username: refcreator,
-        },
-        lastUpdatedBy: {
-          username: reflastupdateby,
-        },
-      };
-      return a;
+      const apiResponse = await articleApi.newArticle(ctx.getUsername(), entry);
+      return articleReducer(apiResponse, true);
     },
-    modifyArticle: (_, { articleId, entry }) => articleApi.modifyArticle(articleId, entry),
+    modifyArticle: (_, { articleId, entry }, ctx) =>
+      articleApi.modifyArticle(articleId, ctx.getUsername(), entry),
+    removeArticle: (_, { articleId }) => articleApi.removeArticle(articleId),
   },
 };
 

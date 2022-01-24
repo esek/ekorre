@@ -1,5 +1,5 @@
 import { ApolloServer } from 'apollo-server-express';
-import apolloServerConfig from '../../src/serverconfig';
+import apolloServerConfig from '../../src/app/serverconfig';
 
 const apolloServer = new ApolloServer(apolloServerConfig);
 

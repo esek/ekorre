@@ -5,21 +5,15 @@ import 'dotenv/config';
 import express from 'express';
 
 // import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
-import config from './config';
-import { Logger } from './logger';
-import authRoute from './routes/auth.routes';
-import doorsRoute from './routes/door.routes';
-import fileRoute from './routes/file.routes';
+import config from '../config';
+import authRoute from '../routes/auth.routes';
+import doorsRoute from '../routes/door.routes';
+import fileRoute from '../routes/file.routes';
 import apolloServerConfig from './serverconfig';
 
-const { PORT, HOST, FILES, CORS } = config;
+const { FILES, CORS } = config;
 
 // Visa en referens till källfilen istället för den kompilerade
-
-Logger.logLevel = Logger.getLogLevelFromString(process.env.LOGLEVEL ?? 'normal');
-const logger = Logger.getLogger('App');
-
-logger.log('Beginning startup...');
 
 // Starta server.
 export const app = express();
@@ -47,8 +41,4 @@ export const app = express();
   await server.start();
 
   server.applyMiddleware({ app, path: '/', cors: corsOptions });
-
-  app.listen(PORT, HOST, () => {
-    logger.log(`Server started on http://${HOST}:${PORT}`);
-  });
 })();
