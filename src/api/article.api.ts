@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { Maybe } from 'graphql/jsutils/Maybe';
+import { BadRequestError, NotFoundError } from '../errors/RequestErrors';
 
 import { ArticleType, ModifyArticle, NewArticle } from '../graphql.generated';
 import { StrictObject } from '../models/base';
@@ -84,7 +85,7 @@ export class ArticleAPI {
    * Returns the article with the specified id
    * @param id article id
    */
-  async getArticle({ id, slug }: GetArticleParams): Promise<DatabaseArticle | null> {
+  async getArticle({ id, slug }: GetArticleParams): Promise<DatabaseArticle> {
     let dbId = id;
 
     if (slug) {
@@ -98,34 +99,35 @@ export class ArticleAPI {
     }
 
     if (dbId == null) {
-      return null;
+      throw new BadRequestError('Inte en valid slug');
     }
 
     const article = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', dbId).first();
 
-    return article ?? null;
+    if (article == null) {
+      throw new NotFoundError('Artikeln kunde inte hittas');
+    }
+
+    return article;
   }
 
   /**
    * Returns a list of AticleModels from database WHERE params match.
    * @param params possible params are ArticleModel parts.
    */
-  async getArticles(params: Partial<DatabaseArticle>): Promise<DatabaseArticle[] | null> {
-    // Ta bort undefined, de ogillas SKARPT  av Knex.js
-
-    // Ts låter en inte indexera nycklar i params med foreach
+  async getArticles(params: Partial<DatabaseArticle>): Promise<DatabaseArticle[]> {
     const safeParams = stripObject(params);
 
     const article = await db<DatabaseArticle>(ARTICLE_TABLE).where(safeParams);
 
-    return article ?? null;
+    return article;
   }
 
   /**
    * Hämtar de senaste nyhetsartiklarna
    * @param nbr antal artiklar
    */
-  async getLatestNews(limit: number): Promise<DatabaseArticle[] | null> {
+  async getLatestNews(limit: number): Promise<DatabaseArticle[]> {
     const lastestNews = await db<DatabaseArticle>(ARTICLE_TABLE)
       .where('articleType', 'news')
       .orderBy('createdat', 'desc')
@@ -136,21 +138,19 @@ export class ArticleAPI {
 
   /**
    * Lägger till en ny artikel
+   * @param creatorUsername Användarnamn på skaparen
    * @param entry artikel som ska läggas till
    */
-  async newArticle(entry: NewArticle): Promise<DatabaseArticle> {
+  async newArticle(creatorUsername: string, entry: NewArticle): Promise<DatabaseArticle> {
     // Lägger till dagens datum som createdAt och lastUpdatedAt
     // samt sätter creator som lastUpdateBy
-
-    const { creator, ...reduced } = entry;
-
     const article: DatabaseArticle = {
-      ...reduced,
+      ...entry,
       createdAt: toUTC(new Date()),
       lastUpdatedAt: toUTC(new Date()),
       tags: entry.tags ?? [],
-      refcreator: creator,
-      reflastupdateby: creator,
+      refcreator: creatorUsername,
+      reflastupdateby: creatorUsername,
     };
 
     const res = await db<DatabaseArticle>(ARTICLE_TABLE).insert(article);
@@ -164,18 +164,33 @@ export class ArticleAPI {
   /**
    * Modifierar en artikel; notera att vissa saker inte får
    * modifieras via API:n
+   * @param id Artikelns ID
+   * @param updaterUsername Användarnamn hos den som ändrat artikeln
    * @param entry Modifiering av existerande artikel
    */
-  async modifyArticle(id: number, entry: ModifyArticle): Promise<boolean> {
-    const update: StrictObject = stripObject(entry);
-    update.body = convertMarkdownToHtml(update.body ?? '');
+  async modifyArticle(id: string, updaterUsername: string, entry: ModifyArticle): Promise<boolean> {
+    if (updaterUsername === '' || updaterUsername == null) {
+      throw new BadRequestError('Artiklar måste modifieras av inloggade användare');
+    }
 
-    // TODO: Add lastUpdatedBy using auth
+    const update: StrictObject = stripObject(entry);
+
+    // We only want to update the body if it is passed
+    if (update.body != null) {
+      update.body = convertMarkdownToHtml(update.body ?? '');
+    }
+
+    update.reflastupdateby = updaterUsername;
 
     update.lastUpdatedAt = toUTC(new Date());
 
     const res = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', id).update(update);
 
+    return res > 0;
+  }
+
+  async removeArticle(id: string): Promise<boolean> {
+    const res = await db<DatabaseArticle>(ARTICLE_TABLE).delete().where('id', id);
     return res > 0;
   }
 }

@@ -57,6 +57,7 @@ export type Article = {
   lastUpdatedAt: Scalars['DateTime'];
   lastUpdatedBy: User;
   signature: Scalars['String'];
+  /** Used in URLs, but identification is done using only tail (id) */
   slug?: Maybe<Scalars['String']>;
   tags: Array<Scalars['String']>;
   title: Scalars['String'];
@@ -268,6 +269,7 @@ export type Mutation = {
   openElection: Scalars['Boolean'];
   propose: Scalars['Boolean'];
   removeAccessResource: Scalars['Boolean'];
+  removeArticle: Scalars['Boolean'];
   removeElectables: Scalars['Boolean'];
   removeEmergencyContact: Scalars['Boolean'];
   removeFileFromMeeting: Scalars['Boolean'];
@@ -401,7 +403,7 @@ export type MutationLoginArgs = {
 
 
 export type MutationModifyArticleArgs = {
-  articleId: Scalars['Int'];
+  articleId: Scalars['ID'];
   entry: ModifyArticle;
 };
 
@@ -431,6 +433,11 @@ export type MutationProposeArgs = {
 
 export type MutationRemoveAccessResourceArgs = {
   slug: Scalars['String'];
+};
+
+
+export type MutationRemoveArticleArgs = {
+  articleId: Scalars['ID'];
 };
 
 
@@ -552,7 +559,6 @@ export type MutationValidatePasswordResetTokenArgs = {
 export type NewArticle = {
   articleType: ArticleType;
   body: Scalars['String'];
-  creator: Scalars['String'];
   signature: Scalars['String'];
   tags?: Maybe<Array<Scalars['String']>>;
   title: Scalars['String'];
@@ -1446,6 +1452,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   openElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenElectionArgs, 'electionId'>>;
   propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postname' | 'username'>>;
   removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'slug'>>;
+  removeArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveArticleArgs, 'articleId'>>;
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId'>>;
   removeEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveEmergencyContactArgs, 'id'>>;
   removeFileFromMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveFileFromMeetingArgs, 'fileType' | 'meetingId'>>;

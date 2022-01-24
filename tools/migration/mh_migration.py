@@ -41,6 +41,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from tqdm import tqdm
 
 import requests as req
 
@@ -85,7 +86,7 @@ def append_file(filename: str, year: str) -> None:
 
     if meeting_type_match == "ht":
         meeting_type = "HTM"
-        number = -1
+        number = 1
     elif meeting_type_match == "s":
         meeting_type = "SM"
         try:
@@ -97,10 +98,10 @@ def append_file(filename: str, year: str) -> None:
             sys.exit(1)
     elif meeting_type_match == "vm":
         meeting_type = "VM"
-        number = -1
+        number = 1
     elif meeting_type_match == "vt":
         meeting_type = "VTM"
-        number = -1
+        number = 1
     elif meeting_type_match == "smextra":
         meeting_type = "Extra"
         try:
@@ -133,7 +134,10 @@ def append_file(filename: str, year: str) -> None:
         meeting_docs[year] = []
 
     meeting_docs[year].append(MeetingDoc(
-        meeting_type, document_type, number, filename, year))
+        meeting_type=meeting_type,
+        document_type=document_type,
+        number=number, year=year,
+        file_path=filename))
 
 
 def check_duplicate_docs():
@@ -175,7 +179,7 @@ def migrate_to_ekorre():
 
     for year in meeting_docs.keys():
         print(f"Uploading files for year {year}")
-        for meeting_doc in meeting_docs[year]:
+        for meeting_doc in tqdm(meeting_docs[year]):
             file_id = upload_file_to_ekorre(
                 base_api_url, cookie_jar, meeting_doc.file_path, f"/moteshandlingar/{year}/")
 
