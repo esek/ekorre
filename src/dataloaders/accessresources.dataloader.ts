@@ -1,6 +1,6 @@
+import ResourcesAPI from '@api/accessresources';
 import { AccessResource, AccessResourceType } from '@generated/graphql';
 
-import ResourcesAPI from '../api/accessresources.api';
 import { sortBatchResult } from './util';
 
 // Om vi kör tester beh;ver vi denna konstant

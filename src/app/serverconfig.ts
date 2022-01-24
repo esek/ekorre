@@ -3,7 +3,7 @@ import { createDataLoader } from '@/dataloaders';
 import { Logger } from '@/logger';
 import { TokenValue } from '@/models/auth';
 import type { Context, ContextParams } from '@/models/context';
-import * as Resolvers from '@/resolvers/index';
+import * as Resolvers from '@/resolvers';
 import { batchAccessResources } from '@dataloader/accessresources';
 import { batchElectionsFunction } from '@dataloader/election';
 import { batchFilesFunction } from '@dataloader/file';

@@ -44,4 +44,6 @@ RUN chmod +x tools/initenv.sh
 RUN ./tools/initenv.sh
 
 EXPOSE 5000
-CMD ["node", "build/app.js"]
+
+# Run using tsconfig-paths to rewrite paths
+CMD ["node", "-r", "ts-node/register/transpile-only", "-r", "tsconfig-paths/register", "build/app.js"]
