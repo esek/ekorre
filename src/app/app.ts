@@ -5,10 +5,10 @@ import 'dotenv/config';
 import express from 'express';
 
 // import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
-import config from './config';
-import authRoute from './routes/auth.routes';
-import doorsRoute from './routes/door.routes';
-import fileRoute from './routes/file.routes';
+import config from '../config';
+import authRoute from '../routes/auth.routes';
+import doorsRoute from '../routes/door.routes';
+import fileRoute from '../routes/file.routes';
 import apolloServerConfig from './serverconfig';
 
 const { FILES, CORS } = config;
