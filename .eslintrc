@@ -19,5 +19,5 @@
         "max-classes-per-file": "off",
         "@typescript-eslint/lines-between-class-members": "off"
     },
-    "ignorePatterns": "src/**/*.generated.ts"
+    "ignorePatterns": "src/models/generated/*"
 }

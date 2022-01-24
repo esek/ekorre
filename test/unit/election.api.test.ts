@@ -1,13 +1,13 @@
 import { ELECTABLE_TABLE, ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE } from '@/api/constants';
-import { ElectionAPI } from '@/api/election.api';
 import db from '@/api/knex';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/RequestErrors';
+import { ElectionAPI } from '@api/election';
 import {
   DatabaseElectable,
   DatabaseElection,
   DatabaseNomination,
   DatabaseProposal,
-} from '@/models/db/election';
+} from '@db/election';
 import { NominationAnswer } from '@generated/graphql';
 
 const api = new ElectionAPI();

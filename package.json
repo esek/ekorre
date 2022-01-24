@@ -93,7 +93,6 @@
     "supertest": "^6.2.1",
     "ts-jest": "^27.0.5",
     "tsconfig-paths": "^3.12.0",
-    "tsconfig-paths-jest": "^0.0.1",
     "tscpaths": "^0.0.9"
   }
 }

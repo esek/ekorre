@@ -1,5 +1,5 @@
-const tsconfig = require('./tsconfig.json');
-const moduleNameMapper = require('tsconfig-paths-jest')(tsconfig);
+const { compilerOptions } = require('./tsconfig.json');
+const { pathsToModuleNameMapper } = require('ts-jest');
 
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
@@ -11,7 +11,7 @@ module.exports = {
   maxWorkers: '50%',
   // Alla JS, JSX, TS, TSX-filer i src, men inte models, genererad kod
   // eller resolvers
-  collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '!src/**/*.{d,generated}.ts'],
+  collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '!src/**/*.{d}.ts', '!src/models/generated/*'], // Ignore .d and generated files
   setupFiles: ['dotenv/config'], // Så jest kommer åt .env
-  moduleNameMapper,
+  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>' }),
 };

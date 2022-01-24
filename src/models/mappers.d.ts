@@ -6,7 +6,7 @@
  *
  * Får du trots detta konstiga fel, kontrollera så att
  * 1) Du importerat alla relevanta typer (dvs. inga `any`)
- * 2) `graphql.generated.ts` ser bra ut
+ * 2) `generated/graphql.ts` ser bra ut
  */
 import {
   AccessResource,
