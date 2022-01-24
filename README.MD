@@ -7,7 +7,6 @@ skriven i TypeScript.
 
 Kort och gott:
 ```bash
-# Gå till tools-mappen
 # för linux och troligen mac
 sh tools/init.sh
 
@@ -15,19 +14,6 @@ sh tools/init.sh
 cmd tools/init.bat
 ```
 
-## Att använda ekorre i andra projekt (funktionella användare)
-
-`ekorre` är sättet att komma åt sektionens databas, och är med det sättet även fler projekt än
-`ekollon` (eee.esek.se) kommer åt viktiga funktioner. För att ett annat projekt ska komma åt data
-utan en inloggad användare (t.ex. i en backend) behöver de en _funktionell användare_. En funktionell 
-är en `User` där `funcUser` är satt till `true`. En funktionell användares `Username` ska alltid börja med `funcUser_` följt av vilket projekt
-den är kopplad till.
-
-Eftersom funktionella användare ofta behöver många rättigheter ska lösenord till dessa vara så långa
-som möjligt, och helst helt slumpmässiga.
-
-Självklart får funktionella användare endast existera på backenden, långt ifrån användaren. Det är alltså __totalförbjudet__ att skicka användaruppgifter till funktionella användare till frontend. Istället ska i de fallen
-användarens egen inlogg användas.
 ### Avanacerad start/förklaringar
 
 Det behövs en databas och konfiguration för att starta servern.
@@ -38,11 +24,19 @@ sqlite3 -init src/sql/init.sql <databasnamn> .exit
 ```
 
 (du behöver installera [sqlite3](https://www.sqlite.org/download.html). Det är även
-rekommenderat att ha en databashanterare t.ex. [dbeaver](https://dbeaver.io/). För få merga sin funktion måste `init.sql` vara uppdaterad med din sql kod.)
+rekommenderat att ha en databashanterare t.ex. [dbeaver](https://dbeaver.io/). För få merga sin funktion måste `init.sql` vara uppdaterad med din SQL-kod.)
 
 Därefter kopiera `.env.example.dev` till `.env` och ange
 filnamnet på databasen vid `DB_FILE` fältet.
-`.env` filen innehåller konfigurationsvariabler till servern.
+`.env` filen innehåller konfigurationsvariabler till servern
+
+Du kan alternativt bara köra
+
+```
+./tools/initenv.sh
+```
+
+förutsatt att du kör något UNIX-liknande (Linux/MacOS).
 
 Därefter behöver du installera alla npm-paket med hjälp av
 ```
@@ -50,9 +44,11 @@ npm install
 ```
 
 och för att starta utvecklingservern så skriver du:
-```c
-npm run dev // Kompilera kontiuerligt och öppna för debugger
+
 ```
+npm run dev # Kompilera kontiuerligt och öppna för debugger
+```
+
 PS: För att stänga av servern trycker du CTRL+c
 
 ## Hur utvecklar jag?
@@ -80,6 +76,8 @@ src
 ├── resolvers
 │   ├── index.ts
 │   └── <modul>.resolver.ts
+├── reducers
+│   └── <modul>.reducer.ts
 ├── schemas
 │   └── <modul>.graphql
 └── sql
@@ -99,7 +97,7 @@ Det är rekomenderat att du bekantar dig lite med de verktyg som används:
 
 * [Typescript](https://www.typescriptlang.org/)
 * [GraphQL](https://graphql.org/)
-* [Knex.js](http://knexjs.org)
+* [Knex.js](http://knexjs.org) (vilket egentligen är SQL)
 * [graphql-codegen](https://graphql-code-generator.com/)
 * [apollo-server](https://www.apollographql.com/docs/apollo-server/)*
 * [graphql-tools](https://www.graphql-tools.com/docs/introduction/)*
@@ -143,8 +141,58 @@ ovanför typen.
 
 ### SEMVER
 
-Versionshantering följer [semantic versioning](https://semver.org/spec/v2.0.0.html) specificationen. Detta är viktigt eftersom releases
-ska taggas med semver för att kunna automatiskt deployas.
+Versionshantering följer [semantic versioning](https://semver.org/spec/v2.0.0.html) specificationen. Detta är viktigt eftersom releases ska taggas med semver för att kunna automatiskt deployas.
+
+### CHANGELOG
+
+Parallellt med `SEMVER` (som ska uppdateras i `package.json`) skrivs även förändringar ner i `CHANGELOG.MD`. Detta för att
+hålla reda på vad som förändrats, och för att ha en lättläst historik över projektet (vilket är kul!). `git`-historik är
+*inte* en ersättning till en bra CHANGELOG! Kolla in [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) för mer info.
+
+### Typiskt arbetsflöde
+
+När du utvecklar en modul ser det troligen ut på följande sätt.
+
+1. Du har en idé om vad man ska kunna göra och ungefär hur det ska fungera
+2. Du skapar en eller flera `SQL`-tabeller och lägger till i `src/sql/`. Du ser till att tabellen
+finns i både `init.sql` och en separat fil, för att andra enkelt ska kunna lägga till tabell(erna).
+3. Du skapar ett nytt GraphQL-schema i `src/schemas`
+4. Du skapar databastyper, t.ex. `DatabaseAmazingFeature` som representerar hur datan lagras i databasen
+5. Du skapar en ny API i `src/api/`, som bara har i uppgift att prata med din nya SQL
+6. Du inser att du inte kan få all information ur SQL och skapar en mapper-typ i `src/models/mappers.d.ts`, t.ex. `AmazingFeatureResponse`
+7. Du skapar en reducer som omvandlar `DatabaseAmazingFeature` till `AmazingFeatureResponse`
+8. Du skapar en resolver i `src/resolvers/`. Funktionerna där använder din API och returnerar t.ex. `AmazingFeatureResponse`
+9. Du lägger till resolver-metoder för att omvandla `AmazingFeatureResponse` till `AmazingFeature`, t.ex. om `AmazingFeature` innehåller `User`-objekt. `AmazingFeatureAPI` kan inte själv lösa dessa, så resolvern använder `ctx.userDataLoader` för att omvandla
+`AmazingFeatureResponse`s halvfärdiga `User`-objekt till fullvärdiga (detta görs automatiskt om resolvern har rätt fält/metoder!)
+10. Du kan behöva skapa en ny `DataLoader` för att undvika *n + 1*-problemet.
+11. Du skriver enhetstester i `src/test/unit/` för din nya API och reducer, och integrationstester i `test/integration` för din resolver
+12. Du uppdaterar `CHANGELOG.MD` med din nya uppdatering, och ändrar samtidigt versionsnummret i `package.json`!
+13. Du ber om code review i GitLab på din nya MR!
+
+Detta kan tyckas vara många steg, men det finns gott om färdiga exempel. Dessutom finns det gott om hjälpfunktioner, och många problem man kan tänkas finns lösta nånstans! Försök att följa de konventioner som finns, i design, namngiving och förväntade
+returvärden. API:n är mycket enklare att använda om man är konsekvent!
+
+# Testning
+
+För att dels garantera att det som utvecklas gör det vi vill, och dessutom att koden fungerar som den ska, använder `ekorre`
+automatisk testning. Testerna hittas i `test/` och baseras på testningsramverket `jest`. Genom lite lek med GitLab CI
+trackas code coverage (alltså hur stor del av koden som körs i tester) på GitLab. Högt coverage garanterar inte att saker
+fungerar som de ska, men utan något coverage famlar man helt i blinda. Det är nästan krav att ny kod även kommer med tester.
+Hur ska du annars kunna bevisa att din kod gör det du säger?
+
+# Att använda ekorre i andra projekt (funktionella användare)
+
+`ekorre` är sättet att komma åt sektionens databas, och är med det sättet även fler projekt än
+`efterphest` (eee.esek.se) kommer åt viktiga funktioner. För att ett annat projekt ska komma åt data
+utan en inloggad användare (t.ex. i en backend) behöver de en _funktionell användare_. En funktionell 
+är en `User` där `funcUser` är satt till `true`. En funktionell användares `Username` ska alltid börja med `funcUser_` följt av vilket projekt den är kopplad till.
+
+Eftersom funktionella användare ofta behöver många rättigheter ska lösenord till dessa vara så långa
+som möjligt, och helst helt slumpmässiga.
+
+Självklart får funktionella användare endast existera på backenden, långt ifrån användaren. Det är alltså __totalförbjudet__ att skicka användaruppgifter till funktionella användare till frontend. Istället ska i de fallen
+användarens egen inlogg användas.
+
 # Docker
 
 Det finns en gitlab-ci pipeline som kommer bygga docker bilder med hjälp av Dockerfile.

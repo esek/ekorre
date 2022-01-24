@@ -1,7 +1,7 @@
 # Routes
 
-En samling av HTTP Rest endpoints för att hantera olika typer av requests.
-I dagsläget används det endast för filuppladdning eftersom GraphQL inte har någon bra lösning för det.
+En samling av HTTP Rest endpoints för att hantera olika typer av requests. Dessa är generellt för klyddiga att lösa i
+GraphQL.
 
 ## Files
 Denna filen innehåller alla endpoints för filhantering i REST:
@@ -12,7 +12,6 @@ Både `/upload` och `/*` prefixas av en endpoint som kan sättas av en miljövar
 
 ### Uppladdning
 För att ladda upp en fil gör man ett [`POST`](https://en.wikipedia.org/wiki/POST_(HTTP)) anrop mot endpointen `/upload`.
-
 
 Denna endpointen tar emot en [`multipart/form-data`](https://developer.mozilla.org/en-US/docs/Web/API/FormData) formaterad body.
 
