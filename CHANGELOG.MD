@@ -4,6 +4,23 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2022-01-24
+
+## Ändrat
+- Flyttat `graphql.generated.ts` från `src` -> `src/models/generated/graphql.ts`
+- Path alias tillagt för:
+  - `@/` - Allting inom `src`-mappen, t.ex. `@/auth`
+  - `@api` - Alla apier, t.ex. `@api/file`
+  - `@resolver` - Alla resolvers
+  - `@db` - Alla databas-modeller
+  - `@generated` - Genereade modeller i `/src/models/generated`
+  - `@dataloader` - Alla dataloaders
+  - `@route` - Alla REST Routes
+  - `@middleware` - Middlewares (måste prefixas med antingen `/rest` eller `/graphql` för att indikera vad det är för middleware)
+  - `@service` - Servicar
+  - `@test` - Filer inom `/test`-mappen
+- Jest använder `ts-jest` för att resolva aliasen ovan
+
 ## [0.9.0] - 2022-01-17
 
 ### Tillagt
