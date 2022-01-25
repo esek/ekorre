@@ -1,11 +1,9 @@
-import { ElectionAPI } from '../api/election.api';
-import { Logger } from '../logger';
-import { ElectionResponse } from '../models/mappers';
-import { reduce } from '../reducers';
-import { electionReduce } from '../reducers/election/election.reducer';
-import { sortBatchResult } from './util';
+import { ElectionResponse } from '@/models/mappers';
+import { reduce } from '@/reducers';
+import { ElectionAPI } from '@api/election';
+import { electionReduce } from '@reducer/election/election';
 
-const logger = Logger.getLogger('ElectionDataLoader');
+import { sortBatchResult } from './util';
 
 // Om vi kör tester beh;ver vi denna konstant
 // för att kunna spionera på den
@@ -29,8 +27,13 @@ export const batchElectionsFunction = async (
   if (apiResponse === null) return [];
   const elections = reduce(apiResponse, electionReduce);
 
-  return sortBatchResult<string, ElectionResponse>(electionIds, 'id', elections.map((e) => {
-    // IDs i Knex, SQL och GraphQL är rätt fucky
-    return {...e, id: e.id?.toString() ?? ''};
-  }), 'Election not found');
+  return sortBatchResult<string, ElectionResponse>(
+    electionIds,
+    'id',
+    elections.map((e) => {
+      // IDs i Knex, SQL och GraphQL är rätt fucky
+      return { ...e, id: e.id?.toString() ?? '' };
+    }),
+    'Election not found',
+  );
 };

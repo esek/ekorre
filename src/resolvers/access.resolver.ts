@@ -1,7 +1,7 @@
-import { AccessAPI } from '../api/access.api';
-import { PostAPI } from '../api/post.api';
-import { Resolvers } from '../graphql.generated';
-import { accessReducer } from '../reducers/access.reducer';
+import { AccessAPI } from '@api/access';
+import { PostAPI } from '@api/post';
+import { Resolvers } from '@generated/graphql';
+import { accessReducer } from '@reducer/access';
 
 const accessApi = new AccessAPI();
 const postApi = new PostAPI();

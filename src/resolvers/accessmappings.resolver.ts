@@ -1,6 +1,6 @@
 import * as resolverObjects from '.';
-
-import { AccessAPI } from '../api/access.api';
+import { AccessResourceResponse } from '@/models/mappers';
+import { AccessAPI } from '@api/access';
 import {
   AccessMapping,
   AvailableResolver,
@@ -8,8 +8,7 @@ import {
   QueryResolvers,
   Resolvers,
   ResolverType,
-} from '../graphql.generated';
-import { AccessResourceResponse } from '../models/mappers';
+} from '@generated/graphql';
 
 const accessApi = new AccessAPI();
 
@@ -67,8 +66,7 @@ const accessMappingResolver: Resolvers = {
     },
     accessMappings: async (_, { type, name }) => {
       // Get all mappings
-      const mappings = await accessApi
-        .getAccessMapping(name ?? undefined, type ?? undefined);
+      const mappings = await accessApi.getAccessMapping(name ?? undefined, type ?? undefined);
 
       // Create temporary object to group mappings by resolver name
       const obj: TempMappingObject = {};

@@ -1,4 +1,4 @@
-import type { Article } from '../../graphql.generated';
+import type { Article } from '@generated/graphql';
 
 export type DatabaseArticle = Omit<Article, 'creator' | 'lastUpdatedBy' | 'slug'> & {
   refcreator: string;

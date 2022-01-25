@@ -1,10 +1,11 @@
 /* eslint-disable class-methods-use-this */
-import { BadRequestError, NotFoundError, ServerError } from '../errors/RequestErrors';
-import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '../graphql.generated';
-import { Logger } from '../logger';
-import { StrictObject } from '../models/base';
-import type { DatabasePost, DatabasePostHistory } from '../models/db/post';
-import { midnightTimestamp, stripObject } from '../util';
+import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
+import { Logger } from '@/logger';
+import { StrictObject } from '@/models/base';
+import { midnightTimestamp, stripObject } from '@/util';
+import type { DatabasePost, DatabasePostHistory } from '@db/post';
+import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '@generated/graphql';
+
 import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
 import db from './knex';
 

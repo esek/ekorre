@@ -1,7 +1,6 @@
+import AccessResourcesAPI from '@api/accessresources';
+import { AccessResourceType } from '@generated/graphql';
 import { Router } from 'express';
-
-import AccessResourcesAPI from '../api/accessresources.api';
-import { AccessResourceType } from '../graphql.generated';
 
 const doorsRoute = Router();
 const resourcesAPI = new AccessResourcesAPI();

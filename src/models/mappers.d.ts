@@ -6,20 +6,20 @@
  *
  * Får du trots detta konstiga fel, kontrollera så att
  * 1) Du importerat alla relevanta typer (dvs. inga `any`)
- * 2) `graphql.generated.ts` ser bra ut
+ * 2) `generated/graphql.ts` ser bra ut
  */
 import {
   AccessResource,
   Article,
-  File,
-  User,
-  Post,
-  Meeting,
   Election,
-  Nomination,
-  Proposal,
+  File,
   Hehe,
-} from '../graphql.generated';
+  Meeting,
+  Nomination,
+  Post,
+  Proposal,
+  User,
+} from '@generated/graphql';
 
 export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {
   creator: Partial<User>;

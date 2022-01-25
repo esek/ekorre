@@ -1,8 +1,8 @@
-import { MeetingAPI } from '../api/meeting.api';
-import type { Resolvers } from '../graphql.generated';
-import { StrictObject } from '../models/base';
-import { reduce } from '../reducers';
-import { meetingReduce } from '../reducers/meeting.reducer';
+import { StrictObject } from '@/models/base';
+import { reduce } from '@/reducers';
+import { MeetingAPI } from '@api/meeting';
+import type { Resolvers } from '@generated/graphql';
+import { meetingReduce } from '@reducer/meeting';
 
 const api = new MeetingAPI();
 

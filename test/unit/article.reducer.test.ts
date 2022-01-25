@@ -1,8 +1,8 @@
 /* eslint-disable no-multi-str */
-import { ArticleType } from '../../src/graphql.generated';
-import { DatabaseArticle } from '../../src/models/db/article';
-import { ArticleResponse } from '../../src/models/mappers';
-import { convertMarkdownToHtml, articleReducer } from '../../src/reducers/article.reducer';
+import { ArticleResponse } from '@/models/mappers';
+import { DatabaseArticle } from '@db/article';
+import { ArticleType } from '@generated/graphql';
+import { articleReducer, convertMarkdownToHtml } from '@reducer/article';
 
 const okMarkdown =
   "\

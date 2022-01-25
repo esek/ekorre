@@ -1,7 +1,6 @@
+import config from '@/config';
 import axios from 'axios';
 import { URLSearchParams } from 'url';
-
-import config from '../config';
 
 const BASE_URL = `${config.LU.CAS}/idp/profile/cas/serviceValidate`;
 

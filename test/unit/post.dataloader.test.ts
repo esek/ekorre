@@ -1,12 +1,12 @@
-import { POSTS_TABLE } from '../../src/api/constants';
-import db from '../../src/api/knex';
-import { createDataLoader, useDataLoader } from '../../src/dataloaders';
-import { batchPostsFunction, postApi } from '../../src/dataloaders/post.dataloader';
-import { NotFoundError } from '../../src/errors/RequestErrors';
-import { Post, PostType, Utskott } from '../../src/graphql.generated';
-import { DatabasePost } from '../../src/models/db/post';
-import { reduce } from '../../src/reducers';
-import { postReduce } from '../../src/reducers/post.reducer';
+import { POSTS_TABLE } from '@/api/constants';
+import db from '@/api/knex';
+import { createDataLoader, useDataLoader } from '@/dataloaders';
+import { batchPostsFunction, postApi } from '@/dataloaders/post.dataloader';
+import { NotFoundError } from '@/errors/request.errors';
+import { DatabasePost } from '@/models/db/post';
+import { reduce } from '@/reducers';
+import { postReduce } from '@/reducers/post.reducer';
+import { Post, PostType, Utskott } from '@generated/graphql';
 
 // Vi kontrollerar antal anrop till API:n
 const apiSpy = jest.spyOn(postApi, 'getMultiplePosts');

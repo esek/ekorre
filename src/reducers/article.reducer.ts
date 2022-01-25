@@ -1,9 +1,9 @@
+import { ArticleResponse } from '@/models/mappers';
+import type { DatabaseArticle } from '@db/article';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import showdown from 'showdown';
 
-import type { DatabaseArticle } from '../models/db/article';
-import { ArticleResponse } from '../models/mappers';
 import { SHOWDOWN_CONVERTER_OPTIONS } from './constants';
 
 const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);

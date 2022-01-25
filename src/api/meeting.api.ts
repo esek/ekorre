@@ -1,9 +1,10 @@
 /* eslint-disable class-methods-use-this */
-import { BadRequestError, NotFoundError, ServerError } from '../errors/RequestErrors';
-import { MeetingDocumentType, MeetingType } from '../graphql.generated';
-import { Logger } from '../logger';
-import type { DatabaseMeeting } from '../models/db/meeting';
-import { stripObject } from '../util';
+import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
+import { Logger } from '@/logger';
+import { stripObject } from '@/util';
+import type { DatabaseMeeting } from '@db/meeting';
+import { MeetingDocumentType, MeetingType } from '@generated/graphql';
+
 import { MEETING_TABLE } from './constants';
 import db from './knex';
 
@@ -126,11 +127,16 @@ export class MeetingAPI {
     }
 
     try {
-      const meetingId = (await db<DatabaseMeeting>(MEETING_TABLE).insert({
-        type,
-        number: safeNbr,
-        year: safeYear,
-      }, 'id'))[0];
+      const meetingId = (
+        await db<DatabaseMeeting>(MEETING_TABLE).insert(
+          {
+            type,
+            number: safeNbr,
+            year: safeYear,
+          },
+          'id',
+        )
+      )[0];
 
       if (meetingId == null) {
         throw new Error();

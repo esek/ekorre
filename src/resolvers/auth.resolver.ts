@@ -1,14 +1,13 @@
+import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '@/auth';
+import config from '@/config';
+import { ServerError, UnauthenticatedError } from '@/errors/request.errors';
+import type { TokenType } from '@/models/auth';
+import { reduce } from '@/reducers';
+import { UserAPI } from '@api/user';
+import { Resolvers } from '@generated/graphql';
+import { userReduce } from '@reducer/user';
+import { validateCasTicket } from '@service/cas';
 import { Response } from 'express';
-
-import { UserAPI } from '../api/user.api';
-import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '../auth';
-import config from '../config';
-import { ServerError, UnauthenticatedError } from '../errors/RequestErrors';
-import { Resolvers } from '../graphql.generated';
-import type { TokenType } from '../models/auth';
-import { reduce } from '../reducers';
-import { userReduce } from '../reducers/user.reducer';
-import { validateCasTicket } from '../services/cas.service';
 
 const api = new UserAPI();
 const { COOKIE } = config;
@@ -42,11 +41,11 @@ const authResolver: Resolvers = {
 
         const refresh = issueToken({ username }, 'refreshToken');
         const access = issueToken({ username }, 'accessToken');
-  
+
         // Attach a refresh token to the response object
         attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
         attachCookie(COOKIES.accessToken, access, 'accessToken', response);
-  
+
         return reduce(user, userReduce);
       } catch {
         throw new UnauthenticatedError('Inloggningen misslyckades');

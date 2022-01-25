@@ -1,7 +1,7 @@
-import { FileType, AccessType } from '../../src/graphql.generated';
-import { DatabaseFile } from '../../src/models/db/file';
-import { FileResponse } from '../../src/models/mappers';
-import { fileReduce } from '../../src/reducers/file.reducer';
+import { DatabaseFile } from '@/models/db/file';
+import { FileResponse } from '@/models/mappers';
+import { fileReduce } from '@/reducers/file.reducer';
+import { AccessType, FileType } from '@generated/graphql';
 
 const testDbFile: DatabaseFile = {
   id: '098f6bcd4621d373cade4e832627b4f6.txt',

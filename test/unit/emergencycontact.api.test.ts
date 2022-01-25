@@ -1,11 +1,11 @@
-import { EMERGENCY_CONTACTS_TABLE, USER_TABLE } from '../../src/api/constants';
-import EmergencyContactAPI from '../../src/api/emergencycontact.api';
-import db from '../../src/api/knex';
-import { UserAPI } from '../../src/api/user.api';
-import { NotFoundError, ServerError } from '../../src/errors/RequestErrors';
-import { EmergencyContact, EmergencyContactType, NewUser } from '../../src/graphql.generated';
-import { DatabaseEmergencyContact } from '../../src/models/db/emergencycontact';
-import { DatabaseUser } from '../../src/models/db/user';
+import { EMERGENCY_CONTACTS_TABLE, USER_TABLE } from '@/api/constants';
+import EmergencyContactAPI from '@/api/emergencycontact.api';
+import db from '@/api/knex';
+import { UserAPI } from '@/api/user.api';
+import { ServerError } from '@/errors/request.errors';
+import { DatabaseEmergencyContact } from '@/models/db/emergencycontact';
+import { DatabaseUser } from '@/models/db/user';
+import { EmergencyContact, EmergencyContactType, NewUser } from '@generated/graphql';
 
 const emergencyContactApi = new EmergencyContactAPI();
 const userApi = new UserAPI();
@@ -36,7 +36,9 @@ afterAll(async () => {
 });
 
 test('get empty emergency contacts for user', async () => {
-  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(0);
+  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(
+    0,
+  );
 });
 
 test('add emergency contact to user that exists', async () => {
@@ -88,5 +90,7 @@ test('remove emergency contact that does exist', async () => {
     emergencyContactApi.removeEmergencyContact(DUMMY_USER.username, contact.id),
   ).resolves.toBe(true);
 
-  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(0);
+  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(
+    0,
+  );
 });

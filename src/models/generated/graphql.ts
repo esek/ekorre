@@ -1,6 +1,6 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse, MeetingResponse, AccessResourceResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse } from './models/mappers';
-import type { Context } from './models/context';
+import type { ArticleResponse, FileResponse, MeetingResponse, AccessResourceResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse } from '../mappers';
+import type { Context } from '../context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;

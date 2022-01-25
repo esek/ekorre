@@ -1,4 +1,4 @@
-import { ResolverType } from '../../graphql.generated';
+import { ResolverType } from '@generated/graphql';
 
 export type DatabaseAccessMapping = {
   id: number;

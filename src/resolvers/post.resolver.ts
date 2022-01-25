@@ -1,7 +1,7 @@
-import { PostAPI } from '../api/post.api';
-import { Post, Resolvers, Utskott } from '../graphql.generated';
-import { reduce } from '../reducers';
-import { postReduce } from '../reducers/post.reducer';
+import { reduce } from '@/reducers';
+import { PostAPI } from '@api/post';
+import { Post, Resolvers, Utskott } from '@generated/graphql';
+import { postReduce } from '@reducer/post';
 
 const api = new PostAPI();
 

@@ -1,13 +1,13 @@
-import { UserAPI } from '../api/user.api';
-import { hashWithSecret, verifyToken } from '../auth';
-import { BadRequestError } from '../errors/RequestErrors';
-import type { Resolvers } from '../graphql.generated';
-import { TokenValue } from '../models/auth';
-import { reduce } from '../reducers';
-import { userReduce } from '../reducers/user.reducer';
-import { sendEmail } from '../services/email.service';
-import EWiki from '../services/wiki.service';
-import { stripObject } from '../util';
+import { hashWithSecret, verifyToken } from '@/auth';
+import { BadRequestError } from '@/errors/request.errors';
+import { TokenValue } from '@/models/auth';
+import { reduce } from '@/reducers';
+import { stripObject } from '@/util';
+import { UserAPI } from '@api/user';
+import type { Resolvers } from '@generated/graphql';
+import { userReduce } from '@reducer/user';
+import { sendEmail } from '@service/email';
+import EWiki from '@service/wiki';
 
 const api = new UserAPI();
 const wiki = new EWiki();

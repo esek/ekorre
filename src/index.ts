@@ -1,6 +1,6 @@
-import { app } from './app/app';
-import config from './config';
-import { Logger } from './logger';
+import { app } from '@/app/app';
+import config from '@/config';
+import { Logger } from '@/logger';
 
 const { PORT, HOST } = config;
 

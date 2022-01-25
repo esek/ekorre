@@ -1,6 +1,6 @@
-import { MeetingDocumentType, MeetingType } from '../graphql.generated';
-import { DatabaseMeeting } from '../models/db/meeting';
-import { MeetingResponse } from '../models/mappers';
+import { MeetingResponse } from '@/models/mappers';
+import { DatabaseMeeting } from '@db/meeting';
+import { MeetingDocumentType, MeetingType } from '@generated/graphql';
 
 // Adds leading zeroes to a number and returns as string
 const zeroPad = (num: number, places: number) => String(num).padStart(places, '0');

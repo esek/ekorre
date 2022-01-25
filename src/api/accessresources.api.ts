@@ -1,7 +1,8 @@
-import { NotFoundError, ServerError } from '../errors/RequestErrors';
-import { AccessResourceType } from '../graphql.generated';
-import { Logger } from '../logger';
-import { DatabaseAccessResource } from '../models/db/resource';
+import { NotFoundError, ServerError } from '@/errors/request.errors';
+import { Logger } from '@/logger';
+import { DatabaseAccessResource } from '@db/resource';
+import { AccessResourceType } from '@generated/graphql';
+
 import { ACCESS_RESOURCES_TABLE } from './constants';
 import db from './knex';
 

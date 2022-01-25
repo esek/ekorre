@@ -1,9 +1,8 @@
+import { COOKIES, EXPIRE_MINUTES, invalidateTokens, issueToken, verifyToken } from '@/auth';
+import config from '@/config';
+import { TokenType, TokenValue } from '@/models/auth';
+import { UserAPI } from '@api/user';
 import { CookieOptions, Router } from 'express';
-
-import { UserAPI } from '../api/user.api';
-import { COOKIES, EXPIRE_MINUTES, invalidateTokens, issueToken, verifyToken } from '../auth';
-import config from '../config';
-import { TokenType, TokenValue } from '../models/auth';
 
 const authRoute = Router();
 

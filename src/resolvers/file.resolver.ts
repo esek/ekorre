@@ -1,9 +1,9 @@
-import FileAPI from '../api/file.api';
-import { useDataLoader } from '../dataloaders';
-import { BadRequestError } from '../errors/RequestErrors';
-import { Resolvers } from '../graphql.generated';
-import { reduce } from '../reducers';
-import { fileReduce } from '../reducers/file.reducer';
+import { useDataLoader } from '@/dataloaders';
+import { BadRequestError } from '@/errors/request.errors';
+import { reduce } from '@/reducers';
+import FileAPI from '@api/file';
+import { Resolvers } from '@generated/graphql';
+import { fileReduce } from '@reducer/file';
 
 const fileApi = new FileAPI();
 

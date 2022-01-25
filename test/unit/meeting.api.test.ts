@@ -1,15 +1,10 @@
-import { FILE_TABLE, MEETING_TABLE } from '../../src/api/constants';
-import db from '../../src/api/knex';
-import { MeetingAPI } from '../../src/api/meeting.api';
-import { BadRequestError, NotFoundError, ServerError } from '../../src/errors/RequestErrors';
-import {
-  AccessType,
-  FileType,
-  MeetingDocumentType,
-  MeetingType,
-} from '../../src/graphql.generated';
-import { DatabaseFile } from '../../src/models/db/file';
-import { DatabaseMeeting } from '../../src/models/db/meeting';
+import { FILE_TABLE, MEETING_TABLE } from '@/api/constants';
+import db from '@/api/knex';
+import { MeetingAPI } from '@/api/meeting.api';
+import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
+import { DatabaseFile } from '@/models/db/file';
+import { DatabaseMeeting } from '@/models/db/meeting';
+import { AccessType, FileType, MeetingDocumentType, MeetingType } from '@generated/graphql';
 
 const api = new MeetingAPI();
 
