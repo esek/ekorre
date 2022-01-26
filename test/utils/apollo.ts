@@ -5,7 +5,12 @@ interface IApolloServerConfig {
   username?: string;
 }
 
-export const getApolloServer = ({ username = 'aa0000bb-s' }: IApolloServerConfig = {}) => {
+/**
+ * Creates an apolloserver
+ * If passed, a specific username will be used for the `getUsername` context so that login is not required all the time
+ * @param Apolloconfig
+ */
+export const getApolloServer = ({ username }: IApolloServerConfig = {}) => {
   const apolloServer = new ApolloServer({
     ...apolloServerConfig,
     context: (props) => {

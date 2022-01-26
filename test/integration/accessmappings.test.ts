@@ -1,13 +1,13 @@
 import { AccessAPI } from '@api/access';
-import { ResolverType } from '@generated/graphql';
+import { AccessMapping, AccessResource, AvailableResolver, ResolverType } from '@generated/graphql';
 import { getApolloServer } from '@test/utils/apollo';
 
 const apolloServer = getApolloServer();
 
 const accessApi = new AccessAPI();
 
-const ME_RESOLVER = { name: 'me', type: ResolverType.Query };
-const LOGIN_RESOLVER = { name: 'login', type: ResolverType.Mutation };
+const ME_RESOLVER: AvailableResolver = { name: 'me', type: ResolverType.Query };
+const LOGIN_RESOLVER: AvailableResolver = { name: 'login', type: ResolverType.Mutation };
 
 describe('resolvers', () => {
   const RESOLVERS_QUERY = `
@@ -159,7 +159,7 @@ describe('mappings', () => {
       variables: ME_RESOLVER,
     });
 
-    return existing.data?.accessMappings;
+    return existing.data?.accessMappings as AccessMapping[];
   };
 
   it('can set resolver mappings', async () => {
@@ -185,10 +185,10 @@ describe('mappings', () => {
         expect.objectContaining({
           resolver: ME_RESOLVER,
           resources: expect.arrayContaining([
-            expect.objectContaining({
+            {
               slug: 'super-admin',
-            }),
-          ]),
+            },
+          ]) as AccessResource[],
         }),
       ]),
     );
