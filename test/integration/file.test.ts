@@ -1,13 +1,12 @@
 import { FILE_TABLE } from '@/api/constants';
 import db from '@/api/knex';
 import { app } from '@/app/app';
-import apolloServerConfig from '@/app/serverconfig';
 import { COOKIES, issueToken } from '@/auth';
 import config from '@/config';
 import FileAPI from '@api/file';
 import { DatabaseFile } from '@db/file';
 import { AccessType, File as GqlFile, FileType } from '@generated/graphql';
-import { ApolloServer } from 'apollo-server-express';
+import { getApolloServer } from '@test/utils/apollo';
 import axios from 'axios';
 import { createWriteStream, ReadStream, rmSync } from 'fs';
 import { resolve } from 'path';
@@ -178,19 +177,7 @@ describe('uploading files', () => {
 });
 
 describe('fetching files', () => {
-  const apolloServer = new ApolloServer({
-    ...apolloServerConfig,
-    context: (props) => {
-      if (typeof apolloServerConfig.context === 'function') {
-        return {
-          ...(apolloServerConfig.context(props) as Record<string, unknown>),
-          getUsername: () => TEST_USERNAME,
-        };
-      }
-
-      return {};
-    },
-  });
+  const apolloServer = getApolloServer({ username: TEST_USERNAME });
 
   const TEST_FOLDER_NAME = 'test-folder';
 
