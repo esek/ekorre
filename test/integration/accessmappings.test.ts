@@ -108,15 +108,6 @@ describe('resolvers', () => {
 });
 
 describe('mappings', () => {
-  const checkExisting = async () => {
-    const existing = await apolloServer.executeOperation({
-      query: ACCESS_MAPPINGS_QUERY,
-      variables: ME_RESOLVER,
-    });
-
-    return existing.data?.accessMappings as AccessMapping[];
-  };
-
   beforeAll(() => {
     accessApi.setAccessMappings('logout', ResolverType.Mutation, ['super-admin']);
   });
@@ -145,6 +136,15 @@ describe('mappings', () => {
 			setResolverMappings(name: $name, type: $type, slugs: $slugs) 
 		}
 	`;
+
+  const checkExisting = async () => {
+    const existing = await apolloServer.executeOperation({
+      query: ACCESS_MAPPINGS_QUERY,
+      variables: ME_RESOLVER,
+    });
+
+    return existing.data?.accessMappings as AccessMapping[];
+  };
 
   it('can get access mappings', async () => {
     const resp = await apolloServer.executeOperation({
