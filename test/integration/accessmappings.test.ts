@@ -46,7 +46,11 @@ describe('resolvers', () => {
     expect(resp.data).toBeDefined();
     expect(resp.data?.resolvers).toEqual(expect.arrayContaining([ME_RESOLVER]));
     expect(resp.data?.resolvers).toEqual(
-      expect.not.arrayContaining([expect.objectContaining({ type: ResolverType.Mutation })]),
+      expect.not.arrayContaining([
+        expect.objectContaining({
+          type: ResolverType.Mutation,
+        }),
+      ]),
     ); // should not have any mutation
   });
 
