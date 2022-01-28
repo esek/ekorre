@@ -1,5 +1,5 @@
 ARG NODE_VERSION=16-alpine
-ARG PROJECT=efterphest
+ARG PROJECT=ekorre
 ARG WORKING_DIR=/srv/app
 
 ##
@@ -42,6 +42,8 @@ RUN apk update
 RUN apk add sqlite
 RUN chmod +x tools/initenv.sh
 RUN ./tools/initenv.sh
+
+LABEL project=$PROJECT
 
 EXPOSE 3001
 

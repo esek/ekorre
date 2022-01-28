@@ -106,7 +106,7 @@ tests:
     - echo "Removing $DEPLOY_NAME from project $PROJECT_NAME"
     - docker stop $DEPLOY_NAME 2> /dev/null || true
     - docker rm --force $DEPLOY_NAME 2> /dev/null || true
-    - docker image prune -f --filter "label=project=$PROJECT_NAME"
+    - docker image prune
 
 .deploy:
   script:
