@@ -164,7 +164,6 @@ stop review:
   environment:
     name: "review/$DEPLOY_NAME"
     action: stop
-  needs: ['docker build', 'tests']
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: never
