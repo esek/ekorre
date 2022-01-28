@@ -91,29 +91,87 @@ tests:
     paths:
       - .npm/
 
+.pre_deploy:
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker pull $CI_REGISTRY_IMAGE:$IMAGE_TAG
+
+.clean:
+  script:
+    # Remove old container
+    - docker stop $DEPLOY_NAME 2> /dev/null || true
+    - docker rm --force $DEPLOY_NAME 2> /dev/null || true
+    - docker image prune -f --filter "label=project=$PROJECT_NAME"
+
+.deploy:
+  script:
+    - docker run
+      --name $DEPLOY_NAME
+      --env ALLOWED_ORIGINS=$ALLOWED_ORIGINS
+      --env COOKIE_DOMAIN=esek.se
+      --network traefik
+      -d $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
+
 deploy image:
   variables:
     DEPLOY_URL: "ekorre.esek.se"
   stage: deploy
   extends: .remote_docker
   script:
-    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker pull $CI_REGISTRY_IMAGE:latest
-    
-    # Remove old container
-    - docker stop $PROJECT_NAME 2> /dev/null || true
-    - docker rm --force $PROJECT_NAME 2> /dev/null || true
-    - docker image prune -f --filter "label=project=$PROJECT_NAME"
-    
+    - !reference [.clean, script]
+    - !reference [.pre_deploy, script]
     - docker run
-      --name $PROJECT_NAME
-      --env ALLOWED_ORIGINS=https://efterphest.esek.se
+      --name $DEPLOY_NAME
+      --env ALLOWED_ORIGINS=$ALLOWED_ORIGINS
       --env COOKIE_DOMAIN=esek.se
+      --network traefik
       --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`$DEPLOY_URL\`)"
-      -d $CI_REGISTRY_IMAGE:latest
+      -d $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
   environment:
     name: production
     url: $DEPLOY_URL
   only:
     - main
   needs: ['docker build', 'tests']
+
+deploy review:
+  variables:
+    DEPLOY_NAME: "$PROJECT_NAME-$CI_COMMIT_REF_SLUG"
+    IMAGE_TAG: $CI_COMMIT_BRANCH
+  stage: deploy
+  extends: .remote_docker
+  script:
+    - !reference [.clean, script]
+    - !reference [.pre_deploy, script]
+    - !reference [.deploy, script]
+  environment:
+    name: "review/$DEPLOY_NAME"
+    url: "https://$DEPLOY_NAME.esek.se"
+    on_stop: 'stop review'
+  needs: ['docker build', 'tests']
+  rule:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - if: $CI_MERGE_REQUEST_ID
+    - if: $CI_COMMIT_BRANCH
+
+stop review:
+  variables:
+    DEPLOY_NAME: "$PROJECT_NAME-$CI_COMMIT_REF_SLUG"
+  stage: deploy
+  extends: .remote_docker
+  script:
+    - echo "Removing deploy for $DEPLOY_NAME"
+    - !reference [.clean, script]
+  environment:
+    name: "review/$DEPLOY_NAME"
+    action: stop
+  needs: ['docker build', 'tests']
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: never
+    - if: $CI_MERGE_REQUEST_ID
+      when: manual
+    - if: $CI_COMMIT_BRANCH
+      when: manual
+
