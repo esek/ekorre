@@ -60,6 +60,8 @@ lint:
   script:
     - npx eslint src
     - npx eslint test
+  rules:
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) || $CI_MERGE_REQUEST_ID
   cache:
     key: $CI_COMMIT_REF_SLUG
     paths:
@@ -84,7 +86,6 @@ tests:
     - npm run test:regression
   rules:
     - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) || $CI_MERGE_REQUEST_ID
-    - if: $CI_COMMIT_BRANCH
   artifacts:
     paths:
       - coverage
@@ -137,12 +138,12 @@ deploy image:
     name: production
     url: "$DEPLOY_NAME.ekorre.se"
   needs: ['docker build', 'tests']
-  only:
-    - main
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 deploy review:
   variables:
-    DEPLOY_NAME: "$PROJECT_NAME-$CI_COMMIT_REF_SLUG"
+    DEPLOY_NAME: $PROJECT_NAME-$CI_COMMIT_REF_SLUG
     IMAGE_TAG: $CI_COMMIT_REF_SLUG
   stage: deploy
   extends: .remote_docker
@@ -162,7 +163,7 @@ deploy review:
 
 stop review:
   variables:
-    DEPLOY_NAME: "$PROJECT_NAME-$CI_COMMIT_REF_SLUG"
+    DEPLOY_NAME: $PROJECT_NAME-$CI_COMMIT_REF_SLUG
   stage: deploy
   extends: .remote_docker
   script:
