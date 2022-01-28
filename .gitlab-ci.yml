@@ -8,6 +8,7 @@ image: docker:latest
 
 variables:
   NODE_VERSION: 16-alpine
+  DEPLOY_NAME: $PROJECT_NAME-$CI_COMMIT_REF_SLUG
 
 stages:
   - test
@@ -136,14 +137,13 @@ deploy image:
       -d $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
   environment:
     name: production
-    url: "$DEPLOY_NAME.ekorre.se"
+    url: "ekorre.esek.se"
   needs: ['docker build', 'tests']
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 deploy review:
   variables:
-    DEPLOY_NAME: $PROJECT_NAME-$CI_COMMIT_REF_SLUG
     IMAGE_TAG: $CI_COMMIT_REF_SLUG
   stage: deploy
   extends: .remote_docker
@@ -162,8 +162,6 @@ deploy review:
     - if: $CI_MERGE_REQUEST_ID
 
 stop review:
-  variables:
-    DEPLOY_NAME: $PROJECT_NAME-$CI_COMMIT_REF_SLUG
   stage: deploy
   extends: .remote_docker
   script:
