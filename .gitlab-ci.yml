@@ -8,7 +8,6 @@ image: docker:latest
 
 variables:
   NODE_VERSION: 16-alpine
-  DEPLOY_NAME: $PROJECT_NAME-$CI_COMMIT_REF_SLUG
 
 stages:
   - test
@@ -145,6 +144,7 @@ deploy image:
 deploy review:
   variables:
     IMAGE_TAG: $CI_COMMIT_REF_SLUG
+    DEPLOY_NAME: $PROJECT_NAME-$CI_COMMIT_REF_SLUG
   stage: deploy
   extends: .remote_docker
   script:
@@ -152,8 +152,8 @@ deploy review:
     - !reference [.pre_deploy, script]
     - !reference [.deploy, script]
   environment:
-    name: "review/$DEPLOY_NAME"
-    url: "https://$DEPLOY_NAME.esek.se"
+    name: "review/$PROJECT_NAME-$CI_COMMIT_REF_SLUG"
+    url: "https://$PROJECT_NAME-$CI_COMMIT_REF_SLUG.esek.se"
     on_stop: 'stop review'
   needs: ['docker build', 'tests']
   rules:
@@ -162,13 +162,16 @@ deploy review:
     - if: $CI_MERGE_REQUEST_ID
 
 stop review:
+  variables:
+    DEPLOY_NAME: $PROJECT_NAME-$CI_COMMIT_REF_SLUG
+  stage: deploy
   stage: deploy
   extends: .remote_docker
   script:
     - echo "Removing deploy for $DEPLOY_NAME"
     - !reference [.clean, script]
   environment:
-    name: "review/$DEPLOY_NAME"
+    name: "review/$PROJECT_NAME-$CI_COMMIT_REF_SLUG"
     action: stop
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
