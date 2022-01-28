@@ -115,6 +115,7 @@ tests:
       --name $DEPLOY_NAME
       --env ALLOWED_ORIGINS=$ALLOWED_ORIGINS
       --env COOKIE_DOMAIN=esek.se
+      --env NODE_ENV=development
       --network traefik
       -d $CI_REGISTRY_IMAGE:$IMAGE_TAG
 
