@@ -98,7 +98,6 @@ tests:
 
 .clean:
   script:
-    # Remove old container
     - docker stop $DEPLOY_NAME 2> /dev/null || true
     - docker rm --force $DEPLOY_NAME 2> /dev/null || true
     - docker image prune -f --filter "label=project=$PROJECT_NAME"
@@ -114,7 +113,7 @@ tests:
 
 deploy image:
   variables:
-    DEPLOY_URL: "ekorre.esek.se"
+    DEPLOY_NAME: "ekorre"
   stage: deploy
   extends: .remote_docker
   script:
@@ -125,14 +124,14 @@ deploy image:
       --env ALLOWED_ORIGINS=$ALLOWED_ORIGINS
       --env COOKIE_DOMAIN=esek.se
       --network traefik
-      --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`$DEPLOY_URL\`)"
+      --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`$DEPLOY_NAME.esek.se\`)"
       -d $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
   environment:
     name: production
-    url: $DEPLOY_URL
+    url: "$DEPLOY_NAME.ekorre.se"
+  needs: ['docker build', 'tests']
   only:
     - main
-  needs: ['docker build', 'tests']
 
 deploy review:
   variables:
@@ -149,11 +148,10 @@ deploy review:
     url: "https://$DEPLOY_NAME.esek.se"
     on_stop: 'stop review'
   needs: ['docker build', 'tests']
-  rule:
+  rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: never
     - if: $CI_MERGE_REQUEST_ID
-    - if: $CI_COMMIT_BRANCH
 
 stop review:
   variables:
@@ -171,7 +169,5 @@ stop review:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: never
     - if: $CI_MERGE_REQUEST_ID
-      when: manual
-    - if: $CI_COMMIT_BRANCH
       when: manual
 
