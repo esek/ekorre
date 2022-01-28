@@ -147,7 +147,6 @@ deploy review:
     name: "review/$DEPLOY_NAME"
     url: "https://$DEPLOY_NAME.esek.se"
     on_stop: 'stop review'
-  needs: ['docker build', 'tests']
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: never
