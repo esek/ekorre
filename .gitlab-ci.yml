@@ -82,6 +82,9 @@ tests:
     - npm run test:prebuild
     - ./test/utils/test-server-startup.sh
     - npm run test:regression
+  rules:
+    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) || $CI_MERGE_REQUEST_ID
+    - if: $CI_COMMIT_BRANCH
   artifacts:
     paths:
       - coverage
