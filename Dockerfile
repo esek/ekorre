@@ -43,7 +43,7 @@ RUN apk add sqlite
 RUN chmod +x tools/initenv.sh
 RUN ./tools/initenv.sh
 
-EXPOSE 5000
+EXPOSE 3001
 
 # Run using tsconfig-paths to rewrite paths
 CMD ["node", "-r", "ts-node/register/transpile-only", "-r", "tsconfig-paths/register", "build/index.js"]
