@@ -93,27 +93,31 @@ tests:
 
 .pre_deploy:
   script:
+    - echo "Pulling image tagged $IMAGE_TAG"
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
     - docker pull $CI_REGISTRY_IMAGE:$IMAGE_TAG
 
 .clean:
   script:
+    - echo "Removing $DEPLOY_NAME from project $PROJECT_NAME"
     - docker stop $DEPLOY_NAME 2> /dev/null || true
     - docker rm --force $DEPLOY_NAME 2> /dev/null || true
     - docker image prune -f --filter "label=project=$PROJECT_NAME"
 
 .deploy:
   script:
+    - echo "Deploying $IMAGE_TAG on $DEPLOY_NAME"
     - docker run
       --name $DEPLOY_NAME
       --env ALLOWED_ORIGINS=$ALLOWED_ORIGINS
       --env COOKIE_DOMAIN=esek.se
       --network traefik
-      -d $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
+      -d $CI_REGISTRY_IMAGE:$IMAGE_TAG
 
 deploy image:
   variables:
     DEPLOY_NAME: "ekorre"
+    IMAGE_TAG: latest
   stage: deploy
   extends: .remote_docker
   script:
@@ -136,7 +140,7 @@ deploy image:
 deploy review:
   variables:
     DEPLOY_NAME: "$PROJECT_NAME-$CI_COMMIT_REF_SLUG"
-    IMAGE_TAG: $CI_COMMIT_BRANCH
+    IMAGE_TAG: $CI_COMMIT_REF_SLUG
   stage: deploy
   extends: .remote_docker
   script:
@@ -147,6 +151,7 @@ deploy review:
     name: "review/$DEPLOY_NAME"
     url: "https://$DEPLOY_NAME.esek.se"
     on_stop: 'stop review'
+  needs: ['docker build', 'tests']
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: never
