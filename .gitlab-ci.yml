@@ -134,7 +134,7 @@ deploy image:
       --env COOKIE_DOMAIN=esek.se
       --network traefik
       --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`$DEPLOY_NAME.esek.se\`)"
-      -d $CI_REGISTRY_IMAGE:$CI_COMMIT_BRANCH
+      -d $CI_REGISTRY_IMAGE
   environment:
     name: production
     url: "ekorre.esek.se"
