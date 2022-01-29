@@ -21,12 +21,17 @@ export class ElectionAPI {
    */
   async getLatestElections(
     limit?: number,
-    includeUnopened: boolean = true,
+    includeUnopened = true,
+    includeHiddenNominations = true,
   ): Promise<DatabaseElection[]> {
     const query = db<DatabaseElection>(ELECTION_TABLE).select('*').orderBy('id', 'desc');
 
     if (!includeUnopened) {
       query.whereNotNull('openedAt');
+    }
+
+    if (!includeHiddenNominations) {
+      query.where('nominationsHidden', false);
     }
 
     if (limit != null) {
