@@ -45,7 +45,7 @@ docker build:
       fi
     - docker build --build-arg "NODE_VERSION=$NODE_VERSION" --pull -t "$CI_REGISTRY_IMAGE${tag}" .
     - docker push "$CI_REGISTRY_IMAGE${tag}"
-    - docker image prune -af --filter "until=48h"
+    - docker image prune -af --filter "until=48h" 2> /dev/null || true
   # Run this job in a branch where a Dockerfile exists
   rules:
     - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) || $CI_MERGE_REQUEST_ID
@@ -107,7 +107,7 @@ tests:
     - echo "Removing $DEPLOY_NAME from project $PROJECT_NAME"
     - docker stop $DEPLOY_NAME 2> /dev/null || true
     - docker rm --force $DEPLOY_NAME 2> /dev/null || true
-    - docker image prune -f
+    - docker image prune -f 2> /dev/null || true
 
 .deploy:
   script:
@@ -179,5 +179,5 @@ stop review:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: never
     - if: $CI_MERGE_REQUEST_ID
-      when: manual
+      #when: manual
 
