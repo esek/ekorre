@@ -3,6 +3,7 @@ import config from '@/config';
 import authRoute from '@route/auth';
 import doorsRoute from '@route/door';
 import fileRoute from '@route/file';
+import healthRoute from '@route/health';
 import { ApolloServer } from 'apollo-server-express';
 import cookieparser from 'cookie-parser';
 import cors, { CorsOptions } from 'cors';
@@ -29,6 +30,8 @@ export const app = express();
 
   // Setup files endpoint for REST-file handling
   app.use(FILES.ENDPOINT, fileRoute);
+
+  app.use('/health', healthRoute);
 
   // Doors endpoint used by LU to give access
   app.use('/doors', doorsRoute);
