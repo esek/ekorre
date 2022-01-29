@@ -859,6 +859,7 @@ export type QueryLatestBoardMeetingsArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryLatestElectionsArgs = {
+  includeUnopened?: Maybe<Scalars['Boolean']>;
   limit?: Maybe<Scalars['Int']>;
 };
 

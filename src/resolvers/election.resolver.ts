@@ -16,8 +16,8 @@ const electionResolver: Resolvers = {
       ctx.electionDataLoader.prime(e.id ?? '', e);
       return e;
     },
-    latestElections: async (_, { limit }) => {
-      const e = await api.getLatestElections(limit ?? undefined);
+    latestElections: async (_, { limit, includeUnopened }) => {
+      const e = await api.getLatestElections(limit ?? undefined, includeUnopened ?? true);
       return reduce(e, electionReduce);
     },
     election: async (_, { electionId }, ctx) => {
