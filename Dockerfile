@@ -1,5 +1,5 @@
 ARG NODE_VERSION=16-alpine
-ARG PROJECT=efterphest
+ARG PROJECT=ekorre
 ARG WORKING_DIR=/srv/app
 
 ##
@@ -43,7 +43,9 @@ RUN apk add sqlite
 RUN chmod +x tools/initenv.sh
 RUN ./tools/initenv.sh
 
+LABEL project=$PROJECT
+
 EXPOSE 3001
 
 # Run using tsconfig-paths to rewrite paths
-CMD ["node", "-r", "ts-node/register/transpile-only", "-r", "tsconfig-paths/register", "build/index.js"]
+CMD ["node", "-r", "ts-node/register/transpile-only", "-r", "tsconfig-paths/register", "build/src/index.js"]
