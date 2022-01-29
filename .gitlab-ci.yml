@@ -179,5 +179,5 @@ stop review:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: never
     - if: $CI_MERGE_REQUEST_ID
-      #when: manual
+      when: manual
 
