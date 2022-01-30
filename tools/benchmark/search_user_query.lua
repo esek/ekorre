@@ -4,5 +4,5 @@
 -- Search string is `"-s"`, i.e. ending of STiL-ID
 
 wrk.method = "POST"
-wrk.body = "{\"query\":\"{\\n\\tsearchUser(search: \\\"-s\\\") {\\n    username\\n    firstName\\n    lastName\\n    class\\n  }\\n}\"}"
+wrk.body = "{\"query\":\"{ searchUser(search: \\\"-s\\\") { username firstName lastName class } }\"}"
 wrk.headers["Content-Type"] = "application/json"

@@ -21,12 +21,12 @@ och vänta på resultat! Kontrollera dock i resultatet att alla dina requests in
 För att skapa egna request behöver man köra en query genom `JSON.stringify()`. Det enklaste sättet att göra
 detta är följande:
 
-1. Designa din query i din GraphQL-sandbox (det du får när du kör `npm run dev`)
+1. Designa din query i din GraphQL-sandbox (det du får när du kör `npm run dev`), eller sno från `efterphest`
 2. Kontrollera att din query fungerar
 3. Tryck på `COPY CURL`
 4. Kopiera datan till `--data-binary` i kommandot du får, dvs. `curl ... --data-binary '<detta här!>' ...`
 5. Öppna konsolen i din webbläsare och kör
 ```js
-JSON.stringify(<det du precis kopierade>)
+JSON.stringify(/*det du precis kopierade*/).replace(/\\n|\\t/g, ' ').replace(/\s+/g, ' ');
 ```
 6. Kopiera output och klistra in som `wrk.body` i en ny Lua-fil!
