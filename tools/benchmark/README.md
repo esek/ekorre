@@ -3,6 +3,8 @@
 Detta dir innehåller skriptfiler som är tänkta att användas med `wrk` för att
 kontrollera prestanda under högt tryck för `ekorre`. För mer info, se [wrk](https://github.com/wg/wrk).
 
+Kräver att `wrk` är installerat (duh...)
+
 ## Kör test lokalt
 
 Sätt upp en normal utvecklingsmiljö för `ekorre` och kör sedan exempelvis
