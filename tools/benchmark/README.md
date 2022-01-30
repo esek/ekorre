@@ -14,7 +14,7 @@ npm run dev
 wrk -t6 -c200 -d30s -s <script_name>.lua http://localhost:8081
 ```
 
-och vänta på resultat!
+och vänta på resultat! Kontrollera dock i resultatet att alla dina requests inte returnerar icke-`2XX`/`3XX`-statuskoder. Då returnerar din request nämligen inget vettigt alls...
 
 ## Skapa fler script
 
