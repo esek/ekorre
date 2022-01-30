@@ -19,8 +19,20 @@ export class ElectionAPI {
    * @param limit Gräns på antal möten. Om null ges alla möten
    * @returns Senaste mötet som skapades
    */
-  async getLatestElections(limit?: number): Promise<DatabaseElection[]> {
+  async getLatestElections(
+    limit?: number,
+    includeUnopened = true,
+    includeHiddenNominations = true,
+  ): Promise<DatabaseElection[]> {
     const query = db<DatabaseElection>(ELECTION_TABLE).select('*').orderBy('id', 'desc');
+
+    if (!includeUnopened) {
+      query.whereNotNull('openedAt');
+    }
+
+    if (!includeHiddenNominations) {
+      query.where('nominationsHidden', false);
+    }
 
     if (limit != null) {
       query.limit(limit);
