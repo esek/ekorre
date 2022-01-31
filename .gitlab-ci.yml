@@ -131,6 +131,9 @@ deploy image:
     - docker run
       --name $DEPLOY_NAME
       --env ALLOWED_ORIGINS=$ALLOWED_ORIGINS
+      --env WIKI_USERNAME=$WIKI_USERNAME
+      --env WIKI_PASSWORD=$WIKI_PASSWORD
+      --env WIKI_BASE_URL="https://wiki.esek.se"
       --env COOKIE_DOMAIN=esek.se
       --network traefik
       --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`$DEPLOY_NAME.esek.se\`)"
