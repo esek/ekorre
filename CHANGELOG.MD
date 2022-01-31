@@ -4,14 +4,18 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.2] - 2022-01-31
+
+### Tillagt
+- Nytt sätt att benchmarka ekorre via `npm run benchmark`
 ## [0.10.1] - 2022-01-30
 
-## Tillagt
+### Tillagt
   - `latestElections` querien kan numera filtrera bort oöppnade val och val som har gömda nomineringar.
 
 ## [0.10.0] - 2022-01-24
 
-## Ändrat
+### Ändrat
 - Flyttat `graphql.generated.ts` från `src` -> `src/models/generated/graphql.ts`
 - `/src/errors/RequestErrors.ts` -> `src/errors/request.errors.ts` för enhetlighet
 - Path alias tillagt för:

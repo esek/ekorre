@@ -33,7 +33,7 @@
   "include": [
     "src/**/*.ts",
     "test/**/*.ts",
-    "benchmark/**/*.ts",
+    "tools/benchmark/**/*.ts",
     "package.json"
   ]
 }
