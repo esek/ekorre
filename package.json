@@ -17,7 +17,8 @@
     "test:prebuild": "jest test/unit test/integration",
     "test:unit": "jest test/unit",
     "test:integration": "jest test/integration",
-    "test:regression": "jest test/regression --coverage=false"
+    "test:regression": "jest test/regression --coverage=false",
+    "benchmark": "cd tools/benchmark; npm run benchmark"
   },
   "author": "Emil Blennow",
   "contributors": [
