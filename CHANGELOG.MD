@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.3] - 2022-02-01
+
+### Tillagt
+- Nytt sätt att benchmarka ekorre via `npm run benchmark`
+
 ## [0.10.2] - 2022-02-01
 
 ### Ändrat
