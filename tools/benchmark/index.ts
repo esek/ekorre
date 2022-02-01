@@ -37,6 +37,7 @@ const selectUrl = async (): Promise<string> => {
     message: 'Vilken URL vill du testa?',
     choices: [
       `http://localhost:${PORT ?? ''}`,
+      'https://testing.esek.se/api',
       'https://ekorre.esek.se',
       otherOption,
     ]
