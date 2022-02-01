@@ -125,11 +125,11 @@ const run = async () => {
 
   exec(command, (err, stdout) => {
     if (err != null) {
-      spinner.error();
+      spinner.error({ text: 'Fasen, något sket sig...' });
       console.error(err);
       console.log(`Något gick fel. Är wrk installerat, och är ${url} uppe?`);
     } else {
-      spinner.success();
+      spinner.success({ text: 'Fääääääärdig!' });
       console.log(`\n*** RESULTAT FÖR ${script} ***`);
       console.log(stdout);
     }
