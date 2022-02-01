@@ -81,6 +81,8 @@ const selectBenchmarkOptions = async () => {
 }
 
 const run = async () => {
+  console.log(`För mer information och instruktioner för att skriva egna benchmarks,\nse ${path.join(__dirname, 'README.md')}`);
+
   const script = await selectScript();
   const url = await selectUrl();
 
