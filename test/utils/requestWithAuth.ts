@@ -14,18 +14,18 @@ const r = request(app);
  * @param accessToken Accesstoken, as issued by `issueToken()`
  * @returns Body of the response
  */
-const requestWithAuth = async (
+const requestWithAuth = async <T = unknown>(
   query: string,
   variables: StrictObject,
   accessToken: string,
-): Promise<GraphqlResponseData> => {
+): Promise<GraphqlResponseData<T>> => {
   const res = await r
     .post('/')
     .set('Accept', 'application/json')
     .set('Cookie', [`${COOKIES.accessToken}=${accessToken}`])
     .send({ query, variables });
 
-  return res?.body as GraphqlResponseData;
+  return res?.body as GraphqlResponseData<T>;
 };
 
 export default requestWithAuth;

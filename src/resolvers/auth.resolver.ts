@@ -47,7 +47,8 @@ const authResolver: Resolvers = {
         attachCookie(COOKIES.accessToken, access, 'accessToken', response);
 
         return reduce(user, userReduce);
-      } catch {
+      } catch (err) {
+        console.log(err);
         throw new UnauthenticatedError('Inloggningen misslyckades');
       }
     },
