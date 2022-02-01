@@ -6,6 +6,7 @@
 import { exec } from 'child_process';
 import fs from 'fs';
 import inquirer from 'inquirer';
+import { createSpinner } from 'nanospinner';
 import path from 'path';
 import 'dotenv/config';
 
@@ -36,7 +37,6 @@ const selectUrl = async (): Promise<string> => {
     message: 'Vilken URL vill du testa?',
     choices: [
       `http://localhost:${PORT ?? ''}`,
-      'https://testing.esek.se/api',
       'https://ekorre.esek.se',
       otherOption,
     ]
@@ -103,15 +103,33 @@ const run = async () => {
   } else {
     const { threads, openConnections, testTime } = await selectBenchmarkOptions();
     command = `wrk -t${threads} -c${openConnections} -d${testTime} -s ${SCRIPTS_FOLDER}/${script} ${url}`
-  }
+  };
 
-  console.log('\nKör benchmark...');
+  console.log(); // For nice empty line
+  const spinner = createSpinner('Kör benchmark...', {
+    interval: 80,
+    frames: [
+    " 🧑⚽️       🧑 ",
+    "🧑  ⚽️      🧑 ",
+    "🧑   ⚽️     🧑 ",
+    "🧑    ⚽️    🧑 ",
+    "🧑     ⚽️   🧑 ",
+    "🧑      ⚽️  🧑 ",
+    "🧑       ⚽️🧑  ",
+    "🧑      ⚽️  🧑 ",
+    "🧑     ⚽️   🧑 ",
+    "🧑    ⚽️    🧑 ",
+    "🧑   ⚽️     🧑 ",
+    "🧑  ⚽️      🧑 "
+  ]}).start();
 
   exec(command, (err, stdout) => {
     if (err != null) {
+      spinner.error();
       console.error(err);
       console.log(`Något gick fel. Är wrk installerat, och är ${url} uppe?`);
     } else {
+      spinner.success();
       console.log(`\n*** RESULTAT FÖR ${script} ***`);
       console.log(stdout);
     }
