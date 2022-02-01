@@ -82,7 +82,7 @@ const selectBenchmarkOptions = async () => {
 }
 
 const run = async () => {
-  console.log(`För mer information och instruktioner för att skriva egna benchmarks,\nse ${path.join(__dirname, 'README.md')}`);
+  console.log(`För mer information och instruktioner för att skriva egna benchmarks,\nse ${path.join(__dirname, 'README.md')}\n`);
 
   const script = await selectScript();
   const url = await selectUrl();
@@ -106,13 +106,14 @@ const run = async () => {
     command = `wrk -t${threads} -c${openConnections} -d${testTime} -s ${SCRIPTS_FOLDER}/${script} ${url}`
   }
 
-  console.log('Kör benchmark...');
+  console.log('\nKör benchmark...');
 
   exec(command, (err, stdout) => {
     if (err != null) {
       console.error(err);
       console.log(`Något gick fel. Är wrk installerat, och är ${url} uppe?`);
     } else {
+      console.log(`\n*** RESULTAT FÖR ${script} ***`);
       console.log(stdout);
     }
   });
