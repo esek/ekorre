@@ -78,7 +78,7 @@ describe('refresh', () => {
 
     expect(res.status).toBe(200);
 
-    const { 'set-cookie': setCookie } = res.headers;
+    const { 'set-cookie': setCookie } = res.headers as { 'set-cookie': string[] };
 
     expect(setCookie).toEqual(
       expect.arrayContaining([
