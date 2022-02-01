@@ -14,13 +14,9 @@ export function userReduce(user: DatabaseUser): User {
   const { passwordSalt, passwordHash, ...reduced } = user;
   const photoUrl = user.photoUrl ? `${config.FILES.ENDPOINT}${user.photoUrl}` : null;
 
-  // If isFuncUser is undefined, assume false
-  const isFuncUser = user.isFuncUser ?? false;
-
   const u = {
     ...reduced,
     photoUrl,
-    isFuncUser,
     access,
     posts: [],
     userPostHistory: [],
