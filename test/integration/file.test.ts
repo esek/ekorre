@@ -7,6 +7,7 @@ import FileAPI from '@api/file';
 import { DatabaseFile } from '@db/file';
 import { AccessType, File as GqlFile, FileType } from '@generated/graphql';
 import { getApolloServer } from '@test/utils/apollo';
+import requestWithAuth from '@test/utils/requestWithAuth';
 import axios from 'axios';
 import { createWriteStream, ReadStream, rmSync } from 'fs';
 import { resolve } from 'path';
@@ -177,7 +178,8 @@ describe('uploading files', () => {
 });
 
 describe('fetching files', () => {
-  const apolloServer = getApolloServer({ username: TEST_USERNAME });
+  const apolloServer = getApolloServer();
+  const accessToken = issueToken({ username: TEST_USERNAME }, 'accessToken');
 
   const TEST_FOLDER_NAME = 'test-folder';
 
@@ -354,14 +356,11 @@ describe('fetching files', () => {
   });
 
   it('can create a folder', async () => {
-    const res = await apolloServer.executeOperation({
-      query: CREATE_FOLDER_MUTATION,
-
-      variables: {
-        name: TEST_FOLDER_NAME,
-        path: '',
-      },
-    });
+    const res = await requestWithAuth(
+      CREATE_FOLDER_MUTATION,
+      { name: TEST_FOLDER_NAME, path: '' },
+      accessToken,
+    );
 
     expect(res.errors).toBeUndefined();
     expect(res.data?.createFolder).toBe(true);
