@@ -4,7 +4,6 @@ import { Resolvers } from '@generated/graphql';
 import { accessReducer } from '@reducer/access';
 
 const accessApi = new AccessAPI();
-const postApi = new PostAPI();
 
 const accessresolver: Resolvers = {
   Query: {
