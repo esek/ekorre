@@ -1,5 +1,4 @@
 import { AccessAPI } from '@api/access';
-import { PostAPI } from '@api/post';
 import { Resolvers } from '@generated/graphql';
 import { accessReducer } from '@reducer/access';
 
