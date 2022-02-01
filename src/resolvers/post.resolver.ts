@@ -19,7 +19,7 @@ const postresolver: Resolvers = {
       }
       return reduce(await api.getPosts(), postReduce);
     },
-    groupedPosts: async (_, { includeInactive }) => {
+    groupedPosts: async (_, { includeInactive }, ctx) => {
       // Get all posts
       const allPosts = await api.getPosts(undefined, includeInactive);
 
@@ -31,8 +31,12 @@ const postresolver: Resolvers = {
           temp[post.utskott] = [];
         }
 
+        const reducedPost = reduce(post, postReduce);
+
+        ctx.postDataLoader.prime(reducedPost.postname, reducedPost);
+
         // Add the posts to the object by the utskott
-        temp[post.utskott].push(reduce(post, postReduce));
+        temp[post.utskott].push(reducedPost);
       });
 
       // map the objects to an array again
