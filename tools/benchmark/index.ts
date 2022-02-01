@@ -6,7 +6,6 @@
 import { exec } from 'child_process';
 import fs from 'fs';
 import inquirer from 'inquirer';
-import yargs from 'yargs';
 import path from 'path';
 import 'dotenv/config';
 

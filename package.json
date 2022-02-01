@@ -95,7 +95,6 @@
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2",
     "supertest": "^6.2.1",
-    "ts-jest": "^27.0.5",
-    "yargs": "^17.3.1"
+    "ts-jest": "^27.0.5"
   }
 }
