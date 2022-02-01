@@ -10,6 +10,12 @@ Kräver att `wrk` är installerat (duh...)
 Sätt upp en normal utvecklingsmiljö för `ekorre` och kör sedan exempelvis
 
 ```
+npm run benchmark
+```
+
+alternativt
+
+```
 npm run dev
 wrk -t6 -c200 -d30s -s <script_name>.lua http://localhost:8081
 ```
