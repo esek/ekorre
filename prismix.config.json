@@ -1,0 +1,11 @@
+{
+  "mixers": [
+    {
+        "input": [
+            "./prisma/common.prisma",
+            "./prisma/modules/*/**.prisma"
+        ],
+        "output": "prisma/schema.prisma"
+    }
+  ]
+}
