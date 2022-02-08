@@ -1,13 +1,13 @@
 import { DatabaseJoinedAccess } from '@api/access';
-import { Access, AccessResourceType } from '@generated/graphql';
+import { Access as GqlAccess, AccessResourceType } from '@generated/graphql';
 
 /**
  * Reduce database access arrays to an access object
  * @param dbAccess database access
  * @returns access object
  */
-export const accessReducer = (dbAccess: DatabaseJoinedAccess[]): Access => {
-  const initial: Access = {
+export const accessReducer = (dbAccess: DatabaseJoinedAccess[]): GqlAccess => {
+  const initial: GqlAccess = {
     doors: [],
     web: [],
   };
