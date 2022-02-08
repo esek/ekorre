@@ -1,0 +1,19 @@
+model Election {
+	id Int @id @default(autoincrement())
+
+	creator User @relation(fields: [refCreator], references: [username])
+	refCreator String
+
+	createdAt DateTime @default(now())
+	openedAt DateTime?
+	closedAt DateTime?
+
+	open Boolean @default(false)
+	nominationsHidden Boolean @default(false)
+}
+
+model User {
+	username String @id
+
+	elections Election[]
+}

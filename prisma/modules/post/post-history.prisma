@@ -1,0 +1,26 @@
+
+model PostHistory {
+	id Int @id @default(autoincrement())
+	
+	user User @relation(fields: [refUser], references: [username])
+	refUser String
+
+	post Post @relation(fields: [refPost], references: [slug])
+	refPost String
+
+	startDate DateTime
+	endDate DateTime
+
+}
+
+model User {
+	username String @id
+
+	postHistory PostHistory[]
+}
+
+model Post {
+	slug String @id
+	
+	history PostHistory[]
+}

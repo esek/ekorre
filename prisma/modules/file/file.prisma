@@ -1,0 +1,17 @@
+model File {
+	id String @id @default(cuid())
+	name String
+	type String
+	folderLocation String
+	accessType String
+	createdAt DateTime @default(now())
+
+	uploader User @relation(fields: [refUploader], references: [username])
+	refUploader String
+}
+
+model User {
+	username String @id
+
+	files File[]
+}

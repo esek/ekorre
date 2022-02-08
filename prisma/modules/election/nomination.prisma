@@ -1,0 +1,29 @@
+model Nomination {
+	id Int @id @default(autoincrement())
+
+	response NominationResponse @default(PENDING)
+
+	user User @relation(fields: [refUser], references: [username])
+	refUser String
+
+	post Post @relation(fields: [refPost], references: [slug])
+	refPost String
+}
+
+enum NominationResponse {
+	ACCEPTED
+	REJECTED
+	PENDING
+}
+
+model User {
+	username String @id
+
+	nominations Nomination[]
+}
+
+model Post {
+	slug String @id
+
+	nominations Nomination[]
+}

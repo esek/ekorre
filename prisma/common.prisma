@@ -1,0 +1,10 @@
+
+datasource pg {
+  url      = env("DB_HOST")
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"] 
+}

@@ -1,0 +1,21 @@
+model PostAccess {
+	id Int @id @default(autoincrement())
+	
+	post Post @relation(fields: [refPost], references: [slug])
+	refPost String
+
+	resource AccessResource @relation(fields: [refResource], references: [slug])
+	refResource String 
+}
+
+model Post {
+	slug String @id
+
+	access PostAccess[]
+}
+
+model AccessResource {
+	slug String @id
+
+	postAccess PostAccess[]
+}

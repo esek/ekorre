@@ -1,0 +1,21 @@
+model Post {
+	slug String @id
+	postname String
+	utskott String
+	description String
+
+	spots Int
+	postType String
+
+	active Boolean @default(true)
+	interviewRequired Boolean @default(false)
+
+	@@unique([postname, utskott]) // a utskott can only have a single post with the same name
+}
+
+enum PostType {
+	U
+	EA
+	N
+	EXACT_N
+}

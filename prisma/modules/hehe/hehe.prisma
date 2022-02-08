@@ -1,0 +1,28 @@
+model HeHe {
+	id Int @id @default(autoincrement())
+
+	number Int
+	year Int
+
+	uploadedAt DateTime @default(now())
+
+	uploader User @relation(fields: [refUploader], references: [username])
+	refUploader String
+
+	file File @relation(fields: [refFile], references: [id])
+	refFile String
+
+	@@unique([number, year])
+}
+
+model User {
+	username String @id
+
+	heHes HeHe[]
+}
+
+model File {
+	id String @id @default(cuid())
+
+	heHe HeHe?
+}

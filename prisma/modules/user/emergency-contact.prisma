@@ -1,0 +1,17 @@
+model EmergencyContact {
+	id Int @id @default(autoincrement())
+
+	name String
+	type String
+	phone String
+
+	user User @relation(fields: [refUser], references: [username])
+	refUser String
+
+}
+
+model User {
+	username String @id
+
+	emergencyContacts EmergencyContact[]
+}

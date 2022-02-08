@@ -1,0 +1,25 @@
+
+model User {
+	username String @id
+
+	passwordHash String
+	passwordSalt String
+
+	firstName String
+	lastName String
+	class String
+
+	photoUrl String?
+	
+	email String @unique
+	phone String?
+
+	address String?
+	zipCode String?
+
+	website String?
+
+	dateJoined DateTime @default(now())
+	
+	isFuncUser Boolean @default(false)
+}

@@ -1,0 +1,21 @@
+model Electable {
+	id Int @id @default(autoincrement())
+
+	post Post @relation(fields: [refPost], references: [slug])
+	refPost String
+
+	election Election @relation(fields: [refElection], references: [id])
+	refElection Int
+}
+
+model Post {
+	slug String @id
+
+	electables Electable[]
+}
+
+model Election {
+	id Int @id @default(autoincrement())
+
+	electables Electable[]
+}

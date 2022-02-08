@@ -1,0 +1,21 @@
+model Proposal {
+	id Int @id @default(autoincrement())
+
+	user User @relation(fields: [refUser], references: [username])
+	refUser String
+
+	election Election @relation(fields: [refElection], references: [id])
+	refElection Int
+}
+
+model User {
+	username String @id
+
+	proposals Proposal[]
+}
+
+model Election {
+	id Int @id @default(autoincrement())
+
+	proposals Proposal[]
+}

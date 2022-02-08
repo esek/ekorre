@@ -1,0 +1,21 @@
+model IndividualAccess {
+	id Int @id @default(autoincrement())
+	
+	user User @relation(fields: [refUser], references: [username])
+	refUser String
+
+	resource AccessResource @relation(fields: [refResource], references: [slug])
+	refResource String
+}
+
+model User {
+	username String @id
+
+	access IndividualAccess[]
+}
+
+model AccessResource {
+	slug String @id
+
+	userAccess IndividualAccess[]
+}

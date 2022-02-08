@@ -1,0 +1,41 @@
+model Meeting {
+	id Int @id @default(autoincrement())
+
+	type MeetingType
+	number Int
+	year Int
+
+	summons File @relation(name: "MeetingSummons", fields: [refSummons], references: [id])
+	refSummons String
+
+	documents File @relation(name: "MeetingDocuments", fields: [refDocuments], references: [id])
+	refDocuments String
+
+	lateDocuments File @relation(name: "MeetingLateDocuments",fields: [refLateDocuments], references: [id])
+	refLateDocuments String
+
+	protocol File @relation(name: "MeetingProtocols", fields: [refProtocol], references: [id])
+	refProtocol String
+
+	appendix File @relation(name: "MeetingAppendix", fields: [refAppendix], references: [id])
+	refAppendix String
+
+	@@unique([type, number, year])
+}
+
+enum MeetingType {
+	SM
+	VM
+	VTM
+	HTM
+}
+
+model File {
+	id String @id @default(cuid())
+
+	meetingSummons Meeting? @relation("MeetingSummons")
+	meetingDocuments Meeting? @relation("MeetingDocuments")
+	meetingLateDocuments Meeting? @relation("MeetingLateDocuments")
+	meetingProtocols Meeting? @relation("MeetingProtocols")
+	meetingAppendix Meeting? @relation("MeetingAppendix")
+}

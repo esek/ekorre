@@ -1,0 +1,27 @@
+model Article {
+	id Int @id @default(autoincrement())
+	slug String @unique // a slug must be unique so it can be accessed like: /articles/my-slug
+
+	title String
+	body String
+	signature String
+	
+	type ArticleType @default(INFORMATION)
+
+	createdAt DateTime @default(now())
+	updatedAt DateTime @default(now())
+
+	author User @relation(fields: [refAuthor], references: [username])
+	refAuthor String 
+}
+
+enum ArticleType {
+	NEWS
+	INFORMATION
+}
+
+
+model User {
+	username String @id
+	articles Article[]
+}

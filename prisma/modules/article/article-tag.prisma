@@ -1,0 +1,15 @@
+
+model ArticleTag {
+	id Int @id @default(autoincrement())
+	tag String @unique
+	createdAt DateTime @default(now())
+
+	article Article @relation(fields: [refArticle], references: [id])
+	refArticle Int
+}
+
+model Article {
+	id Int @id @default(autoincrement())
+
+	tags ArticleTag[]
+}

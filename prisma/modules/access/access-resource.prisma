@@ -1,0 +1,11 @@
+model AccessResource {
+	slug String @id
+	name String
+	description String
+	resouceType ResourceType
+}
+
+enum ResourceType {
+	DOOR
+	WEB
+}
