@@ -57,3 +57,12 @@ export const notEmpty = <ValueType>(value: ValueType | null | undefined): value 
   if (value === null || value === undefined) return false;
   return true;
 };
+
+export const slugify = (str: string) =>
+  str
+    .toLowerCase()
+    .replace(/[åä]/g, 'a')
+    .replace(/[ö]/g, 'o')
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');

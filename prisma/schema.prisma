@@ -198,13 +198,13 @@ model Meeting {
 }
 
 model PostHistory {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(name: "PostHistoryToUser", fields: [refUser], references: [username])
+  id        Int       @id @default(autoincrement())
+  user      User      @relation(name: "PostHistoryToUser", fields: [refUser], references: [username])
   refUser   String
-  post      Post     @relation(name: "PostToPostHistory", fields: [refPost], references: [slug])
+  post      Post      @relation(name: "PostToPostHistory", fields: [refPost], references: [slug])
   refPost   String
   startDate DateTime
-  endDate   DateTime
+  endDate   DateTime?
 }
 
 model EmergencyContact {

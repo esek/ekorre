@@ -9,7 +9,7 @@ model PostHistory {
 	refPost String
 
 	startDate DateTime
-	endDate DateTime
+	endDate DateTime?
 
 }
 
