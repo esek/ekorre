@@ -234,7 +234,7 @@ export class MeetingAPI {
    * @param fileType The type of file for the meeting
    * @param content Either `fileId` or null if the file is to be removed, or undefined if checking if document exists
    */
-  createDataForMeetingType(fileType: MeetingDocumentType, content: string | null | undefined) {
+  private createDataForMeetingType(fileType: MeetingDocumentType, content: string | null | undefined) {
     let data = {};
     switch (fileType) {
       case MeetingDocumentType.Summons:
