@@ -19,9 +19,8 @@
     "test:integration": "jest test/integration",
     "test:regression": "jest test/regression --coverage=false",
     "benchmark": "ts-node tools/benchmark/index.ts",
-    "prisma:mix": "npx prismix && prisma format",
-    "prisma:generate": "npm run prisma:mix && prisma generate",
-    "prisma:migrate": "npm run prisma:mix && prisma migrate dev"
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
   },
   "author": "Emil Blennow",
   "contributors": [
