@@ -76,6 +76,14 @@ export class UserAPI {
     return u;
   }
 
+  async getNumberOfMembers(): Promise<number> {
+    const count = await db<DatabaseUser>(USER_TABLE)
+      .count<Record<string, number>>('* as count')
+      .first();
+
+    return count?.count ?? 0;
+  }
+
   async searchUser(search: string): Promise<DatabaseUser[]> {
     const users = await db<DatabaseUser>(USER_TABLE)
       .where('username', 'like', `%${search}%`)

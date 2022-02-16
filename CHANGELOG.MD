@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2022-02-16
+
+### Tillagt
+- Api för att få hur många medlemmar på som går på sektionen
+
 ## [0.10.3] - 2022-02-01
 
 ### Tillagt
