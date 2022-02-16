@@ -177,7 +177,7 @@ export type Meeting = {
   appendix?: Maybe<File>;
   /** Handlingar */
   documents?: Maybe<File>;
-  id: Scalars['ID'];
+  id: Scalars['Int'];
   lateDocuments?: Maybe<File>;
   name: Scalars['String'];
   /**
@@ -248,7 +248,7 @@ export type Mutation = {
   addEmergencyContact: Scalars['Boolean'];
   addFileToMeeting: Scalars['Boolean'];
   addHehe: Scalars['Boolean'];
-  addMeeting: Scalars['ID'];
+  addMeeting: Scalars['Int'];
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
   casCreateUser: Scalars['Boolean'];
@@ -325,9 +325,9 @@ export type MutationAddEmergencyContactArgs = {
 
 
 export type MutationAddFileToMeetingArgs = {
-  fileId: Scalars['ID'];
+  fileId: Scalars['Int'];
   fileType: MeetingDocumentType;
-  meetingId: Scalars['ID'];
+  meetingId: Scalars['Int'];
 };
 
 
@@ -454,7 +454,7 @@ export type MutationRemoveEmergencyContactArgs = {
 
 export type MutationRemoveFileFromMeetingArgs = {
   fileType: MeetingDocumentType;
-  meetingId: Scalars['ID'];
+  meetingId: Scalars['Int'];
 };
 
 
@@ -470,7 +470,7 @@ export type MutationRemoveHistoryEntryArgs = {
 
 
 export type MutationRemoveMeetingArgs = {
-  id: Scalars['ID'];
+  id: Scalars['Int'];
 };
 
 
@@ -886,7 +886,7 @@ export type QueryLatestnewsArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryMeetingArgs = {
-  id: Scalars['ID'];
+  id: Scalars['Int'];
 };
 
 
@@ -1412,7 +1412,7 @@ export type MeResolvers<ContextType = Context, ParentType extends ResolversParen
 export type MeetingResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Meeting'] = ResolversParentTypes['Meeting']> = ResolversObject<{
   appendix?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   documents?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   lateDocuments?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1431,7 +1431,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddEmergencyContactArgs, 'name' | 'phone' | 'type'>>;
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'fileId' | 'fileType' | 'meetingId'>>;
   addHehe?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddHeheArgs, 'fileId' | 'number' | 'year'>>;
-  addMeeting?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
+  addMeeting?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'postname' | 'usernames'>>;
   casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
