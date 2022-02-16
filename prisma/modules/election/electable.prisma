@@ -1,21 +1,27 @@
-model Electable {
+model PrismaElectable {
 	id Int @id @default(autoincrement())
 
-	post Post @relation(fields: [refPost], references: [slug])
-	refPost String
+	post PrismaPost @relation(fields: [refPost], references: [slug])
+	refPost String @map("ref_post")
 
-	election Election @relation(fields: [refElection], references: [id])
-	refElection Int
+	election PrismaElection @relation(fields: [refElection], references: [id])
+	refElection Int @map("ref_election")
+
+	@@map("electables")
 }
 
-model Post {
+model PrismaPost {
 	slug String @id
 
-	electables Electable[]
+	electables PrismaElectable[]
+
+	@@map("posts")
 }
 
-model Election {
+model PrismaElection {
 	id Int @id @default(autoincrement())
 
-	electables Electable[]
+	electables PrismaElectable[]
+
+	@@map("elections")
 }

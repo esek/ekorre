@@ -1,19 +1,23 @@
-model Election {
+model PrismaElection {
 	id Int @id @default(autoincrement())
 
-	creator User @relation(fields: [refCreator], references: [username])
-	refCreator String
+	creator PrismaUser @relation(fields: [refCreator], references: [username])
+	refCreator String @map("ref_creater")
 
-	createdAt DateTime @default(now())
-	openedAt DateTime?
-	closedAt DateTime?
+	createdAt DateTime @default(now()) @map("created_at")
+	openedAt DateTime? @map("opened_at")
+	closedAt DateTime? @map("closed_at")
 
 	open Boolean @default(false)
-	nominationsHidden Boolean @default(false)
+	nominationsHidden Boolean @default(false) @map("nominations_hidden")
+
+	@@map("elections")
 }
 
-model User {
+model PrismaUser {
 	username String @id
 
-	elections Election[]
+	elections PrismaElection[]
+
+	@@map("users")
 }

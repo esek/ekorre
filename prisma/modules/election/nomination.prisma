@@ -1,29 +1,37 @@
-model Nomination {
+model PrismaNomination {
 	id Int @id @default(autoincrement())
 
-	response NominationResponse @default(PENDING)
+	response PrismaNominationResponse @default(PENDING)
 
-	user User @relation(fields: [refUser], references: [username])
-	refUser String
+	user PrismaUser @relation(fields: [refUser], references: [username])
+	refUser String @map("ref_user")
 
-	post Post @relation(fields: [refPost], references: [slug])
-	refPost String
+	post PrismaPost @relation(fields: [refPost], references: [slug])
+	refPost String @map("ref_post")
+
+	@@map("nominations")
 }
 
-enum NominationResponse {
+enum PrismaNominationResponse {
 	ACCEPTED
 	REJECTED
 	PENDING
+
+	@@map("nomination_responses")
 }
 
-model User {
+model PrismaUser {
 	username String @id
 
-	nominations Nomination[]
+	nominations PrismaNomination[]
+
+	@@map("users")
 }
 
-model Post {
+model PrismaPost {
 	slug String @id
 
-	nominations Nomination[]
+	nominations PrismaNomination[]
+
+	@@map("posts")
 }
