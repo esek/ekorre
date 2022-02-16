@@ -3,11 +3,9 @@ import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.er
 import { Logger } from '@/logger';
 import { StrictObject } from '@/models/base';
 import { midnightTimestamp, slugify, stripObject } from '@/util';
-// import type { DatabasePost, DatabasePostHistory } from '@db/post';
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '@generated/graphql';
 import { PrismaPost, Prisma, PrismaPostHistory } from '@prisma/client';
 
-// import db from './knex';
 import prisma from './prisma';
 
 const logger = Logger.getLogger('PostAPI');
