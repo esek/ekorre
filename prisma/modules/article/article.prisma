@@ -1,4 +1,4 @@
-model Article {
+model PrismaArticle {
 	id Int @id @default(autoincrement())
 	slug String @unique // a slug must be unique so it can be accessed like: /articles/my-slug
 
@@ -6,22 +6,28 @@ model Article {
 	body String
 	signature String
 	
-	type ArticleType @default(INFORMATION)
+	type PrismaArticleType @default(INFORMATION)
 
-	createdAt DateTime @default(now())
-	updatedAt DateTime @default(now())
+	createdAt DateTime @default(now()) @map("created_at")
+	updatedAt DateTime @default(now()) @map("updated_at")
 
-	author User @relation(fields: [refAuthor], references: [username])
+	author PrismaUser @relation(fields: [refAuthor], references: [username])
 	refAuthor String 
+
+	@@map("articles")
 }
 
-enum ArticleType {
+enum PrismaArticleType {
 	NEWS
 	INFORMATION
+
+	@@map("article_types")
 }
 
 
-model User {
+model PrismaUser {
 	username String @id
-	articles Article[]
+	articles PrismaArticle[]
+
+	@@map("users")
 }
