@@ -1,17 +1,32 @@
-model File {
+model PrismaFile {
 	id String @id @default(cuid())
 	name String
 	type String
-	folderLocation String
-	accessType String
-	createdAt DateTime @default(now())
+	folderLocation String @map("folder_location")
 
-	uploader User @relation(fields: [refUploader], references: [username])
-	refUploader String
+	accessType PrismaAccessResource @relation(fields: [refAccessResource], references: [slug])
+	refAccessResource String @map("ref_access_resource")
+
+	createdAt DateTime @default(now()) @map("created_at")
+
+	uploader PrismaUser @relation(fields: [refUploader], references: [username])
+	refUploader String @map("ref_uploader")
+
+	@@map("files")
 }
 
-model User {
+model PrismaAccessResource {
+	slug String @id
+
+	files PrismaFile[]
+
+	@@map("access_resources")
+}
+
+model PrismaUser {
 	username String @id
 
-	files File[]
+	files PrismaFile[]
+
+	@@map("users")
 }
