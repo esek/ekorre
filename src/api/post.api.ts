@@ -109,7 +109,7 @@ export class PostAPI {
   }
 
   /**
-   * Hämta alla poster som en användare sitter på.
+   * Hämta alla poster som en användare sitter på, eller har suttit på.
    * @param username användaren
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
@@ -308,6 +308,7 @@ export class PostAPI {
   /**
    * Sätter active-statusen för en post
    * @param slug Sluggen för posten
+   * @param active Om posten ska vara markerad aktiv
    * @returns Om en uppdatering gjordes
    */
   async setPostStatus(slug: string, active: boolean): Promise<boolean> {
@@ -361,9 +362,7 @@ export class PostAPI {
 
   /**
    * Sätter slutdatumet för en användares post.
-   * @param username Användarnamn
-   * @param postname Namnet på posten
-   * @param start När personen går på posten (statiskt för en HistoryEntry)
+   * @param id ID på entriet
    * @param end När posten går av posten
    */
   async setUserPostEnd(id: number, end: Date): Promise<boolean> {
@@ -385,10 +384,7 @@ export class PostAPI {
 
   /**
    * Tar bort en `PostHistoryEntry` ur databasen.
-   * @param username Användarnamn
-   * @param postname Namnet på posten
-   * @param start När personen gick på posten
-   * @param end Om applicerbart; När personen går/gick av posten
+   * @param id ID på history entry
    */
   async removeHistoryEntry(id: number): Promise<boolean> {
     const history = await prisma.prismaPostHistory.delete({

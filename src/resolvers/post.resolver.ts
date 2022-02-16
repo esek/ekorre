@@ -54,12 +54,12 @@ const postresolver: Resolvers = {
     modifyPost: (_, { info }) => api.modifyPost(info),
     addUsersToPost: (_, { usernames, postname, start, end }) =>
       api.addUsersToPost(usernames, postname, start ?? undefined, end ?? undefined),
-    activatePost: (_, { postname }) => api.activatePost(postname),
-    deactivatePost: (_, { postname }) => api.deactivatePost(postname),
-    setUserPostEnd: (_, { username, postname, start, end }) =>
-      api.setUserPostEnd(username, postname, start, end),
-    removeHistoryEntry: (_, { username, postname, start, end }) =>
-      api.removeHistoryEntry(username, postname, start, end ?? undefined),
+    activatePost: (_, { slug }) => api.setPostStatus(slug, true),
+    deactivatePost: (_, { slug }) => api.setPostStatus(slug, false),
+    setUserPostEnd: (_, { id, end }) =>
+      api.setUserPostEnd(id, end),
+    removeHistoryEntry: (_, { id }) =>
+      api.removeHistoryEntry(id),
   },
   User: {
     posts: async ({ username }, _, ctx) => {
@@ -75,24 +75,24 @@ const postresolver: Resolvers = {
       return reduced;
     },
     userPostHistory: async ({ username }, _, ctx) => {
-      const entries = await api.getHistoryEntriesForUser(username);
+      const entries = await api.getHistoryEntries({ refUser: username });
 
       // Vi omvandlar från DatabaseHistoryEntry user history entries
       // genom att hämta ut Posts. Vi använder dataloader
       // då en Post kan hämtas ut flera gånger
       const a = Promise.all(
         entries.map(async (e) => {
-          const post = await ctx.postDataLoader.load(e.refpost);
+          const post = await ctx.postDataLoader.load(e.refPost);
 
           // Konvertera timestamp till datum
-          const { start, end, ...reduced } = e;
+          const { startDate, endDate, ...reduced } = e;
           let safeEnd: Date | null = null;
 
-          if (end != null) {
-            safeEnd = new Date(end);
+          if (endDate != null) {
+            safeEnd = new Date(endDate);
           }
 
-          return { ...reduced, post, start: new Date(start), end: safeEnd };
+          return { ...reduced, post, start: new Date(startDate), end: safeEnd };
         }),
       );
       return a;
@@ -100,21 +100,21 @@ const postresolver: Resolvers = {
   },
   Post: {
     history: async ({ postname }, _, ctx) => {
-      const entries = await api.getHistoryEntries(postname);
+      const entries = await api.getHistoryEntries({ refPost: postname });
 
       const a = Promise.all(
         entries.map(async (e) => {
-          const holder = await ctx.userDataLoader.load(e.refuser);
+          const holder = await ctx.userDataLoader.load(e.refUser);
 
           // Konvertera timestamp till datum
-          const { start, end, refpost } = e;
+          const { startDate, endDate, refPost } = e;
           let safeEnd: Date | null = null;
 
-          if (end != null) {
-            safeEnd = new Date(end);
+          if (endDate != null) {
+            safeEnd = new Date(endDate);
           }
 
-          return { postname: refpost, holder, start: new Date(start), end: safeEnd };
+          return { postname: refPost, holder, start: new Date(startDate), end: safeEnd };
         }),
       );
       return a;

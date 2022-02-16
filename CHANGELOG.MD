@@ -15,6 +15,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `knex` är inte längre dependency
 
 ### Ändrat
+- I flertalet graphql-schemas är olika ID:n bytade från `ID!` till `Int!`. Detta då `ID!` blir till typen `string` i TypeScript, men vi använder det som `AUTO_INCREMENT` i databasen och `number` i TS
 
 ## [0.11.0] - 2022-02-16
 

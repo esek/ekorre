@@ -11,9 +11,11 @@ if (config.DEV) {
   // Logs how long a query takes to run (only in dev)
   prisma.$use(async (params, next) => {
     const before = Date.now();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const result = await next(params);
     const after = Date.now();
-    console.log(`Query ${params.model}.${params.action} took ${after - before}ms`);
+    console.log(`Query ${params.model ?? ''}.${params.action} took ${after - before}ms`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result;
   });
 }
@@ -23,7 +25,9 @@ if (config.DEV) {
 */
 prisma.$use(async (params, next) => {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const result = await next(params);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result;
   } catch (err) {
     logger.error(err);

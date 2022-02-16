@@ -1,13 +1,13 @@
-import { DatabasePost } from '@db/post';
-import { Access, Post as GqlPost } from '@generated/graphql';
+import { Access, Post } from '@generated/graphql';
+import { PrismaPost } from '@prisma/client';
 
-export function postReduce(post: DatabasePost): GqlPost {
+export function postReduce(post: PrismaPost): Post {
   const access: Access = {
     doors: [],
     web: [],
   };
 
-  const p: GqlPost = {
+  const p: Post = {
     ...post,
     access,
     history: [], // Det här fylls på senare
