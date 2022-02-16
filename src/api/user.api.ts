@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import { Logger } from '@/logger';
 import type { NewUser } from '@generated/graphql';
-import { PasswordReset, User } from '@prisma/client';
+import { PrismaPasswordReset, PrismaUser } from '@prisma/client';
 import crypto from 'crypto';
 
 import {
@@ -45,8 +45,8 @@ export class UserAPI {
   /**
    * Returnerar alla lagarade användare.
    */
-  async getAllUsers(): Promise<User[]> {
-    const users = await prisma.user.findMany();
+  async getAllUsers(): Promise<PrismaUser[]> {
+    const users = await prisma.prismaUser.findMany();
     return users;
   }
 
@@ -54,8 +54,8 @@ export class UserAPI {
    * Hämta en användare.
    * @param username det unika användarnamnet
    */
-  async getSingleUser(username: string): Promise<User> {
-    const u = await prisma.user.findFirst({
+  async getSingleUser(username: string): Promise<PrismaUser> {
+    const u = await prisma.prismaUser.findFirst({
       where: {
         username,
       },
@@ -72,8 +72,8 @@ export class UserAPI {
    * Hämta flera användare.
    * @param usernames användarnamnen
    */
-  async getMultipleUsers(usernames: string[]): Promise<User[]> {
-    const u = await prisma.user.findMany({
+  async getMultipleUsers(usernames: string[]): Promise<PrismaUser[]> {
+    const u = await prisma.prismaUser.findMany({
       where: {
         username: {
           in: usernames,
@@ -84,8 +84,8 @@ export class UserAPI {
     return u;
   }
 
-  async searchUser(search: string): Promise<User[]> {
-    const users = await prisma.user.findMany({
+  async searchUser(search: string): Promise<PrismaUser[]> {
+    const users = await prisma.prismaUser.findMany({
       where: {
         username: {
           search,
@@ -107,19 +107,18 @@ export class UserAPI {
   }
 
   async getNumberOfMembers(): Promise<number> {
-    const count = await prisma.user.count();
+    const count = await prisma.prismaUser.count();
 
     return count;
   }
-
 
   /**
    * Kontrollera ifall inloggningen är korrekt och returnera användaren.
    * @param username användarnamnet
    * @param password lösenordet i plaintext
    */
-  async loginUser(username: string, password: string): Promise<User> {
-    const user = await prisma.user.findFirst({
+  async loginUser(username: string, password: string): Promise<PrismaUser> {
+    const user = await prisma.prismaUser.findFirst({
       where: {
         username,
       },
@@ -147,7 +146,7 @@ export class UserAPI {
     oldPassword: string,
     newPassword: string,
   ): Promise<boolean> {
-    const user = await prisma.user.findFirst({
+    const user = await prisma.prismaUser.findFirst({
       where: {
         username,
       },
@@ -161,7 +160,7 @@ export class UserAPI {
       throw new UnauthenticatedError('Lösenordet stämmer ej översens med det som redan är sparat');
     }
 
-    const updated = await prisma.user.update({
+    const updated = await prisma.prismaUser.update({
       where: {
         username,
       },
@@ -180,7 +179,7 @@ export class UserAPI {
    * Skapa en ny anvädare. TODO: FIX, ska inte returnera User typ...
    * @param input den nya användarinformationen
    */
-  async createUser(input: NewUser): Promise<User> {
+  async createUser(input: NewUser): Promise<PrismaUser> {
     // Utgå från att det inte är en funktionell användare om inget annat ges
     const isFuncUser = !!input.isFuncUser; // Trick för att konvertera till bool
 
@@ -212,7 +211,7 @@ export class UserAPI {
       email = 'no-reply@esek.se';
     }
 
-    const createdUser = await prisma.user.create({
+    const createdUser = await prisma.prismaUser.create({
       data: {
         ...inputReduced,
         username,
@@ -229,12 +228,12 @@ export class UserAPI {
     return createdUser;
   }
 
-  async updateUser(username: string, partial: Partial<User>): Promise<boolean> {
+  async updateUser(username: string, partial: Partial<PrismaUser>): Promise<boolean> {
     if (partial.username) {
       throw new BadRequestError('Användarnamn kan inte uppdateras');
     }
 
-    const res = await prisma.user.update({
+    const res = await prisma.prismaUser.update({
       where: {
         username,
       },
@@ -247,7 +246,7 @@ export class UserAPI {
   async requestPasswordReset(username: string): Promise<string> {
     const token = crypto.randomBytes(24).toString('hex');
 
-    const res = await prisma.passwordReset.create({
+    const res = await prisma.prismaPasswordReset.create({
       data: {
         token,
         refUser: username,
@@ -259,7 +258,7 @@ export class UserAPI {
       throw new ServerError('Något gick fel');
     }
 
-    await prisma.passwordReset.deleteMany({
+    await prisma.prismaPasswordReset.deleteMany({
       where: {
         refUser: username,
         AND: {
@@ -274,7 +273,7 @@ export class UserAPI {
   }
 
   async validateResetPasswordToken(username: string, token: string): Promise<boolean> {
-    const row = await prisma.passwordReset.findFirst({
+    const row = await prisma.prismaPasswordReset.findFirst({
       where: {
         refUser: username,
         AND: {
@@ -287,7 +286,7 @@ export class UserAPI {
   }
 
   async resetPassword(token: string, username: string, password: string): Promise<void> {
-    const row = await prisma.passwordReset.findFirst({
+    const row = await prisma.prismaPasswordReset.findFirst({
       where: {
         refUser: username,
         AND: {
@@ -306,14 +305,14 @@ export class UserAPI {
     await this.updateUser(username, { ...passwordData });
 
     // Delete row in password table
-    await prisma.passwordReset.delete({
+    await prisma.prismaPasswordReset.delete({
       where: {
         token,
       },
     });
   }
 
-  private validateResetPasswordRow(row: PasswordReset | null): boolean {
+  private validateResetPasswordRow(row: PrismaPasswordReset | null): boolean {
     if (!row) {
       return false;
     }

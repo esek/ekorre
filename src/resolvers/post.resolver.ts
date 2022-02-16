@@ -5,7 +5,6 @@ import { postReduce } from '@reducer/post';
 
 const api = new PostAPI();
 
-// TODO: Lägg till auth
 const postresolver: Resolvers = {
   Query: {
     post: async (_, { name }) => {
