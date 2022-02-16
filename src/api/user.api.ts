@@ -106,6 +106,13 @@ export class UserAPI {
     return users;
   }
 
+  async getNumberOfMembers(): Promise<number> {
+    const count = await prisma.user.count();
+
+    return count;
+  }
+
+
   /**
    * Kontrollera ifall inloggningen är korrekt och returnera användaren.
    * @param username användarnamnet
