@@ -1,25 +1,27 @@
 
-model User {
+model PrismaUser {
 	username String @id
 
-	passwordHash String
-	passwordSalt String
+	passwordHash String @map("password_hash")
+	passwordSalt String @map("password_salt")
 
-	firstName String
-	lastName String
+	firstName String @map("first_name")
+	lastName String @map("last_name")
 	class String
 
-	photoUrl String?
+	photoUrl String? @map("photo_url")
 	
 	email String @unique
 	phone String?
 
 	address String?
-	zipCode String?
+	zipCode String? @map("zip_code")
 
 	website String?
 
-	dateJoined DateTime @default(now())
+	dateJoined DateTime @default(now()) @map("date_joined")
 	
-	isFuncUser Boolean @default(false)
+	isFuncUser Boolean @default(false) @map("is_func_user")
+
+	@@map("users")
 }

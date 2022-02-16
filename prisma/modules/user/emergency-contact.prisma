@@ -1,17 +1,20 @@
-model EmergencyContact {
+model PrismaEmergencyContact {
 	id Int @id @default(autoincrement())
 
 	name String
 	type String
 	phone String
 
-	user User @relation(fields: [refUser], references: [username])
-	refUser String
+	user PrismaUser @relation(fields: [refUser], references: [username])
+	refUser String @map("ref_user")
 
+	@@map("emergency_contacts")
 }
 
-model User {
+model PrismaUser {
 	username String @id
 
-	emergencyContacts EmergencyContact[]
+	emergencyContacts PrismaEmergencyContact[]
+
+	@@map("users")
 }
