@@ -1,41 +1,47 @@
-model Meeting {
+model PrismaMeeting {
 	id Int @id @default(autoincrement())
 
-	type MeetingType
+	type PrismaMeetingType
 	number Int
 	year Int
 
-	summons File @relation(name: "MeetingSummons", fields: [refSummons], references: [id])
-	refSummons String
+	summons PrismaFile @relation(name: "MeetingSummons", fields: [refSummons], references: [id])
+	refSummons String @map("ref_summons")
 
-	documents File @relation(name: "MeetingDocuments", fields: [refDocuments], references: [id])
-	refDocuments String
+	documents PrismaFile @relation(name: "MeetingDocuments", fields: [refDocuments], references: [id])
+	refDocuments String @map("ref_documents")
 
-	lateDocuments File @relation(name: "MeetingLateDocuments",fields: [refLateDocuments], references: [id])
-	refLateDocuments String
+	lateDocuments PrismaFile @relation(name: "MeetingLateDocuments",fields: [refLateDocuments], references: [id])
+	refLateDocuments String @map("ref_late_documents")
 
-	protocol File @relation(name: "MeetingProtocols", fields: [refProtocol], references: [id])
-	refProtocol String
+	protocol PrismaFile @relation(name: "MeetingProtocols", fields: [refProtocol], references: [id])
+	refProtocol String @map("ref_protocol")
 
-	appendix File @relation(name: "MeetingAppendix", fields: [refAppendix], references: [id])
-	refAppendix String
+	appendix PrismaFile @relation(name: "MeetingAppendix", fields: [refAppendix], references: [id])
+	refAppendix String @map("ref_appendix")
 
 	@@unique([type, number, year])
+
+	@@map("meetings")
 }
 
-enum MeetingType {
+enum PrismaMeetingType {
 	SM
 	VM
 	VTM
 	HTM
+
+	@@map("meeting_types")
 }
 
-model File {
+model PrismaFile {
 	id String @id @default(cuid())
 
-	meetingSummons Meeting? @relation("MeetingSummons")
-	meetingDocuments Meeting? @relation("MeetingDocuments")
-	meetingLateDocuments Meeting? @relation("MeetingLateDocuments")
-	meetingProtocols Meeting? @relation("MeetingProtocols")
-	meetingAppendix Meeting? @relation("MeetingAppendix")
+	meetingSummons PrismaMeeting? @relation("MeetingSummons")
+	meetingDocuments PrismaMeeting? @relation("MeetingDocuments")
+	meetingLateDocuments PrismaMeeting? @relation("MeetingLateDocuments")
+	meetingProtocols PrismaMeeting? @relation("MeetingProtocols")
+	meetingAppendix PrismaMeeting? @relation("MeetingAppendix")
+
+	@@map("files")
 }
