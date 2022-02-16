@@ -13,6 +13,7 @@ stages:
   - test
   - build
   - deploy
+  - teardown
 
 .remote_docker:
   variables:
@@ -44,7 +45,7 @@ docker build:
       fi
     - docker build --build-arg "NODE_VERSION=$NODE_VERSION" --pull -t "$CI_REGISTRY_IMAGE${tag}" .
     - docker push "$CI_REGISTRY_IMAGE${tag}"
-    - docker image prune -af --filter "until=48h"
+    - docker image prune -af --filter "until=48h" 2> /dev/null || true
   # Run this job in a branch where a Dockerfile exists
   rules:
     - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) || $CI_MERGE_REQUEST_ID
@@ -106,7 +107,7 @@ tests:
     - echo "Removing $DEPLOY_NAME from project $PROJECT_NAME"
     - docker stop $DEPLOY_NAME 2> /dev/null || true
     - docker rm --force $DEPLOY_NAME 2> /dev/null || true
-    - docker image prune -f
+    - docker image prune -f 2> /dev/null || true
 
 .deploy:
   script:
@@ -168,8 +169,7 @@ deploy review:
 stop review:
   variables:
     DEPLOY_NAME: $PROJECT_NAME-$CI_COMMIT_REF_SLUG
-  stage: deploy
-  stage: deploy
+  stage: teardown
   extends: .remote_docker
   script:
     - echo "Removing deploy for $DEPLOY_NAME"
@@ -177,6 +177,7 @@ stop review:
   environment:
     name: "review/$PROJECT_NAME-$CI_COMMIT_REF_SLUG"
     action: stop
+  needs: ['deploy review']
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: never
