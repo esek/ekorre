@@ -5,7 +5,7 @@ model PrismaAccessMapping {
 	name String
 	page String? // if type = "page" we want to specify the base URL of the page
 
-	resource PrismaAccessResources @relation(fields: [refResource], references: [slug])
+	resource PrismaAccessResource @relation(fields: [refResource], references: [slug])
 	refResource String @map("ref_resource")
 
 	@@unique([type, name, page])
@@ -20,7 +20,7 @@ enum PrismaAccessMappingType {
 	@@map("access_mapping_types")
 }
 
-model PrismaAccessResources {
+model PrismaAccessResource {
 	slug String @id
 
 	mappings PrismaAccessMapping[]

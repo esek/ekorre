@@ -9,7 +9,7 @@ model PrismaHeHe {
   uploader    PrismaUser @relation(fields: [refUploader], references: [username])
   refUploader String     @map("ref_uploader")
 
-  file    File   @relation(fields: [refFile], references: [id])
+  file    PrismaFile   @relation(fields: [refFile], references: [id])
   refFile String @unique @map("ref_file")
 
 
@@ -25,7 +25,7 @@ model PrismaUser {
   @@map("users")
 }
 
-model File {
+model PrismaFile {
   id String @id @default(cuid())
 
   heHe PrismaHeHe?
