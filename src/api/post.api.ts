@@ -5,7 +5,7 @@ import { StrictObject } from '@/models/base';
 import { midnightTimestamp, slugify, stripObject } from '@/util';
 // import type { DatabasePost, DatabasePostHistory } from '@db/post';
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '@generated/graphql';
-import { Post, PostHistory, Prisma } from '@prisma/client';
+import { PrismaPost, Prisma, PrismaPostHistory } from '@prisma/client';
 
 // import db from './knex';
 import prisma from './prisma';
@@ -53,14 +53,14 @@ export class PostAPI {
    * @param limit Begränsning av antal poster
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getPosts(limit?: number, includeInactive = true): Promise<Post[]> {
-    const where: Prisma.PostWhereInput = {};
+  async getPosts(limit?: number, includeInactive = true): Promise<PrismaPost[]> {
+    const where: Prisma.PrismaPostWhereInput = {};
 
     if (!includeInactive) {
       where.active = true;
     }
 
-    const posts = await prisma.post.findMany({
+    const posts = await prisma.prismaPost.findMany({
       where,
       take: limit,
     });
@@ -68,8 +68,8 @@ export class PostAPI {
     return posts;
   }
 
-  async getPost(postname: string): Promise<Post> {
-    const post = await prisma.post.findFirst({
+  async getPost(postname: string): Promise<PrismaPost> {
+    const post = await prisma.prismaPost.findFirst({
       where: {
         postname: {
           equals: postname,
@@ -90,8 +90,8 @@ export class PostAPI {
    * @param postnames Lista på postnamn
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getMultiplePosts(postnames: string[], includeInactive = true): Promise<Post[]> {
-    const where: Prisma.PostWhereInput = {
+  async getMultiplePosts(postnames: string[], includeInactive = true): Promise<PrismaPost[]> {
+    const where: Prisma.PrismaPostWhereInput = {
       postname: {
         in: postnames,
       },
@@ -101,7 +101,7 @@ export class PostAPI {
       where.active = true;
     }
 
-    const posts = await prisma.post.findMany({
+    const posts = await prisma.prismaPost.findMany({
       where,
     });
 
@@ -113,14 +113,14 @@ export class PostAPI {
    * @param username användaren
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getPostsForUser(username: string, includeInactive = true): Promise<Post[]> {
-    const where: Prisma.PostWhereInput = {};
+  async getPostsForUser(username: string, includeInactive = true): Promise<PrismaPost[]> {
+    const where: Prisma.PrismaPostWhereInput = {};
 
     if (!includeInactive) {
       where.active = true;
     }
 
-    const posts = await prisma.post.findMany({
+    const posts = await prisma.prismaPost.findMany({
       where: {
         ...where,
         history: {
@@ -147,8 +147,8 @@ export class PostAPI {
    * @param utskott utskottet
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getPostsFromUtskott(utskott: Utskott, includeInactive = true): Promise<Post[]> {
-    const where: Prisma.PostWhereInput = {
+  async getPostsFromUtskott(utskott: Utskott, includeInactive = true): Promise<PrismaPost[]> {
+    const where: Prisma.PrismaPostWhereInput = {
       utskott,
     };
 
@@ -156,7 +156,7 @@ export class PostAPI {
       where.active = true;
     }
 
-    const posts = await prisma.post.findMany({
+    const posts = await prisma.prismaPost.findMany({
       where,
     });
 
@@ -174,7 +174,7 @@ export class PostAPI {
 
     // spots sätter egentligen inte en limit, det
     // är mer informativt och kan ignoreras
-    const insert = uniqueUsernames.map<Omit<PostHistory, 'id'>>((refUser) => ({
+    const insert = uniqueUsernames.map<Omit<PrismaPostHistory, 'id'>>((refUser) => ({
       refUser,
       refPost: postname,
 
@@ -189,7 +189,7 @@ export class PostAPI {
     }
 
     // const res = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE).insert(insert);
-    const posts = await prisma.postHistory.createMany({
+    const posts = await prisma.prismaPostHistory.createMany({
       data: insert,
     });
 
@@ -217,7 +217,7 @@ export class PostAPI {
       throw new BadRequestError('Denna posten finns redan');
     }
 
-    const post = await prisma.post.create({
+    const post = await prisma.prismaPost.create({
       data: {
         postname: name,
         slug: slugify(name),
@@ -239,6 +239,7 @@ export class PostAPI {
    */
   async modifyPost(entry: ModifyPost): Promise<boolean> {
     const { name, ...update }: StrictObject = stripObject(entry);
+
     // Om vi ändrar posttyp eller antal måste detta kontrolleras
     // Får vi spots i `entry` jämför vi med det, annars måste
     // vi kolla om det är kompatibelt med databasen
@@ -250,9 +251,9 @@ export class PostAPI {
         s = checkPostTypeAndSpots(entry.postType, entry.spots);
       } else {
         // Vi måste kolla i databasen vad denna post har för postType
-        const existingPost = await prisma.post.findFirst({
+        const existingPost = await prisma.prismaPost.findFirst({
           where: {
-            postname: name,
+            postname: name as string,
           },
           select: {
             postType: true,
@@ -267,16 +268,16 @@ export class PostAPI {
         s = checkPostTypeAndSpots(existingPost.postType as PostType, entry.spots);
       }
     } else if (entry.postType !== undefined) {
-      const existingPost = await prisma.post.count({
+      const existingPost = await prisma.prismaPost.count({
         where: {
-          postname: name,
+          postname: name as string,
         },
       });
 
       s = checkPostTypeAndSpots(entry.postType, existingPost);
     } else {
       // Vi vill inte uppdatera något av dem
-      const post = await prisma.post.update({
+      const post = await prisma.prismaPost.update({
         where: {
           slug: slugify(name),
         },
@@ -291,7 +292,7 @@ export class PostAPI {
       throw new BadRequestError('Ogiltig kombination av post och antal platser');
     }
 
-    const post = await prisma.post.update({
+    const post = await prisma.prismaPost.update({
       where: {
         slug: slugify(name),
       },
@@ -310,7 +311,7 @@ export class PostAPI {
    * @returns Om en uppdatering gjordes
    */
   async setPostStatus(slug: string, active: boolean): Promise<boolean> {
-    const post = await prisma.post.update({
+    const post = await prisma.prismaPost.update({
       data: {
         active,
       },
@@ -322,8 +323,8 @@ export class PostAPI {
     return post != null;
   }
 
-  async getHistoryEntries(where: Prisma.PostHistoryWhereInput): Promise<PostHistory[]> {
-    const history = await prisma.postHistory.findMany({
+  async getHistoryEntries(where: Prisma.PrismaPostHistoryWhereInput): Promise<PrismaPostHistory[]> {
+    const history = await prisma.prismaPostHistory.findMany({
       where,
     });
 
@@ -339,7 +340,7 @@ export class PostAPI {
   async getNumberOfVolunteers(date?: Date): Promise<number> {
     const safeDate = date ?? new Date();
 
-    const count = await prisma.postHistory.count({
+    const count = await prisma.prismaPostHistory.count({
       where: {
         startDate: {
           lt: safeDate,
@@ -366,7 +367,7 @@ export class PostAPI {
    * @param end När posten går av posten
    */
   async setUserPostEnd(id: number, end: Date): Promise<boolean> {
-    const post = await prisma.postHistory.update({
+    const post = await prisma.prismaPostHistory.update({
       include: {
         post: true,
         user: true,
@@ -390,7 +391,7 @@ export class PostAPI {
    * @param end Om applicerbart; När personen går/gick av posten
    */
   async removeHistoryEntry(id: number): Promise<boolean> {
-    const history = await prisma.postHistory.delete({
+    const history = await prisma.prismaPostHistory.delete({
       where: {
         id,
       },
