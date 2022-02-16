@@ -1,26 +1,31 @@
 
-model PostHistory {
+model PrismaPostHistory {
 	id Int @id @default(autoincrement())
 	
-	user User @relation(fields: [refUser], references: [username])
-	refUser String
+	user PrismaUser @relation(fields: [refUser], references: [username])
+	refUser String @map("ref_user")
 
-	post Post @relation(fields: [refPost], references: [slug])
-	refPost String
+	post PrismaPost @relation(fields: [refPost], references: [slug])
+	refPost String @map("ref_post")
 
-	startDate DateTime
-	endDate DateTime?
+	startDate DateTime @map("start_date")
+	endDate DateTime? @map("end_date")
 
+	@@map("post_histories")
 }
 
-model User {
+model PrismaUser {
 	username String @id
 
-	postHistory PostHistory[]
+	postHistory PrismaPostHistory[]
+
+	@@map("users")
 }
 
-model Post {
+model PrismaPost {
 	slug String @id
 	
-	history PostHistory[]
+	history PrismaPostHistory[]
+
+	@@map("posts")
 }

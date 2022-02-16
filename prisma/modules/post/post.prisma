@@ -1,21 +1,41 @@
-model Post {
+model PrismaPost {
 	slug String @id
 	postname String
-	utskott String
+	utskott PrismaUtskott
 	description String
 
 	spots Int
-	postType String
+	postType PrismaPostType
 
 	active Boolean @default(true)
-	interviewRequired Boolean @default(false)
+	interviewRequired Boolean @default(false) @map("interview_required")
 
 	@@unique([postname, utskott]) // a utskott can only have a single post with the same name
+
+	@@map("posts")
 }
 
-enum PostType {
+enum PrismaPostType {
 	U
 	EA
 	N
 	EXACT_N
+
+	@@map("post_types")
+}
+
+enum PrismaUtskott {
+	CM
+	KM
+	INFU
+	E6
+	NOJU
+	NOLLU
+	SRE
+	ENU
+	FVU
+	STYRELSEN
+	OTHER
+
+	@@map("utskott")
 }
