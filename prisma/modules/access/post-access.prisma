@@ -1,21 +1,27 @@
-model PostAccess {
+model PrismaPostAccess {
 	id Int @id @default(autoincrement())
 	
-	post Post @relation(fields: [refPost], references: [slug])
-	refPost String
+	post PrismaPost @relation(fields: [refPost], references: [slug])
+	refPost String @map("ref_post")
 
-	resource AccessResource @relation(fields: [refResource], references: [slug])
-	refResource String 
+	resource PrismaAccessResource @relation(fields: [refResource], references: [slug])
+	refResource String @map("ref_resource")
+
+	@@map("post_accesses")
 }
 
-model Post {
+model PrismaPost {
 	slug String @id
 
-	access PostAccess[]
+	access PrismaPostAccess[]
+	
+	@@map("posts")
 }
 
-model AccessResource {
+model PrismaAccessResource {
 	slug String @id
 
-	postAccess PostAccess[]
+	postAccess PrismaPostAccess[]
+
+	@@map("access_resources")
 }

@@ -1,21 +1,23 @@
-model IndividualAccess {
+model PrismaIndividualAccess {
 	id Int @id @default(autoincrement())
 	
-	user User @relation(fields: [refUser], references: [username])
-	refUser String
+	user PrismaUser @relation(fields: [refUser], references: [username])
+	refUser String @map("ref_user")
 
-	resource AccessResource @relation(fields: [refResource], references: [slug])
-	refResource String
+	resource PrismaAccessResource @relation(fields: [refResource], references: [slug])
+	refResource String @map("ref_resource")
+
+	@@map("individual_accesses")
 }
 
-model User {
+model PrismaUser {
 	username String @id
 
-	access IndividualAccess[]
+	access PrismaIndividualAccess[]
 }
 
-model AccessResource {
+model PrismaAccessResource {
 	slug String @id
 
-	userAccess IndividualAccess[]
+	userAccess PrismaIndividualAccess[]
 }

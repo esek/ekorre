@@ -1,24 +1,28 @@
-model AccessMapping {
+model PrismaAccessMapping {
 	id Int @id @default(autoincrement())
 	
-	type AccessMappingType
+	type PrismaAccessMappingType
 	name String
 	page String? // if type = "page" we want to specify the base URL of the page
 
-	resource AccessResource @relation(fields: [refResource], references: [slug])
-	refResource String
+	resource PrismaAccessResources @relation(fields: [refResource], references: [slug])
+	refResource String @map("ref_resource")
 
 	@@unique([type, name, page])
+	@@map("access_mappings")
 }
 
-enum AccessMappingType {
+enum PrismaAccessMappingType {
 	QUERY
 	MUTATION
 	PAGE
+
+	@@map("access_mapping_types")
 }
 
-model AccessResource {
+model PrismaAccessResources {
 	slug String @id
 
-	mappings AccessMapping[]
+	mappings PrismaAccessMapping[]
+	@@map("access_resources")
 }
