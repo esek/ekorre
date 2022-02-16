@@ -1,28 +1,34 @@
-model HeHe {
-	id Int @id @default(autoincrement())
+model PrismaHeHe {
+  id Int @id @default(autoincrement())
 
-	number Int
-	year Int
+  number Int
+  year   Int
 
-	uploadedAt DateTime @default(now())
+  uploadedAt DateTime @default(now()) @map("uploaded_at")
 
-	uploader User @relation(fields: [refUploader], references: [username])
-	refUploader String
+  uploader    PrismaUser @relation(fields: [refUploader], references: [username])
+  refUploader String     @map("ref_uploader")
 
-	file File @relation(fields: [refFile], references: [id])
-	refFile String
+  file    File   @relation(fields: [refFile], references: [id])
+  refFile String @unique @map("ref_file")
 
-	@@unique([number, year])
+
+  @@unique([number, year])
+  @@map("hehes")
 }
 
-model User {
-	username String @id
+model PrismaUser {
+  username String @id
 
-	heHes HeHe[]
+  heHes PrismaHeHe[]
+
+  @@map("users")
 }
 
 model File {
-	id String @id @default(cuid())
+  id String @id @default(cuid())
 
-	heHe HeHe?
+  heHe PrismaHeHe?
+
+  @@map("files")
 }
