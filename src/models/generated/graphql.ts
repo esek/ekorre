@@ -671,6 +671,7 @@ export type Query = {
   /** A users own nominations should always be available to them */
   myNominations: Array<Maybe<Nomination>>;
   newsentries: Array<Maybe<Article>>;
+  numberOfMembers?: Maybe<Scalars['Int']>;
   numberOfNominations: Scalars['Int'];
   numberOfProposals: Scalars['Int'];
   numberOfVolunteers: Scalars['Int'];
@@ -1532,6 +1533,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   meetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryMeetingsArgs, never>>;
   myNominations?: Resolver<Array<Maybe<ResolversTypes['Nomination']>>, ParentType, ContextType, RequireFields<QueryMyNominationsArgs, 'electionId'>>;
   newsentries?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryNewsentriesArgs, never>>;
+  numberOfMembers?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   numberOfNominations?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfNominationsArgs, 'electionId'>>;
   numberOfProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfProposalsArgs, 'electionId'>>;
   numberOfVolunteers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfVolunteersArgs, never>>;

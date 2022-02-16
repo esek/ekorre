@@ -7,6 +7,7 @@ type Query {
   user(username: String!): User
   searchUser(search: String!): [User!]!
   me: Me
+  numberOfMembers: Int!
 }
 
 type Mutation {
