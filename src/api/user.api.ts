@@ -88,15 +88,15 @@ export class UserAPI {
     const users = await prisma.prismaUser.findMany({
       where: {
         username: {
-          search,
+          contains: search,
         },
         OR: {
           firstName: {
-            search,
+            contains: search,
           },
           OR: {
             lastName: {
-              search,
+              contains: search,
             },
           },
         },
