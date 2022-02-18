@@ -2,7 +2,7 @@ import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { AccessType, FileSystemResponsePath, FileType } from '@generated/graphql';
-import { PrismaFile, Prisma, PrismaAccessMappingType, PrismaAccessType } from '@prisma/client';
+import { PrismaFile, Prisma, PrismaAccessType } from '@prisma/client';
 import { createHash } from 'crypto';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
