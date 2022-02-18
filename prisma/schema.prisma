@@ -120,7 +120,7 @@ model PrismaArticle {
   title           String
   body            String
   signature       String
-  type            PrismaArticleType  @default(INFORMATION)
+  articleType     PrismaArticleType  @default(INFORMATION) @map("article_type")
   createdAt       DateTime           @default(now()) @map("created_at")
   updatedAt       DateTime           @default(now()) @map("updated_at")
   creator         PrismaUser         @relation(name: "PrismaArticleToAuthor", fields: [refAuthor], references: [username])
@@ -129,7 +129,7 @@ model PrismaArticle {
   refLastUpdateBy String             @map("ref_last_update_by")
 
   @@index([createdAt, updatedAt])
-  @@index([type])
+  @@index([articleType]) // Articles are often batched by type
   @@map("articles")
 }
 
