@@ -10,6 +10,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `prisma` är nytt sätt att hantera databasen
 - Tillhörande schemas till `prisma`
 - `postgresql` är ny hard dependency, även för dev
+- Flertalet index i `schema.prisma` (dvs. databasen) för nycklar som ofta förekommer i queries men sällan i mutations.
 
 ### Borttaget
 - `knex` är inte längre dependency
