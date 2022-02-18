@@ -52,7 +52,7 @@ model PrismaUser {
   nominations       PrismaNomination[]       @relation(name: "PrismaNominationToPrismaUser")
   proposals         PrismaProposal[]         @relation(name: "PrismaProposalToPrismaUser")
   files             PrismaFile[]             @relation(name: "PrismaFileToPrismaUser")
-  heHes             PrismaHeHe[]             @relation(name: "PrismaHeHeToPrismaUser")
+  heHes             PrismaHehe[]             @relation(name: "PrismaHeheToPrismaUser")
   postHistory       PrismaPostHistory[]      @relation(name: "PrismaPostHistoryToPrismaUser")
   emergencyContacts PrismaEmergencyContact[] @relation(name: "PrismaEmergencyContactToPrismaUser")
   passwordResets    PrismaPasswordReset[]    @relation(name: "PrismaPasswordResetToPrismaUser")
@@ -182,7 +182,7 @@ model PrismaFile {
   createdAt            DateTime             @default(now()) @map("created_at")
   uploader             PrismaUser           @relation(name: "PrismaFileToPrismaUser", fields: [refUploader], references: [username])
   refUploader          String               @map("ref_uploader")
-  heHe                 PrismaHeHe?          @relation(name: "PrismaFileToPrismaHeHe")
+  heHe                 PrismaHehe?          @relation(name: "PrismaFileToPrismaHehe")
   meetingSummons       PrismaMeeting?       @relation(name: "MeetingSummons")
   meetingDocuments     PrismaMeeting?       @relation(name: "MeetingDocuments")
   meetingLateDocuments PrismaMeeting?       @relation(name: "MeetingLateDocuments")
@@ -192,14 +192,14 @@ model PrismaFile {
   @@map("files")
 }
 
-model PrismaHeHe {
+model PrismaHehe {
   id          Int        @id @default(autoincrement())
   number      Int
   year        Int
   uploadedAt  DateTime   @default(now()) @map("uploaded_at")
-  uploader    PrismaUser @relation(name: "PrismaHeHeToPrismaUser", fields: [refUploader], references: [username])
+  uploader    PrismaUser @relation(name: "PrismaHeheToPrismaUser", fields: [refUploader], references: [username])
   refUploader String     @map("ref_uploader")
-  file        PrismaFile @relation(name: "PrismaFileToPrismaHeHe", fields: [refFile], references: [id])
+  file        PrismaFile @relation(name: "PrismaFileToPrismaHehe", fields: [refFile], references: [id])
   refFile     String     @unique @map("ref_file")
 
   @@unique([number, year])
