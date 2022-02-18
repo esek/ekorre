@@ -29,7 +29,6 @@ model PrismaAccessResource {
   resouceType PrismaResourceType
   userAccess  PrismaIndividualAccess[] @relation(name: "PrismaAccessResourceToPrismaIndividualAccess")
   postAccess  PrismaPostAccess[]       @relation(name: "PrismaAccessResourceToPrismaPostAccess")
-  files       PrismaFile[]             @relation(name: "PrismaAccessResourceToPrismaFile")
 
   @@map("access_resources")
 }
@@ -177,8 +176,7 @@ model PrismaFile {
   name                 String
   type                 String
   folderLocation       String               @map("folder_location")
-  accessType           PrismaAccessResource @relation(name: "PrismaAccessResourceToPrismaFile", fields: [refAccessResource], references: [slug])
-  refAccessResource    String               @map("ref_access_resource")
+  accessType           PrismaAccessType
   createdAt            DateTime             @default(now()) @map("created_at")
   uploader             PrismaUser           @relation(name: "PrismaFileToPrismaUser", fields: [refUploader], references: [username])
   refUploader          String               @map("ref_uploader")
@@ -320,4 +318,12 @@ enum PrismaUtskott {
   OTHER
 
   @@map("utskott")
+}
+
+enum PrismaAccessType {
+  ADMIN
+  AUTHENTICATED
+  PUBLIC
+
+  @@map("access_types")
 }

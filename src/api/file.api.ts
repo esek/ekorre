@@ -1,15 +1,15 @@
 import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import type { DatabaseFile } from '@db/file';
 import { AccessType, FileSystemResponsePath, FileType } from '@generated/graphql';
+import { PrismaFile, Prisma, PrismaAccessMappingType, PrismaAccessType } from '@prisma/client';
 import { createHash } from 'crypto';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
 import { extname } from 'path';
 
 import { FILE_TABLE } from './constants';
-import db from './knex';
+import prisma from './prisma';
 
 const {
   FILES: { ROOT },
@@ -24,14 +24,14 @@ class FileAPI {
    * @param type What type of file it is
    * @param path Where to save the file
    * @param creator Username of the creator of the file
-   * @returns A `DatabaseFile` object with the data of the saved file
+   * @returns A `PrismaFile` object with the data of the saved file
    */
   async saveFile(
     file: UploadedFile,
     accessType: AccessType,
     path: string,
     creator: string,
-  ): Promise<DatabaseFile> {
+  ): Promise<PrismaFile> {
     try {
       const type = this.getFileType(file.name);
 
@@ -52,19 +52,19 @@ class FileAPI {
 
       // Save file to DB with hashedName as id and folderLocation
       // pointing to the location in storage
-      const newFile: DatabaseFile = {
-        id: hashedName,
-        name: file.name,
-        refuploader: creator,
-        folderLocation: `${trimmedPath}${hashedName}`,
-        accessType,
-        createdAt: new Date(),
-        type,
-      };
+      const res = await prisma.prismaFile.create({
+        data: {
+          id: hashedName,
+          name: file.name,
+          refUploader: creator,
+          folderLocation: `${trimmedPath}${hashedName}`,
+          accessType: accessType as PrismaAccessType,
+          createdAt: new Date(),
+          type,
+        },
+      });
 
-      await db<DatabaseFile>(FILE_TABLE).insert(newFile);
-
-      return newFile;
+      return res;
     } catch (err) {
       logger.error(err);
       throw new ServerError('Kunde inte spara filen');
@@ -96,7 +96,7 @@ class FileAPI {
 
       const dbData: DatabaseFile = {
         id: hash,
-        accessType: AccessType.Public,
+        accessType: PrismaAccessType.PUBLIC,
         createdAt: new Date(),
         folderLocation: location,
         name,

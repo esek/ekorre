@@ -39,18 +39,18 @@ type FileSystemResponsePath {
 }
 
 enum FileType {
-  image,
-  pdf,
-  text,
-  code,
-  powerpoint,
-  spreadsheet,
-  folder,
-  other,
+  IMAGE,
+  PDF,
+  TEXT,
+  CODE,
+  POWERPOINT,
+  SPREADSHEET,
+  FOLDER,
+  OTHER,
 }
 
 enum AccessType {
-  public,
-  authenticated,
-  admin
+  PUBLIC,
+  AUTHENTICATED,
+  ADMIN
 }

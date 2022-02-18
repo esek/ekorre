@@ -42,9 +42,9 @@ export enum AccessResourceType {
 }
 
 export enum AccessType {
-  Admin = 'admin',
-  Authenticated = 'authenticated',
-  Public = 'public'
+  Admin = 'ADMIN',
+  Authenticated = 'AUTHENTICATED',
+  Public = 'PUBLIC'
 }
 
 /** Body is saved as HTML serverside, but edited in MarkDown */
@@ -137,14 +137,14 @@ export type FileSystemResponsePath = {
 };
 
 export enum FileType {
-  Code = 'code',
-  Folder = 'folder',
-  Image = 'image',
-  Other = 'other',
-  Pdf = 'pdf',
-  Powerpoint = 'powerpoint',
-  Spreadsheet = 'spreadsheet',
-  Text = 'text'
+  Code = 'CODE',
+  Folder = 'FOLDER',
+  Image = 'IMAGE',
+  Other = 'OTHER',
+  Pdf = 'PDF',
+  Powerpoint = 'POWERPOINT',
+  Spreadsheet = 'SPREADSHEET',
+  Text = 'TEXT'
 }
 
 export type GroupedPost = {
