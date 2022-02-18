@@ -2,99 +2,95 @@
 import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { stripObject, toUTC } from '@/util';
-import type { DatabaseArticle } from '@db/article';
 import { ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
+import { Prisma, PrismaArticle, PrismaArticleType } from '@prisma/client';
 import { convertMarkdownToHtml } from '@reducer/article';
-import { Maybe } from 'graphql/jsutils/Maybe';
 
-import { ARTICLE_TABLE } from './constants';
-import db from './knex';
-
-// Refs används när en annan databas innehåller informationen,
-// så denna innehåller bara en referens för att kunna hitta
-// rätt i den
-
-type GetArticleParams = {
-  id: Maybe<string>;
-  slug: Maybe<string>;
-};
+import prisma from './prisma';
 
 /**
  * Det här är API:n för att hantera artiklar
  */
-// TODO: Fixa vad som ska kräva auth och inte
 export class ArticleAPI {
   /**
    * Hämta alla artiklar
    */
-  async getAllArticles(): Promise<DatabaseArticle[]> {
-    const allArticles = await db<DatabaseArticle>(ARTICLE_TABLE);
+  async getAllArticles(): Promise<PrismaArticle[]> {
+    const a = await prisma.prismaArticle.findMany();
 
-    return allArticles;
+    return a;
   }
 
   /**
-   * Hämtar alla nyhetsartiklar
+   * Hämtar alla nyhetsartiklar, sorterade på skapande
    */
-  async getAllNewsArticles(): Promise<DatabaseArticle[]> {
-    const allNewsArticles = await db<DatabaseArticle>(ARTICLE_TABLE)
-      .where('articletype', 'news')
-      .orderBy('createdat', 'desc');
+  async getAllNewsArticles(): Promise<PrismaArticle[]> {
+    const a = await prisma.prismaArticle.findMany({
+      where: {
+        type: PrismaArticleType.NEWS,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-    return allNewsArticles;
+    return a;
   }
 
-  async getAllInformationArticles(): Promise<DatabaseArticle[]> {
-    const allInformationArticles = await db<DatabaseArticle>(ARTICLE_TABLE).where(
-      'articletype',
-      'information',
-    );
+  async getAllInformationArticles(): Promise<PrismaArticle[]> {
+    const a = await prisma.prismaArticle.findMany({
+      where: {
+        type: PrismaArticleType.INFORMATION,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-    return allInformationArticles;
+    return a;
   }
 
   /**
    * Hämtar alla nyhetsartiklar i ett intervall. Utelämnas
    * parametrar finns ingen begränsning.
-   * @param creator
    * @param after
    * @param before
+   * @param author Username of original author of the article
    */
   async getNewsArticlesFromInterval(
     after: Date,
     before: Date,
-    creator?: string,
-  ): Promise<DatabaseArticle[]> {
-    const search: Record<string, string> = {
-      articleType: ArticleType.News,
-    };
+    author?: string,
+  ): Promise<PrismaArticle[]> {
+    const a = await prisma.prismaArticle.findMany({
+      where: {
+        type: PrismaArticleType.NEWS,
+        createdAt: {
+          lte: after,
+          gte: before,
+        },
+        refAuthor: author,
+      },
+    });
 
-    if (creator) {
-      search.refcreator = creator;
-    }
-
-    const newsArticleModels = await db<DatabaseArticle>(ARTICLE_TABLE)
-      .where(search)
-      .andWhere('createdAt', '<', before)
-      .andWhere('createdAt', '>', after);
-
-    return newsArticleModels?.length ? newsArticleModels : [];
+    return a;
   }
 
   /**
    * Returns the article with the specified id
    * @param id article id
    */
-  async getArticle({ id, slug }: GetArticleParams): Promise<DatabaseArticle> {
+  async getArticle(id?: number, slug?: string): Promise<PrismaArticle> {
     let dbId = id;
 
     if (slug) {
       // Fetches the last number from a string, ex: `article-with-long-123-slug-7`, gives `7`
+      // (last part of slug is ID)
       const regex = RegExp(/(\d+)[^-]*$/).exec(slug);
 
       if (regex?.length) {
         const [match] = regex;
-        dbId = match;
+        dbId = Number.parseInt(match, 10);
       }
     }
 
@@ -102,58 +98,65 @@ export class ArticleAPI {
       throw new BadRequestError('Inte en valid slug');
     }
 
-    const article = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', dbId).first();
+    const a = await prisma.prismaArticle.findFirst({
+      where: {
+        id: dbId,
+      },
+    });
 
-    if (article == null) {
+    if (a == null) {
       throw new NotFoundError('Artikeln kunde inte hittas');
     }
 
-    return article;
+    return a;
   }
 
   /**
-   * Returns a list of AticleModels from database WHERE params match.
+   * Returns a list of PrismaArticles from database WHERE params match.
    * @param params possible params are ArticleModel parts.
    */
-  async getArticles(params: Partial<DatabaseArticle>): Promise<DatabaseArticle[]> {
-    const safeParams = stripObject(params);
+  async getArticles(params: Prisma.PrismaArticleWhereInput): Promise<PrismaArticle[]> {
+    const a = await prisma.prismaArticle.findMany({
+      where: {
+        ...params,
+      },
+    });
 
-    const article = await db<DatabaseArticle>(ARTICLE_TABLE).where(safeParams);
-
-    return article;
+    return a;
   }
 
   /**
    * Hämtar de senaste nyhetsartiklarna
    * @param nbr antal artiklar
    */
-  async getLatestNews(limit: number): Promise<DatabaseArticle[]> {
-    const lastestNews = await db<DatabaseArticle>(ARTICLE_TABLE)
-      .where('articleType', 'news')
-      .orderBy('createdat', 'desc')
-      .limit(limit);
+  async getLatestNews(limit: number): Promise<PrismaArticle[]> {
+    const lastestNews = await prisma.prismaArticle.findMany({
+      where: {
+        type: PrismaArticleType.NEWS,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+    });
 
     return lastestNews;
   }
 
   /**
    * Lägger till en ny artikel
-   * @param creatorUsername Användarnamn på skaparen
+   * @param authorUsername Användarnamn på skaparen
    * @param entry artikel som ska läggas till
    */
-  async newArticle(creatorUsername: string, entry: NewArticle): Promise<DatabaseArticle> {
-    // Lägger till dagens datum som createdAt och lastUpdatedAt
-    // samt sätter creator som lastUpdateBy
-    const article: DatabaseArticle = {
+  async newArticle(authorUsername: string, entry: NewArticle): Promise<PrismaArticle> {
+    const article: PrismaArticle = {
       ...entry,
-      createdAt: toUTC(new Date()),
-      lastUpdatedAt: toUTC(new Date()),
       tags: entry.tags ?? [],
-      refcreator: creatorUsername,
-      reflastupdateby: creatorUsername,
+      refAuthor: authorUsername,
+      refLastUpdateBy: authorUsername,
     };
 
-    const res = await db<DatabaseArticle>(ARTICLE_TABLE).insert(article);
+    const res = await db<PrismaArticle>(ARTICLE_TABLE).insert(article);
 
     return {
       ...article,
@@ -184,13 +187,13 @@ export class ArticleAPI {
 
     update.lastUpdatedAt = toUTC(new Date());
 
-    const res = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', id).update(update);
+    const res = await db<PrismaArticle>(ARTICLE_TABLE).where('id', id).update(update);
 
     return res > 0;
   }
 
   async removeArticle(id: string): Promise<boolean> {
-    const res = await db<DatabaseArticle>(ARTICLE_TABLE).delete().where('id', id);
+    const res = await db<PrismaArticle>(ARTICLE_TABLE).delete().where('id', id);
     return res > 0;
   }
 }
