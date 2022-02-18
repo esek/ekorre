@@ -2,7 +2,7 @@
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { MeetingDocumentType, MeetingType } from '@generated/graphql';
-import { PrismaMeeting, Prisma } from '@prisma/client';
+import { PrismaMeeting, PrismaMeetingType, Prisma } from '@prisma/client';
 
 import prisma from './prisma';
 
@@ -89,54 +89,53 @@ export class MeetingAPI {
     // Om det är ett Styrelsemöte eller extrainsatt sektionsmöte
     // måste det ha ett nummer. Om det inte är definierat hämtar
     // vi det från databasen
-    let safeNbr = number;
-    if (!Number.isSafeInteger(safeNbr)) {
-      const lastNbr = await db<DatabaseMeeting>(MEETING_TABLE)
-        .select('number')
-        .where({ type, year: safeYear })
-        .orderBy('number', 'desc')
-        .orderBy('year', 'desc')
-        .first();
+    let safeNbr: number;
+    if (number == null || !Number.isSafeInteger(number)) {
+      const lastMeeting = await prisma.prismaMeeting.findFirst({
+        select: { number: true }
+      });
 
-      if (lastNbr === undefined) {
+      if (lastMeeting == null) {
         // Vi hittade inget tidigare möte detta året,
         // så detta är första
         safeNbr = 1;
       } else {
-        safeNbr = lastNbr.number + 1;
+        safeNbr = lastMeeting.number + 1;
       }
+    } else {
+      safeNbr = number;
     }
 
     // Kontrollera att vi inte har dubblettmöte
-    const possibleDouble = await db<DatabaseMeeting>(MEETING_TABLE)
-      .where({
-        type,
+    const possibleDouble = await prisma.prismaMeeting.findFirst({
+      where: {
+        type: type === undefined ? undefined : type as PrismaMeetingType,
         number: safeNbr,
         year: safeYear,
-      })
-      .first();
+      }
+    });
 
-    if (possibleDouble !== undefined) {
+    if (possibleDouble != null) {
       throw new BadRequestError('Mötet finns redan!');
     }
 
     try {
-      const meetingId = (
-        await db<DatabaseMeeting>(MEETING_TABLE).insert(
-          {
-            type,
-            number: safeNbr,
-            year: safeYear,
-          },
-          'id',
-        )
-      )[0];
+      const meetingId = await prisma.prismaMeeting.create({
+        data: {
+          type: type as PrismaMeetingType,
+          number: safeNbr,
+          year: safeYear,
+        },
+        select: {
+          number: true,
+        },
+      });
 
       if (meetingId == null) {
-        throw new Error();
+        throw new ServerError('Mötet kunde inte skapas!');
       }
 
-      return meetingId;
+      return meetingId.number;
     } catch (err) {
       const logStr = `Failed to create meeting with values: ${Logger.pretty({
         type,
@@ -153,14 +152,13 @@ export class MeetingAPI {
    * @param id Mötes-ID
    * @throws `NotFoundError` om mötet ej kunde tas bort
    */
-  async removeMeeting(id: string): Promise<boolean> {
-    const res = await db<DatabaseMeeting>(MEETING_TABLE).delete().where({ id });
-
-    if (res === 0) {
+  async removeMeeting(id: number): Promise<boolean> {
+    try {
+      await prisma.prismaMeeting.delete({where: { id }});
+      return true;
+    } catch {
       throw new NotFoundError('Mötet kunde inte hittas');
     }
-
-    return true;
   }
 
   /**

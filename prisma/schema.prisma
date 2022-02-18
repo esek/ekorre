@@ -200,7 +200,7 @@ model PrismaHeHe {
   uploader    PrismaUser @relation(name: "PrismaHeHeToPrismaUser", fields: [refUploader], references: [username])
   refUploader String     @map("ref_uploader")
   file        PrismaFile @relation(name: "PrismaFileToPrismaHeHe", fields: [refFile], references: [id])
-  refFile     String     @map("ref_file")@unique
+  refFile     String     @unique @map("ref_file")
 
   @@unique([number, year])
   @@map("hehes")
@@ -211,16 +211,16 @@ model PrismaMeeting {
   type             PrismaMeetingType
   number           Int
   year             Int
-  summons          PrismaFile        @relation(name: "MeetingSummons", fields: [refSummons], references: [id])
-  refSummons       String            @unique @map("ref_summons")
-  documents        PrismaFile        @relation(name: "MeetingDocuments", fields: [refDocuments], references: [id])
-  refDocuments     String            @unique @map("ref_documents")
-  lateDocuments    PrismaFile        @relation(name: "MeetingLateDocuments", fields: [refLateDocuments], references: [id])
-  refLateDocuments String            @unique @map("ref_late_documents")
-  protocol         PrismaFile        @relation(name: "MeetingProtocols", fields: [refProtocol], references: [id])
-  refProtocol      String            @unique @map("ref_protocol")
-  appendix         PrismaFile        @relation(name: "MeetingAppendix", fields: [refAppendix], references: [id])
-  refAppendix      String            @unique @map("ref_appendix")
+  summons          PrismaFile?       @relation(name: "MeetingSummons", fields: [refSummons], references: [id])
+  refSummons       String?           @unique @map("ref_summons")
+  documents        PrismaFile?       @relation(name: "MeetingDocuments", fields: [refDocuments], references: [id])
+  refDocuments     String?           @unique @map("ref_documents")
+  lateDocuments    PrismaFile?       @relation(name: "MeetingLateDocuments", fields: [refLateDocuments], references: [id])
+  refLateDocuments String?           @unique @map("ref_late_documents")
+  protocol         PrismaFile?       @relation(name: "MeetingProtocols", fields: [refProtocol], references: [id])
+  refProtocol      String?           @unique @map("ref_protocol")
+  appendix         PrismaFile?       @relation(name: "MeetingAppendix", fields: [refAppendix], references: [id])
+  refAppendix      String?           @unique @map("ref_appendix")
 
   @@unique([type, number, year])
   @@map("meetings")
