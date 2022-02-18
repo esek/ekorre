@@ -1,8 +1,8 @@
-import { User } from '.prisma/client';
 import config from '@/config';
-import { Access, User as GqlUser } from '@generated/graphql';
+import { Access, User } from '@generated/graphql';
+import { PrismaUser } from '@prisma/client';
 
-export function userReduce(user: User): GqlUser {
+export function userReduce(user: PrismaUser): User {
   // Provide a stub for access to be resolved later.
   const access: Access = {
     web: [],
