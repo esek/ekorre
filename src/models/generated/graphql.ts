@@ -50,9 +50,9 @@ export enum AccessType {
 /** Body is saved as HTML serverside, but edited in MarkDown */
 export type Article = {
   articleType: ArticleType;
+  author: User;
   body: Scalars['String'];
   createdAt: Scalars['DateTime'];
-  creator: User;
   id?: Maybe<Scalars['ID']>;
   lastUpdatedAt: Scalars['DateTime'];
   lastUpdatedBy: User;
@@ -90,7 +90,7 @@ export type Election = {
   creator: User;
   /** Which posts can be elected in the election */
   electables: Array<Maybe<Post>>;
-  id: Scalars['ID'];
+  id: Scalars['Int'];
   /** Whether accepted nominations are to be hidden */
   nominationsHidden: Scalars['Boolean'];
   open: Scalars['Boolean'];
@@ -254,7 +254,7 @@ export type Mutation = {
   casCreateUser: Scalars['Boolean'];
   casLogin: CasLoginResponse;
   closeElection: Scalars['Boolean'];
-  createElection: Scalars['ID'];
+  createElection: Scalars['Int'];
   createFolder: Scalars['Boolean'];
   createUser: Scalars['Boolean'];
   deactivatePost: Scalars['Boolean'];
@@ -312,7 +312,7 @@ export type MutationAddArticleArgs = {
 
 
 export type MutationAddElectablesArgs = {
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
   postnames?: Maybe<Array<Scalars['String']>>;
 };
 
@@ -420,12 +420,12 @@ export type MutationNominateArgs = {
 
 
 export type MutationOpenElectionArgs = {
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
 };
 
 
 export type MutationProposeArgs = {
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
   postname: Scalars['String'];
   username: Scalars['String'];
 };
@@ -442,7 +442,7 @@ export type MutationRemoveArticleArgs = {
 
 
 export type MutationRemoveElectablesArgs = {
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
   postnames?: Maybe<Array<Scalars['String']>>;
 };
 
@@ -475,7 +475,7 @@ export type MutationRemoveMeetingArgs = {
 
 
 export type MutationRemoveProposalArgs = {
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
   postname: Scalars['String'];
   username: Scalars['String'];
 };
@@ -505,13 +505,13 @@ export type MutationSendEmailArgs = {
 
 
 export type MutationSetElectablesArgs = {
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
   postnames: Array<Scalars['String']>;
 };
 
 
 export type MutationSetHiddenNominationsArgs = {
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
   hidden: Scalars['Boolean'];
 };
 
@@ -745,7 +745,7 @@ export type QueryArticlesArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryElectionArgs = {
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
 };
 
 
@@ -754,7 +754,7 @@ export type QueryElectionArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryElectionsArgs = {
-  electionIds: Array<Scalars['ID']>;
+  electionIds: Array<Scalars['Int']>;
 };
 
 
@@ -828,7 +828,7 @@ export type QueryHehesArgs = {
  */
 export type QueryHiddenNominationsArgs = {
   answer?: Maybe<NominationAnswer>;
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
 };
 
 
@@ -907,7 +907,7 @@ export type QueryMeetingsArgs = {
  */
 export type QueryMyNominationsArgs = {
   answer?: Maybe<NominationAnswer>;
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
 };
 
 
@@ -928,7 +928,7 @@ export type QueryNewsentriesArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryNumberOfNominationsArgs = {
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
   postname?: Maybe<Scalars['String']>;
 };
 
@@ -938,7 +938,7 @@ export type QueryNumberOfNominationsArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryNumberOfProposalsArgs = {
-  electionId: Scalars['ID'];
+  electionId: Scalars['Int'];
   postname?: Maybe<Scalars['String']>;
 };
 
@@ -1299,9 +1299,9 @@ export type AccessResourceResolvers<ContextType = Context, ParentType extends Re
 
 export type ArticleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Article'] = ResolversParentTypes['Article']> = ResolversObject<{
   articleType?: Resolver<ResolversTypes['ArticleType'], ParentType, ContextType>;
+  author?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   lastUpdatedBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
@@ -1339,7 +1339,7 @@ export type ElectionResolvers<ContextType = Context, ParentType extends Resolver
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   electables?: Resolver<Array<Maybe<ResolversTypes['Post']>>, ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   nominationsHidden?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   open?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   openedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
@@ -1437,7 +1437,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  createElection?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
+  createElection?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'slug'>>;

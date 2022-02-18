@@ -6,23 +6,23 @@ scalar DateTime
 type Query {
   newsentries(creator: String, after: DateTime, before: DateTime, markdown: Boolean): [Article]!
   latestnews(limit: Int, markdown: Boolean): [Article]!
-  article(id: ID, slug: String, markdown: Boolean): Article
-  articles(id: ID, creator: String, lastUpdateBy: String, title: String, createdAt: DateTime, lastUpdatedAt: DateTime, signature: String, tags: [String], articleType: String, markdown: Boolean): [Article]!
+  article(Int: Int, slug: String, markdown: Boolean): Article
+  articles(Int: Int, creator: String, lastUpdateBy: String, title: String, createdAt: DateTime, lastUpdatedAt: DateTime, signature: String, tags: [String], articleType: String, markdown: Boolean): [Article]!
 }
 
 type Mutation {
   addArticle(entry: NewArticle!): Article
-  modifyArticle(articleId: ID!, entry: ModifyArticle!): Boolean!
-  removeArticle(articleId: ID!): Boolean!
+  modifyArticle(articleInt: Int!, entry: ModifyArticle!): Boolean!
+  removeArticle(articleInt: Int!): Boolean!
 }
 
-"Body is saved as HTML serverside, but edited in MarkDown"
+"Body is saved as HTML serversInte, but edited in MarkDown"
 type Article {
-  id: ID
+  Int: Int
 
-  "Used in URLs, but identification is done using only tail (id)"
+  "Used in URLs, but Intentification is done using only tail (Int)"
   slug: String
-  creator: User!
+  author: User!
   lastUpdatedBy: User!
   title: String!
   body: String!
@@ -35,8 +35,8 @@ type Article {
 
 "News are the ones to be used by a website newsreel"
 enum ArticleType {
-  news
-  information
+  NEWS
+  INFORMATION
 }
 
 input NewArticle {

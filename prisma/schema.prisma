@@ -45,7 +45,8 @@ model PrismaIndividualAccess {
 model PrismaUser {
   username          String                   @id
   access            PrismaIndividualAccess[] @relation(name: "PrismaIndividualAccessToPrismaUser")
-  articles          PrismaArticle[]          @relation(name: "PrismaArticleToPrismaUser")
+  articles          PrismaArticle[]          @relation(name: "PrismaArticleToAuthor")
+  editedArticles    PrismaArticle[]          @relation(name: "PrismaArticleToLastUpdateBy")
   elections         PrismaElection[]         @relation(name: "PrismaElectionToPrismaUser")
   nominations       PrismaNomination[]       @relation(name: "PrismaNominationToPrismaUser")
   proposals         PrismaProposal[]         @relation(name: "PrismaProposalToPrismaUser")
@@ -113,22 +114,21 @@ model PrismaArticleTag {
 }
 
 model PrismaArticle {
-  id        Int                @id @default(autoincrement())
-  tags      PrismaArticleTag[] @relation(name: "PrismaArticleToPrismaArticleTag")
-  slug      String             @unique
-  title     String
-  body      String
-  signature String
-  type      PrismaArticleType  @default(INFORMATION)
-  createdAt DateTime           @default(now()) @map("created_at")
-  updatedAt DateTime           @default(now()) @map("updated_at")
-  author    PrismaUser         @relation(name: "PrismaArticleToPrismaUser", fields: [refAuthor], references: [username])
-  refAuthor String             @map("ref_author")
+  id              Int                @id @default(autoincrement())
+  tags            PrismaArticleTag[] @relation(name: "PrismaArticleToPrismaArticleTag")
+  slug            String             @unique
+  title           String
+  body            String
+  signature       String
+  type            PrismaArticleType  @default(INFORMATION)
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @default(now()) @map("updated_at")
+  creator         PrismaUser         @relation(name: "PrismaArticleToAuthor", fields: [refAuthor], references: [username])
+  refAuthor       String             @map("ref_author")
+  lastUpdateBy    PrismaUser         @relation(name: "PrismaArticleToLastUpdateBy", fields: [refLastUpdateBy], references: [username])
+  refLastUpdateBy String             @map("ref_last_update_by")
 
-  // Limitations often done by time
   @@index([createdAt, updatedAt])
-
-  // Selects often batched by type
   @@index([type])
   @@map("articles")
 }
@@ -184,26 +184,22 @@ model PrismaProposal {
 }
 
 model PrismaFile {
-  id                   String               @id @default(cuid())
+  id                   String           @id @default(cuid())
   name                 String
   type                 String
-  folderLocation       String               @map("folder_location")
+  folderLocation       String           @map("folder_location")
   accessType           PrismaAccessType
-  createdAt            DateTime             @default(now()) @map("created_at")
-  uploader             PrismaUser           @relation(name: "PrismaFileToPrismaUser", fields: [refUploader], references: [username])
-  refUploader          String               @map("ref_uploader")
-  heHe                 PrismaHehe?          @relation(name: "PrismaFileToPrismaHehe")
-  meetingSummons       PrismaMeeting?       @relation(name: "MeetingSummons")
-  meetingDocuments     PrismaMeeting?       @relation(name: "MeetingDocuments")
-  meetingLateDocuments PrismaMeeting?       @relation(name: "MeetingLateDocuments")
-  meetingProtocols     PrismaMeeting?       @relation(name: "MeetingProtocols")
-  meetingAppendix      PrismaMeeting?       @relation(name: "MeetingAppendix")
-  
-  // Files may be searched by name and ID,
-  // ID handeled by primary key (@id)
-  @@index([name])
+  createdAt            DateTime         @default(now()) @map("created_at")
+  uploader             PrismaUser       @relation(name: "PrismaFileToPrismaUser", fields: [refUploader], references: [username])
+  refUploader          String           @map("ref_uploader")
+  heHe                 PrismaHehe?      @relation(name: "PrismaFileToPrismaHehe")
+  meetingSummons       PrismaMeeting?   @relation(name: "MeetingSummons")
+  meetingDocuments     PrismaMeeting?   @relation(name: "MeetingDocuments")
+  meetingLateDocuments PrismaMeeting?   @relation(name: "MeetingLateDocuments")
+  meetingProtocols     PrismaMeeting?   @relation(name: "MeetingProtocols")
+  meetingAppendix      PrismaMeeting?   @relation(name: "MeetingAppendix")
 
-  // Files are often batch-searched by type
+  @@index([name])
   @@index([type])
   @@map("files")
 }
@@ -242,8 +238,6 @@ model PrismaMeeting {
   // Year has priority in queries,
   // but often also sorted by number
   @@index([year, number])
-
-  // Often batched by type
   @@index([type])
   @@map("meetings")
 }

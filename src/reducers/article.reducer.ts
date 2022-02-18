@@ -1,5 +1,5 @@
 import { ArticleResponse } from '@/models/mappers';
-import type { DatabaseArticle } from '@db/article';
+import { PrismaArticle } from '@prisma/client';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import showdown from 'showdown';
@@ -50,23 +50,23 @@ const generateSlug = (str: string) =>
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
 
-const articleReduce = (article: DatabaseArticle, markdown: boolean): ArticleResponse => {
+const articleReduce = (article: PrismaArticle, markdown: boolean): ArticleResponse => {
   // Vi lagrar alltid HTML i databasen; vi gör om till markdown vid
   // förfrågan
   const sanitizedBody = !markdown ? article.body : convertHtmlToMarkdown(article.body);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { body, refcreator, reflastupdateby, ...reduced } = article;
+  const { body, refAuthor, refLastUpdateBy, ...reduced } = article;
   const a: ArticleResponse = {
     ...reduced,
     body: sanitizedBody.trim(),
     slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
     // Exteremely temporary fix for tags, as SQL can't store arrays
     tags: (reduced.tags as unknown as string).toString().split(','),
-    creator: {
-      username: refcreator,
+    author: {
+      username: refAuthor,
     },
     lastUpdatedBy: {
-      username: reflastupdateby,
+      username: refLastUpdateBy,
     },
   };
 
@@ -76,15 +76,15 @@ const articleReduce = (article: DatabaseArticle, markdown: boolean): ArticleResp
 // Vi definierar Reducers för alla olika typer av DatabaseArticles
 // Vi returnerar DatabaseArticle; refuser -> User i resolvern
 export async function articleReducer(
-  a: DatabaseArticle,
+  a: PrismaArticle,
   markdown: boolean,
 ): Promise<ArticleResponse>;
 export async function articleReducer(
-  a: DatabaseArticle[],
+  a: PrismaArticle[],
   markdown: boolean,
 ): Promise<ArticleResponse[]>;
 export async function articleReducer(
-  a: DatabaseArticle | DatabaseArticle[],
+  a: PrismaArticle | PrismaArticle[],
   markdown: boolean,
 ): Promise<ArticleResponse | ArticleResponse[]> {
   // Är det en array, reducera varje för sig, annars skicka bara tillbaka en reducerad
