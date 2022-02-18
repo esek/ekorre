@@ -311,10 +311,20 @@ enum PrismaNominationResponse {
 }
 
 enum PrismaMeetingType {
+  /// Styrelsemöte
   SM
-  VM
-  VTM
+
+  /// Höstterminsmöte
   HTM
+
+  /// Valmöte
+  VM
+
+  /// Vårterminsmöte
+  VTM
+
+  /// Extrainsatt Sektionsmöte
+  Extra
 
   @@map("meeting_types")
 }
