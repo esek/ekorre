@@ -358,26 +358,35 @@ export class ElectionAPI {
    * @param postnames Lista på postnamn
    */
   async setElectables(electionId: number, postnames: string[]): Promise<boolean> {
-    const q = db<DatabaseElectable>(ELECTABLE_TABLE);
-
+    if (postnames.length < 1) {
+      throw new BadRequestError('Inga valbara poster definierades');
+    }
     try {
-      // Remove existing electables
-      await q.where({ refelection: electionId }).delete();
-
-      if (postnames.length > 0) {
-        const electableRows: DatabaseElectable[] = postnames.map((postname) => {
-          return { refelection: electionId, refpost: postname };
-        });
-
-        await db(ELECTABLE_TABLE).insert(electableRows);
-      }
+      // Vi rollbacka om inte hela operationen fungerar
+      await prisma.$transaction([
+        prisma.prismaElectable.deleteMany({
+          where: {
+            refElection: {
+              in: electionId,
+            },
+          },
+        }),
+        prisma.prismaElectable.createMany({
+          data: postnames.map((p) => {
+            return {
+              refElection: electionId,
+              refPost: p,
+            };
+          }),
+        }),
+      ]);
     } catch (err) {
       logger.debug(
         `Could not insert electables for election with ID ${electionId} due to error:\n\t${JSON.stringify(
           err,
         )}`,
       );
-      throw new ServerError('Kunde inte lägga alla valbara poster');
+      throw new ServerError('Kunde inte sätta alla valbara poster, ingen operation utfördes');
     }
 
     return true;
@@ -390,10 +399,20 @@ export class ElectionAPI {
    * @returns Om en ändring gjordes eller ej
    */
   async setHiddenNominations(electionId: number, hidden: boolean): Promise<boolean> {
-    const res = await db<DatabaseElection>(ELECTION_TABLE)
-      .update('nominationsHidden', hidden)
-      .where('id', electionId);
-    return res > 0;
+    try {
+      await prisma.prismaElection.update({
+        data: {
+          nominationsHidden: hidden,
+        },
+        where: {
+          id: electionId,
+        }
+      });
+      
+      return true;
+    } catch {
+      throw new BadRequestError('Kunde inte uppdatera nomineringssynligheten');
+    }
   }
 
   /**
@@ -401,26 +420,27 @@ export class ElectionAPI {
    * @param electionId ID på ett val
    */
   async openElection(electionId: number): Promise<boolean> {
-    // Markerar valet som öppet, men bara om det inte redan stängts
-    const res = await db<DatabaseElection>(ELECTION_TABLE)
-      .update({
-        openedAt: Date.now(), // Current timestamp
-        open: true,
-      })
-      .where({
-        id: electionId,
-        openedAt: null, // Annars återställer vi ju timestamp om vi öppnar redan öppet val
-        open: false,
-      })
-      .whereNull('closedAt');
+    try {
+      // Markerar valet som öppet, men bara om det inte redan stängts
+      // måste använda updateMany för att kunna söka på `openedAt`
+      await prisma.prismaElection.updateMany({
+        data: {
+          openedAt: new Date(),
+          open: true,
+        },
+        where: {
+          id: electionId,
+          openedAt: null,
+          open: false,
+        }
+      });
 
-    if (res === 0) {
+      return true;
+    } catch {
       throw new BadRequestError(
         'Antingen är valet redan öppet eller stängt, eller så finns det inte.',
       );
     }
-
-    return true;
   }
 
   /**
@@ -428,27 +448,32 @@ export class ElectionAPI {
    * då endast ett ska kunna vara öppet samtidigt.
    */
   async closeElection(): Promise<boolean> {
-    const res = await db<DatabaseElection>(ELECTION_TABLE)
-      .update({
-        closedAt: Date.now(),
-        open: false,
-      })
-      .where({ open: true });
+    try {
+      const { count } = await prisma.prismaElection.updateMany({
+        data: {
+          closedAt: new Date(),
+          open: false,
+        },
+        where: {
+          open: true,
+        }
+      });
 
-    if (res > 1) {
-      logger.warn(
-        'VARNING: Anrop till closeElection stängde mer än ett val! Endast ett val ska kunna vara öppet samtidigt!',
-      );
-      throw new ServerError(
-        'Mer än ett val stängdes, men fler än ett val ska inte kunna vara öppna samtidigt!',
-      );
+      if (count < 1) {
+        throw new BadRequestError('Antingen är valet redan stängt, eller så finns det inte.');
+      } else if (count > 1) {
+        logger.warn(
+          'VARNING: Anrop till closeElection stängde mer än ett val! Endast ett val ska kunna vara öppet samtidigt!',
+        );
+        throw new ServerError(
+          'Mer än ett val stängdes, men fler än ett val ska inte kunna vara öppna samtidigt!',
+        );
+      }
+
+      return true;
+    } catch {
+      throw new ServerError('Något gick fel då valet skulle stängas!');
     }
-
-    if (res === 0) {
-      throw new BadRequestError('Antingen är valet redan stängt, eller så finns det inte.');
-    }
-
-    return true;
   }
 
   /**
@@ -472,21 +497,23 @@ export class ElectionAPI {
       throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
     }
 
-    const nominationRows: DatabaseNomination[] = filteredPostnames.map((postname) => ({
-      refelection: openElection.id,
-      refuser: username,
-      refpost: postname,
-      accepted: NominationResponse.NoAnswer,
-    }));
-
     try {
       // Om nomineringen redan finns, ignorera den
       // utan att ge error för att inte avslöja
       // vad som finns i databasen redan
-      await db<DatabaseNomination>(NOMINATION_TABLE)
-        .insert(nominationRows)
-        .onConflict(['refelection', 'refuser', 'refpost'])
-        .ignore();
+      await prisma.prismaNomination.createMany({
+        skipDuplicates: true, // Ignorera om nomineringen redan finns
+        data: filteredPostnames.map((postname) => {
+          return {
+            refElection: openElection.id,
+            refUser: username,
+            refPost: postname,
+            response: PrismaNominationResponse.PENDING,
+          };
+        }),
+      });
+
+      return true;
     } catch (err) {
       logger.debug(
         `Could not insert all nominations for election with ID ${
@@ -495,8 +522,6 @@ export class ElectionAPI {
       );
       throw new ServerError('Kunde inte nominera till alla poster');
     }
-
-    return true;
   }
 
   async respondToNomination(
