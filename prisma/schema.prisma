@@ -135,7 +135,6 @@ model PrismaArticle {
 }
 
 model PrismaElectable {
-  id          Int            @id @default(autoincrement())
   post        PrismaPost     @relation(name: "PrismaElectableToPrismaPost", fields: [refPost], references: [slug])
   refPost     String         @map("ref_post")
   election    PrismaElection @relation(name: "PrismaElectableToPrismaElection", fields: [refElection], references: [id])
@@ -143,7 +142,7 @@ model PrismaElectable {
 
   // Electables are not often inserted/updated,
   // but often queried on which election they belong to
-  @@unique([refElection, refPost])
+  @@id([refElection, refPost])
   @@index([refElection])
   @@map("electables")
 }
@@ -165,7 +164,6 @@ model PrismaElection {
 }
 
 model PrismaNomination {
-  id          Int                      @id @default(autoincrement())
   response    PrismaNominationResponse @default(PENDING)
   user        PrismaUser               @relation(name: "PrismaNominationToPrismaUser", fields: [refUser], references: [username])
   refUser     String                   @map("ref_user")
@@ -175,12 +173,11 @@ model PrismaNomination {
   refElection Int                      @map("ref_election")
 
   // Indexing avoided due to high insert load
-  @@unique([refElection, refPost, refUser])
+  @@id([refElection, refPost, refUser])
   @@map("nominations")
 }
 
 model PrismaProposal {
-  id          Int            @id @default(autoincrement())
   user        PrismaUser     @relation(name: "PrismaProposalToPrismaUser", fields: [refUser], references: [username])
   refUser     String         @map("ref_user")
   post        PrismaPost     @relation(name: "PrismaProposalToPrismaPost", fields: [refPost], references: [slug])
@@ -188,7 +185,7 @@ model PrismaProposal {
   election    PrismaElection @relation(name: "PrismaElectionToPrismaProposal", fields: [refElection], references: [id])
   refElection Int            @map("ref_election")
 
-  @@unique([refElection, refPost, refUser])
+  @@id([refElection, refPost, refUser])
   @@map("proposals")
 }
 
@@ -214,7 +211,6 @@ model PrismaFile {
 }
 
 model PrismaHehe {
-  id          Int        @id @default(autoincrement())
   number      Int
   year        Int
   uploadedAt  DateTime   @default(now()) @map("uploaded_at")
@@ -224,7 +220,7 @@ model PrismaHehe {
   refFile     String     @unique @map("ref_file")
 
   // Year has more queries than number
-  @@unique([year, number])
+  @@id([year, number])
   @@map("hehes")
 }
 
