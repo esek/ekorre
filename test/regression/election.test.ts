@@ -7,7 +7,7 @@ import {
   DatabaseNomination,
   DatabaseProposal,
 } from '@db/election';
-import { Election, NominationAnswer } from '@generated/graphql';
+import { Election, NominationResponse } from '@generated/graphql';
 import { ApiRequest, GraphqlResponse } from '@test/models/test';
 import { AXIOS_CONFIG } from '@test/utils/axiosConfig';
 import axios from 'axios';
@@ -73,9 +73,9 @@ test('getting nominations when nominations are hidden', async () => {
   await expect(api.nominate('aa0000bb-s', ['Macapär'])).resolves.toBeTruthy();
   await expect(api.nominate('bb1111cc-s', ['Macapär', 'Teknokrat'])).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationResponse.Yes),
   ).resolves.toBeTruthy();
-  expect((await api.getAllNominations(electionId, NominationAnswer.Yes)).length).toBeGreaterThan(0);
+  expect((await api.getAllNominations(electionId, NominationResponse.Yes)).length).toBeGreaterThan(0);
 
   const electionData = {
     query: ELECTION_QUERY,
@@ -109,6 +109,6 @@ test('getting nominations when nominations are hidden', async () => {
 
       // Borde bara se accepterade nomineringen
       expect(acceptedNominations).toHaveLength(1);
-      expect(acceptedNominations[0].accepted).toEqual(NominationAnswer.Yes);
+      expect(acceptedNominations[0].accepted).toEqual(NominationResponse.Yes);
     });
 });
