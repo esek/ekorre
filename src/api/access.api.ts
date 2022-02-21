@@ -1,20 +1,9 @@
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import type { DatabaseAccess } from '@db/access';
-import { DatabaseAccessMapping } from '@db/accessmapping';
-import { DatabasePost, DatabasePostHistory } from '@db/post';
-import { DatabaseAccessResource } from '@db/resource';
-import { ResolverType } from '@generated/graphql';
+import type { Prisma } from '@prisma/client';
+import type { ResolverType } from '@generated/graphql';
 
-import {
-  ACCESS_MAPPINGS_TABLE,
-  ACCESS_RESOURCES_TABLE,
-  IND_ACCESS_TABLE,
-  POSTS_HISTORY_TABLE,
-  POSTS_TABLE,
-  POST_ACCESS_TABLE,
-} from './constants';
-import db from './knex';
+import prisma from './prisma';
 
 const logger = Logger.getLogger('AccessAPI');
 
