@@ -16,7 +16,7 @@ export const electionApi = new ElectionAPI();
  * @param electionIds List of election IDs
  */
 export const batchElectionsFunction = async (
-  electionIds: readonly string[],
+  electionIds: readonly number[],
 ): Promise<ArrayLike<ElectionResponse | Error>> => {
   /**
    * Batch function used as parameter to DataLoader constructor,
@@ -27,13 +27,10 @@ export const batchElectionsFunction = async (
   if (apiResponse === null) return [];
   const elections = reduce(apiResponse, electionReduce);
 
-  return sortBatchResult<string, ElectionResponse>(
+  return sortBatchResult<number, ElectionResponse>(
     electionIds,
     'id',
-    elections.map((e) => {
-      // IDs i Knex, SQL och GraphQL är rätt fucky
-      return { ...e, id: e.id?.toString() ?? '' };
-    }),
+    elections,
     'Election not found',
   );
 };
