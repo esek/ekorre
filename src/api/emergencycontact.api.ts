@@ -1,19 +1,19 @@
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { DatabaseEmergencyContact } from '@db/emergencycontact';
-import { EmergencyContactType } from '@generated/graphql';
+import type { EmergencyContactType } from '@generated/graphql';
+import type { PrismaEmergencyContact } from '@prisma/client';
 
-import { EMERGENCY_CONTACTS_TABLE } from './constants';
-import db from './knex';
+import prisma from './prisma';
 
 const logger = Logger.getLogger('EmergencyContactApi');
 
 class EmergencyContactAPI {
-  async getEmergencyContacts(username: string): Promise<DatabaseEmergencyContact[]> {
-    const contacts = await db<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).where(
-      'refuser',
-      username,
-    );
+  async getEmergencyContacts(username: string): Promise<PrismaEmergencyContact[]> {
+    const contacts = await prisma.prismaEmergencyContact.findMany({
+      where: {
+        refUser: username,
+      },
+    });
 
     return contacts;
   }
@@ -25,11 +25,8 @@ class EmergencyContactAPI {
     type: EmergencyContactType,
   ): Promise<boolean> {
     try {
-      await db<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE).insert({
-        name,
-        phone,
-        type,
-        refuser: username,
+      await prisma.prismaEmergencyContact.create({
+        data: { name, phone, type, refUser: username },
       });
 
       return true;
@@ -40,15 +37,20 @@ class EmergencyContactAPI {
   }
 
   async removeEmergencyContact(username: string, id: number): Promise<boolean> {
-    const removed = await db<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE)
-      .where({ refuser: username, id })
-      .delete();
+    try {
+      await prisma.prismaEmergencyContact.delete({
+        where: {
+          id_refUser: {
+            id,
+            refUser: username,
+          },
+        },
+      });
 
-    if (removed < 1) {
+      return true;
+    } catch {
       throw new ServerError('Kunde inte ta bort nödkontakten');
     }
-
-    return true;
   }
 }
 

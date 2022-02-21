@@ -164,13 +164,13 @@ model PrismaElection {
 }
 
 model PrismaNomination {
-  answer    PrismaNominationAnswer @default(NO_ANSWER)
-  user        PrismaUser               @relation(name: "PrismaNominationToPrismaUser", fields: [refUser], references: [username])
-  refUser     String                   @map("ref_user")
-  post        PrismaPost               @relation(name: "PrismaNominationToPrismaPost", fields: [refPost], references: [slug])
-  refPost     String                   @map("ref_post")
-  election    PrismaElection           @relation(name: "PrismaElectionToPrismaNomination", fields: [refElection], references: [id])
-  refElection Int                      @map("ref_election")
+  answer      PrismaNominationAnswer @default(NO_ANSWER)
+  user        PrismaUser             @relation(name: "PrismaNominationToPrismaUser", fields: [refUser], references: [username])
+  refUser     String                 @map("ref_user")
+  post        PrismaPost             @relation(name: "PrismaNominationToPrismaPost", fields: [refPost], references: [slug])
+  refPost     String                 @map("ref_post")
+  election    PrismaElection         @relation(name: "PrismaElectionToPrismaNomination", fields: [refElection], references: [id])
+  refElection Int                    @map("ref_election")
 
   // Indexing avoided due to high insert load
   @@id([refElection, refPost, refUser])
@@ -261,13 +261,14 @@ model PrismaPostHistory {
 }
 
 model PrismaEmergencyContact {
-  id      Int        @id @default(autoincrement())
+  id      Int                        @id @default(autoincrement())
   name    String
-  type    String
+  type    PrismaEmergencyContactType
   phone   String
-  user    PrismaUser @relation(name: "PrismaEmergencyContactToPrismaUser", fields: [refUser], references: [username])
-  refUser String     @map("ref_user")
+  user    PrismaUser                 @relation(name: "PrismaEmergencyContactToPrismaUser", fields: [refUser], references: [username])
+  refUser String                     @map("ref_user")
 
+  @@unique([id, refUser])
   @@map("emergency_contacts")
 }
 
@@ -360,4 +361,15 @@ enum PrismaAccessType {
   PUBLIC
 
   @@map("access_types")
+}
+
+enum PrismaEmergencyContactType {
+  DAD
+  MOM
+  SIGNIFICANT_OTHER
+  BROTHER
+  SISTER
+  OTHER
+
+  @@map("emergency_contact_types")
 }
