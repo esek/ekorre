@@ -406,9 +406,9 @@ export class ElectionAPI {
         },
         where: {
           id: electionId,
-        }
+        },
       });
-      
+
       return true;
     } catch {
       throw new BadRequestError('Kunde inte uppdatera nomineringssynligheten');
@@ -432,7 +432,7 @@ export class ElectionAPI {
           id: electionId,
           openedAt: null,
           open: false,
-        }
+        },
       });
 
       return true;
@@ -456,7 +456,7 @@ export class ElectionAPI {
         },
         where: {
           open: true,
-        }
+        },
       });
 
       if (count < 1) {
@@ -527,20 +527,29 @@ export class ElectionAPI {
   async respondToNomination(
     username: string,
     postname: string,
-    accepts: NominationResponse,
+    response: NominationResponse,
   ): Promise<boolean> {
     const openElection = await this.getOpenElection();
-    const res = await db<DatabaseNomination>(NOMINATION_TABLE).update('accepted', accepts).where({
-      refelection: openElection.id,
-      refuser: username,
-      refpost: postname,
-    });
 
-    if (res === 0) {
-      throw new NotFoundError('Kunde inte hitta nomineringen, eller så är valet stängt!');
+    try {
+      await prisma.prismaNomination.update({
+        data: {
+          response,
+        },
+        where: {
+          // Dessa tre är unik
+          refElection_refPost_refUser: {
+            refElection: openElection.id,
+            refUser: username,
+            refPost: postname,
+          },
+        },
+      });
+
+      return true;
+    } catch {
+      throw new NotFoundError('Kunde inte hitta nomineringen!');
     }
-
-    return true;
   }
 
   /**
@@ -555,11 +564,14 @@ export class ElectionAPI {
    */
   async propose(electionId: number, username: string, postname: string): Promise<boolean> {
     try {
-      await db<DatabaseProposal>(PROPOSAL_TABLE).insert({
-        refelection: electionId,
-        refuser: username,
-        refpost: postname,
+      await prisma.prismaProposal.create({
+        data: {
+          refElection: electionId,
+          refUser: username,
+          refPost: postname,
+        },
       });
+
       return true;
     } catch (err) {
       logger.error(
@@ -579,13 +591,19 @@ export class ElectionAPI {
    * @throws `ServerError` om förslaget inte kunde tas bort (eller det aldrig fanns)
    */
   async removeProposal(electionId: number, username: string, postname: string): Promise<boolean> {
-    const res = await db<DatabaseProposal>(PROPOSAL_TABLE).delete().where({
-      refelection: electionId,
-      refuser: username,
-      refpost: postname,
-    });
+    try {
+      await prisma.prismaProposal.delete({
+        where: {
+          refElection_refPost_refUser: {
+            refElection: electionId,
+            refUser: username,
+            refPost: postname,
+          }
+        }
+      });
 
-    if (res === 0) {
+      return true;
+    } catch {
       logger.error(
         `Could not delete proposal for user ${username} and post ${postname} in election with ID ${electionId}}`,
       );
@@ -593,7 +611,5 @@ export class ElectionAPI {
         `Kunde inte ta bort föreslaget för användaren ${username} till posten ${postname}, vilket kan bero på att föreslaget inte fanns`,
       );
     }
-
-    return true;
   }
 }
