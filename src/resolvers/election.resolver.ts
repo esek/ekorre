@@ -2,7 +2,7 @@ import { useDataLoader } from '@/dataloaders';
 import { reduce } from '@/reducers';
 import { notEmpty } from '@/util';
 import { ElectionAPI } from '@api/election';
-import { NominationResponse, Resolvers } from '@generated/graphql';
+import { NominationAnswer, Resolvers } from '@generated/graphql';
 import { electionReduce } from '@reducer/election/election';
 import { nominationReduce } from '@reducer/election/nomination';
 import { proposalReduce } from '@reducer/election/proposal';
@@ -13,7 +13,9 @@ const electionResolver: Resolvers = {
   Query: {
     openElection: async (_, __, ctx) => {
       const e = reduce(await api.getOpenElection(), electionReduce);
-      ctx.electionDataLoader.prime(e.id ?? '', e);
+      if (e.id) {
+        ctx.electionDataLoader.prime(e.id, e);
+      }
       return e;
     },
     latestElections: async (_, { limit, includeUnopened, includeHiddenNominations }) => {
@@ -111,15 +113,15 @@ const electionResolver: Resolvers = {
       return null;
     },
     electables: async (model, _, ctx) => {
-      const refposts = await api.getAllElectables(model.id ?? '');
+      const refPosts = await api.getAllElectables(model.id ?? -1);
       return Promise.all(
-        refposts.map(async (e) => {
+        refPosts.map(async (e) => {
           return ctx.postDataLoader.load(e);
         }),
       );
     },
     proposals: async (model) => {
-      const p = await api.getAllProposals(model.id ?? '');
+      const p = await api.getAllProposals(model.id ?? -1);
       return reduce(p, proposalReduce);
     },
     acceptedNominations: async (model) => {
@@ -131,7 +133,7 @@ const electionResolver: Resolvers = {
       }
 
       // Vi vill bara visa de nomineringar där folk tackat ja
-      const n = await api.getAllNominations(model.id ?? '', NominationResponse.Yes);
+      const n = await api.getAllNominations(model.id ?? -1, NominationAnswer.Yes);
 
       return reduce(n, nominationReduce);
     },

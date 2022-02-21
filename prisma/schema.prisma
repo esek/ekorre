@@ -164,7 +164,7 @@ model PrismaElection {
 }
 
 model PrismaNomination {
-  response    PrismaNominationResponse @default(PENDING)
+  answer    PrismaNominationAnswer @default(NO_ANSWER)
   user        PrismaUser               @relation(name: "PrismaNominationToPrismaUser", fields: [refUser], references: [username])
   refUser     String                   @map("ref_user")
   post        PrismaPost               @relation(name: "PrismaNominationToPrismaPost", fields: [refPost], references: [slug])
@@ -302,10 +302,10 @@ enum PrismaArticleType {
   @@map("article_types")
 }
 
-enum PrismaNominationResponse {
-  ACCEPTED
-  REJECTED
-  PENDING
+enum PrismaNominationAnswer {
+  YES
+  NO
+  NO_ANSWER
 
   @@map("nomination_responses")
 }

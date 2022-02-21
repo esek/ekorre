@@ -494,7 +494,7 @@ export type MutationResetPasswordArgs = {
 
 
 export type MutationRespondToNominationArgs = {
-  accepts: NominationResponse;
+  accepts: NominationAnswer;
   postname: Scalars['String'];
 };
 
@@ -584,15 +584,15 @@ export type NewUser = {
 };
 
 export type Nomination = {
-  accepted: NominationResponse;
+  accepted: NominationAnswer;
   post: Post;
   user: User;
 };
 
-export enum NominationResponse {
-  Accepted = 'ACCEPTED',
-  Rejected = 'REJECTED',
-  Pending = 'PENDING'
+export enum NominationAnswer {
+  Yes = 'YES',
+  No = 'NO',
+  NoAnswer = 'NO_ANSWER'
 }
 
 
@@ -827,7 +827,7 @@ export type QueryHehesArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryHiddenNominationsArgs = {
-  answer?: Maybe<NominationResponse>;
+  answer?: Maybe<NominationAnswer>;
   electionId: Scalars['Int'];
 };
 
@@ -906,7 +906,7 @@ export type QueryMeetingsArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryMyNominationsArgs = {
-  answer?: Maybe<NominationResponse>;
+  answer?: Maybe<NominationAnswer>;
   electionId: Scalars['Int'];
 };
 
@@ -1219,7 +1219,7 @@ export type ResolversTypes = ResolversObject<{
   NewPost: NewPost;
   NewUser: NewUser;
   Nomination: ResolverTypeWrapper<NominationResponse>;
-  NominationResponse: NominationResponse;
+  NominationAnswer: NominationAnswer;
   Object: ResolverTypeWrapper<Scalars['Object']>;
   Post: ResolverTypeWrapper<Omit<Post, 'access' | 'history'> & { access: ResolversTypes['Access'], history: Array<ResolversTypes['HistoryEntry']> }>;
   PostType: PostType;
@@ -1473,7 +1473,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
 }>;
 
 export type NominationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Nomination'] = ResolversParentTypes['Nomination']> = ResolversObject<{
-  accepted?: Resolver<ResolversTypes['NominationResponse'], ParentType, ContextType>;
+  accepted?: Resolver<ResolversTypes['NominationAnswer'], ParentType, ContextType>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

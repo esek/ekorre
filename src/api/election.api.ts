@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/indent */
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { NominationResponse } from '@generated/graphql';
+import { NominationAnswer } from '@generated/graphql';
 import {
   Prisma,
   PrismaElectable,
   PrismaElection,
   PrismaNomination,
-  PrismaNominationResponse,
+  PrismaNominationAnswer,
   PrismaProposal,
 } from '@prisma/client';
 
@@ -110,22 +110,22 @@ export class ElectionAPI {
    * de med ett specifikt svar. Returnerar inte nomineringar som inte
    * finns som electables.
    * @param electionId ID på ett val
-   * @param response Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
+   * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
    * @returns Lista över nomineringar
    */
   async getAllNominations(
     electionId: number,
-    response?: NominationResponse,
+    answer?: NominationAnswer,
   ): Promise<PrismaNomination[]> {
     // TODO: Finns det ett sätt att göra detta på en query
     // utan raw?
-    const aq = Prisma.sql`AND nominations.response = ${response}`;
+    const aq = Prisma.sql`AND nominations.response = ${answer}`;
 
     const n = await prisma.$queryRaw<PrismaNomination[]>`
       SELECT * FROM nominations
       FROM nominations
       WHERE nominations.ref_election = ${electionId}
-      ${response != null ? aq : Prisma.empty}
+      ${answer != null ? aq : Prisma.empty}
       LEFT JOIN electables
       ON (
         electables.ref_election = nominations.ref_election,
@@ -147,18 +147,18 @@ export class ElectionAPI {
   async getAllNominationsForUser(
     electionId: number,
     username: string,
-    response?: NominationResponse,
+    answer?: NominationAnswer,
   ): Promise<PrismaNomination[]> {
     // TODO: Finns det ett sätt att göra detta på en query
     // utan raw?
-    const aq = Prisma.sql`AND nominations.response = ${response}`;
+    const aq = Prisma.sql`AND nominations.response = ${answer}`;
 
     const n = await prisma.$queryRaw<PrismaNomination[]>`
       SELECT * FROM nominations
       FROM nominations
       WHERE nominations.ref_election = ${electionId}
       AND nominations.ref_user = ${username}
-      ${response != null ? aq : Prisma.empty}
+      ${answer != null ? aq : Prisma.empty}
       LEFT JOIN electables
       ON (
         electables.ref_election = nominations.ref_election,
@@ -508,7 +508,7 @@ export class ElectionAPI {
             refElection: openElection.id,
             refUser: username,
             refPost: postname,
-            response: PrismaNominationResponse.PENDING,
+            answer: PrismaNominationAnswer.NO_ANSWER,
           };
         }),
       });
@@ -527,14 +527,14 @@ export class ElectionAPI {
   async respondToNomination(
     username: string,
     postname: string,
-    response: NominationResponse,
+    answer: NominationAnswer,
   ): Promise<boolean> {
     const openElection = await this.getOpenElection();
 
     try {
       await prisma.prismaNomination.update({
         data: {
-          response,
+          answer,
         },
         where: {
           // Dessa tre är unik

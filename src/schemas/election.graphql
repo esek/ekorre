@@ -17,10 +17,10 @@ type Query {
   """
   Used if nominations are hidden but an election-admin wants too see nominations
   """
-  hiddenNominations(electionId: Int!, answer: NominationResponse): [Nomination]!
+  hiddenNominations(electionId: Int!, answer: NominationAnswer): [Nomination]!
 
   "A users own nominations should always be available to them"
-  myNominations(electionId: Int!, answer: NominationResponse): [Nomination]!
+  myNominations(electionId: Int!, answer: NominationAnswer): [Nomination]!
   numberOfNominations(electionId: Int!, postname: String): Int!
   numberOfProposals(electionId: Int!, postname: String): Int!
 }
@@ -38,7 +38,7 @@ type Mutation {
   nominate(username: String!, postnames: [String!]!): Boolean!
 
   "Only possible during open election, so electionId is known"
-  respondToNomination(postname: String!, accepts: NominationResponse!): Boolean!
+  respondToNomination(postname: String!, accepts: NominationAnswer!): Boolean!
   propose(electionId: Int!, username: String!, postname: String!): Boolean!
   removeProposal(electionId: Int!, username: String!, postname: String!): Boolean!
 }
@@ -71,11 +71,11 @@ type Proposal {
 type Nomination {
   user: User!
   post: Post!
-  accepted: NominationResponse!
+  accepted: NominationAnswer!
 }
 
-enum NominationResponse {
-  ACCEPTED
-  REJECTED
-  PENDING
+enum NominationAnswer {
+  YES
+  NO
+  NO_ANSWER
 }
