@@ -89,7 +89,7 @@ model PrismaPost {
   electables        PrismaElectable[]   @relation(name: "PrismaElectableToPrismaPost")
   nominations       PrismaNomination[]  @relation(name: "PrismaNominationToPrismaPost")
   history           PrismaPostHistory[] @relation(name: "PrismaPostToPrismaPostHistory")
-  postname          String
+  postname          String              @unique
   utskott           PrismaUtskott
   description       String
   spots             Int
@@ -99,6 +99,7 @@ model PrismaPost {
 
   // Posts are either searched by name or by utskott,
   // name handled by primare key (@id)
+  PrismaProposal PrismaProposal[] @relation("PrismaProposalToPrismaPost")
   @@index([utskott])
   @@map("posts")
 }
@@ -129,7 +130,7 @@ model PrismaArticle {
   refLastUpdateBy String             @map("ref_last_update_by")
 
   @@index([createdAt, updatedAt])
-  @@index([articleType]) // Articles are often batched by type
+  @@index([articleType])
   @@map("articles")
 }
 
@@ -142,34 +143,39 @@ model PrismaElectable {
 
   // Electables are not often inserted/updated,
   // but often queried on which election they belong to
+  @@unique([refElection, refPost])
   @@index([refElection])
   @@map("electables")
 }
 
 model PrismaElection {
-  id                Int               @id @default(autoincrement())
-  electables        PrismaElectable[] @relation(name: "PrismaElectableToPrismaElection")
-  creator           PrismaUser        @relation(name: "PrismaElectionToPrismaUser", fields: [refCreator], references: [username])
-  refCreator        String            @map("ref_creator")
-  createdAt         DateTime          @default(now()) @map("created_at")
-  openedAt          DateTime?         @map("opened_at")
-  closedAt          DateTime?         @map("closed_at")
-  open              Boolean           @default(false)
-  nominationsHidden Boolean           @default(false) @map("nominations_hidden")
-  proposals         PrismaProposal[]  @relation(name: "PrismaElectionToPrismaProposal")
+  id                Int                @id @default(autoincrement())
+  electables        PrismaElectable[]  @relation(name: "PrismaElectableToPrismaElection")
+  creator           PrismaUser         @relation(name: "PrismaElectionToPrismaUser", fields: [refCreator], references: [username])
+  refCreator        String             @map("ref_creator")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  openedAt          DateTime?          @map("opened_at")
+  closedAt          DateTime?          @map("closed_at")
+  open              Boolean            @default(false)
+  nominationsHidden Boolean            @default(false) @map("nominations_hidden")
+  proposals         PrismaProposal[]   @relation(name: "PrismaElectionToPrismaProposal")
+  nominations       PrismaNomination[] @relation(name: "PrismaElectionToPrismaNomination")
 
   @@map("elections")
 }
 
 model PrismaNomination {
-  id       Int                      @id @default(autoincrement())
-  response PrismaNominationResponse @default(PENDING)
-  user     PrismaUser               @relation(name: "PrismaNominationToPrismaUser", fields: [refUser], references: [username])
-  refUser  String                   @map("ref_user")
-  post     PrismaPost               @relation(name: "PrismaNominationToPrismaPost", fields: [refPost], references: [slug])
-  refPost  String                   @map("ref_post")
+  id          Int                      @id @default(autoincrement())
+  response    PrismaNominationResponse @default(PENDING)
+  user        PrismaUser               @relation(name: "PrismaNominationToPrismaUser", fields: [refUser], references: [username])
+  refUser     String                   @map("ref_user")
+  post        PrismaPost               @relation(name: "PrismaNominationToPrismaPost", fields: [refPost], references: [slug])
+  refPost     String                   @map("ref_post")
+  election    PrismaElection           @relation(name: "PrismaElectionToPrismaNomination", fields: [refElection], references: [id])
+  refElection Int                      @map("ref_election")
 
   // Indexing avoided due to high insert load
+  @@unique([refElection, refPost, refUser])
   @@map("nominations")
 }
 
@@ -177,9 +183,12 @@ model PrismaProposal {
   id          Int            @id @default(autoincrement())
   user        PrismaUser     @relation(name: "PrismaProposalToPrismaUser", fields: [refUser], references: [username])
   refUser     String         @map("ref_user")
+  post        PrismaPost     @relation(name: "PrismaProposalToPrismaPost", fields: [refPost], references: [slug])
+  refPost     String         @map("ref_post")
   election    PrismaElection @relation(name: "PrismaElectionToPrismaProposal", fields: [refElection], references: [id])
   refElection Int            @map("ref_election")
 
+  @@unique([refElection, refPost, refUser])
   @@map("proposals")
 }
 
@@ -237,6 +246,7 @@ model PrismaMeeting {
 
   // Year has priority in queries,
   // but often also sorted by number
+  @@unique([type, number, year])
   @@index([year, number])
   @@index([type])
   @@map("meetings")
