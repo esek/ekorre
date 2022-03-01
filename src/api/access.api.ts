@@ -1,13 +1,23 @@
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import type { Prisma } from '@prisma/client';
 import type { ResolverType } from '@generated/graphql';
+import type {
+  PrismaAccessResource,
+  PrismaIndividualAccess,
+  PrismaPostAccess,
+} from '@prisma/client';
 
 import prisma from './prisma';
 
 const logger = Logger.getLogger('AccessAPI');
 
-export type DatabaseJoinedAccess = DatabaseAccess & DatabaseAccessResource;
+export type DatabaseIndividualJoinedAccess = PrismaIndividualAccess & {
+  resource: PrismaAccessResource;
+};
+
+export type DatabasePostJoinedAccess = PrismaPostAccess & {
+  resource: PrismaAccessResource;
+};
 
 /**
  * Det är api:n som hanterar access.
@@ -21,28 +31,36 @@ export class AccessAPI {
    * Hämta specifik access för en användare
    * @param username användaren
    */
-  async getIndividualAccess(username: string): Promise<DatabaseJoinedAccess[]> {
-    const res = await db<DatabaseAccess>(IND_ACCESS_TABLE)
-      .where({
-        refname: username,
-      })
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
+  async getIndividualAccess(username: string): Promise<DatabaseIndividualJoinedAccess[]> {
+    const access = await prisma.prismaIndividualAccess.findMany({
+      where: {
+        refUser: username,
+      },
+      include: {
+        resource: true,
+      },
+    });
 
-    return res;
+    console.log(access);
+
+    return access;
   }
 
   /**
    * Hämta access för en post.
    * @param postname posten
    */
-  async getPostAccess(postname: string): Promise<DatabaseJoinedAccess[]> {
-    const res = await db<DatabaseAccess>(POST_ACCESS_TABLE)
-      .where({
-        refname: postname,
-      })
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
+  async getPostAccess(postname: string): Promise<DatabasePostJoinedAccess[]> {
+    const access = await prisma.prismaPostAccess.findMany({
+      where: {
+        refPost: postname,
+      },
+      include: {
+        resource: true,
+      },
+    });
 
-    return res;
+    return access;
   }
 
   /**
@@ -51,40 +69,28 @@ export class AccessAPI {
    * @param ref referens (användare eller post)
    * @param newaccess den nya accessen
    */
-  private async setAccess(table: string, ref: string, newaccess: string[]): Promise<boolean> {
-    await db<DatabaseAccess>(table)
-      .where({
-        refname: ref,
-      })
-      .delete();
-
+  private async setIndividualAccess(username: string, newaccess: string[]): Promise<boolean> {
     // Only do insert with actual values.
-    const inserts = newaccess.map<DatabaseAccess>((id) => ({
-      refname: ref,
-      refaccessresource: id,
+    const inserts = newaccess.map<Omit<PrismaIndividualAccess, 'id'>>((id) => ({
+      refResource: id,
+      refUser: username,
     }));
 
+    await prisma.prismaIndividualAccess.deleteMany({
+      where: {
+        refUser: username,
+      },
+    });
+
     if (inserts.length > 0) {
-      const status = await db<DatabaseAccess>(table).insert(inserts);
-      return status[0] > 0;
+      const inserted = await prisma.prismaIndividualAccess.createMany({
+        data: inserts,
+      });
+
+      return inserted.count > 0;
     }
 
     return false;
-  }
-
-  /**
-   * Sätt access för en användare. VIKTIGT: Access är icke muterbart
-   * vilket innebär att accessobjektet som matas ska innehålla allt
-   * som behövs.
-   * @param username användaren
-   * @param newaccess den nya accessen
-   */
-  async setIndividualAccess(username: string, newaccess: string[]): Promise<boolean> {
-    const status = this.setAccess(IND_ACCESS_TABLE, username, newaccess);
-
-    logger.info(`Updated access for user ${username}`);
-    logger.debug(`Updated access for user ${username} to ${Logger.pretty(newaccess)}`);
-    return status;
   }
 
   /**
@@ -94,12 +100,28 @@ export class AccessAPI {
    * @param postname posten
    * @param newaccess den nya accessen
    */
-  async setPostAccess(postname: string, newaccess: string[]): Promise<boolean> {
-    const status = this.setAccess(POST_ACCESS_TABLE, postname, newaccess);
+  async setPostAccess(slug: string, newaccess: string[]): Promise<boolean> {
+    // Only do insert with actual values.
+    const inserts = newaccess.map<Omit<PrismaPostAccess, 'id'>>((id) => ({
+      refResource: id,
+      refPost: slug,
+    }));
 
-    logger.info(`Updated access for post ${postname}`);
-    logger.debug(`Updated access for post ${postname} to ${Logger.pretty(newaccess)}`);
-    return status;
+    await prisma.prismaPostAccess.deleteMany({
+      where: {
+        refPost: slug,
+      },
+    });
+
+    if (inserts.length > 0) {
+      const inserted = await prisma.prismaPostAccess.createMany({
+        data: inserts,
+      });
+
+      return inserted.count > 0;
+    }
+
+    return false;
   }
 
   /**
@@ -111,21 +133,22 @@ export class AccessAPI {
   async getAccessForPosts(
     posts: string[],
     includeInactivePosts = false,
-  ): Promise<DatabaseJoinedAccess[]> {
-    const query = db<DatabaseAccess>(POST_ACCESS_TABLE)
-      .whereIn('refname', posts)
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
-      .select<DatabaseJoinedAccess[]>('*', `${ACCESS_RESOURCES_TABLE}.description`);
+  ): Promise<DatabasePostJoinedAccess[]> {
+    const data = await prisma.prismaPostAccess.findMany({
+      where: {
+        refPost: {
+          in: posts,
+        },
+        post: {
+          active: !includeInactivePosts ?? undefined,
+        },
+      },
+      include: {
+        resource: true,
+      },
+    });
 
-    // Om inaktiva posters access inte ska inkluderas,
-    // ta in `POSTS_TABLE` och se vilka som är aktiva
-    if (!includeInactivePosts) {
-      query.innerJoin<DatabasePost>(POSTS_TABLE, 'refname', 'postname').where('active', true);
-    }
-
-    const res = await query;
-
-    return res;
+    return data;
   }
 
   /**
@@ -133,20 +156,52 @@ export class AccessAPI {
    * @param username The user to get
    * @returns A list of all the accessable resources
    */
-  async getUserPostAccess(username: string) {
-    const res = await db<DatabaseAccess>(POST_ACCESS_TABLE)
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
-      .join<DatabasePostHistory>(POSTS_HISTORY_TABLE, 'refpost', 'refname')
-      .where({
-        refuser: username,
-      })
-      .andWhere((q) => {
-        // Only fetch active posts
-        q.whereNull('end').orWhere('end', '>', new Date().getTime());
-      })
-      .distinct(); // remove any duplicates
+  async getUserPostAccess(username: string): Promise<DatabasePostJoinedAccess[]> {
+    // const res = await db<DatabaseAccess>(POST_ACCESS_TABLE)
+    //   .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
+    //   .join<DatabasePostHistory>(POSTS_HISTORY_TABLE, 'refpost', 'refname')
+    //   .where({
+    //     refuser: username,
+    //   })
+    //   .andWhere((q) => {
+    //     // Only fetch active posts
+    //     q.whereNull('end').orWhere('end', '>', new Date().getTime());
+    //   })
+    //   .distinct(); // remove any duplicates
 
-    return res;
+    const access = await prisma.prismaPostAccess.findMany({
+      where: {
+        post: {
+          history: {
+            every: {
+              AND: [
+                {
+                  refUser: username,
+                },
+                {
+                  OR: [
+                    {
+                      endDate: null,
+                    },
+                    {
+                      endDate: {
+                        gt: new Date(),
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+      distinct: ['refResource'],
+      include: {
+        resource: true,
+      },
+    });
+
+    return access;
   }
 
   /**
@@ -154,7 +209,9 @@ export class AccessAPI {
    * @param username The user whose access to get
    * @returns A list of databaseaccess objects
    */
-  async getUserFullAccess(username: string): Promise<DatabaseJoinedAccess[]> {
+  async getUserFullAccess(
+    username: string,
+  ): Promise<(DatabasePostJoinedAccess & DatabaseIndividualJoinedAccess)[]> {
     // Get the individual access for that user
     const individual = this.getIndividualAccess(username);
     // Get the postaccess for that users posts

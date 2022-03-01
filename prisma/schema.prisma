@@ -25,7 +25,7 @@ model PrismaAccessResource {
   mappings    PrismaAccessMapping[]    @relation(name: "PrismaAccessMappingToPrismaAccessResource")
   name        String
   description String
-  resouceType PrismaResourceType
+  resourceType PrismaResourceType      @map("resource_type")
   userAccess  PrismaIndividualAccess[] @relation(name: "PrismaAccessResourceToPrismaIndividualAccess")
   postAccess  PrismaPostAccess[]       @relation(name: "PrismaAccessResourceToPrismaPostAccess")
 
