@@ -1,7 +1,8 @@
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import type { ResolverType } from '@generated/graphql';
 import type {
+  PrismaAccessMapping,
+  PrismaAccessMappingType,
   PrismaAccessResource,
   PrismaIndividualAccess,
   PrismaPostAccess,
@@ -64,12 +65,12 @@ export class AccessAPI {
   }
 
   /**
-   * En private hjälpfunktion för att sätta access.
+   * En hjälpfunktion för att sätta access.
    * @param table tabellen där access raderna finns
    * @param ref referens (användare eller post)
    * @param newaccess den nya accessen
    */
-  private async setIndividualAccess(username: string, newaccess: string[]): Promise<boolean> {
+  async setIndividualAccess(username: string, newaccess: string[]): Promise<boolean> {
     // Only do insert with actual values.
     const inserts = newaccess.map<Omit<PrismaIndividualAccess, 'id'>>((id) => ({
       refResource: id,
@@ -211,7 +212,7 @@ export class AccessAPI {
    */
   async getUserFullAccess(
     username: string,
-  ): Promise<(DatabasePostJoinedAccess & DatabaseIndividualJoinedAccess)[]> {
+  ): Promise<(DatabasePostJoinedAccess | DatabaseIndividualJoinedAccess)[]> {
     // Get the individual access for that user
     const individual = this.getIndividualAccess(username);
     // Get the postaccess for that users posts
@@ -225,27 +226,28 @@ export class AccessAPI {
 
   /**
    * Gets the mapping for a resource
-   * @param resolverType The type of resource (query or mutation)
-   * @param resolverName The name of the resource
+   * @param type The type of resource (query or mutation)
+   * @param name The name of the resource
    * @returns A list of mappings
    */
   async getAccessMapping(
-    resolverName?: string,
-    resolverType?: ResolverType,
-  ): Promise<DatabaseAccessMapping[]> {
-    const q = db<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
+    name?: string,
+    type?: PrismaAccessMappingType,
+  ): Promise<PrismaAccessMapping[]> {
+    const mappings = await prisma.prismaAccessMapping.findMany({
+      where: {
+        AND: [
+          {
+            name,
+          },
+          {
+            type,
+          },
+        ],
+      },
+    });
 
-    if (resolverName) {
-      q.where({ resolverName });
-    }
-
-    if (resolverType) {
-      q.where({ resolverType });
-    }
-
-    const resources = await q;
-
-    return resources;
+    return mappings;
   }
 
   /**
@@ -256,23 +258,32 @@ export class AccessAPI {
    * @returns {boolean} True if successful
    */
   async setAccessMappings(
-    resolverName: string,
-    resolverType: ResolverType,
+    name: string,
+    type: PrismaAccessMappingType,
     slugs?: string[],
   ): Promise<boolean> {
-    const q = db<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
+    // const q = db<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
 
-    await q
-      .where({
-        resolverName,
-        resolverType,
-      })
-      .delete();
+    await prisma.prismaAccessMapping.deleteMany({
+      where: {
+        AND: [
+          {
+            name,
+          },
+          {
+            type,
+          },
+        ],
+      },
+    });
 
     // if we have anything to add
     if (slugs) {
       try {
-        await q.insert(slugs.map((s) => ({ refaccessresource: s, resolverName, resolverType })));
+        // await q.insert(slugs.map((s) => ({ refaccessresource: s, resolverName, resolverType })));
+        await prisma.prismaAccessMapping.createMany({
+          data: slugs.map((s) => ({ name, type, refResource: s })),
+        });
       } catch {
         throw new ServerError('Kunde inte skapa mappningen av resursen');
       }

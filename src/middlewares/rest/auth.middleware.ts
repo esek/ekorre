@@ -6,7 +6,7 @@ import { TokenValue } from '@/models/auth';
 import FileAPI from '@api/file';
 import { userApi } from '@dataloader/user';
 import { AccessType } from '@generated/graphql';
-import { User } from '@prisma/client';
+import { PrismaUser as User } from '@prisma/client';
 import { RequestHandler } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 

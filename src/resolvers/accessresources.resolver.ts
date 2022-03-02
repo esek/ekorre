@@ -25,11 +25,13 @@ const doorResolver: Resolvers = {
       if (!resources?.length) {
         return null;
       }
+
       try {
         // try to load the mappings from datalodaer
         const r = await ctx.accessResourceDataloader.loadMany(
           resources.filter((resource) => resource.slug).map((resource) => resource.slug ?? ''),
         );
+
         return r;
       } catch (err) {
         throw new ServerError((err as Error).message);
