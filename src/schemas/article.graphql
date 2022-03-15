@@ -4,21 +4,21 @@ scalar Date
 scalar DateTime
 
 type Query {
-  newsentries(creator: String, after: DateTime, before: DateTime, markdown: Boolean): [Article]!
-  latestnews(limit: Int, markdown: Boolean): [Article]!
-  article(Int: Int, slug: String, markdown: Boolean): Article
-  articles(Int: Int, creator: String, lastUpdateBy: String, title: String, createdAt: DateTime, lastUpdatedAt: DateTime, signature: String, tags: [String], articleType: String, markdown: Boolean): [Article]!
+  newsentries(creator: String, after: DateTime, before: DateTime): [Article]!
+  latestnews(limit: Int): [Article]!
+  article(id: Int, slug: String): Article
+  articles(id: Int, author: String, tags: [Int!]): [Article]!
 }
 
 type Mutation {
   addArticle(entry: NewArticle!): Article
-  modifyArticle(articleInt: Int!, entry: ModifyArticle!): Boolean!
-  removeArticle(articleInt: Int!): Boolean!
+  modifyArticle(articleId: Int!, entry: ModifyArticle!): Boolean!
+  removeArticle(articleId: Int!): Boolean!
 }
 
 "Body is saved as HTML serversInte, but edited in MarkDown"
 type Article {
-  Int: Int
+  id: Int
 
   "Used in URLs, but Intentification is done using only tail (Int)"
   slug: String
@@ -29,8 +29,14 @@ type Article {
   createdAt: DateTime!
   lastUpdatedAt: DateTime!
   signature: String!
-  tags: [String!]!
+  tags: [ArticleTag!]!
   articleType: ArticleType!
+}
+
+type ArticleTag {
+  id: Int
+  tag: String!
+  createdAt: DateTime!
 }
 
 "News are the ones to be used by a website newsreel"

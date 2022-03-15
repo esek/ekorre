@@ -1,67 +1,16 @@
 import { ArticleResponse } from '@/models/mappers';
+import { ArticleType } from '@generated/graphql';
 import { PrismaArticle } from '@prisma/client';
-import DOMPurify from 'dompurify';
-import { JSDOM } from 'jsdom';
-import showdown from 'showdown';
 
-import { SHOWDOWN_CONVERTER_OPTIONS } from './constants';
-
-const converter = new showdown.Converter(SHOWDOWN_CONVERTER_OPTIONS);
-const dom = new JSDOM();
-
-// DOMWindow och Window är i detta fallet kompatibla,
-// och detta testas i test/unit så borde vara fine
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-const dompurify = DOMPurify(dom.window);
-
-/**
- * Converts MarkDown to HTML and sanatizes MarkDown
- * @param md string formatted as Markdown
- */
-export const convertMarkdownToHtml = (md: string): string => {
-  let html = converter.makeHtml(md);
-  html = dompurify.sanitize(html, { USE_PROFILES: { html: true } }); // Don't want any dirty XSS xD
-  return html.trim();
-};
-
-/**
- * Converts HTML to Markdown
- * @param html string formatted as HTML
- */
-const convertHtmlToMarkdown = (html: string): string =>
-  converter.makeMarkdown(html, dom.window.document);
-
-/**
- * Creates a slug out of a string
- * Converts it to lowercase
- * Converts å/ä to a, and ö to o
- * Strips special characters
- * Replaces spaces with dashes
- * @param str The string to slugify
- * @returns Slug, ex: `this-is-an-article`
- */
-const generateSlug = (str: string) =>
-  str
-    .toLowerCase()
-    .replace(/[åä]/g, 'a')
-    .replace(/[ö]/g, 'o')
-    .replace(/[^a-z0-9 -]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-');
-
-const articleReduce = (article: PrismaArticle, markdown: boolean): ArticleResponse => {
-  // Vi lagrar alltid HTML i databasen; vi gör om till markdown vid
-  // förfrågan
-  const sanitizedBody = !markdown ? article.body : convertHtmlToMarkdown(article.body);
+export const articleReducer = (article: PrismaArticle): ArticleResponse => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { body, refAuthor, refLastUpdateBy, ...reduced } = article;
+  const { body, refAuthor, refLastUpdateBy, articleType, ...reduced } = article;
+
   const a: ArticleResponse = {
     ...reduced,
-    body: sanitizedBody.trim(),
-    slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
+    articleType: articleType as ArticleType,
     // Exteremely temporary fix for tags, as SQL can't store arrays
-    tags: (reduced.tags as unknown as string).toString().split(','),
+    tags: [], // TODO fix tags
     author: {
       username: refAuthor,
     },
@@ -72,25 +21,3 @@ const articleReduce = (article: PrismaArticle, markdown: boolean): ArticleRespon
 
   return a;
 };
-
-// Vi definierar Reducers för alla olika typer av DatabaseArticles
-// Vi returnerar DatabaseArticle; refuser -> User i resolvern
-export async function articleReducer(
-  a: PrismaArticle,
-  markdown: boolean,
-): Promise<ArticleResponse>;
-export async function articleReducer(
-  a: PrismaArticle[],
-  markdown: boolean,
-): Promise<ArticleResponse[]>;
-export async function articleReducer(
-  a: PrismaArticle | PrismaArticle[],
-  markdown: boolean,
-): Promise<ArticleResponse | ArticleResponse[]> {
-  // Är det en array, reducera varje för sig, annars skicka bara tillbaka en reducerad
-  if (a instanceof Array) {
-    const aa = await Promise.all(a.map((e) => articleReduce(e, markdown)));
-    return aa;
-  }
-  return articleReduce(a, markdown);
-}

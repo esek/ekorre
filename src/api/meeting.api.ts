@@ -2,7 +2,7 @@
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { MeetingDocumentType, MeetingType } from '@generated/graphql';
-import { PrismaMeeting, PrismaMeetingType, Prisma } from '@prisma/client';
+import { Prisma, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
 
 import prisma from './prisma';
 
@@ -92,7 +92,7 @@ export class MeetingAPI {
     let safeNbr: number;
     if (number == null || !Number.isSafeInteger(number)) {
       const lastMeeting = await prisma.prismaMeeting.findFirst({
-        select: { number: true }
+        select: { number: true },
       });
 
       if (lastMeeting == null) {
@@ -109,10 +109,10 @@ export class MeetingAPI {
     // Kontrollera att vi inte har dubblettmöte
     const possibleDouble = await prisma.prismaMeeting.findFirst({
       where: {
-        type: type === undefined ? undefined : type as PrismaMeetingType,
+        type: type === undefined ? undefined : (type as PrismaMeetingType),
         number: safeNbr,
         year: safeYear,
-      }
+      },
     });
 
     if (possibleDouble != null) {
@@ -154,7 +154,7 @@ export class MeetingAPI {
    */
   async removeMeeting(id: number): Promise<boolean> {
     try {
-      await prisma.prismaMeeting.delete({where: { id }});
+      await prisma.prismaMeeting.delete({ where: { id } });
       return true;
     } catch {
       throw new NotFoundError('Mötet kunde inte hittas');
@@ -171,7 +171,7 @@ export class MeetingAPI {
    */
   async addFileToMeeting(
     meetingId: number,
-    fileId: string,
+    fileId: number,
     fileType: MeetingDocumentType,
   ): Promise<boolean> {
     const d = this.createDataForMeetingType(fileType, fileId);
@@ -184,7 +184,7 @@ export class MeetingAPI {
         },
         where: {
           ...w,
-          id: meetingId
+          id: meetingId,
         },
       });
       return true;
@@ -212,7 +212,7 @@ export class MeetingAPI {
     try {
       await prisma.prismaMeeting.update({
         data: {
-          ...d
+          ...d,
         },
         where: {
           id: meetingId,
@@ -232,7 +232,10 @@ export class MeetingAPI {
    * @param fileType The type of file for the meeting
    * @param content Either `fileId` or null if the file is to be removed, or undefined if checking if document exists
    */
-  private createDataForMeetingType(fileType: MeetingDocumentType, content: string | null | undefined) {
+  private createDataForMeetingType(
+    fileType: MeetingDocumentType,
+    content: number | null | undefined,
+  ) {
     let data = {};
     switch (fileType) {
       case MeetingDocumentType.Summons:

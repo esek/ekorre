@@ -23,7 +23,7 @@ export const batchPostsFunction = async (
    * see /src/resolvers/README.md
    * @param postnames
    */
-  const apiResponse = await postApi.getMultiplePosts(postnames);
+  const apiResponse = await postApi.getMultiplePosts([...postnames]);
   if (apiResponse == null) return [];
 
   const posts = reduce(apiResponse, postReduce);

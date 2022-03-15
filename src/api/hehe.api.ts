@@ -1,6 +1,6 @@
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { PrismaHehe, Prisma } from '@prisma/client';
+import { PrismaHehe } from '@prisma/client';
 
 import prisma from './prisma';
 
@@ -40,7 +40,7 @@ export class HeheAPI {
     if (h == null) {
       throw new NotFoundError('Kunde inte hitta detta nummer av HeHE!');
     }
-    
+
     return h;
   }
 
@@ -98,7 +98,7 @@ export class HeheAPI {
       await prisma.prismaHehe.delete({
         where: {
           // Key is tuple
-          number_year: {
+          year_number: {
             number,
             year,
           },

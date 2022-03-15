@@ -1,10 +1,9 @@
 /* eslint-disable class-methods-use-this */
 import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
-import { stripObject, toUTC } from '@/util';
-import { ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
+import { slugify, stripObject, toUTC } from '@/util';
+import { ModifyArticle, NewArticle } from '@generated/graphql';
 import { Prisma, PrismaArticle, PrismaArticleType } from '@prisma/client';
-import { convertMarkdownToHtml } from '@reducer/article';
 
 import prisma from './prisma';
 
@@ -27,7 +26,7 @@ export class ArticleAPI {
   async getAllNewsArticles(): Promise<PrismaArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
-        type: PrismaArticleType.NEWS,
+        articleType: PrismaArticleType.NEWS,
       },
       orderBy: {
         createdAt: 'desc',
@@ -40,7 +39,7 @@ export class ArticleAPI {
   async getAllInformationArticles(): Promise<PrismaArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
-        type: PrismaArticleType.INFORMATION,
+        articleType: PrismaArticleType.INFORMATION,
       },
       orderBy: {
         createdAt: 'desc',
@@ -64,7 +63,7 @@ export class ArticleAPI {
   ): Promise<PrismaArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
-        type: PrismaArticleType.NEWS,
+        articleType: PrismaArticleType.NEWS,
         createdAt: {
           lte: after,
           gte: before,
@@ -132,7 +131,7 @@ export class ArticleAPI {
   async getLatestNews(limit: number): Promise<PrismaArticle[]> {
     const lastestNews = await prisma.prismaArticle.findMany({
       where: {
-        type: PrismaArticleType.NEWS,
+        articleType: PrismaArticleType.NEWS,
       },
       orderBy: {
         createdAt: 'desc',
@@ -149,19 +148,22 @@ export class ArticleAPI {
    * @param entry artikel som ska läggas till
    */
   async newArticle(authorUsername: string, entry: NewArticle): Promise<PrismaArticle> {
-    const article: PrismaArticle = {
-      ...entry,
-      tags: entry.tags ?? [],
-      refAuthor: authorUsername,
-      refLastUpdateBy: authorUsername,
-    };
+    // todo: update so tags are set as well
+    const { tags, ...reduced } = entry;
 
-    const res = await db<PrismaArticle>(ARTICLE_TABLE).insert(article);
+    const res = await prisma.prismaArticle.create({
+      data: {
+        body: reduced.body,
+        signature: reduced.signature,
+        title: reduced.title,
+        articleType: reduced.articleType,
+        slug: slugify(reduced.title),
+        refAuthor: authorUsername,
+        refLastUpdateBy: authorUsername,
+      },
+    });
 
-    return {
-      ...article,
-      id: res[0].toString() ?? -1,
-    };
+    return res;
   }
 
   /**
@@ -171,29 +173,38 @@ export class ArticleAPI {
    * @param updaterUsername Användarnamn hos den som ändrat artikeln
    * @param entry Modifiering av existerande artikel
    */
-  async modifyArticle(id: string, updaterUsername: string, entry: ModifyArticle): Promise<boolean> {
+  async modifyArticle(id: number, updaterUsername: string, entry: ModifyArticle): Promise<boolean> {
     if (updaterUsername === '' || updaterUsername == null) {
       throw new BadRequestError('Artiklar måste modifieras av inloggade användare');
     }
 
     const update: StrictObject = stripObject(entry);
 
-    // We only want to update the body if it is passed
-    if (update.body != null) {
-      update.body = convertMarkdownToHtml(update.body ?? '');
-    }
-
     update.reflastupdateby = updaterUsername;
 
     update.lastUpdatedAt = toUTC(new Date());
 
-    const res = await db<PrismaArticle>(ARTICLE_TABLE).where('id', id).update(update);
+    const res = await prisma.prismaArticle.update({
+      data: {
+        ...update,
+      },
+      where: {
+        id,
+      },
+    });
 
-    return res > 0;
+    // const res = await db<PrismaArticle>(ARTICLE_TABLE).where('id', id).update(update);
+
+    return res != null;
   }
 
-  async removeArticle(id: string): Promise<boolean> {
-    const res = await db<PrismaArticle>(ARTICLE_TABLE).delete().where('id', id);
-    return res > 0;
+  async removeArticle(id: number): Promise<boolean> {
+    const res = await prisma.prismaArticle.delete({
+      where: {
+        id,
+      },
+    });
+
+    return res != null;
   }
 }
