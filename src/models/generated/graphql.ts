@@ -172,6 +172,13 @@ export type HistoryEntry = {
   start: Scalars['Date'];
 };
 
+export type LoginProvider = {
+  email: Scalars['String'];
+  id: Scalars['Int'];
+  provider: Scalars['String'];
+  token: Scalars['String'];
+};
+
 export type Me = {
   accessExpiry: Scalars['Float'];
   refreshExpiry: Scalars['Float'];
@@ -258,6 +265,7 @@ export type Mutation = {
   addPost: Scalars['Boolean'];
   addUsersToPost: Scalars['Boolean'];
   casCreateUser: Scalars['Boolean'];
+  /** Log in with LU cas */
   casLogin: CasLoginResponse;
   closeElection: Scalars['Boolean'];
   createElection: Scalars['Int'];
@@ -265,8 +273,11 @@ export type Mutation = {
   createUser: Scalars['Boolean'];
   deactivatePost: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
+  /** Link a new oauth provider to the user */
+  linkProvider: Scalars['Boolean'];
   /** Test user credentials and if valid get a jwt token */
   login?: Maybe<User>;
+  /** Log out the user and invalidate the tokens */
   logout?: Maybe<Scalars['Boolean']>;
   modifyArticle: Scalars['Boolean'];
   modifyPost: Scalars['Boolean'];
@@ -274,6 +285,8 @@ export type Mutation = {
   nominate: Scalars['Boolean'];
   openElection: Scalars['Boolean'];
   propose: Scalars['Boolean'];
+  /** Log in with a custom oauth provider */
+  providerLogin: User;
   removeAccessResource: Scalars['Boolean'];
   removeArticle: Scalars['Boolean'];
   removeElectables: Scalars['Boolean'];
@@ -294,6 +307,7 @@ export type Mutation = {
   setPostAccess: Scalars['Boolean'];
   setResolverMappings: Scalars['Boolean'];
   setUserPostEnd: Scalars['Boolean'];
+  unlinkProvider: Scalars['Boolean'];
   updateUser: Scalars['Boolean'];
   validatePasswordResetToken: Scalars['Boolean'];
 };
@@ -402,6 +416,13 @@ export type MutationDeleteFileArgs = {
 };
 
 
+export type MutationLinkProviderArgs = {
+  options: ProviderOptions;
+  password: Scalars['String'];
+  username: Scalars['String'];
+};
+
+
 export type MutationLoginArgs = {
   password: Scalars['String'];
   username: Scalars['String'];
@@ -434,6 +455,11 @@ export type MutationProposeArgs = {
   electionId: Scalars['Int'];
   postname: Scalars['String'];
   username: Scalars['String'];
+};
+
+
+export type MutationProviderLoginArgs = {
+  options: ProviderOptions;
 };
 
 
@@ -547,6 +573,11 @@ export type MutationSetUserPostEndArgs = {
 };
 
 
+export type MutationUnlinkProviderArgs = {
+  linkId: Scalars['Int'];
+};
+
+
 export type MutationUpdateUserArgs = {
   input: UpdateUser;
 };
@@ -640,6 +671,12 @@ export type Proposal = {
   user: User;
 };
 
+export type ProviderOptions = {
+  email: Scalars['String'];
+  provider: Scalars['String'];
+  token: Scalars['String'];
+};
+
 /**
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
@@ -666,6 +703,7 @@ export type Query = {
   latestElections: Array<Maybe<Election>>;
   latestHehe: Array<Maybe<Hehe>>;
   latestnews: Array<Maybe<Article>>;
+  loginProviders: Array<LoginProvider>;
   me?: Maybe<Me>;
   meeting?: Maybe<Meeting>;
   meetings: Array<Maybe<Meeting>>;
@@ -1204,6 +1242,7 @@ export type ResolversTypes = ResolversObject<{
   GroupedPost: ResolverTypeWrapper<Omit<GroupedPost, 'posts'> & { posts: Array<ResolversTypes['Post']> }>;
   Hehe: ResolverTypeWrapper<HeheResponse>;
   HistoryEntry: ResolverTypeWrapper<Omit<HistoryEntry, 'holder'> & { holder: ResolversTypes['User'] }>;
+  LoginProvider: ResolverTypeWrapper<LoginProvider>;
   Me: ResolverTypeWrapper<Omit<Me, 'user'> & { user?: Maybe<ResolversTypes['User']> }>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
   Meeting: ResolverTypeWrapper<MeetingResponse>;
@@ -1221,6 +1260,7 @@ export type ResolversTypes = ResolversObject<{
   Post: ResolverTypeWrapper<Omit<Post, 'access' | 'history'> & { access: ResolversTypes['Access'], history: Array<ResolversTypes['HistoryEntry']> }>;
   PostType: PostType;
   Proposal: ResolverTypeWrapper<ProposalResponse>;
+  ProviderOptions: ProviderOptions;
   Query: ResolverTypeWrapper<{}>;
   ResolverType: ResolverType;
   SendEmailOptions: SendEmailOptions;
@@ -1254,6 +1294,7 @@ export type ResolversParentTypes = ResolversObject<{
   GroupedPost: Omit<GroupedPost, 'posts'> & { posts: Array<ResolversParentTypes['Post']> };
   Hehe: HeheResponse;
   HistoryEntry: Omit<HistoryEntry, 'holder'> & { holder: ResolversParentTypes['User'] };
+  LoginProvider: LoginProvider;
   Me: Omit<Me, 'user'> & { user?: Maybe<ResolversParentTypes['User']> };
   Float: Scalars['Float'];
   Meeting: MeetingResponse;
@@ -1267,6 +1308,7 @@ export type ResolversParentTypes = ResolversObject<{
   Object: Scalars['Object'];
   Post: Omit<Post, 'access' | 'history'> & { access: ResolversParentTypes['Access'], history: Array<ResolversParentTypes['HistoryEntry']> };
   Proposal: ProposalResponse;
+  ProviderOptions: ProviderOptions;
   Query: {};
   SendEmailOptions: SendEmailOptions;
   UpdateUser: UpdateUser;
@@ -1407,6 +1449,14 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type LoginProviderResolvers<ContextType = Context, ParentType extends ResolversParentTypes['LoginProvider'] = ResolversParentTypes['LoginProvider']> = ResolversObject<{
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  provider?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  token?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type MeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Me'] = ResolversParentTypes['Me']> = ResolversObject<{
   accessExpiry?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
   refreshExpiry?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
@@ -1447,6 +1497,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'slug'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
+  linkProvider?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationLinkProviderArgs, 'options' | 'password' | 'username'>>;
   login?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
@@ -1454,6 +1505,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   nominate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationNominateArgs, 'postnames' | 'username'>>;
   openElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenElectionArgs, 'electionId'>>;
   propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postname' | 'username'>>;
+  providerLogin?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationProviderLoginArgs, 'options'>>;
   removeAccessResource?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveAccessResourceArgs, 'slug'>>;
   removeArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveArticleArgs, 'articleId'>>;
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId'>>;
@@ -1473,6 +1525,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postname'>>;
   setResolverMappings?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetResolverMappingsArgs, 'name' | 'type'>>;
   setUserPostEnd?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetUserPostEndArgs, 'end' | 'id'>>;
+  unlinkProvider?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUnlinkProviderArgs, 'linkId'>>;
   updateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
 }>;
@@ -1528,6 +1581,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   latestElections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryLatestElectionsArgs, never>>;
   latestHehe?: Resolver<Array<Maybe<ResolversTypes['Hehe']>>, ParentType, ContextType, RequireFields<QueryLatestHeheArgs, never>>;
   latestnews?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
+  loginProviders?: Resolver<Array<ResolversTypes['LoginProvider']>, ParentType, ContextType>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryMeetingsArgs, never>>;
@@ -1593,6 +1647,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   GroupedPost?: GroupedPostResolvers<ContextType>;
   Hehe?: HeheResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
+  LoginProvider?: LoginProviderResolvers<ContextType>;
   Me?: MeResolvers<ContextType>;
   Meeting?: MeetingResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;

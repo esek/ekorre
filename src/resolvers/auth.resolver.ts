@@ -33,18 +33,28 @@ const attachCookie = (
   });
 };
 
+const setCookies = (username: string, response: Response) => {
+  const refresh = issueToken({ username }, 'refreshToken');
+  const access = issueToken({ username }, 'accessToken');
+
+  // Attach a refresh token to the response object
+  attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
+  attachCookie(COOKIES.accessToken, access, 'accessToken', response);
+};
+
 const authResolver: Resolvers = {
+  Query: {
+    loginProviders: async (_, __, { getUsername }) => {
+      const providers = await api.getLoginProviders(getUsername());
+      return providers;
+    },
+  },
   Mutation: {
     login: async (_, { username, password }, { response }) => {
       try {
         const user = await api.loginUser(username, password);
 
-        const refresh = issueToken({ username }, 'refreshToken');
-        const access = issueToken({ username }, 'accessToken');
-
-        // Attach a refresh token to the response object
-        attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
-        attachCookie(COOKIES.accessToken, access, 'accessToken', response);
+        setCookies(user.username, response);
 
         return reduce(user, userReduce);
       } catch {
@@ -89,6 +99,26 @@ const authResolver: Resolvers = {
         hash,
         exists,
       };
+    },
+    providerLogin: async (_, { options }, { response }) => {
+      const user = await api.loginWithProvider(options);
+
+      setCookies(user.username, response);
+
+      return reduce(user, userReduce);
+    },
+    linkProvider: async (_, { username, password, options }, { response }) => {
+      // try to log in (so we verify the user)
+      const user = await api.loginUser(username, password);
+      const linked = await api.linkLoginProvider(user.username, options);
+
+      setCookies(username, response);
+
+      return linked;
+    },
+    unlinkProvider: async (_, { linkId }) => {
+      const unlinked = await api.unlinkLoginProvider(linkId);
+      return unlinked;
     },
   },
 };

@@ -21,13 +21,13 @@ model PrismaAccessMapping {
 }
 
 model PrismaAccessResource {
-  slug        String                   @id
-  mappings    PrismaAccessMapping[]    @relation(name: "PrismaAccessMappingToPrismaAccessResource")
-  name        String
-  description String
-  resourceType PrismaResourceType      @map("resource_type")
-  userAccess  PrismaIndividualAccess[] @relation(name: "PrismaAccessResourceToPrismaIndividualAccess")
-  postAccess  PrismaPostAccess[]       @relation(name: "PrismaAccessResourceToPrismaPostAccess")
+  slug         String                   @id
+  mappings     PrismaAccessMapping[]    @relation(name: "PrismaAccessMappingToPrismaAccessResource")
+  name         String
+  description  String
+  resourceType PrismaResourceType       @map("resource_type")
+  userAccess   PrismaIndividualAccess[] @relation(name: "PrismaAccessResourceToPrismaIndividualAccess")
+  postAccess   PrismaPostAccess[]       @relation(name: "PrismaAccessResourceToPrismaPostAccess")
 
   @@map("access_resources")
 }
@@ -55,6 +55,7 @@ model PrismaUser {
   postHistory       PrismaPostHistory[]      @relation(name: "PrismaPostHistoryToPrismaUser")
   emergencyContacts PrismaEmergencyContact[] @relation(name: "PrismaEmergencyContactToPrismaUser")
   passwordResets    PrismaPasswordReset[]    @relation(name: "PrismaPasswordResetToPrismaUser")
+  loginProviders    PrismaLoginProvider[]    @relation(name: "PrismaUserToPrismaLoginProvider")
   passwordHash      String                   @map("password_hash")
   passwordSalt      String                   @map("password_salt")
   firstName         String                   @map("first_name")
@@ -71,6 +72,18 @@ model PrismaUser {
 
   @@index([firstName, lastName])
   @@map("users")
+}
+
+model PrismaLoginProvider {
+  id       Int    @id @default(autoincrement())
+  provider String
+  token    String
+  email    String
+
+  user    PrismaUser @relation(name: "PrismaUserToPrismaLoginProvider", fields: [refUser], references: [username])
+  refUser String     @map("ref_user")
+
+  @@map("login_providers")
 }
 
 model PrismaPostAccess {
