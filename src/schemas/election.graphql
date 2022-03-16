@@ -11,27 +11,27 @@ does not take an `electionId` parameter.
 type Query {
   openElection: Election
   latestElections(limit: Int, includeUnopened: Boolean, includeHiddenNominations: Boolean): [Election]!
-  election(electionId: ID!): Election
-  elections(electionIds: [ID!]!): [Election]!
+  election(electionId: Int!): Election
+  elections(electionIds: [Int!]!): [Election]!
 
   """
   Used if nominations are hidden but an election-admin wants too see nominations
   """
-  hiddenNominations(electionId: ID!, answer: NominationAnswer): [Nomination]!
+  hiddenNominations(electionId: Int!, answer: NominationAnswer): [Nomination]!
 
   "A users own nominations should always be available to them"
-  myNominations(electionId: ID!, answer: NominationAnswer): [Nomination]!
-  numberOfNominations(electionId: ID!, postname: String): Int!
-  numberOfProposals(electionId: ID!, postname: String): Int!
+  myNominations(electionId: Int!, answer: NominationAnswer): [Nomination]!
+  numberOfNominations(electionId: Int!, postname: String): Int!
+  numberOfProposals(electionId: Int!, postname: String): Int!
 }
 
 type Mutation {
-  createElection(electables: [String]!, nominationsHidden: Boolean!): ID!
-  addElectables(electionId: ID!, postnames: [String!]): Boolean!
-  removeElectables(electionId: ID!, postnames: [String!]): Boolean!
-  setElectables(electionId: ID!, postnames: [String!]!): Boolean!
-  setHiddenNominations(electionId: ID!, hidden: Boolean!): Boolean!
-  openElection(electionId: ID!): Boolean!
+  createElection(electables: [String]!, nominationsHidden: Boolean!): Int!
+  addElectables(electionId: Int!, postnames: [String!]): Boolean!
+  removeElectables(electionId: Int!, postnames: [String!]): Boolean!
+  setElectables(electionId: Int!, postnames: [String!]!): Boolean!
+  setHiddenNominations(electionId: Int!, hidden: Boolean!): Boolean!
+  openElection(electionId: Int!): Boolean!
   closeElection: Boolean!
 
   "Only possible during open election, so electionId is known"
@@ -39,12 +39,12 @@ type Mutation {
 
   "Only possible during open election, so electionId is known"
   respondToNomination(postname: String!, accepts: NominationAnswer!): Boolean!
-  propose(electionId: ID!, username: String!, postname: String!): Boolean!
-  removeProposal(electionId: ID!, username: String!, postname: String!): Boolean!
+  propose(electionId: Int!, username: String!, postname: String!): Boolean!
+  removeProposal(electionId: Int!, username: String!, postname: String!): Boolean!
 }
 
 type Election {
-  id: ID!
+  id: Int!
   creator: User!
   createdAt: DateTime!
   openedAt: DateTime

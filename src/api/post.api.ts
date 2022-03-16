@@ -2,12 +2,11 @@
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { StrictObject } from '@/models/base';
-import { midnightTimestamp, stripObject } from '@/util';
-import type { DatabasePost, DatabasePostHistory } from '@db/post';
+import { midnightTimestamp, slugify, stripObject } from '@/util';
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '@generated/graphql';
+import { PrismaPost, Prisma, PrismaPostHistory } from '@prisma/client';
 
-import { POSTS_HISTORY_TABLE, POSTS_TABLE } from './constants';
-import db from './knex';
+import prisma from './prisma';
 
 const logger = Logger.getLogger('PostAPI');
 
@@ -52,26 +51,30 @@ export class PostAPI {
    * @param limit Begränsning av antal poster
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getPosts(limit?: number, includeInactive = true): Promise<DatabasePost[]> {
-    const query = db<DatabasePost>(POSTS_TABLE);
+  async getPosts(limit?: number, includeInactive = true): Promise<PrismaPost[]> {
+    const where: Prisma.PrismaPostWhereInput = {};
 
     if (!includeInactive) {
-      query.where('active', true);
+      where.active = true;
     }
 
-    if (limit != null) {
-      query.limit(limit);
-    }
-
-    const posts = await query;
+    const posts = await prisma.prismaPost.findMany({
+      where,
+      take: limit,
+    });
 
     return posts;
   }
 
-  async getPost(postname: string): Promise<DatabasePost | null> {
-    const post = await db<DatabasePost>(POSTS_TABLE)
-      .whereRaw('LOWER(postname) = ?', [postname.toLowerCase()])
-      .first();
+  async getPost(postname: string): Promise<PrismaPost> {
+    const post = await prisma.prismaPost.findFirst({
+      where: {
+        postname: {
+          equals: postname,
+          mode: 'insensitive', // case insensitive
+        },
+      },
+    });
 
     if (!post) {
       throw new NotFoundError('Posten kunde inte hittas');
@@ -85,47 +88,54 @@ export class PostAPI {
    * @param postnames Lista på postnamn
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getMultiplePosts(
-    postnames: string[] | readonly string[],
-    includeInactive = true,
-  ): Promise<DatabasePost[]> {
-    const query = db<DatabasePost>(POSTS_TABLE).whereIn('postname', postnames);
+  async getMultiplePosts(postnames: string[], includeInactive = true): Promise<PrismaPost[]> {
+    const where: Prisma.PrismaPostWhereInput = {
+      postname: {
+        in: postnames,
+      },
+    };
 
     if (!includeInactive) {
-      query.where('active', true);
+      where.active = true;
     }
 
-    const posts = await query;
+    const posts = await prisma.prismaPost.findMany({
+      where,
+    });
 
     return posts;
   }
 
   /**
-   * Hämta alla poster som en användare sitter på.
+   * Hämta alla poster som en användare sitter på, eller har suttit på.
    * @param username användaren
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getPostsForUser(username: string, includeInactive = true): Promise<DatabasePost[]> {
-    const refposts = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE)
-      .where({
-        refuser: username,
-      })
-      .andWhere((q) => {
-        // Antingen ska vara null, eller efter dagens datum
-        q.whereNull('end').orWhere('end', '>', new Date().getTime());
-      })
-      .select('refpost');
-
-    const query = db<DatabasePost>(POSTS_TABLE).whereIn(
-      'postname',
-      refposts.map((e) => e.refpost),
-    );
+  async getPostsForUser(username: string, includeInactive = true): Promise<PrismaPost[]> {
+    const where: Prisma.PrismaPostWhereInput = {};
 
     if (!includeInactive) {
-      query.where('active', true);
+      where.active = true;
     }
 
-    const posts = await query;
+    const posts = await prisma.prismaPost.findMany({
+      where: {
+        ...where,
+        history: {
+          some: {
+            refUser: username,
+            AND: {
+              endDate: null,
+              OR: {
+                endDate: {
+                  gt: new Date(),
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
     return posts;
   }
@@ -135,16 +145,18 @@ export class PostAPI {
    * @param utskott utskottet
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getPostsFromUtskott(utskott: Utskott, includeInactive = true): Promise<DatabasePost[]> {
-    const query = db<DatabasePost>(POSTS_TABLE).where({
+  async getPostsFromUtskott(utskott: Utskott, includeInactive = true): Promise<PrismaPost[]> {
+    const where: Prisma.PrismaPostWhereInput = {
       utskott,
-    });
+    };
 
     if (!includeInactive) {
-      query.where('active', true);
+      where.active = true;
     }
 
-    const posts = await query;
+    const posts = await prisma.prismaPost.findMany({
+      where,
+    });
 
     return posts;
   }
@@ -160,22 +172,26 @@ export class PostAPI {
 
     // spots sätter egentligen inte en limit, det
     // är mer informativt och kan ignoreras
-    const insert = uniqueUsernames.map<DatabasePostHistory>((e) => ({
-      refuser: e,
-      refpost: postname,
+    const insert = uniqueUsernames.map<Omit<PrismaPostHistory, 'id'>>((refUser) => ({
+      refUser,
+      refPost: postname,
 
       // Vi sparar som timestamp i DB
       // Start ska alltid vara 00:00, end alltid 23:59
-      start: midnightTimestamp(start != null ? start : new Date(), 'after'),
-      end: end != null ? midnightTimestamp(end, 'before') : undefined,
+      startDate: new Date(midnightTimestamp(start != null ? start : new Date(), 'after')),
+      endDate: end != null ? new Date(midnightTimestamp(end, 'before')) : null,
     }));
 
     if (!insert.length) {
       throw new ServerError('Användaren kunde inte läggas till');
     }
 
-    const res = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE).insert(insert);
-    return res[0] > 0;
+    // const res = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE).insert(insert);
+    const posts = await prisma.prismaPostHistory.createMany({
+      data: insert,
+    });
+
+    return posts.count > 0;
   }
 
   async createPost({
@@ -199,23 +215,20 @@ export class PostAPI {
       throw new BadRequestError('Denna posten finns redan');
     }
 
-    const res = await db<DatabasePost>(POSTS_TABLE).insert({
-      postname: name,
-      utskott,
-      postType,
-      spots: s,
-      description: description ?? 'Postbeskrivning saknas :/',
-      interviewRequired: interviewRequired ?? false,
-      active: true,
+    const post = await prisma.prismaPost.create({
+      data: {
+        postname: name,
+        slug: slugify(name),
+        utskott,
+        postType,
+        spots: s,
+        description: description || 'Postbeskrivning saknas :/',
+        interviewRequired: interviewRequired ?? false,
+        active: true,
+      },
     });
 
-    if (res[0] > 0) {
-      // If post was added successfully.
-      logger.debug(`Created a post named ${name}`);
-      return true;
-    }
-
-    throw new ServerError('Posten kunde inte skapas');
+    return post != null;
   }
 
   /**
@@ -224,6 +237,7 @@ export class PostAPI {
    */
   async modifyPost(entry: ModifyPost): Promise<boolean> {
     const { name, ...update }: StrictObject = stripObject(entry);
+
     // Om vi ändrar posttyp eller antal måste detta kontrolleras
     // Får vi spots i `entry` jämför vi med det, annars måste
     // vi kolla om det är kompatibelt med databasen
@@ -235,31 +249,40 @@ export class PostAPI {
         s = checkPostTypeAndSpots(entry.postType, entry.spots);
       } else {
         // Vi måste kolla i databasen vad denna post har för postType
-        const dbPostType = await db<PostType>(POSTS_TABLE)
-          .select('postType')
-          .where('postname', name)
-          .returning('posttype')
-          .first();
+        const existingPost = await prisma.prismaPost.findFirst({
+          where: {
+            postname: name as string,
+          },
+          select: {
+            postType: true,
+          },
+        });
 
-        if (dbPostType === undefined) {
+        if (existingPost == null) {
           // Should not happen
           return false;
         }
 
-        s = checkPostTypeAndSpots(dbPostType, entry.spots);
+        s = checkPostTypeAndSpots(existingPost.postType as PostType, entry.spots);
       }
     } else if (entry.postType !== undefined) {
-      // Vi har ingen ny spots, men vi har postType => kollar efter posts i DB
-      const dbSpots = await db<number>(POSTS_TABLE)
-        .select('postType')
-        .where('postname', name)
-        .returning('number')
-        .first();
-      s = checkPostTypeAndSpots(entry.postType, dbSpots);
+      const existingPost = await prisma.prismaPost.count({
+        where: {
+          postname: name as string,
+        },
+      });
+
+      s = checkPostTypeAndSpots(entry.postType, existingPost);
     } else {
       // Vi vill inte uppdatera något av dem
-      const res = await db<DatabasePost>(POSTS_TABLE).where('postname', name).update(update);
-      return res > 0;
+      const post = await prisma.prismaPost.update({
+        where: {
+          slug: slugify(name),
+        },
+        data: update,
+      });
+
+      return post != null;
     }
 
     // Vi ville uppdatera, men vi hade inte en godkännd kombination
@@ -267,49 +290,44 @@ export class PostAPI {
       throw new BadRequestError('Ogiltig kombination av post och antal platser');
     }
 
-    const res = await db<DatabasePost>(POSTS_TABLE)
-      .where('postname', name)
-      .update({ ...update, spots: s });
+    const post = await prisma.prismaPost.update({
+      where: {
+        slug: slugify(name),
+      },
+      data: {
+        ...update,
+        spots: s,
+      },
+    });
 
-    return res > 0;
+    return post != null;
   }
 
   /**
-   * Markerar en post som aktiv.
-   * @param postname Namnet på posten
+   * Sätter active-statusen för en post
+   * @param slug Sluggen för posten
+   * @param active Om posten ska vara markerad aktiv
    * @returns Om en uppdatering gjordes
    */
-  async activatePost(postname: string): Promise<boolean> {
-    const res = await db<DatabasePost>(POSTS_TABLE).update('active', true).where({ postname });
-
-    return res > 0;
-  }
-
-  /**
-   * Markerar en post som inaktiv.
-   * @param postname Namnet på posten
-   * @returns Om en uppdatering gjordes
-   */
-  async deactivatePost(postname: string): Promise<boolean> {
-    const res = await db<DatabasePost>(POSTS_TABLE).update('active', false).where({ postname });
-
-    return res > 0;
-  }
-
-  async getHistoryEntries(refpost: string): Promise<DatabasePostHistory[]> {
-    const entries = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
-      refpost,
+  async setPostStatus(slug: string, active: boolean): Promise<boolean> {
+    const post = await prisma.prismaPost.update({
+      data: {
+        active,
+      },
+      where: {
+        slug,
+      },
     });
 
-    return entries;
+    return post != null;
   }
 
-  async getHistoryEntriesForUser(refuser: string): Promise<DatabasePostHistory[]> {
-    const entries = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE).where({
-      refuser,
+  async getHistoryEntries(where: Prisma.PrismaPostHistoryWhereInput): Promise<PrismaPostHistory[]> {
+    const history = await prisma.prismaPostHistory.findMany({
+      where,
     });
 
-    return entries;
+    return history;
   }
 
   /**
@@ -320,90 +338,59 @@ export class PostAPI {
    */
   async getNumberOfVolunteers(date?: Date): Promise<number> {
     const safeDate = date ?? new Date();
-    const timestamp = safeDate.getTime();
 
-    // Om `end` är `null` har man inte gått av posten
-    const i = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE)
-      .where('start', '<=', timestamp)
-      .andWhere((q) => {
-        // Antingen är end efter datumet, eller så är det null (inte gått av)
-        q.andWhere('end', '>=', timestamp).orWhereNull('end');
-      })
-      .distinct('refuser') // Vi vill inte räkna samma person flera gånger
-      .count<Record<string, number>>('refuser AS count') // Så att vi får `i.count`
-      .first();
+    const count = await prisma.prismaPostHistory.count({
+      where: {
+        startDate: {
+          lt: safeDate,
+        },
+        AND: {
+          endDate: {
+            gt: safeDate,
+          },
+          OR: {
+            endDate: null,
+          },
+        },
+      },
+    });
 
-    if (i == null || i.count == null) {
-      logger.debug(
-        `Kunde inte räkna antalet funktionärer för datumet ${new Date(timestamp).toISOString()}'
-        }, count var ${JSON.stringify(i)}`,
-      );
-      throw new ServerError('Kunde inte räkna antal förslag');
-    }
-
-    return i.count;
+    return count;
   }
 
   /**
    * Sätter slutdatumet för en användares post.
-   * @param username Användarnamn
-   * @param postname Namnet på posten
-   * @param start När personen går på posten (statiskt för en HistoryEntry)
+   * @param id ID på entriet
    * @param end När posten går av posten
    */
-  async setUserPostEnd(
-    username: string,
-    postname: string,
-    start: Date,
-    end: Date,
-  ): Promise<boolean> {
-    const res = await db<DatabasePostHistory>(POSTS_HISTORY_TABLE)
-      .update('end', midnightTimestamp(end, 'before'))
-      .where({
-        refuser: username,
-        refpost: postname,
-        start: midnightTimestamp(start, 'after'),
-      });
+  async setUserPostEnd(id: number, end: Date): Promise<boolean> {
+    const post = await prisma.prismaPostHistory.update({
+      include: {
+        post: true,
+        user: true,
+      },
+      where: {
+        id,
+      },
+      data: {
+        endDate: new Date(midnightTimestamp(end, 'before')),
+      },
+    });
 
-    if (res === 0) {
-      throw new NotFoundError('Kunde inte uppdatera posthistoriken');
-    }
-
-    return true;
+    return post != null;
   }
 
   /**
    * Tar bort en `PostHistoryEntry` ur databasen.
-   * @param username Användarnamn
-   * @param postname Namnet på posten
-   * @param start När personen gick på posten
-   * @param end Om applicerbart; När personen går/gick av posten
+   * @param id ID på history entry
    */
-  async removeHistoryEntry(
-    username: string,
-    postname: string,
-    start: Date,
-    end?: Date,
-  ): Promise<boolean> {
-    const query = db<DatabasePostHistory>(POSTS_HISTORY_TABLE)
-      .delete()
-      .where({
-        refuser: username,
-        refpost: postname,
-        start: midnightTimestamp(start, 'after'),
-      })
-      .limit(1); // Vi kör skyddat
+  async removeHistoryEntry(id: number): Promise<boolean> {
+    const history = await prisma.prismaPostHistory.delete({
+      where: {
+        id,
+      },
+    });
 
-    if (end != null) {
-      query.where('end', midnightTimestamp(end, 'before'));
-    }
-
-    const res = await query;
-
-    if (res === 0) {
-      throw new NotFoundError('HistoryEntry hittades inte och kunde inte tas bort');
-    }
-
-    return true;
+    return history != null;
   }
 }

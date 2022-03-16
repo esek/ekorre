@@ -1,20 +1,12 @@
 /* eslint-disable class-methods-use-this */
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { stripObject } from '@/util';
-import type { DatabaseMeeting } from '@db/meeting';
 import { MeetingDocumentType, MeetingType } from '@generated/graphql';
+import { Prisma, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
 
-import { MEETING_TABLE } from './constants';
-import db from './knex';
+import prisma from './prisma';
 
 const logger = Logger.getLogger('MeetingAPI');
-
-type GetMeetingParams = {
-  type?: MeetingType;
-  number?: number;
-  year?: number;
-};
 
 export class MeetingAPI {
   /**
@@ -22,22 +14,25 @@ export class MeetingAPI {
    * @param limit
    * @param sortOrder
    */
-  async getAllMeetings(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<DatabaseMeeting[]> {
-    const m = await db<DatabaseMeeting>(MEETING_TABLE)
-      .select('*')
-      .orderBy('id', sortOrder)
-      .limit(limit);
+  async getAllMeetings(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<PrismaMeeting[]> {
+    const m = await prisma.prismaMeeting.findMany({
+      orderBy: {
+        year: sortOrder,
+        number: sortOrder,
+      },
+      take: limit,
+    });
 
     return m;
   }
 
   /**
    * Hämta ett möte.
-   * @param id det unika mötes-idt
+   * @param id Det unika mötes-idt
    * @throws `NotFoundError` om mötet ej kan hittas
    */
-  async getSingleMeeting(id: string): Promise<DatabaseMeeting> {
-    const m = await db<DatabaseMeeting>(MEETING_TABLE).where({ id }).first();
+  async getSingleMeeting(id: number): Promise<PrismaMeeting> {
+    const m = await prisma.prismaMeeting.findFirst({ where: { id } });
 
     if (m == null) {
       throw new NotFoundError('Mötet kunde inte hittas');
@@ -46,9 +41,8 @@ export class MeetingAPI {
     return m;
   }
 
-  async getMultipleMeetings(params: GetMeetingParams): Promise<DatabaseMeeting[]> {
-    const safeParams = stripObject(params);
-    const m = await db<DatabaseMeeting>(MEETING_TABLE).where(safeParams);
+  async getMultipleMeetings(params: Prisma.PrismaMeetingFindManyArgs): Promise<PrismaMeeting[]> {
+    const m = await prisma.prismaMeeting.findMany(params);
 
     if (m === null) {
       throw new ServerError('Mötessökningen misslyckades');
@@ -59,20 +53,20 @@ export class MeetingAPI {
 
   /**
    * Hämtar de senaste `limit` styrelsemötena
-   * @param limit antal styrelsemöten som ska returneras. Om null
+   * @param limit Antal styrelsemöten som ska returneras. Om null
    * returneras alla
    */
-  async getLatestBoardMeetings(limit?: number): Promise<DatabaseMeeting[]> {
-    const query = db<DatabaseMeeting>(MEETING_TABLE)
-      .where({ type: MeetingType.Sm })
-      .orderBy('number', 'desc')
-      .orderBy('year', 'desc');
-
-    if (limit != null) {
-      query.limit(limit);
-    }
-
-    const m = await query;
+  async getLatestBoardMeetings(limit?: number): Promise<PrismaMeeting[]> {
+    const m = await prisma.prismaMeeting.findMany({
+      where: {
+        type: 'SM',
+      },
+      orderBy: {
+        number: 'desc',
+        year: 'desc',
+      },
+      take: limit,
+    });
 
     if (m === null) {
       throw new ServerError('Mötessökningen misslyckades');
@@ -88,61 +82,60 @@ export class MeetingAPI {
    * @param year
    * @returns ID på skapat möte
    */
-  async createMeeting(type: MeetingType, number?: number, year?: number): Promise<string> {
+  async createMeeting(type: MeetingType, number?: number, year?: number): Promise<number> {
     // Vi tar i år om inget år ges
     const safeYear = (Number.isSafeInteger(year) ? year : new Date().getFullYear()) as number;
 
     // Om det är ett Styrelsemöte eller extrainsatt sektionsmöte
     // måste det ha ett nummer. Om det inte är definierat hämtar
     // vi det från databasen
-    let safeNbr = number;
-    if (!Number.isSafeInteger(safeNbr)) {
-      const lastNbr = await db<DatabaseMeeting>(MEETING_TABLE)
-        .select('number')
-        .where({ type, year: safeYear })
-        .orderBy('number', 'desc')
-        .orderBy('year', 'desc')
-        .first();
+    let safeNbr: number;
+    if (number == null || !Number.isSafeInteger(number)) {
+      const lastMeeting = await prisma.prismaMeeting.findFirst({
+        select: { number: true },
+      });
 
-      if (lastNbr === undefined) {
+      if (lastMeeting == null) {
         // Vi hittade inget tidigare möte detta året,
         // så detta är första
         safeNbr = 1;
       } else {
-        safeNbr = lastNbr.number + 1;
+        safeNbr = lastMeeting.number + 1;
       }
+    } else {
+      safeNbr = number;
     }
 
     // Kontrollera att vi inte har dubblettmöte
-    const possibleDouble = await db<DatabaseMeeting>(MEETING_TABLE)
-      .where({
-        type,
+    const possibleDouble = await prisma.prismaMeeting.findFirst({
+      where: {
+        type: type === undefined ? undefined : (type as PrismaMeetingType),
         number: safeNbr,
         year: safeYear,
-      })
-      .first();
+      },
+    });
 
-    if (possibleDouble !== undefined) {
+    if (possibleDouble != null) {
       throw new BadRequestError('Mötet finns redan!');
     }
 
     try {
-      const meetingId = (
-        await db<DatabaseMeeting>(MEETING_TABLE).insert(
-          {
-            type,
-            number: safeNbr,
-            year: safeYear,
-          },
-          'id',
-        )
-      )[0];
+      const meetingId = await prisma.prismaMeeting.create({
+        data: {
+          type: type as PrismaMeetingType,
+          number: safeNbr,
+          year: safeYear,
+        },
+        select: {
+          number: true,
+        },
+      });
 
       if (meetingId == null) {
-        throw new Error();
+        throw new ServerError('Mötet kunde inte skapas!');
       }
 
-      return meetingId;
+      return meetingId.number;
     } catch (err) {
       const logStr = `Failed to create meeting with values: ${Logger.pretty({
         type,
@@ -159,14 +152,13 @@ export class MeetingAPI {
    * @param id Mötes-ID
    * @throws `NotFoundError` om mötet ej kunde tas bort
    */
-  async removeMeeting(id: string): Promise<boolean> {
-    const res = await db<DatabaseMeeting>(MEETING_TABLE).delete().where({ id });
-
-    if (res === 0) {
+  async removeMeeting(id: number): Promise<boolean> {
+    try {
+      await prisma.prismaMeeting.delete({ where: { id } });
+      return true;
+    } catch {
       throw new NotFoundError('Mötet kunde inte hittas');
     }
-
-    return true;
   }
 
   /**
@@ -178,25 +170,29 @@ export class MeetingAPI {
    * @throws `ServerError`
    */
   async addFileToMeeting(
-    meetingId: string,
-    fileId: string,
+    meetingId: number,
+    fileId: number,
     fileType: MeetingDocumentType,
   ): Promise<boolean> {
-    const ref = `ref${fileType}`;
+    const d = this.createDataForMeetingType(fileType, fileId);
+    const w = this.createDataForMeetingType(fileType, undefined);
 
-    // Uppdaterar mötesdokumentet för ett möte,
-    // om detta dokument inte redan finns
-    const res = await db<DatabaseMeeting>(MEETING_TABLE)
-      .where('id', meetingId)
-      .whereNull(ref)
-      .update(ref, fileId);
-    if (res === 0) {
+    try {
+      await prisma.prismaMeeting.update({
+        data: {
+          ...d,
+        },
+        where: {
+          ...w,
+          id: meetingId,
+        },
+      });
+      return true;
+    } catch {
       throw new ServerError(
         `Antingen finns detta möte inte, eller så finns dokument av typen ${fileType} redan på detta möte!`,
       );
     }
-
-    return true;
   }
 
   /**
@@ -211,15 +207,66 @@ export class MeetingAPI {
    * @param meetingId
    * @param fileType
    */
-  async removeFileFromMeeting(meetingId: string, fileType: MeetingDocumentType): Promise<boolean> {
-    const ref = `ref${fileType}`;
-    const res = await db<DatabaseMeeting>(MEETING_TABLE).where('id', meetingId).update(ref, null);
-    if (res === 0) {
+  async removeFileFromMeeting(meetingId: number, fileType: MeetingDocumentType): Promise<boolean> {
+    const d = this.createDataForMeetingType(fileType, null);
+    try {
+      await prisma.prismaMeeting.update({
+        data: {
+          ...d,
+        },
+        where: {
+          id: meetingId,
+        },
+      });
+
+      return true;
+    } catch {
       throw new ServerError(
         `Kunde inte ta bort mötesdokument, troligen existerar inte mötet med id ${meetingId}`,
       );
     }
+  }
 
-    return true;
+  /**
+   * Creates a data object for updating using Prisma.
+   * @param fileType The type of file for the meeting
+   * @param content Either `fileId` or null if the file is to be removed, or undefined if checking if document exists
+   */
+  private createDataForMeetingType(
+    fileType: MeetingDocumentType,
+    content: number | null | undefined,
+  ) {
+    let data = {};
+    switch (fileType) {
+      case MeetingDocumentType.Summons:
+        data = {
+          refSummons: content,
+        };
+        break;
+      case MeetingDocumentType.Documents:
+        data = {
+          refDocuments: content,
+        };
+        break;
+      case MeetingDocumentType.LateDocuments:
+        data = {
+          refLateDocuments: content,
+        };
+        break;
+      case MeetingDocumentType.Protocol:
+        data = {
+          refProtocol: content,
+        };
+        break;
+      case MeetingDocumentType.Appendix:
+        data = {
+          refAppendix: content,
+        };
+        break;
+      default:
+        break;
+    }
+
+    return data;
   }
 }

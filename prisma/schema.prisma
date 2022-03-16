@@ -1,0 +1,388 @@
+datasource pg {
+  provider = "postgresql"
+  url      = env("DB_HOST")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+model PrismaAccessMapping {
+  id          Int                     @id @default(autoincrement())
+  type        PrismaAccessMappingType
+  name        String
+  page        String?
+  resource    PrismaAccessResource    @relation(name: "PrismaAccessMappingToPrismaAccessResource", fields: [refResource], references: [slug])
+  refResource String                  @map("ref_resource")
+
+  @@unique([type, name, page])
+  @@map("access_mappings")
+}
+
+model PrismaAccessResource {
+  slug         String                   @id
+  mappings     PrismaAccessMapping[]    @relation(name: "PrismaAccessMappingToPrismaAccessResource")
+  name         String
+  description  String
+  resourceType PrismaResourceType       @map("resource_type")
+  userAccess   PrismaIndividualAccess[] @relation(name: "PrismaAccessResourceToPrismaIndividualAccess")
+  postAccess   PrismaPostAccess[]       @relation(name: "PrismaAccessResourceToPrismaPostAccess")
+
+  @@map("access_resources")
+}
+
+model PrismaIndividualAccess {
+  id          Int                  @id @default(autoincrement())
+  user        PrismaUser           @relation(name: "PrismaIndividualAccessToPrismaUser", fields: [refUser], references: [username])
+  refUser     String               @map("ref_user")
+  resource    PrismaAccessResource @relation(name: "PrismaAccessResourceToPrismaIndividualAccess", fields: [refResource], references: [slug])
+  refResource String               @map("ref_resource")
+
+  @@map("individual_accesses")
+}
+
+model PrismaUser {
+  username          String                   @id
+  access            PrismaIndividualAccess[] @relation(name: "PrismaIndividualAccessToPrismaUser")
+  articles          PrismaArticle[]          @relation(name: "PrismaArticleToAuthor")
+  editedArticles    PrismaArticle[]          @relation(name: "PrismaArticleToLastUpdateBy")
+  elections         PrismaElection[]         @relation(name: "PrismaElectionToPrismaUser")
+  nominations       PrismaNomination[]       @relation(name: "PrismaNominationToPrismaUser")
+  proposals         PrismaProposal[]         @relation(name: "PrismaProposalToPrismaUser")
+  files             PrismaFile[]             @relation(name: "PrismaFileToPrismaUser")
+  heHes             PrismaHehe[]             @relation(name: "PrismaHeheToPrismaUser")
+  postHistory       PrismaPostHistory[]      @relation(name: "PrismaPostHistoryToPrismaUser")
+  emergencyContacts PrismaEmergencyContact[] @relation(name: "PrismaEmergencyContactToPrismaUser")
+  passwordResets    PrismaPasswordReset[]    @relation(name: "PrismaPasswordResetToPrismaUser")
+  loginProviders    PrismaLoginProvider[]    @relation(name: "PrismaUserToPrismaLoginProvider")
+  passwordHash      String                   @map("password_hash")
+  passwordSalt      String                   @map("password_salt")
+  firstName         String                   @map("first_name")
+  lastName          String                   @map("last_name")
+  class             String
+  photoUrl          String?                  @map("photo_url")
+  email             String                   @unique
+  phone             String?
+  address           String?
+  zipCode           String?                  @map("zip_code")
+  website           String?
+  dateJoined        DateTime                 @default(now()) @map("date_joined")
+  isFuncUser        Boolean                  @default(false) @map("is_func_user")
+
+  @@index([firstName, lastName])
+  @@map("users")
+}
+
+model PrismaLoginProvider {
+  id       Int    @id @default(autoincrement())
+  provider String
+  token    String
+  email    String
+
+  user    PrismaUser @relation(name: "PrismaUserToPrismaLoginProvider", fields: [refUser], references: [username])
+  refUser String     @map("ref_user")
+
+  @@map("login_providers")
+}
+
+model PrismaPostAccess {
+  id          Int                  @id @default(autoincrement())
+  post        PrismaPost           @relation(name: "PrismaPostToPrismaPostAccess", fields: [refPost], references: [slug])
+  refPost     String               @map("ref_post")
+  resource    PrismaAccessResource @relation(name: "PrismaAccessResourceToPrismaPostAccess", fields: [refResource], references: [slug])
+  refResource String               @map("ref_resource")
+
+  @@map("post_accesses")
+}
+
+model PrismaPost {
+  slug              String              @id
+  access            PrismaPostAccess[]  @relation(name: "PrismaPostToPrismaPostAccess")
+  electables        PrismaElectable[]   @relation(name: "PrismaElectableToPrismaPost")
+  nominations       PrismaNomination[]  @relation(name: "PrismaNominationToPrismaPost")
+  history           PrismaPostHistory[] @relation(name: "PrismaPostToPrismaPostHistory")
+  postname          String              @unique
+  utskott           PrismaUtskott
+  description       String
+  spots             Int
+  postType          PrismaPostType      @map("post_type")
+  active            Boolean             @default(true)
+  interviewRequired Boolean             @default(false) @map("interview_required")
+
+  // Posts are either searched by name or by utskott,
+  // name handled by primare key (@id)
+  PrismaProposal PrismaProposal[] @relation("PrismaProposalToPrismaPost")
+  @@index([utskott])
+  @@map("posts")
+}
+
+model PrismaArticleTag {
+  id         Int           @id @default(autoincrement())
+  tag        String        @unique
+  createdAt  DateTime      @default(now()) @map("created_at")
+  article    PrismaArticle @relation(name: "PrismaArticleToPrismaArticleTag", fields: [refArticle], references: [id])
+  refArticle Int
+
+  @@map("article_tags")
+}
+
+model PrismaArticle {
+  id              Int                @id @default(autoincrement())
+  tags            PrismaArticleTag[] @relation(name: "PrismaArticleToPrismaArticleTag")
+  slug            String             @unique
+  title           String
+  body            String
+  signature       String
+  articleType     PrismaArticleType  @default(INFORMATION) @map("article_type")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @default(now()) @map("updated_at")
+  creator         PrismaUser         @relation(name: "PrismaArticleToAuthor", fields: [refAuthor], references: [username])
+  refAuthor       String             @map("ref_author")
+  lastUpdateBy    PrismaUser         @relation(name: "PrismaArticleToLastUpdateBy", fields: [refLastUpdateBy], references: [username])
+  refLastUpdateBy String             @map("ref_last_update_by")
+
+  @@index([createdAt, updatedAt])
+  @@index([articleType])
+  @@map("articles")
+}
+
+model PrismaElectable {
+  post        PrismaPost     @relation(name: "PrismaElectableToPrismaPost", fields: [refPost], references: [slug])
+  refPost     String         @map("ref_post")
+  election    PrismaElection @relation(name: "PrismaElectableToPrismaElection", fields: [refElection], references: [id])
+  refElection Int            @map("ref_election")
+
+  // Electables are not often inserted/updated,
+  // but often queried on which election they belong to
+  @@id([refElection, refPost])
+  @@index([refElection])
+  @@map("electables")
+}
+
+model PrismaElection {
+  id                Int                @id @default(autoincrement())
+  electables        PrismaElectable[]  @relation(name: "PrismaElectableToPrismaElection")
+  creator           PrismaUser         @relation(name: "PrismaElectionToPrismaUser", fields: [refCreator], references: [username])
+  refCreator        String             @map("ref_creator")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  openedAt          DateTime?          @map("opened_at")
+  closedAt          DateTime?          @map("closed_at")
+  open              Boolean            @default(false)
+  nominationsHidden Boolean            @default(false) @map("nominations_hidden")
+  proposals         PrismaProposal[]   @relation(name: "PrismaElectionToPrismaProposal")
+  nominations       PrismaNomination[] @relation(name: "PrismaElectionToPrismaNomination")
+
+  @@map("elections")
+}
+
+model PrismaNomination {
+  answer      PrismaNominationAnswer @default(NO_ANSWER)
+  user        PrismaUser             @relation(name: "PrismaNominationToPrismaUser", fields: [refUser], references: [username])
+  refUser     String                 @map("ref_user")
+  post        PrismaPost             @relation(name: "PrismaNominationToPrismaPost", fields: [refPost], references: [slug])
+  refPost     String                 @map("ref_post")
+  election    PrismaElection         @relation(name: "PrismaElectionToPrismaNomination", fields: [refElection], references: [id])
+  refElection Int                    @map("ref_election")
+
+  // Indexing avoided due to high insert load
+  @@id([refElection, refPost, refUser])
+  @@map("nominations")
+}
+
+model PrismaProposal {
+  user        PrismaUser     @relation(name: "PrismaProposalToPrismaUser", fields: [refUser], references: [username])
+  refUser     String         @map("ref_user")
+  post        PrismaPost     @relation(name: "PrismaProposalToPrismaPost", fields: [refPost], references: [slug])
+  refPost     String         @map("ref_post")
+  election    PrismaElection @relation(name: "PrismaElectionToPrismaProposal", fields: [refElection], references: [id])
+  refElection Int            @map("ref_election")
+
+  @@id([refElection, refPost, refUser])
+  @@map("proposals")
+}
+
+model PrismaFile {
+  id                   String           @id @default(cuid())
+  name                 String
+  type                 String
+  folderLocation       String           @map("folder_location")
+  accessType           PrismaAccessType
+  createdAt            DateTime         @default(now()) @map("created_at")
+  uploader             PrismaUser       @relation(name: "PrismaFileToPrismaUser", fields: [refUploader], references: [username])
+  refUploader          String           @map("ref_uploader")
+  heHe                 PrismaHehe?      @relation(name: "PrismaFileToPrismaHehe")
+  meetingSummons       PrismaMeeting?   @relation(name: "MeetingSummons")
+  meetingDocuments     PrismaMeeting?   @relation(name: "MeetingDocuments")
+  meetingLateDocuments PrismaMeeting?   @relation(name: "MeetingLateDocuments")
+  meetingProtocols     PrismaMeeting?   @relation(name: "MeetingProtocols")
+  meetingAppendix      PrismaMeeting?   @relation(name: "MeetingAppendix")
+
+  @@index([name])
+  @@index([type])
+  @@map("files")
+}
+
+model PrismaHehe {
+  number      Int
+  year        Int
+  uploadedAt  DateTime   @default(now()) @map("uploaded_at")
+  uploader    PrismaUser @relation(name: "PrismaHeheToPrismaUser", fields: [refUploader], references: [username])
+  refUploader String     @map("ref_uploader")
+  file        PrismaFile @relation(name: "PrismaFileToPrismaHehe", fields: [refFile], references: [id])
+  refFile     String     @unique @map("ref_file")
+
+  // Year has more queries than number
+  @@id([year, number])
+  @@map("hehes")
+}
+
+model PrismaMeeting {
+  id               Int               @id @default(autoincrement())
+  type             PrismaMeetingType
+  number           Int
+  year             Int
+  summons          PrismaFile?       @relation(name: "MeetingSummons", fields: [refSummons], references: [id])
+  refSummons       String?           @unique @map("ref_summons")
+  documents        PrismaFile?       @relation(name: "MeetingDocuments", fields: [refDocuments], references: [id])
+  refDocuments     String?           @unique @map("ref_documents")
+  lateDocuments    PrismaFile?       @relation(name: "MeetingLateDocuments", fields: [refLateDocuments], references: [id])
+  refLateDocuments String?           @unique @map("ref_late_documents")
+  protocol         PrismaFile?       @relation(name: "MeetingProtocols", fields: [refProtocol], references: [id])
+  refProtocol      String?           @unique @map("ref_protocol")
+  appendix         PrismaFile?       @relation(name: "MeetingAppendix", fields: [refAppendix], references: [id])
+  refAppendix      String?           @unique @map("ref_appendix")
+
+  // Year has priority in queries,
+  // but often also sorted by number
+  @@unique([type, number, year])
+  @@index([year, number])
+  @@index([type])
+  @@map("meetings")
+}
+
+model PrismaPostHistory {
+  id        Int        @id @default(autoincrement())
+  user      PrismaUser @relation(name: "PrismaPostHistoryToPrismaUser", fields: [refUser], references: [username])
+  refUser   String     @map("ref_user")
+  post      PrismaPost @relation(name: "PrismaPostToPrismaPostHistory", fields: [refPost], references: [slug])
+  refPost   String     @map("ref_post")
+  startDate DateTime   @map("start_date")
+  endDate   DateTime?  @map("end_date")
+
+  @@map("post_histories")
+}
+
+model PrismaEmergencyContact {
+  id      Int                        @id @default(autoincrement())
+  name    String
+  type    PrismaEmergencyContactType
+  phone   String
+  user    PrismaUser                 @relation(name: "PrismaEmergencyContactToPrismaUser", fields: [refUser], references: [username])
+  refUser String                     @map("ref_user")
+
+  @@unique([id, refUser])
+  @@map("emergency_contacts")
+}
+
+model PrismaPasswordReset {
+  token   String     @id
+  User    PrismaUser @relation(name: "PrismaPasswordResetToPrismaUser", fields: [refUser], references: [username])
+  refUser String     @map("ref_user")
+  time    DateTime   @default(now())
+
+  @@map("password_resets")
+}
+
+enum PrismaAccessMappingType {
+  QUERY
+  MUTATION
+  PAGE
+
+  @@map("access_mapping_types")
+}
+
+enum PrismaResourceType {
+  DOOR
+  WEB
+
+  @@map("resource_types")
+}
+
+enum PrismaArticleType {
+  NEWS
+  INFORMATION
+
+  @@map("article_types")
+}
+
+enum PrismaNominationAnswer {
+  YES
+  NO
+  NO_ANSWER
+
+  @@map("nomination_responses")
+}
+
+enum PrismaMeetingType {
+  /// Styrelsemöte
+  SM
+
+  /// Höstterminsmöte
+  HTM
+
+  /// Valmöte
+  VM
+
+  /// Vårterminsmöte
+  VTM
+
+  /// Extrainsatt Sektionsmöte
+  Extra
+
+  @@map("meeting_types")
+}
+
+enum PrismaPostType {
+  U
+  EA
+  N
+  EXACT_N
+
+  @@map("post_types")
+}
+
+enum PrismaUtskott {
+  CM
+  KM
+  INFU
+  E6
+  NOJU
+  NOLLU
+  SRE
+  ENU
+  FVU
+  STYRELSEN
+  OTHER
+
+  @@map("utskott")
+}
+
+enum PrismaAccessType {
+  ADMIN
+  AUTHENTICATED
+  PUBLIC
+
+  @@map("access_types")
+}
+
+enum PrismaEmergencyContactType {
+  DAD
+  MOM
+  SIGNIFICANT_OTHER
+  BROTHER
+  SISTER
+  OTHER
+
+  @@map("emergency_contact_types")
+}

@@ -1,13 +1,13 @@
 import { MeetingResponse } from '@/models/mappers';
-import { DatabaseMeeting } from '@db/meeting';
 import { MeetingDocumentType, MeetingType } from '@generated/graphql';
+import { PrismaMeeting } from '@prisma/client';
 
 // Adds leading zeroes to a number and returns as string
 const zeroPad = (num: number, places: number) => String(num).padStart(places, '0');
 const addIfRefNotNull = (
   obj: Partial<MeetingResponse>,
   type: MeetingDocumentType,
-  ref?: string,
+  ref: string | null,
 ) => {
   // If not null or undefined uses !=
   if (ref != null) {
@@ -17,7 +17,7 @@ const addIfRefNotNull = (
   }
 };
 
-export function meetingReduce(meeting: DatabaseMeeting): MeetingResponse {
+export function meetingReduce(meeting: PrismaMeeting): MeetingResponse {
   let name: string;
 
   if (meeting.type === MeetingType.Sm || meeting.type === MeetingType.Extra) {
@@ -27,19 +27,21 @@ export function meetingReduce(meeting: DatabaseMeeting): MeetingResponse {
   }
 
   // If a reference is missing, the documents is not to be added to response
-  const { refsummons, refdocuments, reflateDocuments, refprotocol, refappendix, ...reduced } =
+  const { refSummons, refDocuments, refLateDocuments, refProtocol, refAppendix, type, ...reduced } =
     meeting;
+
   const m = {
     ...reduced,
     name,
+    type: type as MeetingType,
   };
 
   // Add stubs to be resolved by file resolver
-  addIfRefNotNull(m, MeetingDocumentType.Summons, refsummons);
-  addIfRefNotNull(m, MeetingDocumentType.Documents, refdocuments);
-  addIfRefNotNull(m, MeetingDocumentType.LateDocuments, reflateDocuments);
-  addIfRefNotNull(m, MeetingDocumentType.Protocol, refprotocol);
-  addIfRefNotNull(m, MeetingDocumentType.Appendix, refappendix);
+  addIfRefNotNull(m, MeetingDocumentType.Summons, refSummons);
+  addIfRefNotNull(m, MeetingDocumentType.Documents, refDocuments);
+  addIfRefNotNull(m, MeetingDocumentType.LateDocuments, refLateDocuments);
+  addIfRefNotNull(m, MeetingDocumentType.Protocol, refProtocol);
+  addIfRefNotNull(m, MeetingDocumentType.Appendix, refAppendix);
 
   return m;
 }

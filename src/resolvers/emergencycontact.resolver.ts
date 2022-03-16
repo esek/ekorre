@@ -1,5 +1,7 @@
+import { reduce } from '@/reducers';
 import EmergencyContactAPI from '@api/emergencycontact';
 import type { Resolvers } from '@generated/graphql';
+import { emergencyContactReducer } from '@reducer/emergencycontact';
 
 const ecApi = new EmergencyContactAPI();
 
@@ -7,7 +9,7 @@ const emergencycontactresolver: Resolvers = {
   Query: {
     emergencyContacts: async (_, { username }) => {
       const contacts = await ecApi.getEmergencyContacts(username);
-      return contacts;
+      return reduce(contacts, emergencyContactReducer);
     },
   },
   Mutation: {

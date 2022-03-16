@@ -15,10 +15,10 @@ type Mutation {
     addPost(info: NewPost!): Boolean!
     modifyPost(info: ModifyPost!): Boolean!
     addUsersToPost(usernames: [String!]!, postname: String!, start: Date, end: Date): Boolean!
-    activatePost(postname: String!): Boolean!
-    deactivatePost(postname: String!): Boolean!
-    setUserPostEnd(username: String!, postname: String!, start: Date!, end: Date!): Boolean!
-    removeHistoryEntry(username: String!, postname: String!, start: Date!, end: Date): Boolean!
+    activatePost(slug: String!): Boolean!
+    deactivatePost(slug: String!): Boolean!
+    setUserPostEnd(id: Int!, end: Date!): Boolean!
+    removeHistoryEntry(id: Int!): Boolean!
 }
 
 type Post {

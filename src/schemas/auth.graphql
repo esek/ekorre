@@ -1,9 +1,21 @@
 # import User from 'user.graphql'
 
+type Query {
+  loginProviders: [LoginProvider!]!
+}
+
 type Mutation {
   "Test user credentials and if valid get a jwt token"
   login(username: String!, password: String!): User
+  "Log out the user and invalidate the tokens"
   logout: Boolean
+  "Log in with a custom oauth provider"
+  providerLogin(options: ProviderOptions!): User!
+  "Link a new oauth provider to the user"
+  linkProvider(username: String!, password: String!, options: ProviderOptions!): Boolean!
+  "Remove an oauth provider from the user"
+  unlinkProvider(linkId: Int!): Boolean!
+  "Log in with LU cas"
   casLogin(token: String!): CasLoginResponse!
 }
 
@@ -11,4 +23,17 @@ type CasLoginResponse {
   username: String!
   hash: String
   exists: Boolean!
+}
+
+input ProviderOptions {
+  token: String!
+  email: String!
+  provider: String!
+}
+
+type LoginProvider {
+  id: Int!
+  token: String!
+  email: String!
+  provider: String!
 }

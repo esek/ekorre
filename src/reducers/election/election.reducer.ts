@@ -1,13 +1,13 @@
 import type { ElectionResponse } from '@/models/mappers';
-import type { DatabaseElection } from '@db/election';
+import type { PrismaElection } from '@prisma/client';
 
-export function electionReduce(dbElection: DatabaseElection): ElectionResponse {
-  const { refcreator, ...reduced } = dbElection;
+export function electionReduce(dbElection: PrismaElection): ElectionResponse {
+  const { refCreator, ...reduced } = dbElection;
 
   const e = {
     ...reduced,
     creator: {
-      username: refcreator,
+      username: refCreator,
     },
   };
 

@@ -73,23 +73,23 @@ const accessMappingResolver: Resolvers = {
 
       // Loop through mappings
       mappings.forEach((mapping) => {
-        const { resolverName } = mapping;
+        const { name } = mapping;
 
         // If the resolver name is not in the object, add it
-        if (!(resolverName in obj)) {
-          obj[resolverName] = {
+        if (!(name in obj)) {
+          obj[name] = {
             id: mapping.id,
             resolver: {
-              name: resolverName,
-              type: mapping.resolverType,
+              name: name,
+              type: mapping.type as ResolverType,
             },
             resources: [],
           };
         }
 
         // Add the resources to that resolver
-        obj[resolverName].resources.push({
-          slug: mapping.refaccessresource,
+        obj[name].resources.push({
+          slug: mapping.refResource,
         });
       });
 

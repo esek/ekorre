@@ -1,15 +1,14 @@
 import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import type { DatabaseFile } from '@db/file';
 import { AccessType, FileSystemResponsePath, FileType } from '@generated/graphql';
+import { PrismaFile, PrismaAccessType } from '@prisma/client';
 import { createHash } from 'crypto';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
 import { extname } from 'path';
 
-import { FILE_TABLE } from './constants';
-import db from './knex';
+import prisma from './prisma';
 
 const {
   FILES: { ROOT },
@@ -24,14 +23,14 @@ class FileAPI {
    * @param type What type of file it is
    * @param path Where to save the file
    * @param creator Username of the creator of the file
-   * @returns A `DatabaseFile` object with the data of the saved file
+   * @returns A `PrismaFile` object with the data of the saved file
    */
   async saveFile(
     file: UploadedFile,
     accessType: AccessType,
     path: string,
     creator: string,
-  ): Promise<DatabaseFile> {
+  ): Promise<PrismaFile> {
     try {
       const type = this.getFileType(file.name);
 
@@ -52,19 +51,18 @@ class FileAPI {
 
       // Save file to DB with hashedName as id and folderLocation
       // pointing to the location in storage
-      const newFile: DatabaseFile = {
-        id: hashedName,
-        name: file.name,
-        refuploader: creator,
-        folderLocation: `${trimmedPath}${hashedName}`,
-        accessType,
-        createdAt: new Date(),
-        type,
-      };
+      const res = await prisma.prismaFile.create({
+        data: {
+          id: hashedName,
+          name: file.name,
+          folderLocation: `${trimmedPath}${hashedName}`,
+          accessType: accessType as PrismaAccessType,
+          refUploader: creator,
+          type,
+        },
+      });
 
-      await db<DatabaseFile>(FILE_TABLE).insert(newFile);
-
-      return newFile;
+      return res;
     } catch (err) {
       logger.error(err);
       throw new ServerError('Kunde inte spara filen');
@@ -94,17 +92,16 @@ class FileAPI {
 
       const location = `${folderTrimmed}${hash}`;
 
-      const dbData: DatabaseFile = {
-        id: hash,
-        accessType: AccessType.Public,
-        createdAt: new Date(),
-        folderLocation: location,
-        name,
-        refuploader: creator,
-        type: FileType.Folder,
-      };
-
-      await db<DatabaseFile>(FILE_TABLE).insert(dbData);
+      await prisma.prismaFile.create({
+        data: {
+          id: hash,
+          name,
+          folderLocation: location,
+          accessType: PrismaAccessType.PUBLIC,
+          refUploader: creator,
+          type: FileType.Folder,
+        },
+      });
 
       logger.info(`Created folder ${name} with hash ${hash}`);
 
@@ -119,7 +116,7 @@ class FileAPI {
    * @param id File id
    * @returns A boolean indicating if the deletion was a success
    */
-  async deleteFile(id: string): Promise<void> {
+  async deleteFile(id: string): Promise<boolean> {
     // Get file from DB
     const file = await this.getFileData(id);
 
@@ -132,31 +129,39 @@ class FileAPI {
     // Delete file from system
     fs.rmSync(location, { recursive: true });
 
-    // Delete file from DB
-    await db<DatabaseFile>(FILE_TABLE)
-      .where('id', id)
-      .delete()
-      .catch(() => {
-        throw new ServerError('Kunde inte ta bort filen');
+    try {
+      // Delete file from DB
+      await prisma.prismaFile.delete({
+        where: {
+          id,
+        },
       });
-
-    logger.info(`Deleted ${file.type} ${file.name}`);
-  }
-
-  async getMultipleFiles(type?: FileType) {
-    const query = db<DatabaseFile>(FILE_TABLE);
-
-    if (type) {
-      query.where('type', type);
+      logger.info(`Deleted ${file.type} ${file.name}`);
+      return true;
+    } catch {
+      throw new ServerError('Kunde inte ta bort filen');
     }
-
-    const files = await query;
-
-    return files;
   }
 
-  async getMultipleFilesById(ids: readonly string[]): Promise<DatabaseFile[]> {
-    const f = await db<DatabaseFile>(FILE_TABLE).whereIn('id', ids);
+  async getMultipleFiles(type?: FileType): Promise<PrismaFile[]> {
+    const f = await prisma.prismaFile.findMany({
+      where: {
+        type,
+      },
+    });
+
+    return f;
+  }
+
+  async getMultipleFilesById(ids: readonly string[]): Promise<PrismaFile[]> {
+    const f = await prisma.prismaFile.findMany({
+      where: {
+        id: {
+          in: ids.slice(), // Slice to copy readonly, required by prisma
+        },
+      },
+    });
+
     return f;
   }
 
@@ -165,8 +170,12 @@ class FileAPI {
    * @param id Id of the file to fetch
    * @returns FileData
    */
-  async getFileData(id: string): Promise<DatabaseFile> {
-    const file = await db<DatabaseFile>(FILE_TABLE).where('id', id).first();
+  async getFileData(id: string): Promise<PrismaFile> {
+    const file = await prisma.prismaFile.findFirst({
+      where: {
+        id,
+      },
+    });
 
     if (!file) {
       throw new NotFoundError('Filen kunde inte hittas');
@@ -175,13 +184,26 @@ class FileAPI {
     return file;
   }
 
-  async searchFiles(search: string): Promise<DatabaseFile[]> {
-    const files = await db<DatabaseFile>(FILE_TABLE)
-      .whereNot({ type: FileType.Folder }) // dont include folders in search
-      .andWhere('name', 'like', `%${search}%`)
-      .orWhere('id', 'like', `%${search}%`);
+  async searchFiles(search: string): Promise<PrismaFile[]> {
+    const f = await prisma.prismaFile.findMany({
+      where: {
+        AND: {
+          type: {
+            not: FileType.Folder,
+          },
+          OR: {
+            name: {
+              contains: search,
+            },
+            id: {
+              contains: search,
+            },
+          },
+        },
+      },
+    });
 
-    return files;
+    return f;
   }
 
   /**
@@ -215,7 +237,7 @@ class FileAPI {
    * @param folder The path to the directory
    * @returns List of folder/files
    */
-  async getFolderData(folder: string): Promise<[DatabaseFile[], FileSystemResponsePath[]]> {
+  async getFolderData(folder: string): Promise<[PrismaFile[], FileSystemResponsePath[]]> {
     const folderTrimmed = this.trimFolder(folder);
 
     try {
@@ -226,9 +248,17 @@ class FileAPI {
       const pathNames = folderTrimmed.split('/').filter((p) => p);
 
       // Get details for all folders from DB
-      const dbPaths = await db<DatabaseFile>(FILE_TABLE)
-        .where('id', 'in', pathNames)
-        .select('id', 'name');
+      const dbPaths = await prisma.prismaFile.findMany({
+        select: {
+          id: true,
+          name: true,
+        },
+        where: {
+          id: {
+            in: pathNames,
+          },
+        },
+      });
 
       // Read files in current directory
       const fileIds = fs.readdirSync(fullPath);
@@ -239,9 +269,15 @@ class FileAPI {
       }
 
       // Get details for all files in current directory from DB
-      const files = await db<DatabaseFile>(FILE_TABLE).where('id', 'in', fileIds);
+      const f = await prisma.prismaFile.findMany({
+        where: {
+          id: {
+            in: fileIds,
+          },
+        },
+      });
 
-      return [files, dbPaths];
+      return [f, dbPaths];
     } catch (err) {
       throw new ServerError('Kunde inte hämta filer');
     }

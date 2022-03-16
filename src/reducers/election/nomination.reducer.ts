@@ -1,16 +1,16 @@
 import type { NominationResponse } from '@/models/mappers';
-import type { DatabaseNomination } from '@db/election';
+import type { PrismaNomination } from '@prisma/client';
 
-export function nominationReduce(dbNomination: DatabaseNomination): NominationResponse {
-  const { refuser, refpost, ...reduced } = dbNomination;
+export function nominationReduce(dbNomination: PrismaNomination): NominationResponse {
+  const { refUser, refPost, ...reduced } = dbNomination;
 
   const nr = {
     ...reduced,
     user: {
-      username: refuser,
+      username: refUser,
     },
     post: {
-      postname: refpost,
+      postname: refPost,
     },
   };
 

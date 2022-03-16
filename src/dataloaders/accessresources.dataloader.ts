@@ -22,7 +22,7 @@ export const batchAccessResources = async (
   return sortBatchResult<string, AccessResource>(
     slugs,
     'slug',
-    apiResponse,
+    apiResponse.map((r) => ({ ...r, resourceType: r.resourceType as AccessResourceType })),
     'No result for access resource',
   );
 };

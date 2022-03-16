@@ -9,7 +9,6 @@
  * 2) `generated/graphql.ts` ser bra ut
  */
 import {
-  AccessResource,
   Article,
   Election,
   File,
@@ -20,9 +19,10 @@ import {
   Proposal,
   User,
 } from '@generated/graphql';
+import { PrismaAccessResource } from '@prisma/client';
 
-export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {
-  creator: Partial<User>;
+export type ArticleResponse = Partial<Omit<Article, 'author' | 'lastUpdatedBy'>> & {
+  author: Partial<User>;
   lastUpdatedBy: Partial<User>;
 };
 
@@ -40,7 +40,7 @@ export type MeetingResponse = Partial<Omit<Meeting, 'summons' | 'documents' | 'l
   appendix?: Partial<File>;
 };
 
-export type AccessResourceResponse = Partial<AccessResource>;
+export type AccessResourceResponse = Partial<PrismaAccessResource>;
 
 // prettier-ignore
 export type ElectionResponse = Partial<Omit<Election, 'creator' | 'electables' | 'proposals' | 'acceptedNominations'>> & {

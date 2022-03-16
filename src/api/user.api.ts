@@ -1,8 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import { Logger } from '@/logger';
-import { DatabaseForgotPassword } from '@db/forgotpassword';
-import { DatabaseUser } from '@db/user';
-import type { NewUser } from '@generated/graphql';
+import type { NewUser, ProviderOptions } from '@generated/graphql';
+import { PrismaLoginProvider, PrismaPasswordReset, PrismaUser } from '@prisma/client';
 import crypto from 'crypto';
 
 import {
@@ -11,8 +10,7 @@ import {
   ServerError,
   UnauthenticatedError,
 } from '../errors/request.errors';
-import { PASSWORD_RESET_TABLE, USER_TABLE } from './constants';
-import db from './knex';
+import prisma from './prisma';
 
 const logger = Logger.getLogger('UserAPI');
 
@@ -47,17 +45,21 @@ export class UserAPI {
   /**
    * Returnerar alla lagarade användare.
    */
-  async getAllUsers(): Promise<DatabaseUser[]> {
-    const u = await db<DatabaseUser>(USER_TABLE).select('*');
-    return u;
+  async getAllUsers(): Promise<PrismaUser[]> {
+    const users = await prisma.prismaUser.findMany();
+    return users;
   }
 
   /**
    * Hämta en användare.
    * @param username det unika användarnamnet
    */
-  async getSingleUser(username: string): Promise<DatabaseUser> {
-    const u = await db<DatabaseUser>(USER_TABLE).where({ username }).first();
+  async getSingleUser(username: string): Promise<PrismaUser> {
+    const u = await prisma.prismaUser.findFirst({
+      where: {
+        username,
+      },
+    });
 
     if (u == null) {
       throw new NotFoundError('Användaren kunde inte hittas');
@@ -70,27 +72,44 @@ export class UserAPI {
    * Hämta flera användare.
    * @param usernames användarnamnen
    */
-  async getMultipleUsers(usernames: string[] | readonly string[]): Promise<DatabaseUser[]> {
-    const u = await db<DatabaseUser>(USER_TABLE).whereIn('username', usernames);
+  async getMultipleUsers(usernames: string[]): Promise<PrismaUser[]> {
+    const u = await prisma.prismaUser.findMany({
+      where: {
+        username: {
+          in: usernames,
+        },
+      },
+    });
 
     return u;
   }
 
-  async getNumberOfMembers(): Promise<number> {
-    const count = await db<DatabaseUser>(USER_TABLE)
-      .count<Record<string, number>>('* as count')
-      .first();
-
-    return count?.count ?? 0;
-  }
-
-  async searchUser(search: string): Promise<DatabaseUser[]> {
-    const users = await db<DatabaseUser>(USER_TABLE)
-      .where('username', 'like', `%${search}%`)
-      .orWhere('firstName', 'like', `%${search}%`)
-      .orWhere('lastName', 'like', `%${search}%`);
+  async searchUser(search: string): Promise<PrismaUser[]> {
+    const users = await prisma.prismaUser.findMany({
+      where: {
+        username: {
+          contains: search,
+        },
+        OR: {
+          firstName: {
+            contains: search,
+          },
+          OR: {
+            lastName: {
+              contains: search,
+            },
+          },
+        },
+      },
+    });
 
     return users;
+  }
+
+  async getNumberOfMembers(): Promise<number> {
+    const count = await prisma.prismaUser.count();
+
+    return count;
   }
 
   /**
@@ -98,23 +117,22 @@ export class UserAPI {
    * @param username användarnamnet
    * @param password lösenordet i plaintext
    */
-  async loginUser(username: string, password: string): Promise<DatabaseUser> {
-    const u = await db<DatabaseUser>(USER_TABLE)
-      .select('*')
-      .where({
+  async loginUser(username: string, password: string): Promise<PrismaUser> {
+    const user = await prisma.prismaUser.findFirst({
+      where: {
         username,
-      })
-      .first();
+      },
+    });
 
-    if (u == null) {
+    if (user == null) {
       throw new NotFoundError('Användaren finns inte');
     }
 
-    if (!this.verifyUser(password, u.passwordHash, u.passwordSalt)) {
+    if (!this.verifyUser(password, user.passwordHash, user.passwordSalt)) {
       throw new UnauthenticatedError('Inloggningen misslyckades');
     }
 
-    return u;
+    return user;
   }
 
   /**
@@ -123,31 +141,45 @@ export class UserAPI {
    * @param oldPassword det gamla lösenordet i plaintext
    * @param newPassword det nya lösenordet i plaintext
    */
-  async changePassword(username: string, oldPassword: string, newPassword: string): Promise<void> {
-    const query = db<DatabaseUser>(USER_TABLE).select('*').where({
-      username,
+  async changePassword(
+    username: string,
+    oldPassword: string,
+    newPassword: string,
+  ): Promise<boolean> {
+    const user = await prisma.prismaUser.findFirst({
+      where: {
+        username,
+      },
     });
-    const u = await query.first();
 
-    if (u == null) {
+    if (user == null) {
       throw new NotFoundError('Användaren finns inte');
     }
 
-    if (!this.verifyUser(oldPassword, u.passwordHash, u.passwordSalt)) {
+    if (!this.verifyUser(oldPassword, user.passwordHash, user.passwordSalt)) {
       throw new UnauthenticatedError('Lösenordet stämmer ej översens med det som redan är sparat');
     }
 
-    await query.update(this.generateSaltAndHash(newPassword));
+    const updated = await prisma.prismaUser.update({
+      where: {
+        username,
+      },
+      data: {
+        ...this.generateSaltAndHash(newPassword),
+      },
+    });
 
     const logStr = `Changed password for user ${username}`;
     logger.info(logStr);
+
+    return updated != null;
   }
 
   /**
    * Skapa en ny anvädare. TODO: FIX, ska inte returnera User typ...
    * @param input den nya användarinformationen
    */
-  async createUser(input: NewUser): Promise<DatabaseUser> {
+  async createUser(input: NewUser): Promise<PrismaUser> {
     // Utgå från att det inte är en funktionell användare om inget annat ges
     const isFuncUser = !!input.isFuncUser; // Trick för att konvertera till bool
 
@@ -168,6 +200,7 @@ export class UserAPI {
 
     // We cannot be sure what email is
     let { email } = input;
+
     if (!email || email === '') {
       email = `${username}@student.lu.se`;
     }
@@ -178,101 +211,201 @@ export class UserAPI {
       email = 'no-reply@esek.se';
     }
 
-    const user: DatabaseUser = {
-      ...inputReduced,
-      username,
-      email,
-      passwordHash,
-      passwordSalt,
-      isFuncUser,
-    };
-
-    await db<DatabaseUser>(USER_TABLE)
-      .insert(user)
-      .catch(() => {
-        // If failed, it's 99% because the username exists
-        throw new BadRequestError('Användarnamnet finns redan');
-      });
+    const createdUser = await prisma.prismaUser.create({
+      data: {
+        ...inputReduced,
+        username,
+        email,
+        passwordHash,
+        passwordSalt,
+        isFuncUser,
+      },
+    });
 
     const logStr = `Created user ${Logger.pretty(inputReduced)}`;
     logger.info(logStr);
 
-    return user;
+    return createdUser;
   }
 
-  async updateUser(username: string, partial: Partial<DatabaseUser>): Promise<void> {
+  async updateUser(username: string, partial: Partial<PrismaUser>): Promise<boolean> {
     if (partial.username) {
       throw new BadRequestError('Användarnamn kan inte uppdateras');
     }
 
-    const res = await db<DatabaseUser>(USER_TABLE).where('username', username).update(partial);
+    const res = await prisma.prismaUser.update({
+      where: {
+        username,
+      },
+      data: partial,
+    });
 
-    if (res <= 0) {
-      throw new BadRequestError('Något gick fel');
-    }
+    return res != null;
   }
 
   async requestPasswordReset(username: string): Promise<string> {
-    const table = db<DatabaseForgotPassword>(PASSWORD_RESET_TABLE);
-
     const token = crypto.randomBytes(24).toString('hex');
 
-    const res = await table.insert({
-      time: Date.now(),
-      token,
-      username,
+    const res = await prisma.prismaPasswordReset.create({
+      data: {
+        token,
+        refUser: username,
+      },
     });
 
     // If no row was inserted into the DB
-    if (res.length < 1) {
+    if (!res) {
       throw new ServerError('Något gick fel');
     }
 
-    // Remove the other rows for this user
-    await table.where('username', username).whereNot('token', token).delete();
+    await prisma.prismaPasswordReset.deleteMany({
+      where: {
+        refUser: username,
+        AND: {
+          NOT: {
+            token,
+          },
+        },
+      },
+    });
 
     return token;
   }
 
   async validateResetPasswordToken(username: string, token: string): Promise<boolean> {
-    const row = await db<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
-      .where('username', username)
-      .where('token', token)
-      .first();
+    const row = await prisma.prismaPasswordReset.findFirst({
+      where: {
+        refUser: username,
+        AND: {
+          token,
+        },
+      },
+    });
 
     return this.validateResetPasswordRow(row);
   }
 
   async resetPassword(token: string, username: string, password: string): Promise<void> {
-    const q = db<DatabaseForgotPassword>(PASSWORD_RESET_TABLE)
-      .where('token', token)
-      .andWhere('username', username)
-      .first();
-
-    const dbEntry = await q;
+    const row = await prisma.prismaPasswordReset.findFirst({
+      where: {
+        refUser: username,
+        AND: {
+          token,
+        },
+      },
+    });
 
     // If no entry or token expired
-    if (!this.validateResetPasswordRow(dbEntry)) {
+    if (!this.validateResetPasswordRow(row)) {
       throw new NotFoundError('Denna förfrågan finns inte eller har gått ut');
     }
 
-    // Update password for user
-    await db<DatabaseUser>(USER_TABLE)
-      .where('username', username)
-      .update(this.generateSaltAndHash(password));
+    const passwordData = this.generateSaltAndHash(password);
+
+    await this.updateUser(username, { ...passwordData });
 
     // Delete row in password table
-    await q.delete();
+    await prisma.prismaPasswordReset.delete({
+      where: {
+        token,
+      },
+    });
   }
 
-  private validateResetPasswordRow(row?: DatabaseForgotPassword): boolean {
+  /**
+   * Creates a new link to a loginprovider
+   * A combination of provider, email, and a token (id from provider) is used as a unique identifier
+   * @param username the username for the account to link
+   * @param options the options for the link
+   * @returns a boolean indicating if the link was successful
+   */
+  async linkLoginProvider(username: string, options: ProviderOptions): Promise<boolean> {
+    // check if there is an existing linked provider
+    const exists = await this.loginWithProvider(options).catch(() => false);
+
+    if (exists) {
+      throw new BadRequestError('Denna användare är redan registrerad med den här providern');
+    }
+
+    const response = await prisma.prismaLoginProvider.create({
+      data: {
+        ...options,
+        refUser: username,
+        provider: options.provider.toLowerCase(),
+      },
+    });
+
+    return response != null;
+  }
+
+  async unlinkLoginProvider(linkId: number): Promise<boolean> {
+    const response = await prisma.prismaLoginProvider.delete({
+      where: {
+        id: linkId,
+      },
+    });
+
+    return response != null;
+  }
+
+  /**
+   * Authenticate with the provider option combination
+   * if there is a connection, we return the user
+   * @param options the provider options
+   * @returns a database user model
+   */
+  async loginWithProvider({ email, provider, token }: ProviderOptions): Promise<PrismaUser> {
+    const response = await prisma.prismaLoginProvider.findFirst({
+      where: {
+        AND: [
+          {
+            email: {
+              equals: email,
+            },
+          },
+          {
+            token: {
+              equals: token,
+            },
+          },
+          {
+            provider: {
+              equals: provider.toLowerCase(),
+            },
+          },
+        ],
+      },
+    });
+
+    if (!response) {
+      throw new NotFoundError('Det finns ingen inloggning för denna providern');
+    }
+
+    const user = await this.getSingleUser(response.refUser);
+
+    if (!user) {
+      throw new NotFoundError('Användaren finns inte');
+    }
+
+    return user;
+  }
+
+  async getLoginProviders(username?: string): Promise<PrismaLoginProvider[]> {
+    const where = username ? { refUser: username } : {};
+
+    return await prisma.prismaLoginProvider.findMany({
+      where,
+    });
+  }
+
+  private validateResetPasswordRow(row: PrismaPasswordReset | null): boolean {
     if (!row) {
       return false;
     }
 
     const EXPIRE_MINUTES = 60; // 1h
 
-    const expirationTime = Date.now() - row.time;
+    const expirationTime = Date.now() - row.time.getTime();
 
     return expirationTime < EXPIRE_MINUTES * 60 * 1000;
   }

@@ -8,7 +8,7 @@ import {
   DatabaseNomination,
   DatabaseProposal,
 } from '@db/election';
-import { NominationAnswer } from '@generated/graphql';
+import { NominationResponse } from '@generated/graphql';
 
 const api = new ElectionAPI();
 
@@ -150,7 +150,7 @@ test('getting nominations for post', async () => {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.NoAnswer,
+        accepted: NominationResponse.NoAnswer,
       },
     ]),
   );
@@ -163,7 +163,7 @@ test('nominations for non-electables are hidden', async () => {
     refelection: electionId,
     refuser: 'aa0000bb-s',
     refpost: 'Macapär', // Valid post, men inte electable
-    accepted: NominationAnswer.NoAnswer,
+    accepted: NominationResponse.NoAnswer,
   });
 
   // Denna nominering borde aldrig synas!
@@ -187,17 +187,17 @@ test('getting all nominations with specified answer', async () => {
 
   // Svara på nomineringarna
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationResponse.Yes),
   ).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Cophös', NominationAnswer.No),
+    api.respondToNomination('aa0000bb-s', 'Cophös', NominationResponse.No),
   ).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('bb1111cc-s', 'Teknokrat', NominationAnswer.Yes),
+    api.respondToNomination('bb1111cc-s', 'Teknokrat', NominationResponse.Yes),
   ).resolves.toBeTruthy();
 
   // Kontrollera svaret
-  const nominations = await api.getAllNominations(electionId, NominationAnswer.Yes);
+  const nominations = await api.getAllNominations(electionId, NominationResponse.Yes);
   expect(nominations).toHaveLength(2);
   expect(nominations).toEqual(
     expect.arrayContaining([
@@ -205,13 +205,13 @@ test('getting all nominations with specified answer', async () => {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.Yes,
+        accepted: NominationResponse.Yes,
       },
       {
         refelection: electionId,
         refuser: 'bb1111cc-s',
         refpost: 'Teknokrat',
-        accepted: NominationAnswer.Yes,
+        accepted: NominationResponse.Yes,
       },
     ]),
   );
@@ -231,10 +231,10 @@ test('getting all nominations without specified answer', async () => {
 
   // Svara på några av nomineringarna
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationResponse.Yes),
   ).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Cophös', NominationAnswer.No),
+    api.respondToNomination('aa0000bb-s', 'Cophös', NominationResponse.No),
   ).resolves.toBeTruthy();
 
   // Kontrollera svaret
@@ -246,19 +246,19 @@ test('getting all nominations without specified answer', async () => {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.Yes,
+        accepted: NominationResponse.Yes,
       },
       {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Cophös',
-        accepted: NominationAnswer.No,
+        accepted: NominationResponse.No,
       },
       {
         refelection: electionId,
         refuser: 'bb1111cc-s',
         refpost: 'Teknokrat',
-        accepted: NominationAnswer.NoAnswer,
+        accepted: NominationResponse.NoAnswer,
       },
     ]),
   );
@@ -273,7 +273,7 @@ test('getting all nominations when none exists', async () => {
   await api.openElection(electionId);
 
   await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
-  await expect(api.getAllNominations(electionId, NominationAnswer.NoAnswer)).resolves.toHaveLength(
+  await expect(api.getAllNominations(electionId, NominationResponse.NoAnswer)).resolves.toHaveLength(
     0,
   );
 });
@@ -292,20 +292,20 @@ test('getting all nominations for user with specified answer', async () => {
 
   // Svara på nomineringarna
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationResponse.Yes),
   ).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Cophös', NominationAnswer.No),
+    api.respondToNomination('aa0000bb-s', 'Cophös', NominationResponse.No),
   ).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('bb1111cc-s', 'Teknokrat', NominationAnswer.Yes),
+    api.respondToNomination('bb1111cc-s', 'Teknokrat', NominationResponse.Yes),
   ).resolves.toBeTruthy();
 
   // Kontrollera svaret
   const nominations = await api.getAllNominationsForUser(
     electionId,
     'aa0000bb-s',
-    NominationAnswer.Yes,
+    NominationResponse.Yes,
   );
   expect(nominations).toHaveLength(1);
   expect(nominations).toEqual(
@@ -314,7 +314,7 @@ test('getting all nominations for user with specified answer', async () => {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.Yes,
+        accepted: NominationResponse.Yes,
       },
     ]),
   );
@@ -334,13 +334,13 @@ test('getting all nominations for user without specified answer', async () => {
 
   // Svara på nomineringarna
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationResponse.Yes),
   ).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Cophös', NominationAnswer.No),
+    api.respondToNomination('aa0000bb-s', 'Cophös', NominationResponse.No),
   ).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('bb1111cc-s', 'Teknokrat', NominationAnswer.Yes),
+    api.respondToNomination('bb1111cc-s', 'Teknokrat', NominationResponse.Yes),
   ).resolves.toBeTruthy();
 
   // Kontrollera svaret
@@ -352,13 +352,13 @@ test('getting all nominations for user without specified answer', async () => {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.Yes,
+        accepted: NominationResponse.Yes,
       },
       {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Cophös',
-        accepted: NominationAnswer.No,
+        accepted: NominationResponse.No,
       },
     ]),
   );
@@ -373,7 +373,7 @@ test('getting all nominations for user when none exists', async () => {
   await api.openElection(electionId);
 
   await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toHaveLength(0);
-  await expect(api.getAllNominations(electionId, NominationAnswer.NoAnswer)).resolves.toHaveLength(
+  await expect(api.getAllNominations(electionId, NominationResponse.NoAnswer)).resolves.toHaveLength(
     0,
   );
 });
@@ -737,20 +737,20 @@ test('nominating already done nomination does not overwrite answer', async () =>
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.NoAnswer,
+        accepted: NominationResponse.NoAnswer,
       },
       {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Teknokrat',
-        accepted: NominationAnswer.NoAnswer,
+        accepted: NominationResponse.NoAnswer,
       },
     ]),
   );
 
   // Svara på nomineringen
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationResponse.Yes),
   ).resolves.toBeTruthy();
 
   // Försöker nominera igen, borde ignoreras
@@ -761,13 +761,13 @@ test('nominating already done nomination does not overwrite answer', async () =>
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.Yes,
+        accepted: NominationResponse.Yes,
       },
       {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Teknokrat',
-        accepted: NominationAnswer.NoAnswer,
+        accepted: NominationResponse.NoAnswer,
       },
     ]),
   );
@@ -805,7 +805,7 @@ test('nominating mixed valid and invalid postnames', async () => {
       refelection: electionId,
       refuser: 'aa0000bb-s',
       refpost: 'Macapär',
-      accepted: NominationAnswer.NoAnswer,
+      accepted: NominationResponse.NoAnswer,
     },
   ]);
 });
@@ -826,26 +826,26 @@ test('respond to nomination', async () => {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.NoAnswer,
+        accepted: NominationResponse.NoAnswer,
       },
       {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Teknokrat',
-        accepted: NominationAnswer.NoAnswer,
+        accepted: NominationResponse.NoAnswer,
       },
       {
         refelection: electionId,
         refuser: 'bb1111cc-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.NoAnswer,
+        accepted: NominationResponse.NoAnswer,
       },
     ]),
   );
 
   // Svara
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationResponse.Yes),
   ).resolves.toBeTruthy();
 
   // Kontrollera att svaret gick igenom och bara påverkade rätt nominering
@@ -855,19 +855,19 @@ test('respond to nomination', async () => {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.Yes,
+        accepted: NominationResponse.Yes,
       },
       {
         refelection: electionId,
         refuser: 'aa0000bb-s',
         refpost: 'Teknokrat',
-        accepted: NominationAnswer.NoAnswer,
+        accepted: NominationResponse.NoAnswer,
       },
       {
         refelection: electionId,
         refuser: 'bb1111cc-s',
         refpost: 'Macapär',
-        accepted: NominationAnswer.NoAnswer,
+        accepted: NominationResponse.NoAnswer,
       },
     ]),
   );
@@ -878,7 +878,7 @@ test('respond to non-existant nomination', async () => {
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', ['Macapär'])).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Teknokrat', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'Teknokrat', NominationResponse.Yes),
   ).rejects.toThrowError(NotFoundError);
 });
 
@@ -891,12 +891,12 @@ test('respond to valid nomination after election close', async () => {
       refelection: electionId,
       refuser: 'aa0000bb-s',
       refpost: 'Macapär',
-      accepted: NominationAnswer.NoAnswer,
+      accepted: NominationResponse.NoAnswer,
     },
   ]);
   await expect(api.closeElection()).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'Macapär', NominationResponse.Yes),
   ).rejects.toThrowError(NotFoundError);
 
   // Kollar så att inget faktiskt ändrades
@@ -905,7 +905,7 @@ test('respond to valid nomination after election close', async () => {
       refelection: electionId,
       refuser: 'aa0000bb-s',
       refpost: 'Macapär',
-      accepted: NominationAnswer.NoAnswer,
+      accepted: NominationResponse.NoAnswer,
     },
   ]);
 });
