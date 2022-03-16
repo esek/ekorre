@@ -1,8 +1,8 @@
 /* eslint-disable class-methods-use-this */
 import config from '@/config';
 import { Logger } from '@/logger';
-import type { NewUser } from '@generated/graphql';
-import { PrismaPasswordReset, PrismaUser } from '@prisma/client';
+import type { NewUser, ProviderOptions } from '@generated/graphql';
+import { PrismaLoginProvider, PrismaPasswordReset, PrismaUser } from '@prisma/client';
 import crypto from 'crypto';
 
 import {
@@ -304,6 +304,92 @@ export class UserAPI {
       where: {
         token,
       },
+    });
+  }
+
+  /**
+   * Creates a new link to a loginprovider
+   * A combination of provider, email, and a token (id from provider) is used as a unique identifier
+   * @param username the username for the account to link
+   * @param options the options for the link
+   * @returns a boolean indicating if the link was successful
+   */
+  async linkLoginProvider(username: string, options: ProviderOptions): Promise<boolean> {
+    // check if there is an existing linked provider
+    const exists = await this.loginWithProvider(options).catch(() => false);
+
+    if (exists) {
+      throw new BadRequestError('Denna användare är redan registrerad med den här providern');
+    }
+
+    const response = await prisma.prismaLoginProvider.create({
+      data: {
+        ...options,
+        refUser: username,
+        provider: options.provider.toLowerCase(),
+      },
+    });
+
+    return response != null;
+  }
+
+  async unlinkLoginProvider(linkId: number): Promise<boolean> {
+    const response = await prisma.prismaLoginProvider.delete({
+      where: {
+        id: linkId,
+      },
+    });
+
+    return response != null;
+  }
+
+  /**
+   * Authenticate with the provider option combination
+   * if there is a connection, we return the user
+   * @param options the provider options
+   * @returns a database user model
+   */
+  async loginWithProvider({ email, provider, token }: ProviderOptions): Promise<PrismaUser> {
+    const response = await prisma.prismaLoginProvider.findFirst({
+      where: {
+        AND: [
+          {
+            email: {
+              equals: email,
+            },
+          },
+          {
+            token: {
+              equals: token,
+            },
+          },
+          {
+            provider: {
+              equals: provider.toLowerCase(),
+            },
+          },
+        ],
+      },
+    });
+
+    if (!response) {
+      throw new NotFoundError('Det finns ingen inloggning för denna providern');
+    }
+
+    const user = await this.getSingleUser(response.refUser);
+
+    if (!user) {
+      throw new NotFoundError('Användaren finns inte');
+    }
+
+    return user;
+  }
+
+  async getLoginProviders(username?: string): Promise<PrismaLoginProvider[]> {
+    const where = username ? { refUser: username } : {};
+
+    return await prisma.prismaLoginProvider.findMany({
+      where,
     });
   }
 

@@ -32,6 +32,7 @@ model PrismaUser {
   emergencyContacts PrismaEmergencyContact[] @relation(name: "PrismaEmergencyContactToPrismaUser")
   passwordResets    PrismaPasswordReset[]    @relation(name: "PrismaPasswordResetToPrismaUser")
   apiKeys           PrismaApiKey[]           @relation(name: "PrismaApiKeyToPrismaUser")
+  loginProviders    PrismaLoginProvider[]    @relation(name: "PrismaUserToPrismaLoginProvider")
   passwordHash      String                   @map("password_hash")
   passwordSalt      String                   @map("password_salt")
   firstName         String                   @map("first_name")
@@ -47,6 +48,18 @@ model PrismaUser {
 
   @@index([firstName, lastName])
   @@map("users")
+}
+
+model PrismaLoginProvider {
+  id       Int    @id @default(autoincrement())
+  provider String
+  token    String
+  email    String
+
+  user    PrismaUser @relation(name: "PrismaUserToPrismaLoginProvider", fields: [refUser], references: [username])
+  refUser String     @map("ref_user")
+
+  @@map("login_providers")
 }
 
 model PrismaPostAccess {
