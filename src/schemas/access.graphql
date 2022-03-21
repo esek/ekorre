@@ -1,6 +1,8 @@
 type Query {
     individualAccess(username: String!): Access
     postAccess(postname: String!): Access
+    features: [Feature!]!
+    doors: [Door!]!
 }
 
 type Mutation {
@@ -10,17 +12,43 @@ type Mutation {
 
 "Access will be treated as a immutable object!"
 type Access {
-    doors: [String!]!
-    web: [String!]!
+    doors: [Door!]!
+    web: [Feature!]!
 }
 
 "Access input is the entire set of access that resource will have"
 input AccessInput {
-    doors: [String!]!
-    web: [String!]!
+    doors: [Door!]!
+    web: [Feature!]!
 }
 
 enum ResourceType {
     DOOR,
     WEB
+}
+
+"""This represets all doors that E-sektionen"""
+enum Door {
+    cm,
+    sikrit,
+    biljard,
+    led,
+    bd,
+    ulla,
+    ekea,
+    arkivet,
+    hk,
+    pump,
+    pa,
+    km
+}
+
+"""Features are used for mapping access to a user or a post. This is not limited to efterphest"""
+enum Feature {
+    superadmin,
+    post_admin,
+    article_editor,
+    news_editor,
+    election_admin,
+    access_admin
 }

@@ -16,101 +16,133 @@ export type Scalars = {
   DateTime: any;
 };
 
-export type Query = {
-  article?: Maybe<Article>;
-  articles: Array<Maybe<Article>>;
-  file?: Maybe<File>;
-  fileSystem: FileSystemResponse;
-  files: Array<File>;
-  individualAccess?: Maybe<Access>;
-  latestnews: Array<Maybe<Article>>;
-  newsentries: Array<Maybe<Article>>;
-  post?: Maybe<Post>;
-  postAccess?: Maybe<Access>;
-  posts?: Maybe<Array<Maybe<Post>>>;
-  refreshToken?: Maybe<User>;
-  user?: Maybe<User>;
-  utskott?: Maybe<Utskott>;
+/** Access will be treated as a immutable object! */
+export type Access = {
+  doors: Array<Door>;
+  web: Array<Feature>;
 };
 
+/** Access input is the entire set of access that resource will have */
+export type AccessInput = {
+  doors: Array<Door>;
+  web: Array<Feature>;
+};
 
-export type QueryArticleArgs = {
+export enum AccessType {
+  Public = 'public',
+  Authenticated = 'authenticated',
+  Admin = 'admin'
+}
+
+/** Body is saved as HTML serverside, but edited in MarkDown */
+export type Article = {
+  articleType: ArticleType;
+  body: Scalars['String'];
+  createdAt: Scalars['DateTime'];
+  creator: User;
   id?: Maybe<Scalars['ID']>;
+  lastUpdatedAt: Scalars['DateTime'];
+  lastUpdatedBy: User;
+  signature: Scalars['String'];
   slug?: Maybe<Scalars['String']>;
-  markdown?: Maybe<Scalars['Boolean']>;
+  tags: Array<Scalars['String']>;
+  title: Scalars['String'];
 };
 
-
-export type QueryArticlesArgs = {
-  id?: Maybe<Scalars['ID']>;
-  creator?: Maybe<Scalars['String']>;
-  lastUpdateBy?: Maybe<Scalars['String']>;
-  title?: Maybe<Scalars['String']>;
-  createdAt?: Maybe<Scalars['DateTime']>;
-  lastUpdatedAt?: Maybe<Scalars['DateTime']>;
-  signature?: Maybe<Scalars['String']>;
-  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
-  articleType?: Maybe<Scalars['String']>;
-  markdown?: Maybe<Scalars['Boolean']>;
-};
+/** News are the ones to be used by a website newsreel */
+export enum ArticleType {
+  News = 'news',
+  Information = 'information'
+}
 
 
-export type QueryFileArgs = {
+
+export enum Door {
+  Arkivet = 'arkivet',
+  Bd = 'bd',
+  Biljard = 'biljard',
+  Cm = 'cm',
+  Ekea = 'ekea',
+  Hk = 'hk',
+  Km = 'km',
+  Led = 'led',
+  Pa = 'pa',
+  Pump = 'pump',
+  Sikrit = 'sikrit',
+  Ulla = 'ulla'
+}
+
+/** Features are used for mapping access to a user or a post. This is not limited to efterphest */
+export enum Feature {
+  AccessAdmin = 'access_admin',
+  ArticleEditor = 'article_editor',
+  ElectionAdmin = 'election_admin',
+  NewsEditor = 'news_editor',
+  PostAdmin = 'post_admin',
+  Superadmin = 'superadmin'
+}
+
+export type File = {
+  accessType: AccessType;
+  createdAt: Scalars['DateTime'];
+  createdBy?: Maybe<User>;
+  folderLocation: Scalars['String'];
   id: Scalars['ID'];
+  name: Scalars['String'];
+  size: Scalars['Int'];
+  type: FileType;
+  url?: Maybe<Scalars['String']>;
 };
 
-
-export type QueryFileSystemArgs = {
-  folder: Scalars['String'];
+export type FileSystemResponse = {
+  files: Array<File>;
+  path: Array<FileSystemResponsePath>;
 };
 
-
-export type QueryFilesArgs = {
-  type?: Maybe<FileType>;
-};
-
-
-export type QueryIndividualAccessArgs = {
-  username: Scalars['String'];
-};
-
-
-export type QueryLatestnewsArgs = {
-  limit?: Maybe<Scalars['Int']>;
-  markdown?: Maybe<Scalars['Boolean']>;
-};
-
-
-export type QueryNewsentriesArgs = {
-  creator?: Maybe<Scalars['String']>;
-  after?: Maybe<Scalars['DateTime']>;
-  before?: Maybe<Scalars['DateTime']>;
-  markdown?: Maybe<Scalars['Boolean']>;
-};
-
-
-export type QueryPostArgs = {
+export type FileSystemResponsePath = {
+  id: Scalars['ID'];
   name: Scalars['String'];
 };
 
+export enum FileType {
+  Image = 'image',
+  Pdf = 'pdf',
+  Text = 'text',
+  Code = 'code',
+  Powerpoint = 'powerpoint',
+  Spreadsheet = 'spreadsheet',
+  Folder = 'folder',
+  Other = 'other'
+}
 
-export type QueryPostAccessArgs = {
+export type HistoryEntry = {
+  end?: Maybe<Scalars['Date']>;
+  holder: User;
   postname: Scalars['String'];
+  start: Scalars['Date'];
 };
 
+/** We don't need every part; It should already exist */
+export type ModifyArticle = {
+  articleType?: Maybe<ArticleType>;
+  body?: Maybe<Scalars['String']>;
+  signature?: Maybe<Scalars['String']>;
+  tags?: Maybe<Array<Scalars['String']>>;
+  title?: Maybe<Scalars['String']>;
+};
 
-export type QueryPostsArgs = {
+export type ModifyPost = {
+  description?: Maybe<Scalars['String']>;
+  /** Om sökande valbereds och kallas till intervju */
+  interviewRequired?: Maybe<Scalars['Boolean']>;
+  name: Scalars['String'];
+  postType?: Maybe<PostType>;
+  /**
+   * Hur många platser en post har.
+   * `-1` symboliserar godtyckligt antal
+   */
+  spots?: Maybe<Scalars['Int']>;
   utskott?: Maybe<Utskott>;
-};
-
-
-export type QueryUserArgs = {
-  username: Scalars['String'];
-};
-
-
-export type QueryUtskottArgs = {
-  name?: Maybe<Scalars['String']>;
 };
 
 export type Mutation = {
@@ -146,15 +178,15 @@ export type MutationAddPostArgs = {
 
 
 export type MutationAddUsersToPostArgs = {
-  usernames: Array<Scalars['String']>;
-  postname: Scalars['String'];
   period: Scalars['Int'];
+  postname: Scalars['String'];
+  usernames: Array<Scalars['String']>;
 };
 
 
 export type MutationCreateFolderArgs = {
-  path: Scalars['String'];
   name: Scalars['String'];
+  path: Scalars['String'];
 };
 
 
@@ -169,8 +201,8 @@ export type MutationDeleteFileArgs = {
 
 
 export type MutationLoginArgs = {
-  username: Scalars['String'];
   password: Scalars['String'];
+  username: Scalars['String'];
 };
 
 
@@ -186,8 +218,8 @@ export type MutationModifyPostArgs = {
 
 
 export type MutationRemoveUsersFromPostArgs = {
-  usernames: Array<Scalars['String']>;
   postname: Scalars['String'];
+  usernames: Array<Scalars['String']>;
 };
 
 
@@ -197,9 +229,9 @@ export type MutationRequestPasswordResetArgs = {
 
 
 export type MutationResetPasswordArgs = {
-  username: Scalars['String'];
-  token: Scalars['String'];
   password: Scalars['String'];
+  token: Scalars['String'];
+  username: Scalars['String'];
 };
 
 
@@ -221,83 +253,40 @@ export type MutationUpdateUserArgs = {
 
 
 export type MutationValidatePasswordResetTokenArgs = {
-  username: Scalars['String'];
   token: Scalars['String'];
-};
-
-/** Access will be treated as a immutable object! */
-export type Access = {
-  doors: Array<Scalars['String']>;
-  web: Array<Scalars['String']>;
-};
-
-/** Access input is the entire set of access that resource will have */
-export type AccessInput = {
-  doors: Array<Scalars['String']>;
-  web: Array<Scalars['String']>;
-};
-
-export enum ResourceType {
-  Door = 'DOOR',
-  Web = 'WEB'
-}
-
-
-
-/** Body is saved as HTML serverside, but edited in MarkDown */
-export type Article = {
-  id?: Maybe<Scalars['ID']>;
-  slug?: Maybe<Scalars['String']>;
-  creator: User;
-  lastUpdatedBy: User;
-  title: Scalars['String'];
-  body: Scalars['String'];
-  createdAt: Scalars['DateTime'];
-  lastUpdatedAt: Scalars['DateTime'];
-  signature: Scalars['String'];
-  tags: Array<Scalars['String']>;
-  articleType: ArticleType;
+  username: Scalars['String'];
 };
 
 export type NewArticle = {
-  creator: Scalars['String'];
-  title: Scalars['String'];
+  articleType: ArticleType;
   body: Scalars['String'];
+  creator: Scalars['String'];
   signature: Scalars['String'];
   tags?: Maybe<Array<Scalars['String']>>;
-  articleType: ArticleType;
+  title: Scalars['String'];
 };
 
-/** We don't need every part; It should already exist */
-export type ModifyArticle = {
-  title?: Maybe<Scalars['String']>;
-  body?: Maybe<Scalars['String']>;
-  signature?: Maybe<Scalars['String']>;
-  tags?: Maybe<Array<Scalars['String']>>;
-  articleType?: Maybe<ArticleType>;
+export type NewPost = {
+  description?: Maybe<Scalars['String']>;
+  /** Om sökande valbereds och kallas till intervju */
+  interviewRequired?: Maybe<Scalars['Boolean']>;
+  name: Scalars['String'];
+  postType: PostType;
+  /**
+   * Hur många platser en post har.
+   * `-1` symboliserar godtyckligt antal
+   */
+  spots?: Maybe<Scalars['Int']>;
+  utskott: Utskott;
 };
 
-/** News are the ones to be used by a website newsreel */
-export enum ArticleType {
-  News = 'news',
-  Information = 'information'
-}
-
-export type User = {
-  /** This will be all the access have concated from Posts and personal */
-  access: Access;
-  address?: Maybe<Scalars['String']>;
+export type NewUser = {
   class: Scalars['String'];
-  email: Scalars['String'];
   firstName: Scalars['String'];
   isFuncUser?: Maybe<Scalars['Boolean']>;
   lastName: Scalars['String'];
-  phone?: Maybe<Scalars['String']>;
-  photoUrl?: Maybe<Scalars['String']>;
-  posts: Array<Post>;
+  password: Scalars['String'];
   username: Scalars['String'];
-  website?: Maybe<Scalars['String']>;
-  zipCode?: Maybe<Scalars['String']>;
 };
 
 export type Post = {
@@ -332,11 +321,135 @@ export enum PostType {
   U = 'U'
 }
 
-export type HistoryEntry = {
-  end?: Maybe<Scalars['Date']>;
-  holder: User;
+export type Query = {
+  article?: Maybe<Article>;
+  articles: Array<Maybe<Article>>;
+  doors: Array<Door>;
+  features: Array<Feature>;
+  file?: Maybe<File>;
+  fileSystem: FileSystemResponse;
+  files: Array<File>;
+  individualAccess?: Maybe<Access>;
+  latestnews: Array<Maybe<Article>>;
+  newsentries: Array<Maybe<Article>>;
+  post?: Maybe<Post>;
+  postAccess?: Maybe<Access>;
+  posts?: Maybe<Array<Maybe<Post>>>;
+  refreshToken?: Maybe<User>;
+  user?: Maybe<User>;
+  utskott?: Maybe<Utskott>;
+};
+
+
+export type QueryArticleArgs = {
+  id?: Maybe<Scalars['ID']>;
+  markdown?: Maybe<Scalars['Boolean']>;
+  slug?: Maybe<Scalars['String']>;
+};
+
+
+export type QueryArticlesArgs = {
+  articleType?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['DateTime']>;
+  creator?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['ID']>;
+  lastUpdateBy?: Maybe<Scalars['String']>;
+  lastUpdatedAt?: Maybe<Scalars['DateTime']>;
+  markdown?: Maybe<Scalars['Boolean']>;
+  signature?: Maybe<Scalars['String']>;
+  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  title?: Maybe<Scalars['String']>;
+};
+
+
+export type QueryFileArgs = {
+  id: Scalars['ID'];
+};
+
+
+export type QueryFileSystemArgs = {
+  folder: Scalars['String'];
+};
+
+
+export type QueryFilesArgs = {
+  type?: Maybe<FileType>;
+};
+
+
+export type QueryIndividualAccessArgs = {
+  username: Scalars['String'];
+};
+
+
+export type QueryLatestnewsArgs = {
+  limit?: Maybe<Scalars['Int']>;
+  markdown?: Maybe<Scalars['Boolean']>;
+};
+
+
+export type QueryNewsentriesArgs = {
+  after?: Maybe<Scalars['DateTime']>;
+  before?: Maybe<Scalars['DateTime']>;
+  creator?: Maybe<Scalars['String']>;
+  markdown?: Maybe<Scalars['Boolean']>;
+};
+
+
+export type QueryPostArgs = {
+  name: Scalars['String'];
+};
+
+
+export type QueryPostAccessArgs = {
   postname: Scalars['String'];
-  start: Scalars['Date'];
+};
+
+
+export type QueryPostsArgs = {
+  utskott?: Maybe<Utskott>;
+};
+
+
+export type QueryUserArgs = {
+  username: Scalars['String'];
+};
+
+
+export type QueryUtskottArgs = {
+  name?: Maybe<Scalars['String']>;
+};
+
+export enum ResourceType {
+  Door = 'DOOR',
+  Web = 'WEB'
+}
+
+export type UpdateUser = {
+  address?: Maybe<Scalars['String']>;
+  email?: Maybe<Scalars['String']>;
+  firstName?: Maybe<Scalars['String']>;
+  lastName?: Maybe<Scalars['String']>;
+  phone?: Maybe<Scalars['String']>;
+  website?: Maybe<Scalars['String']>;
+  zipCode?: Maybe<Scalars['String']>;
+};
+
+export type User = {
+  /** This will be all the access have concated from Posts and personal */
+  access: Access;
+  address?: Maybe<Scalars['String']>;
+  class: Scalars['String'];
+  email: Scalars['String'];
+  firstName: Scalars['String'];
+  isFuncUser?: Maybe<Scalars['Boolean']>;
+  lastName: Scalars['String'];
+  phone?: Maybe<Scalars['String']>;
+  photoUrl?: Maybe<Scalars['String']>;
+  posts: Array<Post>;
+  username: Scalars['String'];
+  website?: Maybe<Scalars['String']>;
+  zipCode?: Maybe<Scalars['String']>;
 };
 
 export enum Utskott {
@@ -352,92 +465,6 @@ export enum Utskott {
   Sre = 'SRE',
   Styrelsen = 'STYRELSEN'
 }
-
-export enum FileType {
-  Image = 'image',
-  Pdf = 'pdf',
-  Text = 'text',
-  Code = 'code',
-  Powerpoint = 'powerpoint',
-  Spreadsheet = 'spreadsheet',
-  Folder = 'folder',
-  Other = 'other'
-}
-
-export type File = {
-  id: Scalars['ID'];
-  name: Scalars['String'];
-  type: FileType;
-  folderLocation: Scalars['String'];
-  url?: Maybe<Scalars['String']>;
-  accessType: AccessType;
-  createdAt: Scalars['DateTime'];
-  createdBy?: Maybe<User>;
-  size: Scalars['Int'];
-};
-
-export type FileSystemResponse = {
-  files: Array<File>;
-  path: Array<FileSystemResponsePath>;
-};
-
-export enum AccessType {
-  Public = 'public',
-  Authenticated = 'authenticated',
-  Admin = 'admin'
-}
-
-export type FileSystemResponsePath = {
-  id: Scalars['ID'];
-  name: Scalars['String'];
-};
-
-export type NewPost = {
-  name: Scalars['String'];
-  utskott: Utskott;
-  postType: PostType;
-  /**
-   * Hur många platser en post har.
-   * `-1` symboliserar godtyckligt antal
-   */
-  spots?: Maybe<Scalars['Int']>;
-  description?: Maybe<Scalars['String']>;
-  /** Om sökande valbereds och kallas till intervju */
-  interviewRequired?: Maybe<Scalars['Boolean']>;
-};
-
-export type ModifyPost = {
-  name: Scalars['String'];
-  utskott?: Maybe<Utskott>;
-  postType?: Maybe<PostType>;
-  /**
-   * Hur många platser en post har.
-   * `-1` symboliserar godtyckligt antal
-   */
-  spots?: Maybe<Scalars['Int']>;
-  description?: Maybe<Scalars['String']>;
-  /** Om sökande valbereds och kallas till intervju */
-  interviewRequired?: Maybe<Scalars['Boolean']>;
-};
-
-export type NewUser = {
-  username: Scalars['String'];
-  firstName: Scalars['String'];
-  lastName: Scalars['String'];
-  class: Scalars['String'];
-  password: Scalars['String'];
-  isFuncUser?: Maybe<Scalars['Boolean']>;
-};
-
-export type UpdateUser = {
-  firstName?: Maybe<Scalars['String']>;
-  lastName?: Maybe<Scalars['String']>;
-  phone?: Maybe<Scalars['String']>;
-  email?: Maybe<Scalars['String']>;
-  address?: Maybe<Scalars['String']>;
-  zipCode?: Maybe<Scalars['String']>;
-  website?: Maybe<Scalars['String']>;
-};
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
 export type ResolversObject<TObject> = WithIndex<TObject>;
@@ -518,67 +545,166 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
-  Query: ResolverTypeWrapper<{}>;
-  ID: ResolverTypeWrapper<Scalars['ID']>;
-  String: ResolverTypeWrapper<Scalars['String']>;
-  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
-  Mutation: ResolverTypeWrapper<{}>;
   Access: ResolverTypeWrapper<Access>;
   AccessInput: AccessInput;
-  ResourceType: ResourceType;
+  AccessType: AccessType;
+  Article: ResolverTypeWrapper<ArticleResponse>;
+  String: ResolverTypeWrapper<Scalars['String']>;
+  ID: ResolverTypeWrapper<Scalars['ID']>;
+  ArticleType: ArticleType;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
-  Article: ResolverTypeWrapper<ArticleResponse>;
-  NewArticle: NewArticle;
+  Door: Door;
+  Feature: Feature;
+  File: ResolverTypeWrapper<FileResponse>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
+  FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
+  FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
+  FileType: FileType;
+  HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   ModifyArticle: ModifyArticle;
-  ArticleType: ArticleType;
-  User: ResolverTypeWrapper<User>;
+  ModifyPost: ModifyPost;
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  Mutation: ResolverTypeWrapper<{}>;
+  NewArticle: NewArticle;
+  NewPost: NewPost;
+  NewUser: NewUser;
   Post: ResolverTypeWrapper<Post>;
   PostType: PostType;
-  HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
-  Utskott: Utskott;
-  FileType: FileType;
-  File: ResolverTypeWrapper<FileResponse>;
-  FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
-  AccessType: AccessType;
-  FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
-  NewPost: NewPost;
-  ModifyPost: ModifyPost;
-  NewUser: NewUser;
+  Query: ResolverTypeWrapper<{}>;
+  ResourceType: ResourceType;
   UpdateUser: UpdateUser;
+  User: ResolverTypeWrapper<User>;
+  Utskott: Utskott;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
-  Query: {};
-  ID: Scalars['ID'];
-  String: Scalars['String'];
-  Boolean: Scalars['Boolean'];
-  Int: Scalars['Int'];
-  Mutation: {};
   Access: Access;
   AccessInput: AccessInput;
+  Article: ArticleResponse;
+  String: Scalars['String'];
+  ID: Scalars['ID'];
   Date: Scalars['Date'];
   DateTime: Scalars['DateTime'];
-  Article: ArticleResponse;
-  NewArticle: NewArticle;
-  ModifyArticle: ModifyArticle;
-  User: User;
-  Post: Post;
-  HistoryEntry: HistoryEntry;
   File: FileResponse;
+  Int: Scalars['Int'];
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
-  NewPost: NewPost;
+  HistoryEntry: HistoryEntry;
+  ModifyArticle: ModifyArticle;
   ModifyPost: ModifyPost;
+  Boolean: Scalars['Boolean'];
+  Mutation: {};
+  NewArticle: NewArticle;
+  NewPost: NewPost;
   NewUser: NewUser;
+  Post: Post;
+  Query: {};
   UpdateUser: UpdateUser;
+  User: User;
+}>;
+
+export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
+  doors?: Resolver<Array<ResolversTypes['Door']>, ParentType, ContextType>;
+  web?: Resolver<Array<ResolversTypes['Feature']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ArticleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Article'] = ResolversParentTypes['Article']> = ResolversObject<{
+  articleType?: Resolver<ResolversTypes['ArticleType'], ParentType, ContextType>;
+  body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
+  lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  lastUpdatedBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  signature?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  slug?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  tags?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
+  name: 'Date';
+}
+
+export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
+  name: 'DateTime';
+}
+
+export type FileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = ResolversObject<{
+  accessType?: Resolver<ResolversTypes['AccessType'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  folderLocation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['FileType'], ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type FileSystemResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FileSystemResponse'] = ResolversParentTypes['FileSystemResponse']> = ResolversObject<{
+  files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType>;
+  path?: Resolver<Array<ResolversTypes['FileSystemResponsePath']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type FileSystemResponsePathResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FileSystemResponsePath'] = ResolversParentTypes['FileSystemResponsePath']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type HistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HistoryEntry'] = ResolversParentTypes['HistoryEntry']> = ResolversObject<{
+  end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  holder?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
+  addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
+  addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'period' | 'postname' | 'usernames'>>;
+  createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
+  createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
+  deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
+  login?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
+  logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
+  modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
+  removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'postname' | 'usernames'>>;
+  requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
+  resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
+  setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
+  setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
+  updateUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
+  validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
+}>;
+
+export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
+  access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
+  active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  history?: Resolver<Array<ResolversTypes['HistoryEntry']>, ParentType, ContextType>;
+  interviewRequired?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  postType?: Resolver<ResolversTypes['PostType'], ParentType, ContextType>;
+  postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  spots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
+  doors?: Resolver<Array<ResolversTypes['Door']>, ParentType, ContextType>;
+  features?: Resolver<Array<ResolversTypes['Feature']>, ParentType, ContextType>;
   file?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
@@ -591,55 +717,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   refreshToken?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
-}>;
-
-export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  addArticle?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
-  addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
-  addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'usernames' | 'postname' | 'period'>>;
-  createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'path' | 'name'>>;
-  createUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
-  deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
-  login?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'username' | 'password'>>;
-  logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
-  modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
-  removeUsersFromPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveUsersFromPostArgs, 'usernames' | 'postname'>>;
-  requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
-  resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'username' | 'token' | 'password'>>;
-  setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
-  setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
-  updateUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
-  validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'username' | 'token'>>;
-}>;
-
-export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
-  doors?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  web?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
-  name: 'Date';
-}
-
-export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
-  name: 'DateTime';
-}
-
-export type ArticleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Article'] = ResolversParentTypes['Article']> = ResolversObject<{
-  id?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
-  slug?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  lastUpdatedBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  signature?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  tags?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
-  articleType?: Resolver<ResolversTypes['ArticleType'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type UserResolvers<ContextType = Context, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
@@ -659,65 +736,19 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
-  access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
-  active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  history?: Resolver<Array<ResolversTypes['HistoryEntry']>, ParentType, ContextType>;
-  interviewRequired?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  postType?: Resolver<ResolversTypes['PostType'], ParentType, ContextType>;
-  postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  spots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type HistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HistoryEntry'] = ResolversParentTypes['HistoryEntry']> = ResolversObject<{
-  end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
-  holder?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type FileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = ResolversObject<{
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  type?: Resolver<ResolversTypes['FileType'], ParentType, ContextType>;
-  folderLocation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  accessType?: Resolver<ResolversTypes['AccessType'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
-  createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  size?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type FileSystemResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FileSystemResponse'] = ResolversParentTypes['FileSystemResponse']> = ResolversObject<{
-  files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType>;
-  path?: Resolver<Array<ResolversTypes['FileSystemResponsePath']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type FileSystemResponsePathResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FileSystemResponsePath'] = ResolversParentTypes['FileSystemResponsePath']> = ResolversObject<{
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
 export type Resolvers<ContextType = Context> = ResolversObject<{
-  Query?: QueryResolvers<ContextType>;
-  Mutation?: MutationResolvers<ContextType>;
   Access?: AccessResolvers<ContextType>;
+  Article?: ArticleResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
-  Article?: ArticleResolvers<ContextType>;
-  User?: UserResolvers<ContextType>;
-  Post?: PostResolvers<ContextType>;
-  HistoryEntry?: HistoryEntryResolvers<ContextType>;
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;
+  HistoryEntry?: HistoryEntryResolvers<ContextType>;
+  Mutation?: MutationResolvers<ContextType>;
+  Post?: PostResolvers<ContextType>;
+  Query?: QueryResolvers<ContextType>;
+  User?: UserResolvers<ContextType>;
 }>;
 
 

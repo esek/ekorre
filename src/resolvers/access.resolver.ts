@@ -1,6 +1,6 @@
 import { AccessAPI } from '../api/access.api';
 import { PostAPI } from '../api/post.api';
-import { Access, Resolvers } from '../graphql.generated';
+import { Access, Door, Feature, Resolvers } from '../graphql.generated';
 
 const accessApi = new AccessAPI();
 const postApi = new PostAPI();
@@ -9,6 +9,8 @@ const accessresolver: Resolvers = {
   Query: {
     individualAccess: (_, { username }) => accessApi.getIndividualAccess(username),
     postAccess: (_, { postname }) => accessApi.getPostAccess(postname),
+    features: () => Object.values(Feature),
+    doors: () => Object.values(Door),
   },
   Mutation: {
     setIndividualAccess: (_, { username, access }) =>

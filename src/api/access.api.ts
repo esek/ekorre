@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { Access, AccessInput, ResourceType } from '../graphql.generated';
+import { Access, AccessInput, Door, Feature, ResourceType } from '../graphql.generated';
 import { Logger } from '../logger';
 import type { DatabaseAccess } from '../models/db/access';
 import { IND_ACCESS_TABLE, POST_ACCESS_TABLE } from './constants';
@@ -29,10 +29,10 @@ export class AccessAPI {
     const access = incoming.reduce((ac, e) => {
       switch (e.resourcetype) {
         case ResourceType.Web:
-          ac.web.push(e.resource);
+          ac.web.push(e.resource as Feature);
           break;
         case ResourceType.Door:
-          ac.doors.push(e.resource);
+          ac.doors.push(e.resource as Door);
           break;
         default:
           break;
