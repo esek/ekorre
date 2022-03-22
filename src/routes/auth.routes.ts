@@ -38,11 +38,6 @@ authRoute.post('/refresh', (req, res) => {
       // Fetch user from db
       const user = await userAPI.getSingleUser(verified.username);
 
-      if (!user) {
-        // throw new UnauthorizedError('Ingen användare hittades');
-        throw new Error();
-      }
-
       // Create new tokens
       const newAccessToken = issueToken<TokenValue>({ username: user.username }, 'accessToken');
       const newRefreshToken = issueToken<TokenValue>({ username: user.username }, 'refreshToken');

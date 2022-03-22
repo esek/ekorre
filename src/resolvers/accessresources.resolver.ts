@@ -1,4 +1,3 @@
-import { ServerError } from '@/errors/request.errors';
 import AccessResourcesAPI from '@api/accessresources';
 import { Resolvers } from '@generated/graphql';
 
@@ -21,19 +20,16 @@ const doorResolver: Resolvers = {
   },
   AccessMapping: {
     resources: async ({ resources }, _, ctx) => {
-      // If resources is empty, just return null
-      if (!resources?.length) {
+      if (!resources) {
         return null;
       }
-      try {
-        // try to load the mappings from datalodaer
-        const r = await ctx.accessResourceDataloader.loadMany(
-          resources.filter((resource) => resource.slug).map((resource) => resource.slug ?? ''),
-        );
-        return r;
-      } catch (err) {
-        throw new ServerError((err as Error).message);
-      }
+
+      // try to load the mappings from datalodaer
+      const r = await ctx.accessResourceDataloader.loadMany(
+        resources.filter((resource) => resource.slug).map((resource) => resource.slug ?? ''),
+      );
+
+      return r;
     },
   },
 };

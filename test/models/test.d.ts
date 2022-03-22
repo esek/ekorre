@@ -12,14 +12,17 @@ type BaseHeaders = {
 export type GraphqlResponse<Data = unknown, Headers = Record<string, string>> = {
   headers: BaseHeaders & Headers;
   data: {
-    data: Data,
+    data: Data;
     errors?: RequestErrorResponse[];
   };
 };
 
-export type GraphqlResponseData = {
+export type GraphqlResponseData<T = unknown> = {
   data: {
-    [key: string]: unknown;
+    [key: string]: T;
   };
   errors?: RequestErrorResponse[];
+  http?: {
+    headers: Headers;
+  };
 };

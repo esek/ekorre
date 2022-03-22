@@ -1,13 +1,13 @@
 import { FILE_TABLE } from '@/api/constants';
 import db from '@/api/knex';
 import { app } from '@/app/app';
-import apolloServerConfig from '@/app/serverconfig';
 import { COOKIES, issueToken } from '@/auth';
 import config from '@/config';
 import FileAPI from '@api/file';
 import { DatabaseFile } from '@db/file';
 import { AccessType, File as GqlFile, FileType } from '@generated/graphql';
-import { ApolloServer } from 'apollo-server-express';
+import { getApolloServer } from '@test/utils/apollo';
+import requestWithAuth from '@test/utils/requestWithAuth';
 import axios from 'axios';
 import { createWriteStream, ReadStream, rmSync } from 'fs';
 import { resolve } from 'path';
@@ -178,19 +178,8 @@ describe('uploading files', () => {
 });
 
 describe('fetching files', () => {
-  const apolloServer = new ApolloServer({
-    ...apolloServerConfig,
-    context: (props) => {
-      if (typeof apolloServerConfig.context === 'function') {
-        return {
-          ...(apolloServerConfig.context(props) as Record<string, unknown>),
-          getUsername: () => TEST_USERNAME,
-        };
-      }
-
-      return {};
-    },
-  });
+  const apolloServer = getApolloServer();
+  const accessToken = issueToken({ username: TEST_USERNAME }, 'accessToken');
 
   const TEST_FOLDER_NAME = 'test-folder';
 
@@ -367,14 +356,11 @@ describe('fetching files', () => {
   });
 
   it('can create a folder', async () => {
-    const res = await apolloServer.executeOperation({
-      query: CREATE_FOLDER_MUTATION,
-
-      variables: {
-        name: TEST_FOLDER_NAME,
-        path: '',
-      },
-    });
+    const res = await requestWithAuth(
+      CREATE_FOLDER_MUTATION,
+      { name: TEST_FOLDER_NAME, path: '' },
+      accessToken,
+    );
 
     expect(res.errors).toBeUndefined();
     expect(res.data?.createFolder).toBe(true);

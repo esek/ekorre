@@ -7,7 +7,6 @@ import {
   USER_TABLE,
 } from '@/api/constants';
 import db from '@/api/knex';
-import apolloServerConfig from '@/app/serverconfig';
 import {
   AccessResource,
   AccessResourceType,
@@ -16,9 +15,9 @@ import {
   PostType,
   Utskott,
 } from '@generated/graphql';
-import { ApolloServer } from 'apollo-server-express';
+import { getApolloServer } from '@test/utils/apollo';
 
-const apolloServer = new ApolloServer(apolloServerConfig);
+const apolloServer = getApolloServer();
 
 const USER_WITH_ACCESS_AND_RESOURCES_QUERY = `
 	query ($username: String!) {

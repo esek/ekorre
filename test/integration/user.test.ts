@@ -1,7 +1,6 @@
-import apolloServerConfig from '@/app/serverconfig';
-import { ApolloServer } from 'apollo-server-express';
+import { getApolloServer } from '@test/utils/apollo';
 
-const apolloServer = new ApolloServer(apolloServerConfig);
+const apolloServer = getApolloServer();
 
 const USER_QUERY = `
   query getUser($username: String!) {
