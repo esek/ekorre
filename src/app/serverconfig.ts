@@ -4,7 +4,6 @@ import { Logger } from '@/logger';
 import { TokenValue } from '@/models/auth';
 import type { Context, ContextParams } from '@/models/context';
 import * as Resolvers from '@/resolvers';
-import { batchAccessResources } from '@dataloader/accessresources';
 import { batchElectionsFunction } from '@dataloader/election';
 import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
@@ -64,7 +63,6 @@ const apolloServerConfig: Config<ExpressContext> = {
       userDataLoader: createDataLoader(batchUsersFunction),
       postDataLoader: createDataLoader(batchPostsFunction),
       fileDataLoader: createDataLoader(batchFilesFunction),
-      accessResourceDataloader: createDataLoader(batchAccessResources),
       electionDataLoader: createDataLoader(batchElectionsFunction),
     };
   },

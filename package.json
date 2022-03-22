@@ -20,7 +20,7 @@
     "test:regression": "jest test/regression --coverage=false",
     "benchmark": "ts-node tools/benchmark/index.ts"
   },
-  "author": "Emil Blennow",
+  "author": "Emil Blennow <emil.blennow99@gmail.com",
   "contributors": [
     "Emil Eriksson <eje1999@gmail.com>",
     "Axel Froborg <axel.froborg@gmail.com>",

@@ -5,7 +5,7 @@ import { Access, User } from '@generated/graphql';
 export function userReduce(user: DatabaseUser): User {
   // Provide a stub for access to be resolved later.
   const access: Access = {
-    web: [],
+    features: [],
     doors: [],
   };
 

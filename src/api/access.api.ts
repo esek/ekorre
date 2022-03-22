@@ -1,14 +1,10 @@
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import type { DatabaseAccess } from '@db/access';
-import { DatabaseAccessMapping } from '@db/accessmapping';
+import { AccessResourceType, DatabaseAccess } from '@db/access';
 import { DatabasePost, DatabasePostHistory } from '@db/post';
-import { DatabaseAccessResource } from '@db/resource';
-import { ResolverType } from '@generated/graphql';
+import type { Access } from '@generated/graphql';
 
 import {
-  ACCESS_MAPPINGS_TABLE,
-  ACCESS_RESOURCES_TABLE,
   IND_ACCESS_TABLE,
   POSTS_HISTORY_TABLE,
   POSTS_TABLE,
@@ -17,8 +13,6 @@ import {
 import db from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
-
-export type DatabaseJoinedAccess = DatabaseAccess & DatabaseAccessResource;
 
 /**
  * Det är api:n som hanterar access.
@@ -32,12 +26,11 @@ export class AccessAPI {
    * Hämta specifik access för en användare
    * @param username användaren
    */
-  async getIndividualAccess(username: string): Promise<DatabaseJoinedAccess[]> {
+  async getIndividualAccess(username: string): Promise<DatabaseAccess[]> {
     const res = await db<DatabaseAccess>(IND_ACCESS_TABLE)
       .where({
         refname: username,
-      })
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
+      });
 
     return res;
   }
@@ -46,12 +39,11 @@ export class AccessAPI {
    * Hämta access för en post.
    * @param postname posten
    */
-  async getPostAccess(postname: string): Promise<DatabaseJoinedAccess[]> {
+  async getPostAccess(postname: string): Promise<DatabaseAccess[]> {
     const res = await db<DatabaseAccess>(POST_ACCESS_TABLE)
       .where({
         refname: postname,
-      })
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug');
+      });
 
     return res;
   }
@@ -62,25 +54,38 @@ export class AccessAPI {
    * @param ref referens (användare eller post)
    * @param newaccess den nya accessen
    */
-  private async setAccess(table: string, ref: string, newaccess: string[]): Promise<boolean> {
+  private async setAccess(table: string, ref: string, newaccess: Access): Promise<boolean> {
     await db<DatabaseAccess>(table)
       .where({
         refname: ref,
       })
       .delete();
 
-    // Only do insert with actual values.
-    const inserts = newaccess.map<DatabaseAccess>((id) => ({
-      refname: ref,
-      refaccessresource: id,
-    }));
+    const { doors, features } = newaccess;
+    const access: DatabaseAccess[] = [];
 
-    if (inserts.length > 0) {
-      const status = await db<DatabaseAccess>(table).insert(inserts);
-      return status[0] > 0;
+    doors.forEach((door) => 
+      access.push({
+        refname: ref,
+        resourcetype: AccessResourceType.Door,
+        resource: door as string,
+      })
+    );
+
+    features.forEach((feature) => 
+      access.push({
+        refname: ref,
+        resourcetype: AccessResourceType.Feature,
+        resource: feature as string,
+      })
+    );
+
+    const status = await db<DatabaseAccess>(table).insert(access);
+    if (status.some((s) => s !== 0)) {
+      throw new ServerError('Failed to set access');
     }
 
-    return false;
+    return true;
   }
 
   /**
@@ -90,7 +95,7 @@ export class AccessAPI {
    * @param username användaren
    * @param newaccess den nya accessen
    */
-  async setIndividualAccess(username: string, newaccess: string[]): Promise<boolean> {
+  async setIndividualAccess(username: string, newaccess: Access): Promise<boolean> {
     const status = this.setAccess(IND_ACCESS_TABLE, username, newaccess);
 
     logger.info(`Updated access for user ${username}`);
@@ -105,7 +110,7 @@ export class AccessAPI {
    * @param postname posten
    * @param newaccess den nya accessen
    */
-  async setPostAccess(postname: string, newaccess: string[]): Promise<boolean> {
+  async setPostAccess(postname: string, newaccess: Access): Promise<boolean> {
     const status = this.setAccess(POST_ACCESS_TABLE, postname, newaccess);
 
     logger.info(`Updated access for post ${postname}`);
@@ -122,11 +127,9 @@ export class AccessAPI {
   async getAccessForPosts(
     posts: string[],
     includeInactivePosts = false,
-  ): Promise<DatabaseJoinedAccess[]> {
+  ): Promise<DatabaseAccess[]> {
     const query = db<DatabaseAccess>(POST_ACCESS_TABLE)
-      .whereIn('refname', posts)
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
-      .select<DatabaseJoinedAccess[]>('*', `${ACCESS_RESOURCES_TABLE}.description`);
+      .whereIn('refname', posts);
 
     // Om inaktiva posters access inte ska inkluderas,
     // ta in `POSTS_TABLE` och se vilka som är aktiva
@@ -146,7 +149,6 @@ export class AccessAPI {
    */
   async getUserPostAccess(username: string) {
     const res = await db<DatabaseAccess>(POST_ACCESS_TABLE)
-      .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
       .join<DatabasePostHistory>(POSTS_HISTORY_TABLE, 'refpost', 'refname')
       .where({
         refuser: username,
@@ -165,7 +167,7 @@ export class AccessAPI {
    * @param username The user whose access to get
    * @returns A list of databaseaccess objects
    */
-  async getUserFullAccess(username: string): Promise<DatabaseJoinedAccess[]> {
+  async getUserFullAccess(username: string): Promise<DatabaseAccess[]> {
     // Get the individual access for that user
     const individual = this.getIndividualAccess(username);
     // Get the postaccess for that users posts
@@ -175,63 +177,5 @@ export class AccessAPI {
 
     // Flatten the array of access from the promises
     return p.flat();
-  }
-
-  /**
-   * Gets the mapping for a resource
-   * @param resolverType The type of resource (query or mutation)
-   * @param resolverName The name of the resource
-   * @returns A list of mappings
-   */
-  async getAccessMapping(
-    resolverName?: string,
-    resolverType?: ResolverType,
-  ): Promise<DatabaseAccessMapping[]> {
-    const q = db<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
-
-    if (resolverName) {
-      q.where({ resolverName });
-    }
-
-    if (resolverType) {
-      q.where({ resolverType });
-    }
-
-    const resources = await q;
-
-    return resources;
-  }
-
-  /**
-   * Sets (overrides) the mapping for a resolver
-   * @param {string} resolverName The name of the resolver
-   * @param {string} resolverType The type of the resolver
-   * @param {string} slugs The slugs of the resoures to set
-   * @returns {boolean} True if successful
-   */
-  async setAccessMappings(
-    resolverName: string,
-    resolverType: ResolverType,
-    slugs?: string[],
-  ): Promise<boolean> {
-    const q = db<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
-
-    await q
-      .where({
-        resolverName,
-        resolverType,
-      })
-      .delete();
-
-    // if we have anything to add
-    if (slugs) {
-      try {
-        await q.insert(slugs.map((s) => ({ refaccessresource: s, resolverName, resolverType })));
-      } catch {
-        throw new ServerError('Kunde inte skapa mappningen av resursen');
-      }
-    }
-
-    return true;
   }
 }

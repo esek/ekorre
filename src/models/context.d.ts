@@ -13,7 +13,6 @@ export type Context = {
   userDataLoader: DataLoader<string, User>;
   postDataLoader: DataLoader<string, Post>;
   fileDataLoader: DataLoader<string, FileResponse>;
-  accessResourceDataloader: DataLoader<string, AccessResourceResponse>;
   electionDataLoader: DataLoader<string, ElectionResponse>;
 };
 
