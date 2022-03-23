@@ -1,8 +1,8 @@
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { AccessResourceType, DatabaseAccess } from '@db/access';
+import { DatabaseAccess } from '@db/access';
 import { DatabasePost, DatabasePostHistory } from '@db/post';
-import type { Access } from '@generated/graphql';
+import { Access, AccessInput, AccessResourceType } from '@generated/graphql';
 
 import {
   IND_ACCESS_TABLE,
@@ -95,7 +95,7 @@ export class AccessAPI {
    * @param username användaren
    * @param newaccess den nya accessen
    */
-  async setIndividualAccess(username: string, newaccess: Access): Promise<boolean> {
+  async setIndividualAccess(username: string, newaccess: AccessInput): Promise<boolean> {
     const status = this.setAccess(IND_ACCESS_TABLE, username, newaccess);
 
     logger.info(`Updated access for user ${username}`);
@@ -110,7 +110,7 @@ export class AccessAPI {
    * @param postname posten
    * @param newaccess den nya accessen
    */
-  async setPostAccess(postname: string, newaccess: Access): Promise<boolean> {
+  async setPostAccess(postname: string, newaccess: AccessInput): Promise<boolean> {
     const status = this.setAccess(POST_ACCESS_TABLE, postname, newaccess);
 
     logger.info(`Updated access for post ${postname}`);

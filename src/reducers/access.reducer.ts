@@ -1,5 +1,5 @@
-import { AccessResourceType, DatabaseAccess } from '@db/access';
-import { Access, Door, Feature } from '@generated/graphql';
+import type { DatabaseAccess } from '@db/access';
+import { Access, AccessResourceType, Door, Feature } from '@generated/graphql';
 
 /**
  * Reduce database access arrays to an access object
@@ -14,7 +14,7 @@ export const accessReducer = (dbAccess: DatabaseAccess[]): Access => {
 
   const access = dbAccess.reduce((acc, curr) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { refname, resourcetype, resource } = curr;
+    const { resourcetype, resource } = curr;
 
     switch (resourcetype) {
       case AccessResourceType.Feature: {

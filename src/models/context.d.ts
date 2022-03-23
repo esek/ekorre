@@ -1,5 +1,5 @@
-import type { AccessResourceResponse, FileResponse } from '@/models/mappers';
-import type { Post, User } from '@generated/graphql';
+import type { FileResponse } from '@/models/mappers';
+import type { Access, Post, User } from '@generated/graphql';
 import { ExpressContext } from 'apollo-server-express';
 import type DataLoader from 'dataloader';
 import { Request, Response } from 'express';
@@ -10,6 +10,7 @@ export type Context = {
   response: Response;
   request: CustomReq;
   getUsername: () => string;
+  getAccess: () => Promise<Access>;
   userDataLoader: DataLoader<string, User>;
   postDataLoader: DataLoader<string, Post>;
   fileDataLoader: DataLoader<string, FileResponse>;

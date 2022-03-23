@@ -23,6 +23,16 @@ export type Access = {
   features: Array<Feature>;
 };
 
+export type AccessInput = {
+  doors: Array<Door>;
+  features: Array<Feature>;
+};
+
+export enum AccessResourceType {
+  Door = 'door',
+  Feature = 'feature'
+}
+
 export enum AccessType {
   Admin = 'admin',
   Authenticated = 'authenticated',
@@ -508,13 +518,13 @@ export type MutationSetHiddenNominationsArgs = {
 
 export type MutationSetIndividualAccessArgs = {
   username: Scalars['String'];
-  access: Access;
+  access: AccessInput;
 };
 
 
 export type MutationSetPostAccessArgs = {
   postname: Scalars['String'];
-  access: Access;
+  access: AccessInput;
 };
 
 
@@ -1113,6 +1123,8 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Access: ResolverTypeWrapper<Access>;
+  AccessInput: AccessInput;
+  AccessResourceType: AccessResourceType;
   AccessType: AccessType;
   Article: ResolverTypeWrapper<ArticleResponse>;
   String: ResolverTypeWrapper<Scalars['String']>;
@@ -1164,6 +1176,7 @@ export type ResolversTypes = ResolversObject<{
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Access: Access;
+  AccessInput: AccessInput;
   Article: ArticleResponse;
   String: Scalars['String'];
   ID: Scalars['ID'];

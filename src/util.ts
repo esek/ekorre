@@ -1,4 +1,7 @@
 import { StrictObject } from '@/models/base';
+import { Feature } from '@generated/graphql';
+import { ForbiddenError } from '@/errors/request.errors';
+import { Context } from './models/context';
 
 /**
  * Converts a date to UTC format
@@ -56,4 +59,28 @@ export const stripObject = <E, T extends E>(obj: E): Partial<T> => {
 export const notEmpty = <ValueType>(value: ValueType | null | undefined): value is ValueType => {
   if (value === null || value === undefined) return false;
   return true;
+};
+
+export const hasAccess = async (ctx: Context, requirement: Feature | Feature[]): Promise<boolean> => {
+  const req: Feature[] = [];
+
+  if (!Array.isArray(requirement)) {
+    req.push(requirement);
+  }
+
+  const {features} = await ctx.getAccess();
+
+  if (features.includes(Feature.Superadmin)) {
+    return true;
+  }
+
+  if (features.some((f) => req.includes(f))) {
+    return true;
+  }
+
+  throw new ForbiddenError('Aja baja det får du inte göra!');
+};
+
+export const requireAuthentication = async (ctx: Context): Promise<void> => {
+  await ctx.getAccess();
 };

@@ -1,25 +1,27 @@
 import { COOKIES, verifyToken } from '@/auth';
 import { createDataLoader } from '@/dataloaders';
+import { UnauthenticatedError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { TokenValue } from '@/models/auth';
 import type { Context, ContextParams } from '@/models/context';
 import * as Resolvers from '@/resolvers';
+import { AccessAPI } from '@api/access';
 import { batchElectionsFunction } from '@dataloader/election';
 import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
 import { batchUsersFunction } from '@dataloader/user';
+import { DatabaseAccess } from '@db/access';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { authMiddleware } from '@middleware/graphql/auth';
 import { errorHandler } from '@middleware/graphql/errorhandler';
+import { accessReducer } from '@reducer/access';
 import {
   ApolloServerPluginLandingPageDisabled,
   ApolloServerPluginLandingPageGraphQLPlayground,
   Config,
 } from 'apollo-server-core';
 import { ExpressContext } from 'apollo-server-express';
-import { applyMiddleware } from 'graphql-middleware';
 import { DateResolver } from 'graphql-scalars';
 
 // Ladda alla scheman från .graphql filer
@@ -41,29 +43,43 @@ const schema = makeExecutableSchema({
 
 const apolloLogger = Logger.getLogger('Apollo');
 
+const accessApi = new AccessAPI();
+
 const apolloServerConfig: Config<ExpressContext> = {
-  schema: applyMiddleware(schema, authMiddleware),
+  schema,
   context: ({ req, res }: ContextParams): Context => {
     const accessToken = req?.cookies[COOKIES.accessToken] ?? '';
     const refreshToken = req?.cookies[COOKIES.refreshToken] ?? '';
+
+    const getUsername = () => {
+      try {
+        const { username } = verifyToken<TokenValue>(accessToken, 'accessToken');
+        return username;
+      } catch {
+        return '';
+      }
+    };
 
     return {
       accessToken,
       refreshToken,
       response: res,
       request: req,
-      getUsername: () => {
-        try {
-          const { username } = verifyToken<TokenValue>(accessToken, 'accessToken');
-          return username;
-        } catch {
-          return '';
-        }
-      },
+      getUsername,
       userDataLoader: createDataLoader(batchUsersFunction),
       postDataLoader: createDataLoader(batchPostsFunction),
       fileDataLoader: createDataLoader(batchFilesFunction),
       electionDataLoader: createDataLoader(batchElectionsFunction),
+      getAccess: async () => {
+        const username = getUsername();
+        if (username === '') {
+          throw new UnauthenticatedError('Du behöver logga in för att göra detta!');
+        }
+
+        const access = await accessApi.getUserFullAccess(username);
+        
+        return accessReducer(access);
+      }
     };
   },
   debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),

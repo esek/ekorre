@@ -4,9 +4,10 @@
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
 import { useDataLoader } from '@/dataloaders';
 import { ArticleResponse } from '@/models/mappers';
+import { hasAccess } from '@/util';
 import { ArticleAPI } from '@api/article';
 import { DatabaseArticle } from '@db/article';
-import { Resolvers } from '@generated/graphql';
+import { Feature, Resolvers } from '@generated/graphql';
 import { articleReducer } from '@reducer/article';
 
 const articleApi = new ArticleAPI();
@@ -128,6 +129,8 @@ const articleResolver: Resolvers = {
   },
   Mutation: {
     addArticle: async (_, { entry }, ctx) => {
+      hasAccess(ctx, Feature.AccessAdmin);
+
       // Special type of reduce
       const apiResponse = await articleApi.newArticle(ctx.getUsername(), entry);
       return articleReducer(apiResponse, true);
