@@ -80,8 +80,10 @@ export class AccessAPI {
       })
     );
 
-    const status = await db<DatabaseAccess>(table).insert(access);
-    if (status.some((s) => s !== 0)) {
+    const changedRows = await db<DatabaseAccess>(table).insert(access);
+
+    // Fett oklart men den ska kolla ifall det lyckades
+    if (changedRows.some((s) => s <= 0)) {
       throw new ServerError('Failed to set access');
     }
 
