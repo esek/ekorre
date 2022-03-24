@@ -21,13 +21,13 @@ model PrismaAccessMapping {
 }
 
 model PrismaAccessResource {
-  slug        String                   @id
-  mappings    PrismaAccessMapping[]    @relation(name: "PrismaAccessMappingToPrismaAccessResource")
-  name        String
-  description String
-  resourceType PrismaResourceType      @map("resource_type")
-  userAccess  PrismaIndividualAccess[] @relation(name: "PrismaAccessResourceToPrismaIndividualAccess")
-  postAccess  PrismaPostAccess[]       @relation(name: "PrismaAccessResourceToPrismaPostAccess")
+  slug         String                   @id
+  mappings     PrismaAccessMapping[]    @relation(name: "PrismaAccessMappingToPrismaAccessResource")
+  name         String
+  description  String
+  resourceType PrismaResourceType       @map("resource_type")
+  userAccess   PrismaIndividualAccess[] @relation(name: "PrismaAccessResourceToPrismaIndividualAccess")
+  postAccess   PrismaPostAccess[]       @relation(name: "PrismaAccessResourceToPrismaPostAccess")
 
   @@map("access_resources")
 }
@@ -75,8 +75,8 @@ model PrismaUser {
 
 model PrismaPostAccess {
   id          Int                  @id @default(autoincrement())
-  post        PrismaPost           @relation(name: "PrismaPostToPrismaPostAccess", fields: [refPost], references: [slug])
-  refPost     String               @map("ref_post")
+  post        PrismaPost           @relation(name: "PrismaPostToPrismaPostAccess", fields: [refPost], references: [id])
+  refPost     Int                  @map("ref_post")
   resource    PrismaAccessResource @relation(name: "PrismaAccessResourceToPrismaPostAccess", fields: [refResource], references: [slug])
   refResource String               @map("ref_resource")
 
@@ -84,7 +84,7 @@ model PrismaPostAccess {
 }
 
 model PrismaPost {
-  slug              String              @id
+  id                Int                 @id @default(autoincrement())
   access            PrismaPostAccess[]  @relation(name: "PrismaPostToPrismaPostAccess")
   electables        PrismaElectable[]   @relation(name: "PrismaElectableToPrismaPost")
   nominations       PrismaNomination[]  @relation(name: "PrismaNominationToPrismaPost")
@@ -135,8 +135,8 @@ model PrismaArticle {
 }
 
 model PrismaElectable {
-  post        PrismaPost     @relation(name: "PrismaElectableToPrismaPost", fields: [refPost], references: [slug])
-  refPost     String         @map("ref_post")
+  post        PrismaPost     @relation(name: "PrismaElectableToPrismaPost", fields: [refPost], references: [id])
+  refPost     Int            @map("ref_post")
   election    PrismaElection @relation(name: "PrismaElectableToPrismaElection", fields: [refElection], references: [id])
   refElection Int            @map("ref_election")
 
@@ -167,8 +167,8 @@ model PrismaNomination {
   answer      PrismaNominationAnswer @default(NO_ANSWER)
   user        PrismaUser             @relation(name: "PrismaNominationToPrismaUser", fields: [refUser], references: [username])
   refUser     String                 @map("ref_user")
-  post        PrismaPost             @relation(name: "PrismaNominationToPrismaPost", fields: [refPost], references: [slug])
-  refPost     String                 @map("ref_post")
+  post        PrismaPost             @relation(name: "PrismaNominationToPrismaPost", fields: [refPost], references: [id])
+  refPost     Int                    @map("ref_post")
   election    PrismaElection         @relation(name: "PrismaElectionToPrismaNomination", fields: [refElection], references: [id])
   refElection Int                    @map("ref_election")
 
@@ -180,8 +180,8 @@ model PrismaNomination {
 model PrismaProposal {
   user        PrismaUser     @relation(name: "PrismaProposalToPrismaUser", fields: [refUser], references: [username])
   refUser     String         @map("ref_user")
-  post        PrismaPost     @relation(name: "PrismaProposalToPrismaPost", fields: [refPost], references: [slug])
-  refPost     String         @map("ref_post")
+  post        PrismaPost     @relation(name: "PrismaProposalToPrismaPost", fields: [refPost], references: [id])
+  refPost     Int            @map("ref_post")
   election    PrismaElection @relation(name: "PrismaElectionToPrismaProposal", fields: [refElection], references: [id])
   refElection Int            @map("ref_election")
 
@@ -252,8 +252,8 @@ model PrismaPostHistory {
   id        Int        @id @default(autoincrement())
   user      PrismaUser @relation(name: "PrismaPostHistoryToPrismaUser", fields: [refUser], references: [username])
   refUser   String     @map("ref_user")
-  post      PrismaPost @relation(name: "PrismaPostToPrismaPostHistory", fields: [refPost], references: [slug])
-  refPost   String     @map("ref_post")
+  post      PrismaPost @relation(name: "PrismaPostToPrismaPostHistory", fields: [refPost], references: [id])
+  refPost   Int        @map("ref_post")
   startDate DateTime   @map("start_date")
   endDate   DateTime?  @map("end_date")
 
