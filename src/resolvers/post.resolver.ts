@@ -7,8 +7,8 @@ const api = new PostAPI();
 
 const postresolver: Resolvers = {
   Query: {
-    post: async (_, { slug }) => {
-      const res = await api.getPost(slug);
+    post: async (_, { id }) => {
+      const res = await api.getPost(id);
       if (res != null) return postReduce(res);
       return null;
     },
@@ -32,7 +32,7 @@ const postresolver: Resolvers = {
 
         const reducedPost = reduce(post, postReduce);
 
-        ctx.postDataLoader.prime(reducedPost.postname, reducedPost);
+        ctx.postDataLoader.prime(reducedPost.id, reducedPost);
 
         // Add the posts to the object by the utskott
         temp[post.utskott].push(reducedPost);
@@ -51,10 +51,10 @@ const postresolver: Resolvers = {
   Mutation: {
     addPost: (_, { info }) => api.createPost(info),
     modifyPost: (_, { info }) => api.modifyPost(info),
-    addUsersToPost: (_, { usernames, postname, start, end }) =>
-      api.addUsersToPost(usernames, postname, start ?? undefined, end ?? undefined),
-    activatePost: (_, { slug }) => api.setPostStatus(slug, true),
-    deactivatePost: (_, { slug }) => api.setPostStatus(slug, false),
+    addUsersToPost: (_, { usernames, id, start, end }) =>
+      api.addUsersToPost(usernames, id, start ?? undefined, end ?? undefined),
+    activatePost: (_, { id }) => api.setPostStatus(id, true),
+    deactivatePost: (_, { id }) => api.setPostStatus(id, false),
     setUserPostEnd: (_, { id, end }) =>
       api.setUserPostEnd(id, end),
     removeHistoryEntry: (_, { id }) =>
@@ -98,8 +98,8 @@ const postresolver: Resolvers = {
     },
   },
   Post: {
-    history: async ({ postname }, _, ctx) => {
-      const entries = await api.getHistoryEntries({ refPost: postname });
+    history: async ({ id }, _, ctx) => {
+      const entries = await api.getHistoryEntries({ refPost: id });
 
       const a = Promise.all(
         entries.map(async (e) => {
@@ -113,7 +113,7 @@ const postresolver: Resolvers = {
             safeEnd = new Date(endDate);
           }
 
-          return { postname: refPost, holder, start: new Date(startDate), end: safeEnd };
+          return { id: refPost, holder, start: new Date(startDate), end: safeEnd };
         }),
       );
       return a;
