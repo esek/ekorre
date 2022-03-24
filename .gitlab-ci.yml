@@ -68,33 +68,33 @@ lint:
     paths:
       - .npm/
 
-tests:
-  stage: test
-  # Must be run on docker runner
-  tags:
-    - docker
-  image:
-    name: "node:$NODE_VERSION"
-  before_script:
-    - node --version
-    - npm ci --cache .npm --prefer-offline
-  script:
-    - apk update
-    - apk add sqlite
-    - ./tools/initenv.sh
-    - npm run test:prebuild
-    - ./test/utils/test-server-startup.sh
-    - npm run test:regression
-  rules:
-    - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) || $CI_MERGE_REQUEST_ID
-  artifacts:
-    paths:
-      - coverage
-    expire_in: 1 week
-  cache:
-    key: $CI_COMMIT_REF_SLUG
-    paths:
-      - .npm/
+# tests:
+#   stage: test
+#   # Must be run on docker runner
+#   tags:
+#     - docker
+#   image:
+#     name: "node:$NODE_VERSION"
+#   before_script:
+#     - node --version
+#     - npm ci --cache .npm --prefer-offline
+#   script:
+#     - apk update
+#     - apk add sqlite
+#     - ./tools/initenv.sh
+#     - npm run test:prebuild
+#     - ./test/utils/test-server-startup.sh
+#     - npm run test:regression
+#   rules:
+#     - if: ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH) || $CI_MERGE_REQUEST_ID
+#   artifacts:
+#     paths:
+#       - coverage
+#     expire_in: 1 week
+#   cache:
+#     key: $CI_COMMIT_REF_SLUG
+#     paths:
+#       - .npm/
 
 .pre_deploy:
   script:
