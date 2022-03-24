@@ -1,24 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 
+import { posts } from './post.seed';
 import { users } from './user.seed';
 
 const prisma = new PrismaClient();
 
 const run = async () => {
-  await Promise.all(
-    users.map(async (user) => {
-      await prisma.prismaUser
-        .create({
-          data: {
-            ...user,
-          },
-        })
-        .catch(() => {
-          // Ignore duplicate users
-          return null;
-        });
-    }),
-  );
+  await Promise.all([
+    prisma.prismaUser.createMany({ data: users, skipDuplicates: true }),
+    prisma.prismaPost.createMany({ data: posts, skipDuplicates: true }),
+  ]);
 };
 
 run()
