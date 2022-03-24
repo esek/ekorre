@@ -1,5 +1,9 @@
 
+#import User from './user.graphql'
+
 type Query {
+    apiKey(key: String!): ApiKey!
+    apiKeys: [ApiKey!]!
     individualAccess(username: String!): Access
     postAccess(postname: String!): Access
     features: [FeatureInfo!]!
@@ -7,8 +11,18 @@ type Query {
 }
 
 type Mutation {
+    createApiKey: Boolean!
+    deleteApiKey(key: String!): Boolean!
     setIndividualAccess(username: String!, access: AccessInput!): Boolean!
     setPostAccess(postname: String!, access: AccessInput!): Boolean!
+    setApiKeyAccess(key: String!, access: AccessInput!): Boolean!
+}
+
+type ApiKey {
+    id: Int!
+    key: String!
+    access: Access!
+    creator: User!
 }
 
 extend type User {
