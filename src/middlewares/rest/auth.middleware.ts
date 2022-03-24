@@ -92,7 +92,7 @@ export const verifyFileReadAccess: RequestHandlerWithLocals = async (req, res, n
   }
 
   try {
-    const { user } = res.locals;
+    const user = await res.locals.getUser();
 
     // If only login is required, proceed (authentication is checked beforehand)
     if (file.accessType === AccessType.Authenticated) {
