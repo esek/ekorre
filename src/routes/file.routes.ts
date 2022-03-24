@@ -102,6 +102,6 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
 });
 
 // Host static files
-filesRoute.use('/', verifyFileReadAccess(fileApi), staticFiles(config.FILES.ROOT));
+filesRoute.use('/', verifyAuthenticated, verifyFileReadAccess, staticFiles(config.FILES.ROOT));
 
 export default filesRoute;
