@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/indent */
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
+import { reduce } from '@/reducers';
 import { NominationAnswer } from '@generated/graphql';
 import {
   Prisma,
@@ -15,7 +16,33 @@ import prisma from './prisma';
 
 const logger = Logger.getLogger('ElectionAPI');
 
+type RawDbNomination = {
+  ref_election: number,
+  ref_post: string,
+  answer: PrismaNominationAnswer,
+  ref_user: string,
+};
+
 export class ElectionAPI {
+  /**
+   * Converts raw nomination rows to `PrismaNomination[]`
+   */
+  reduceRawDbNominations(rows: RawDbNomination[]): PrismaNomination[] {
+    const res: PrismaNomination[] = rows.map((r) => {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const { ref_election, ref_post, ref_user, ...reduced } = r;
+
+      return {
+        ...reduced,
+        refElection: ref_election,
+        refPost: ref_post,
+        refUser: ref_user,
+      };
+    });
+
+    return res;
+  }
+
   /**
    * @param limit Gräns på antal möten. Om null ges alla möten
    * @returns Senaste mötet som skapades
@@ -119,21 +146,18 @@ export class ElectionAPI {
   ): Promise<PrismaNomination[]> {
     // TODO: Finns det ett sätt att göra detta på en query
     // utan raw?
-    const aq = Prisma.sql`AND nominations.response = ${answer}`;
+    const aq = Prisma.sql`AND nominations.answer = ${answer}`;
 
-    const n = await prisma.$queryRaw<PrismaNomination[]>`
-      SELECT * FROM nominations
+    const n = await prisma.$queryRaw<RawDbNomination[]>`
+      SELECT *
       FROM nominations
+      LEFT JOIN electables
+      USING (ref_election, ref_post)
       WHERE nominations.ref_election = ${electionId}
       ${answer != null ? aq : Prisma.empty}
-      LEFT JOIN electables
-      ON (
-        electables.ref_election = nominations.ref_election,
-        AND electables.ref_post = nominations.ref_post
-      ) 
     `;
 
-    return n;
+    return this.reduceRawDbNominations(n);
   }
 
   /**
@@ -151,22 +175,18 @@ export class ElectionAPI {
   ): Promise<PrismaNomination[]> {
     // TODO: Finns det ett sätt att göra detta på en query
     // utan raw?
-    const aq = Prisma.sql`AND nominations.response = ${answer}`;
+    const aq = Prisma.sql`AND nominations.answer = ${answer}`;
 
-    const n = await prisma.$queryRaw<PrismaNomination[]>`
-      SELECT * FROM nominations
-      FROM nominations
+    const n = await prisma.$queryRaw<RawDbNomination[]>`
+      SELECT *
       WHERE nominations.ref_election = ${electionId}
+      LEFT JOIN electables
+      USING (ref_election, ref_post)
       AND nominations.ref_user = ${username}
       ${answer != null ? aq : Prisma.empty}
-      LEFT JOIN electables
-      ON (
-        electables.ref_election = nominations.ref_election,
-        AND electables.ref_post = nominations.ref_post
-      )
     `;
 
-    return n;
+    return this.reduceRawDbNominations(n);
   }
 
   /**
@@ -183,13 +203,10 @@ export class ElectionAPI {
     const c = await prisma.$queryRaw<number[]>`
       SELECT count(id)
       FROM nominations
+      LEFT JOIN electables
+      USING (ref_election, ref_post)
       WHERE nominations.ref_election = ${electionId}
       ${postname != null ? aq : Prisma.empty}
-      LEFT JOIN electables
-      ON (
-        electables.ref_election = nominations.ref_election,
-        AND electables.ref_post = nominations.ref_post
-      )
     `;
 
     return c.length === 0 ? 0 : c[0];
@@ -297,11 +314,11 @@ export class ElectionAPI {
   /**
    * Försöker att lägga till alla poster som valbara i det specificerade valet.
    * @param electionId ID på ett val
-   * @param postnames Lista på postnamn
+   * @param postnames Lista på postslugs
    */
   async addElectables(electionId: number, postnames: string[]): Promise<boolean> {
     if (postnames.length === 0) {
-      throw new BadRequestError('Inga postnamn specificerade');
+      throw new BadRequestError('Inga poster specificerade');
     }
 
     try {
@@ -328,11 +345,11 @@ export class ElectionAPI {
   /**
    * Tar bort alla poster som valbara i det specificerade valet
    * @param electionId ID på ett val
-   * @param postnames Lista på postnamn
+   * @param postnames Lista på postslugs
    */
   async removeElectables(electionId: number, postnames: string[]): Promise<boolean> {
     if (postnames.length === 0) {
-      throw new BadRequestError('Inga postnamn specificerade');
+      throw new BadRequestError('Inga poster specificerade');
     }
 
     const { count } = await prisma.prismaElectable.deleteMany({
@@ -355,7 +372,7 @@ export class ElectionAPI {
   /**
    * Försöker att lägga till alla poster som valbara i det specificerade valet.
    * @param electionId ID på ett val
-   * @param postnames Lista på postnamn
+   * @param postnames Lista på postslugs
    */
   async setElectables(electionId: number, postnames: string[]): Promise<boolean> {
     if (postnames.length < 1) {
@@ -484,7 +501,7 @@ export class ElectionAPI {
    */
   async nominate(username: string, postnames: string[]): Promise<boolean> {
     if (postnames.length === 0) {
-      throw new BadRequestError('Inga postnamn specificerade');
+      throw new BadRequestError('Inga postslugs specificerade');
     }
 
     const openElection = await this.getOpenElection();

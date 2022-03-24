@@ -16,17 +16,17 @@ export const postApi = new PostAPI();
  * @param postnames List of postnames
  */
 export const batchPostsFunction = async (
-  postnames: readonly string[],
+  slugs: readonly string[],
 ): Promise<ArrayLike<Post | Error>> => {
   /**
    * Batch function used as parameter to DataLoader constructor,
    * see /src/resolvers/README.md
    * @param postnames
    */
-  const apiResponse = await postApi.getMultiplePosts([...postnames]);
+  const apiResponse = await postApi.getMultiplePosts([...slugs]);
   if (apiResponse == null) return [];
 
   const posts = reduce(apiResponse, postReduce);
 
-  return sortBatchResult<string, Post>(postnames, 'postname', posts, 'No result for post');
+  return sortBatchResult<string, Post>(slugs, 'slug', posts, 'No result for post');
 };

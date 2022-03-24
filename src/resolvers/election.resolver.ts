@@ -145,7 +145,7 @@ const electionResolver: Resolvers = {
     })),
     post: useDataLoader((model, context) => ({
       dataLoader: context.postDataLoader,
-      key: model.post.postname,
+      key: model.post.slug,
     })),
   },
   Nomination: {
@@ -155,7 +155,7 @@ const electionResolver: Resolvers = {
     })),
     post: useDataLoader((model, context) => ({
       dataLoader: context.postDataLoader,
-      key: model.post.postname,
+      key: model.post.slug,
     })),
   },
 };

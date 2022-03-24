@@ -42,12 +42,12 @@ afterEach(async () => {
 });
 
 test('getting nominations when nominations are hidden', async () => {
-  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], true);
+  const electionId = await api.createElection('aa0000bb-s', ['macapar', 'teknokrat'], true);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
-  await expect(api.nominate('aa0000bb-s', ['Macapär'])).resolves.toBeTruthy();
-  await expect(api.nominate('bb1111cc-s', ['Macapär', 'Teknokrat'])).resolves.toBeTruthy();
+  await expect(api.nominate('aa0000bb-s', ['macapar'])).resolves.toBeTruthy();
+  await expect(api.nominate('bb1111cc-s', ['macapar', 'macapar'])).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'macapar', NominationAnswer.Yes),
   ).resolves.toBeTruthy();
   expect((await api.getAllNominations(electionId, NominationAnswer.Yes)).length).toBeGreaterThan(0);
 
@@ -60,7 +60,7 @@ test('getting nominations when nominations are hidden', async () => {
   await axiosInstance
     .post<ApiRequest, GraphqlResponse<ElectionResponse>>('/', electionData)
     .then((res) => {
-      expect(res.data.data.openElection.id).toEqual(electionId.toString());
+      expect(res.data.data.openElection.id).toEqual(electionId);
 
       // Nomineringar är dolda, så man ska inte kunna
       // få ut accepterade nomineringar om man inte
@@ -73,7 +73,7 @@ test('getting nominations when nominations are hidden', async () => {
   await axiosInstance
     .post<ApiRequest, GraphqlResponse<ElectionResponse>>('/', electionData)
     .then((res) => {
-      expect(res.data.data.openElection.id).toEqual(electionId.toString());
+      expect(res.data.data.openElection.id).toEqual(electionId);
 
       const { acceptedNominations } = res.data.data.openElection;
 

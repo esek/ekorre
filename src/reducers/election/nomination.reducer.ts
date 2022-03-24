@@ -10,7 +10,7 @@ export function nominationReduce(dbNomination: PrismaNomination): NominationResp
       username: refUser,
     },
     post: {
-      postname: refPost,
+      slug: refPost,
     },
   };
 

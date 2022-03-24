@@ -88,10 +88,10 @@ export class PostAPI {
    * @param postnames Lista på postnamn
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
-  async getMultiplePosts(postnames: string[], includeInactive = true): Promise<PrismaPost[]> {
+  async getMultiplePosts(slugs: string[], includeInactive = true): Promise<PrismaPost[]> {
     const where: Prisma.PrismaPostWhereInput = {
-      postname: {
-        in: postnames,
+      slug: {
+        in: slugs,
       },
     };
 
