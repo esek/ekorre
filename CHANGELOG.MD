@@ -11,6 +11,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Tillhörande schemas till `prisma`
 - `postgresql` är ny hard dependency, även för dev
 - Flertalet index i `schema.prisma` (dvs. databasen) för nycklar som ofta förekommer i queries men sällan i mutations.
+- Numera används docker compose (via `docker-compose.yml`) för att hantera databas i utveckling/testning och CI
 
 ### Borttaget
 - `knex` är inte längre dependency
@@ -18,6 +19,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Ändrat
 - I flertalet graphql-schemas är olika ID:n bytade från `ID!` till `Int!`. Detta då `ID!` blir till typen `string` i TypeScript, men vi använder det som `AUTO_INCREMENT` i databasen och `number` i TS
 - Enums i GraphQL-schemas har nu konsekvent `UPPER_CASE`
+- `npm run generate` genererar nu både typer från GraphQL-schema och `PrismaClient` från prisma-schema. `npm run graphql:generate` ersätter gamla `npm run generate`
 
 ## [0.11.0] - 2022-02-16
 
