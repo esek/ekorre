@@ -1,15 +1,14 @@
-import { FILE_TABLE, HEHE_TABLE } from '@/api/constants';
 import { HeheAPI } from '@/api/hehe.api';
-import db from '@/api/knex';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
-import { DatabaseFile } from '@/models/db/file';
-import { DatabaseHehe } from '@/models/db/hehe';
+import { PrismaFile, PrismaHehe } from '@prisma/client';
 import { AccessType, FileType } from '@generated/graphql';
+
+import prisma from '@/api/prisma';
 
 const api = new HeheAPI();
 
 // Vi behöver en fejkfil p.g.a. FOREIGN KEY CONSTRAINT
-const DUMMY_FILE: DatabaseFile = {
+const DUMMY_FILE: PrismaFile = {
   id: 'heheApiTestFile',
   refuploader: 'aa0000bb-s',
   name: 'Årets första och sista nummer',
@@ -19,31 +18,21 @@ const DUMMY_FILE: DatabaseFile = {
   createdAt: Date.now(),
 };
 
-const DUMMY_HEHE: DatabaseHehe = {
+const DUMMY_HEHE: PrismaHehe = {
   number: 1,
   year: 1658,
-  refuploader: 'aa0000bb-s',
-  reffile: 'heheApiTestFile',
+  refUploader: 'aa0000bb-s',
+  refFile: 'heheApiTestFile',
+  uploadedAt: Date.now(),
 };
 
 beforeEach(async () => {
   // Delete all rows
-  await db<DatabaseHehe>(HEHE_TABLE).delete().whereNotNull('number');
-});
-
-// Vi sparar databasen före och lägger tillbaka den efter
-let dbBefore: DatabaseHehe[];
-beforeAll(async () => {
-  dbBefore = await db<DatabaseHehe>(HEHE_TABLE).select('*');
-  await db<DatabaseFile>(FILE_TABLE).insert(DUMMY_FILE);
+  await prisma.prismaHehe.deleteMany();
 });
 
 afterAll(async () => {
-  await db<DatabaseHehe>(HEHE_TABLE).delete().whereNotNull('number');
-  await db<DatabaseFile>(FILE_TABLE).delete().where('id', DUMMY_FILE.id);
-  if (dbBefore != null && dbBefore.length > 0) {
-    await db<DatabaseHehe>(HEHE_TABLE).insert(dbBefore);
-  }
+  await prisma.prismaHehe.deleteMany();
 });
 
 test('getting all HeHEs without limit, ascending order', async () => {
@@ -57,7 +46,7 @@ test('getting all HeHEs without limit, ascending order', async () => {
   };
 
   // Lägg till våra HeHE
-  await db<DatabaseHehe>(HEHE_TABLE).insert([localHehe0, localHehe1, DUMMY_HEHE]);
+  await prisma.prismaHehe.createMany({ data: [localHehe0, localHehe1, DUMMY_HEHE] });
 
   // Kontrollerar att de kommer i exakt rätt ordning
   await expect(api.getAllHehes(undefined, 'asc')).resolves.toEqual([

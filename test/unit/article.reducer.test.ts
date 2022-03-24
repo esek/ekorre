@@ -1,6 +1,6 @@
 /* eslint-disable no-multi-str */
 import { ArticleResponse } from '@/models/mappers';
-import { DatabaseArticle } from '@db/article';
+import { PrismaArticle } from '@prisma/client';
 import { ArticleType } from '@generated/graphql';
 import { articleReducer, convertMarkdownToHtml } from '@reducer/article';
 
@@ -42,8 +42,8 @@ const sanitizedDirtyHtml = '\
 <h1>Haxx</h1>\n\
 <p>nice XSS bro</p>';
 
-const oda: Omit<DatabaseArticle, 'refcreator' | 'reflastupdateby'> = {
-  id: 'testid1337',
+const oda: Omit<PrismaArticle, 'refAuthor' | 'refLastUpdateBy'> = {
+  id: 1337,
   title: 'Sju sjösjuka tester testade slugs--',
   body: okHtml,
   createdAt: new Date('1969-05-01'),
@@ -53,10 +53,10 @@ const oda: Omit<DatabaseArticle, 'refcreator' | 'reflastupdateby'> = {
   articleType: ArticleType.News,
 };
 
-const da: DatabaseArticle = {
+const da: PrismaArticle = {
   ...oda,
-  refcreator: 'aa0000bb-s',
-  reflastupdateby: 'bb1111cc-s',
+  refAuthor: 'aa0000bb-s',
+  refLastUpdateBy: 'bb1111cc-s',
 };
 
 const expectedDaSlug = 'sju-sjosjuka-tester-testade-slugs-testid1337';
@@ -64,11 +64,11 @@ const expectedDaSlug = 'sju-sjosjuka-tester-testade-slugs-testid1337';
 const expectedDaRes: ArticleResponse = {
   ...oda,
   slug: expectedDaSlug,
-  creator: {
-    username: da.refcreator,
+  author: {
+    username: da.refAuthor,
   },
   lastUpdatedBy: {
-    username: da.reflastupdateby,
+    username: da.refLastUpdateBy,
   },
 };
 
@@ -102,7 +102,7 @@ test('slug generation with crazy title', () => {
   });
 });
 
-test('reducing array of DatabaseArticles', () => {
+test('reducing array of PrismaArticles', () => {
   const father = [da, da];
   return articleReducer(father, false).then((reduced) => {
     expect(reduced.length).toBe(2);
@@ -110,7 +110,7 @@ test('reducing array of DatabaseArticles', () => {
   });
 });
 
-test('full reduction of OK DatabaseArticle', () => {
+test('full reduction of OK PrismaArticle', () => {
   return articleReducer(da, true).then((reduced) => {
     expect(reduced).toStrictEqual({
       ...expectedDaRes,
@@ -119,7 +119,7 @@ test('full reduction of OK DatabaseArticle', () => {
   });
 });
 
-test('full reduction of OK DatabaseArticle array', () => {
+test('full reduction of OK PrismaArticle array', () => {
   const father = [da, da];
   return articleReducer(father, true).then((reduced) => {
     expect(reduced.length).toBe(2);
