@@ -45,11 +45,6 @@ type User {
   """
   userPostHistory: [UserPostHistoryEntry]!
 
-  """
-  This will be all the access have concated from Posts and personal
-  """
-  access: Access!
-
   isFuncUser: Boolean
 
   wikiEdits: Int!

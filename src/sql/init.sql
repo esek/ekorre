@@ -68,60 +68,30 @@ INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewR
 INSERT INTO PostHistory (refpost,refuser,"start","end") VALUES ('Macapär','aa0000bb-s', 1577833200, 1609369200);
 INSERT INTO PostHistory (refpost,refuser,"start","end") VALUES ('Macapär','aa0000bb-s', 1609369200, null);
 
-END TRANSACTION;
-BEGIN TRANSACTION;
-
-CREATE TABLE "AccessResources" (
-  "slug" TEXT PRIMARY KEY NOT NULL,
-  "name" TEXT NOT NULL,
-  "description" TEXT,
-  "resourceType" TEXT NOT NULL
-);
-
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("sikrit", "Sikrit", "Rummet med en massa skräp", "DOOR");
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("bd", "Blå Dörren", "Coolaste rummet i edekvata", "DOOR");
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("ekea", "EKEA", "Här finns bord och skor", "DOOR");
-
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("super-admin", "Superadmin", "Får göra allt", "WEB");
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("ahs", "AHS", "Alkoholhanteringssystemet", "WEB");
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("article-editor", "Artikelredigerare", "Kan skapa och redigera artiklar", "WEB");
-
 CREATE TABLE "PostAccess" (
 	"refname"	TEXT NOT NULL,
-	"refaccessresource"	TEXT NOT NULL,
-	PRIMARY KEY("refname","refaccessresource"),
-	FOREIGN KEY("refname") REFERENCES "Posts"("postname"),
-	FOREIGN KEY("refaccessresource") REFERENCES "AccessResources"("slug")
+	"resource"	TEXT NOT NULL,
+	"resourcetype" TEXT NOT NULL,
+	PRIMARY KEY("refname","resource")
+	FOREIGN KEY("refname") REFERENCES "Posts"("postname")
 );
 
 CREATE TABLE "IndividualAccess" (
 	"refname"	TEXT NOT NULL,
-	"refaccessresource"	TEXT NOT NULL,
-	PRIMARY KEY("refname","refaccessresource"),
-	FOREIGN KEY("refname") REFERENCES "Users"("username"),
-	FOREIGN KEY("refaccessresource") REFERENCES "AccessResources"("slug")
+	"resource"	TEXT NOT NULL,
+	"resourcetype" TEXT NOT NULL,
+	PRIMARY KEY("refname","resource")
+	FOREIGN KEY("refname") REFERENCES "Users"("username")
 );
 
-INSERT INTO PostAccess VALUES('Macapär', 'sikrit');
-INSERT INTO PostAccess VALUES('Macapär', 'bd');
-INSERT INTO PostAccess VALUES('Macapär', 'super-admin');
-INSERT INTO PostAccess VALUES('Ordförande', 'sikrit');
+INSERT INTO PostAccess VALUES('Macapär', 'sikrit', 'door');
+INSERT INTO PostAccess VALUES('Macapär', 'bd', 'door');
+INSERT INTO PostAccess VALUES('Macapär', 'superadmin', 'feature');
+INSERT INTO PostAccess VALUES('Ordförande', 'sikrit', 'door');
 
-INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'sikrit');
-INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'ekea');
-INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'super-admin'); -- this allows aa0000bb-s to access everything by default
-
-CREATE TABLE "AccessMappings" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "refaccessresource" TEXT,
-  "resolverType" TEXT NOT NULL,
-  "resolverName" TEXT NOT NULL,
-	FOREIGN KEY("refaccessresource") REFERENCES "AccessResources"("slug")
-  CONSTRAINT "uniqueMapping" UNIQUE ("refaccessresource", "resolverType", "resolverName")
-  CONSTRAINT "noLoginMapping" CHECK ("resolverName" <> "login") -- Stupid to disallow login for not logged in users
-  CONSTRAINT "noCasLoginMapping" CHECK ("resolverName" <> "casLogin")
-);
-
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'sikrit', 'door');
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'ekea', 'door');
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'superadmin', 'feature'); -- this allows aa0000bb-s to access everything by default
 
 CREATE TABLE IF NOT EXISTS "Articles" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,

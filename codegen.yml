@@ -14,7 +14,6 @@ generates:
         Article: ../mappers#ArticleResponse
         File: ../mappers#FileResponse
         Meeting: ../mappers#MeetingResponse
-        AccessResource: ../mappers#AccessResourceResponse
         Election: ../mappers#ElectionResponse
         Proposal: ../mappers#ProposalResponse
         Nomination: ../mappers#NominationResponse

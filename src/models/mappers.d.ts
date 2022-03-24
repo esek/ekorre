@@ -40,8 +40,6 @@ export type MeetingResponse = Partial<Omit<Meeting, 'summons' | 'documents' | 'l
   appendix?: Partial<File>;
 };
 
-export type AccessResourceResponse = Partial<AccessResource>;
-
 // prettier-ignore
 export type ElectionResponse = Partial<Omit<Election, 'creator' | 'electables' | 'proposals' | 'acceptedNominations'>> & {
   creator: Partial<User>;

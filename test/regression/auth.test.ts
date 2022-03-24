@@ -1,21 +1,12 @@
 import { COOKIES } from '@/auth';
 import { AccessAPI } from '@api/access';
-import ResourcesAPI from '@api/accessresources';
-import { AccessResource, AccessResourceType, ResolverType } from '@generated/graphql';
+import { AccessInput, Feature } from '@generated/graphql';
 import { ApiRequest, GraphqlResponse } from '@test/models/test';
 import { AXIOS_CONFIG } from '@test/utils/axiosConfig';
 import { extractToken } from '@test/utils/utils';
 import axios, { AxiosRequestConfig } from 'axios';
 
 const accessApi = new AccessAPI();
-const resourcesApi = new ResourcesAPI();
-
-const testResource: AccessResource = {
-  name: 'Test resource',
-  slug: 'test-resource',
-  description: '',
-  resourceType: AccessResourceType.Web,
-};
 
 const LOGIN_MUTATION = `
   mutation login($username: String!, $password: String!) {
@@ -36,28 +27,14 @@ type LogoutResponse = {
   logout: boolean;
 };
 
-beforeAll(async () => {
-  await resourcesApi.addResource(
-    testResource.name,
-    testResource.slug,
-    testResource.description,
-    testResource.resourceType,
-  );
-  await resourcesApi.addResource('', 'logout', '', AccessResourceType.Web);
-  await resourcesApi.addResource('Empty resource', '', '', AccessResourceType.Web);
-});
+const emptyAccess: AccessInput = { features: [], doors: [] };
 
 beforeEach(async () => {
-  await accessApi.setAccessMappings('logout', ResolverType.Mutation);
-  await accessApi.setIndividualAccess('aa0000bb-s', []);
+  await accessApi.setIndividualAccess('aa0000bb-s', emptyAccess);
 });
 
 afterAll(async () => {
-  await accessApi.setAccessMappings('logout', ResolverType.Mutation);
-  await accessApi.setIndividualAccess('aa0000bb-s', []);
-  await resourcesApi.removeResouce(testResource.slug);
-  await resourcesApi.removeResouce('logout');
-  await resourcesApi.removeResouce('');
+  await accessApi.setIndividualAccess('aa0000bb-s', emptyAccess);
 });
 
 test('resource with only auth required', async () => {
@@ -81,9 +58,6 @@ test('resource with only auth required', async () => {
       .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', logoutData)
       .then((res) => res.data.data.logout),
   ).resolves.toBe(true);
-
-  // add resource mapping
-  await accessApi.setAccessMappings('logout', ResolverType.Mutation, ['']);
 
   // try to call without auth, (should throw error)
   await axiosInstance
@@ -136,9 +110,6 @@ test('resource with mapping', async () => {
       .then((res) => res.data.data.logout),
   ).resolves.toBe(true);
 
-  // add resource mapping
-  await accessApi.setAccessMappings('logout', ResolverType.Mutation, [testResource.slug]);
-
   // try to call without auth, (should throw error)
   await axiosInstance
     .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', logoutData)
@@ -169,7 +140,7 @@ test('resource with mapping', async () => {
         });
 
       // give user access to resource
-      await accessApi.setIndividualAccess(username, [testResource.slug]);
+      await accessApi.setIndividualAccess(username, { features: [Feature.AccessAdmin], doors: [] });
 
       // aaaaand again
       await expect(

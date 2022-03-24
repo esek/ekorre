@@ -3,13 +3,19 @@
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
 import { useDataLoader } from '@/dataloaders';
+import { Context } from '@/models/context';
 import { ArticleResponse } from '@/models/mappers';
+import { hasAccess, hasAuthenticated } from '@/util';
 import { ArticleAPI } from '@api/article';
 import { DatabaseArticle } from '@db/article';
-import { Resolvers } from '@generated/graphql';
+import { ArticleType, Feature, Resolvers } from '@generated/graphql';
 import { articleReducer } from '@reducer/article';
 
 const articleApi = new ArticleAPI();
+
+const checkEditAccess = async (ctx: Context, articleType: ArticleType) => {
+  await hasAccess(ctx, articleType === ArticleType.Information ? Feature.ArticleEditor : Feature.NewsEditor);
+};
 
 /**
  * Maps an `DatabaseArticle` i.e. a partial of `Article` to an ArticleResponse object
@@ -32,7 +38,8 @@ const articleResolver: Resolvers = {
     createdAt: (model) => new Date(model.createdAt),
   },
   Query: {
-    newsentries: async (_, { creator, after, before, markdown }) => {
+    newsentries: async (_, { creator, after, before, markdown }, ctx) => {
+      await hasAuthenticated(ctx);
       const safeMarkdown = markdown ?? false;
       let articleResponse: ArticleResponse[];
 
@@ -55,7 +62,8 @@ const articleResolver: Resolvers = {
 
       return articleResponse;
     },
-    latestnews: async (_, { limit, markdown }) => {
+    latestnews: async (_, { limit, markdown }, ctx) => {
+      await hasAuthenticated(ctx);
       const safeMarkdown = markdown ?? false;
       let articleResponse: ArticleResponse[];
 
@@ -128,13 +136,21 @@ const articleResolver: Resolvers = {
   },
   Mutation: {
     addArticle: async (_, { entry }, ctx) => {
+      await checkEditAccess(ctx, entry.articleType);
       // Special type of reduce
       const apiResponse = await articleApi.newArticle(ctx.getUsername(), entry);
       return articleReducer(apiResponse, true);
     },
-    modifyArticle: (_, { articleId, entry }, ctx) =>
-      articleApi.modifyArticle(articleId, ctx.getUsername(), entry),
-    removeArticle: (_, { articleId }) => articleApi.removeArticle(articleId),
+    modifyArticle: async (_, { articleId, entry }, ctx) => {
+      const article = await articleApi.getArticle({ id: articleId, slug: null });
+      await checkEditAccess(ctx, article.articleType);
+      return articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
+    },
+    removeArticle: async (_, { articleId }, ctx) => {
+      const article = await articleApi.getArticle({ id: articleId, slug: null });
+      await checkEditAccess(ctx, article.articleType);
+      return articleApi.removeArticle(articleId);
+    },
   },
 };
 
