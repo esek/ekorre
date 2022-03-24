@@ -142,7 +142,7 @@ deploy image:
   environment:
     name: production
     url: "ekorre.esek.se"
-  needs: ['docker build', 'tests']
+  needs: ['docker build']
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
@@ -160,7 +160,7 @@ deploy review:
     name: "review/$PROJECT_NAME-$CI_COMMIT_REF_SLUG"
     url: "https://$PROJECT_NAME-$CI_COMMIT_REF_SLUG.esek.se"
     on_stop: 'stop review'
-  needs: ['docker build', 'tests']
+  needs: ['docker build']
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: never

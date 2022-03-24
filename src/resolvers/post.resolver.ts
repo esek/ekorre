@@ -10,20 +10,20 @@ const api = new PostAPI();
 const postresolver: Resolvers = {
   Query: {
     post: async (_, { name }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       const res = await api.getPost(name);
       if (res != null) return postReduce(res);
       return null;
     },
     posts: async (_, { utskott, includeInactive }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       if (utskott != null) {
         return reduce(await api.getPostsFromUtskott(utskott, includeInactive), postReduce);
       }
       return reduce(await api.getPosts(), postReduce);
     },
     groupedPosts: async (_, { includeInactive }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       // Get all posts
       const allPosts = await api.getPosts(undefined, includeInactive);
 
@@ -54,32 +54,32 @@ const postresolver: Resolvers = {
     },
   },
   Mutation: {
-    addPost: (_, { info }, ctx) => {
-      hasAccess(ctx, Feature.PostAdmin);
+    addPost: async (_, { info }, ctx) => {
+      await hasAccess(ctx, Feature.PostAdmin);
       return api.createPost(info);
     },
-    modifyPost: (_, { info }, ctx) => {
-      hasAccess(ctx, Feature.PostAdmin);
+    modifyPost: async (_, { info }, ctx) => {
+      await hasAccess(ctx, Feature.PostAdmin);
       return api.modifyPost(info);
     },
-    addUsersToPost: (_, { usernames, postname, start, end }, ctx) => {
-      hasAccess(ctx, Feature.PostAdmin);
+    addUsersToPost: async (_, { usernames, postname, start, end }, ctx) => {
+      await hasAccess(ctx, Feature.PostAdmin);
       return api.addUsersToPost(usernames, postname, start ?? undefined, end ?? undefined);
     },
-    activatePost: (_, { postname }, ctx) => {
-      hasAccess(ctx, Feature.PostAdmin);
+    activatePost: async (_, { postname }, ctx) => {
+      await hasAccess(ctx, Feature.PostAdmin);
       return api.activatePost(postname);
     },
-    deactivatePost: (_, { postname }, ctx) => {
-      hasAccess(ctx, Feature.PostAdmin);
+    deactivatePost: async (_, { postname }, ctx) => {
+      await hasAccess(ctx, Feature.PostAdmin);
       return api.deactivatePost(postname);
     },
-    setUserPostEnd: (_, { username, postname, start, end }, ctx) => {
-      hasAccess(ctx, Feature.PostAdmin);
+    setUserPostEnd: async (_, { username, postname, start, end }, ctx) => {
+      await hasAccess(ctx, Feature.PostAdmin);
       return api.setUserPostEnd(username, postname, start, end);
     },
-    removeHistoryEntry: (_, { username, postname, start, end }, ctx) => {
-      hasAccess(ctx, Feature.PostAdmin);
+    removeHistoryEntry: async (_, { username, postname, start, end }, ctx) => {
+      await hasAccess(ctx, Feature.PostAdmin);
       return api.removeHistoryEntry(username, postname, start, end ?? undefined);
     }
   },

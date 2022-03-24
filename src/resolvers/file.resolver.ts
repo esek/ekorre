@@ -17,19 +17,19 @@ const filesResolver: Resolvers = {
   },
   Query: {
     files: async (_, { type }, ctx) => {
-      hasAccess(ctx, Feature.FilesAdmin);
+      await hasAccess(ctx, Feature.FilesAdmin);
       const files = await fileApi.getMultipleFiles(type ?? undefined);
 
       return reduce(files, fileReduce);
     },
     file: async (_, { id }, ctx) => {
-      hasAccess(ctx, Feature.FilesAdmin);
+      await hasAccess(ctx, Feature.FilesAdmin);
       const filedata = await fileApi.getFileData(id);
 
       return reduce(filedata, fileReduce);
     },
     fileSystem: async (_, { folder }, ctx) => {
-      hasAccess(ctx, Feature.FilesAdmin);
+      await hasAccess(ctx, Feature.FilesAdmin);
       const [files, path] = await fileApi.getFolderData(folder);
 
       return {
@@ -38,7 +38,7 @@ const filesResolver: Resolvers = {
       };
     },
     searchFiles: async (_, { search }, ctx) => {
-      hasAccess(ctx, Feature.FilesAdmin);
+      await hasAccess(ctx, Feature.FilesAdmin);
       // If no search query
       if (!search) {
         throw new BadRequestError('Du måste ange en söksträng');
@@ -49,12 +49,12 @@ const filesResolver: Resolvers = {
   },
   Mutation: {
     deleteFile: async (_, { id }, ctx) => {
-      hasAccess(ctx, Feature.FilesAdmin);
+      await hasAccess(ctx, Feature.FilesAdmin);
       await fileApi.deleteFile(id);
       return true;
     },
     createFolder: async (_, { path, name }, ctx) => {
-      hasAccess(ctx, Feature.FilesAdmin);
+      await hasAccess(ctx, Feature.FilesAdmin);
       const username = ctx.getUsername();
 
       const created = await fileApi.createFolder(path, name, username);

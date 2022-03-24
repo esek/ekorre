@@ -20,28 +20,28 @@ const heheResolver: Resolvers = {
   },
   Query: {
     hehe: async (_, { number, year }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       const h = await api.getHehe(number, year);
       return reduce(h, heheReduce);
     },
     hehes: async (_, { year }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       const h = await api.getHehesByYear(year);
       return reduce(h, heheReduce);
     },
     latestHehe: async (_, { limit, sortOrder }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       const h = await api.getAllHehes(limit ?? undefined, sortOrder ?? undefined);
       return reduce(h, heheReduce);
     },
   },
   Mutation: {
     addHehe: async (_, { fileId, number, year }, ctx) => {
-      hasAccess(ctx, Feature.HeheAdmin);
+      await hasAccess(ctx, Feature.HeheAdmin);
       return api.addHehe(ctx.getUsername(), fileId, number, year);
     },
     removeHehe: async (_, { number, year }, ctx) => {
-      hasAccess(ctx, Feature.HeheAdmin);
+      await hasAccess(ctx, Feature.HeheAdmin);
       return api.removeHehe(number, year);
     }
   },

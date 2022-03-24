@@ -11,6 +11,13 @@ type Mutation {
     setPostAccess(postname: String!, access: AccessInput!): Boolean!
 }
 
+extend type User {
+    """
+    This will be all the access have concated from Posts and personal
+    """
+    access: Access!
+}
+
 "Access will be treated as a immutable object!"
 type Access {
     doors: [Door!]!

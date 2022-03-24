@@ -61,7 +61,7 @@ const config = {
   PORT: parseInt(process.env.PORT ?? '5000', 10),
   HOST: process.env.HOST ?? '0.0.0.0',
   DEV: process.env.NODE_ENV !== 'production',
-  SKIP_ACCESS_CHECKS: String(process.env.SKIP_ACCESS_CHECKS).toLowerCase() === 'true',
+  SKIP_ACCESS_CHECKS: process.env.SKIP_ACCESS_CHECKS?.toLowerCase() === 'true',
   FILES,
   EBREV,
   CORS,

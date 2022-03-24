@@ -61,19 +61,19 @@ const meetingResolver: Resolvers = {
   },
   Mutation: {
     addMeeting: async (_, { type, number, year }, ctx) => {
-      hasAccess(ctx, Feature.MeetingsAdmin);
+      await hasAccess(ctx, Feature.MeetingsAdmin);
       return api.createMeeting(type, number ?? undefined, year ?? undefined);
     },
     removeMeeting: async (_, { id }, ctx) => {
-      hasAccess(ctx, Feature.MeetingsAdmin);
+      await hasAccess(ctx, Feature.MeetingsAdmin);
       return api.removeMeeting(id);
     },
     addFileToMeeting: async (_, { meetingId, fileId, fileType }, ctx) => {
-      hasAccess(ctx, Feature.MeetingsAdmin);
+      await hasAccess(ctx, Feature.MeetingsAdmin);
       return api.addFileToMeeting(meetingId, fileId, fileType);
     },
     removeFileFromMeeting: async (_, { meetingId, fileType }, ctx) => {
-      hasAccess(ctx, Feature.MeetingsAdmin);
+      await hasAccess(ctx, Feature.MeetingsAdmin);
       return api.removeFileFromMeeting(meetingId, fileType);
     },
   },

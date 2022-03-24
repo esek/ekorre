@@ -8,13 +8,13 @@ const accessApi = new AccessAPI();
 const accessresolver: Resolvers = {
   Query: {
     individualAccess: async (_, { username }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       const access = await accessApi.getIndividualAccess(username);
 
       return accessReducer(access);
     },
     postAccess: async (_, { postname }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       const access = await accessApi.getPostAccess(postname);
 
       return accessReducer(access);

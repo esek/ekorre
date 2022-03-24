@@ -13,12 +13,12 @@ import { articleReducer } from '@reducer/article';
 
 const articleApi = new ArticleAPI();
 
-const checkEditAccess = (ctx: Context, articleType: ArticleType) => {
+const checkEditAccess = async (ctx: Context, articleType: ArticleType) => {
   if (articleType === ArticleType.Information) {
-    hasAccess(ctx, Feature.ArticleEditor);
+    await hasAccess(ctx, Feature.ArticleEditor);
   }
   if (articleType === ArticleType.News) {
-    hasAccess(ctx, Feature.NewsEditor);
+    await hasAccess(ctx, Feature.NewsEditor);
   }
 };
 
@@ -44,7 +44,7 @@ const articleResolver: Resolvers = {
   },
   Query: {
     newsentries: async (_, { creator, after, before, markdown }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       const safeMarkdown = markdown ?? false;
       let articleResponse: ArticleResponse[];
 
@@ -68,7 +68,7 @@ const articleResolver: Resolvers = {
       return articleResponse;
     },
     latestnews: async (_, { limit, markdown }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       const safeMarkdown = markdown ?? false;
       let articleResponse: ArticleResponse[];
 
@@ -141,19 +141,19 @@ const articleResolver: Resolvers = {
   },
   Mutation: {
     addArticle: async (_, { entry }, ctx) => {
-      checkEditAccess(ctx, entry.articleType);
+      await checkEditAccess(ctx, entry.articleType);
       // Special type of reduce
       const apiResponse = await articleApi.newArticle(ctx.getUsername(), entry);
       return articleReducer(apiResponse, true);
     },
     modifyArticle: async (_, { articleId, entry }, ctx) => {
       const article = await articleApi.getArticle({ id: articleId, slug: null });
-      checkEditAccess(ctx, article.articleType);
+      await checkEditAccess(ctx, article.articleType);
       return articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
     },
     removeArticle: async (_, { articleId }, ctx) => {
       const article = await articleApi.getArticle({ id: articleId, slug: null });
-      checkEditAccess(ctx, article.articleType);
+      await checkEditAccess(ctx, article.articleType);
       return articleApi.removeArticle(articleId);
     },
   },

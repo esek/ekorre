@@ -3,7 +3,7 @@ import { BadRequestError } from '@/errors/request.errors';
 import { TokenValue } from '@/models/auth';
 import { Context } from '@/models/context';
 import { reduce } from '@/reducers';
-import { hasAccess, stripObject } from '@/util';
+import { hasAccess, hasAuthenticated, stripObject } from '@/util';
 import { UserAPI } from '@api/user';
 import { Feature, Resolvers, User } from '@generated/graphql';
 import { userReduce } from '@reducer/user';
@@ -13,23 +13,23 @@ import EWiki from '@service/wiki';
 const api = new UserAPI();
 const wiki = new EWiki();
 
-export const checkUserFieldAccess = (ctx: Context, obj: User) => {
+export const checkUserFieldAccess = async (ctx: Context, obj: User) => {
   if (ctx.getUsername() !== obj.username) {
-    hasAccess(ctx, Feature.UserAdmin);
+    await hasAccess(ctx, Feature.UserAdmin);
   }
 };
 
 
 const userResolver: Resolvers = {
   User: {
-    address: (obj, _, ctx) => {
-      checkUserFieldAccess(ctx, obj);
+    address: async (obj, _, ctx) => {
+      await checkUserFieldAccess(ctx, obj);
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return obj.address!;
     },
-    zipCode: (obj, _, ctx) => {
-      checkUserFieldAccess(ctx, obj);
+    zipCode: async (obj, _, ctx) => {
+      await checkUserFieldAccess(ctx, obj);
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return obj.zipCode!;
@@ -68,11 +68,13 @@ const userResolver: Resolvers = {
         refreshExpiry: refresh.exp * 1000,
       };
     },
-    user: async (_, { username }) => {
+    user: async (_, { username }, ctx) => {
+      await hasAuthenticated(ctx);
       const u = await api.getSingleUser(username);
       return reduce(u, userReduce);
     },
-    searchUser: async (_, { search }) => {
+    searchUser: async (_, { search }, ctx) => {
+      await hasAuthenticated(ctx);
       // If no search query
       if (!search) {
         throw new BadRequestError('Du måste ange en söksträng');
@@ -90,7 +92,8 @@ const userResolver: Resolvers = {
 
       return true;
     },
-    createUser: async (_, { input }) => {
+    createUser: async (_, { input }, ctx) => {
+      await hasAccess(ctx, Feature.UserAdmin);
       await api.createUser(input);
 
       return true;
