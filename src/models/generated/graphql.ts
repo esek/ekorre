@@ -168,7 +168,8 @@ export type Hehe = {
 export type HistoryEntry = {
   end?: Maybe<Scalars['Date']>;
   holder: User;
-  postname: Scalars['String'];
+  /** Post ID */
+  id: Scalars['Int'];
   start: Scalars['Date'];
 };
 
@@ -358,7 +359,7 @@ export type MutationAddPostArgs = {
 
 export type MutationAddUsersToPostArgs = {
   end?: Maybe<Scalars['Date']>;
-  postname: Scalars['String'];
+  id: Scalars['Int'];
   start?: Maybe<Scalars['Date']>;
   usernames: Array<Scalars['String']>;
 };
@@ -1403,7 +1404,7 @@ export type HeheResolvers<ContextType = Context, ParentType extends ResolversPar
 export type HistoryEntryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['HistoryEntry'] = ResolversParentTypes['HistoryEntry']> = ResolversObject<{
   end?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   holder?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -1439,7 +1440,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addHehe?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddHeheArgs, 'fileId' | 'number' | 'year'>>;
   addMeeting?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
   addPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
-  addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'postname' | 'usernames'>>;
+  addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'id' | 'usernames'>>;
   casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;

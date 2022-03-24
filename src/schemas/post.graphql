@@ -14,7 +14,7 @@ type Query {
 type Mutation {
     addPost(info: NewPost!): Boolean!
     modifyPost(info: ModifyPost!): Boolean!
-    addUsersToPost(usernames: [String!]!, postname: String!, start: Date, end: Date): Boolean!
+    addUsersToPost(usernames: [String!]!, id: Int!, start: Date, end: Date): Boolean!
     activatePost(id: Int!): Boolean!
     deactivatePost(id: Int!): Boolean!
     setUserPostEnd(id: Int!, end: Date!): Boolean!
@@ -85,7 +85,8 @@ input ModifyPost {
 }
 
 type HistoryEntry {
-    postname: String!
+    "Post ID"
+    id: Int!
     holder: User!
     start: Date!
     end: Date
