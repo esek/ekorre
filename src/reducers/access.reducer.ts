@@ -58,7 +58,10 @@ export const featureReducer = (features: Feature[]): FeatureInfo[] => {
     name: feature,
   }));
 
-  return featureInfos;
+  // Superadmin should be first
+  const sorted = featureInfos.sort((a, b) => a.name === Feature.Superadmin ? -1 : a.name.localeCompare(b.name));
+
+  return sorted;
 };
 
 const doorDescriptions: Record<string, string> = {
@@ -82,5 +85,7 @@ export const doorReducer = (doors: Door[]): DoorInfo[] => {
     name: door,
   }));
 
-  return doorInfos;
+  const sorted = doorInfos.sort((a, b) => a.name.localeCompare(b.name));
+
+  return sorted;
 };
