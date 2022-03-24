@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 const run = async () => {
   await Promise.all(
     users.map(async (user) => {
-      await prisma.user
+      await prisma.prismaUser
         .create({
           data: {
             ...user,
