@@ -50,35 +50,42 @@ const apolloServerConfig: Config<ExpressContext> = {
     const accessToken = req?.cookies[COOKIES.accessToken] ?? '';
     const refreshToken = req?.cookies[COOKIES.refreshToken] ?? '';
 
+    /**
+     * Tries to verify the users access token
+     * @returns the verified username
+     * @throws UnauthenticatedError if the access token is invalid
+     */
     const getUsername = () => {
       try {
         const { username } = verifyToken<TokenValue>(accessToken, 'accessToken');
         return username;
       } catch {
-        return '';
+        throw new UnauthenticatedError('Denna token är inte längre giltig!');
       }
+    };
+
+    /**
+     * Gets the user entire access
+     * @returns A list of the users access
+     */
+    const getAccess = async () => {
+      const username = getUsername();
+      const access = await accessApi.getUserFullAccess(username);
+
+      return accessReducer(access);
     };
 
     return {
       accessToken,
       refreshToken,
+      getUsername,
+      getAccess,
       response: res,
       request: req,
-      getUsername,
       userDataLoader: createDataLoader(batchUsersFunction),
       postDataLoader: createDataLoader(batchPostsFunction),
       fileDataLoader: createDataLoader(batchFilesFunction),
       electionDataLoader: createDataLoader(batchElectionsFunction),
-      getAccess: async () => {
-        const username = getUsername();
-        if (username === '') {
-          throw new UnauthenticatedError('Du behöver logga in för att göra detta!');
-        }
-
-        const access = await accessApi.getUserFullAccess(username);
-        
-        return accessReducer(access);
-      }
     };
   },
   debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
