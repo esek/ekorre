@@ -9,7 +9,6 @@
     "prestart": "npm run build",
     "start": "npm run run",
     "dev": "nodemon -e ts,graphql --watch src --exec \"node --nolazy --inspect -r tsconfig-paths/register -r ts-node/register src/index.ts\"",
-    "generate": "graphql-codegen --config codegen.yml",
     "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" \"test/**/*.ts\" --write",
     "lint": "eslint src",
     "lint:test": "eslint test",
@@ -20,7 +19,9 @@
     "test:regression": "jest test/regression --coverage=false",
     "benchmark": "ts-node tools/benchmark/index.ts",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "gql:generate": "graphql-codegen --config codegen.yml",
+    "generate": "npm run gql:generate && npm run prisma:generate"
   },
   "author": "Emil Blennow",
   "contributors": [
