@@ -1,10 +1,5 @@
-import { reduce } from '.';
 import type { DatabaseAccess } from '@db/access';
 import { Access, AccessResourceType, Door, DoorInfo, Feature, FeatureInfo } from '@generated/graphql';
-
-
-
-
 
 /**
  * Reduce database access arrays to an access object

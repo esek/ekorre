@@ -10,7 +10,6 @@ import { batchElectionsFunction } from '@dataloader/election';
 import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
 import { batchUsersFunction } from '@dataloader/user';
-import { DatabaseAccess } from '@db/access';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { makeExecutableSchema } from '@graphql-tools/schema';
