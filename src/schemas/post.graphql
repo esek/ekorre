@@ -5,7 +5,7 @@
 scalar Date
 
 type Query {
-    post(name: String!): Post
+    post(slug: String!): Post
     posts(utskott: Utskott, includeInactive: Boolean!): [Post]
     groupedPosts(includeInactive: Boolean!): [GroupedPost]!
     numberOfVolunteers(date: Date): Int!
@@ -22,6 +22,7 @@ type Mutation {
 }
 
 type Post {
+    slug: String!,
     postname: String!
     utskott: Utskott!
     postType: PostType!

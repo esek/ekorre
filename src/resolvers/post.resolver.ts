@@ -7,8 +7,8 @@ const api = new PostAPI();
 
 const postresolver: Resolvers = {
   Query: {
-    post: async (_, { name }) => {
-      const res = await api.getPost(name);
+    post: async (_, { slug }) => {
+      const res = await api.getPost(slug);
       if (res != null) return postReduce(res);
       return null;
     },

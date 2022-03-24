@@ -30,6 +30,7 @@ prisma.$use(async (params, next) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result;
   } catch (err) {
+    console.log(err);
     logger.error(err);
     throw new ServerError('Ett databasfel inträffade');
   }

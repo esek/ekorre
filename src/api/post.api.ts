@@ -66,11 +66,11 @@ export class PostAPI {
     return posts;
   }
 
-  async getPost(postname: string): Promise<PrismaPost> {
+  async getPost(slug: string): Promise<PrismaPost> {
     const post = await prisma.prismaPost.findFirst({
       where: {
-        postname: {
-          equals: postname,
+        slug: {
+          equals: slug,
           mode: 'insensitive', // case insensitive
         },
       },
