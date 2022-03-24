@@ -20,8 +20,8 @@
     "benchmark": "ts-node tools/benchmark/index.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "gql:generate": "graphql-codegen --config codegen.yml",
-    "generate": "npm run gql:generate && npm run prisma:generate"
+    "graphql:generate": "graphql-codegen --config codegen.yml",
+    "generate": "npm run graphql:generate && npm run prisma:generate"
   },
   "author": "Emil Blennow",
   "contributors": [
