@@ -1,24 +1,26 @@
-import { hasAccess } from '@/util';
+import { hasAccess, hasAuthenticated } from '@/util';
 import { AccessAPI } from '@api/access';
 import { Door, Feature, Resolvers } from '@generated/graphql';
-import { accessReducer } from '@reducer/access';
+import { accessReducer, doorReducer, featureReducer } from '@reducer/access';
 
 const accessApi = new AccessAPI();
 
 const accessresolver: Resolvers = {
   Query: {
-    individualAccess: async (_, { username }) => {
+    individualAccess: async (_, { username }, ctx) => {
+      hasAuthenticated(ctx);
       const access = await accessApi.getIndividualAccess(username);
 
       return accessReducer(access);
     },
-    postAccess: async (_, { postname }) => {
+    postAccess: async (_, { postname }, ctx) => {
+      hasAuthenticated(ctx);
       const access = await accessApi.getPostAccess(postname);
 
       return accessReducer(access);
     },
-    features: () => Object.values(Feature),
-    doors: () => Object.values(Door)
+    features: () => featureReducer(Object.values(Feature)),
+    doors: () => doorReducer(Object.values(Door))
   },
   Mutation: {
     setIndividualAccess: async (_, { username, access }, ctx) => {

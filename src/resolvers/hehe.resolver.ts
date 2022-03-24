@@ -1,7 +1,8 @@
 import { useDataLoader } from '@/dataloaders';
 import { reduce } from '@/reducers';
+import { hasAccess, hasAuthenticated } from '@/util';
 import { HeheAPI } from '@api/hehe';
-import { Resolvers } from '@generated/graphql';
+import { Feature, Resolvers } from '@generated/graphql';
 import { heheReduce } from '@reducer/hehe';
 
 const api = new HeheAPI();
@@ -18,23 +19,31 @@ const heheResolver: Resolvers = {
     })),
   },
   Query: {
-    hehe: async (_, { number, year }) => {
+    hehe: async (_, { number, year }, ctx) => {
+      hasAuthenticated(ctx);
       const h = await api.getHehe(number, year);
       return reduce(h, heheReduce);
     },
-    hehes: async (_, { year }) => {
+    hehes: async (_, { year }, ctx) => {
+      hasAuthenticated(ctx);
       const h = await api.getHehesByYear(year);
       return reduce(h, heheReduce);
     },
-    latestHehe: async (_, { limit, sortOrder }) => {
+    latestHehe: async (_, { limit, sortOrder }, ctx) => {
+      hasAuthenticated(ctx);
       const h = await api.getAllHehes(limit ?? undefined, sortOrder ?? undefined);
       return reduce(h, heheReduce);
     },
   },
   Mutation: {
-    addHehe: async (_, { fileId, number, year }, ctx) =>
-      api.addHehe(ctx.getUsername(), fileId, number, year),
-    removeHehe: async (_, { number, year }) => api.removeHehe(number, year),
+    addHehe: async (_, { fileId, number, year }, ctx) => {
+      hasAccess(ctx, Feature.HeheAdmin);
+      return api.addHehe(ctx.getUsername(), fileId, number, year);
+    },
+    removeHehe: async (_, { number, year }, ctx) => {
+      hasAccess(ctx, Feature.HeheAdmin);
+      return api.removeHehe(number, year);
+    }
   },
 };
 

@@ -85,6 +85,11 @@ export enum Door {
   Ulla = 'ulla'
 }
 
+export type DoorInfo = {
+  name: Door;
+  description: Scalars['String'];
+};
+
 export type Election = {
   /** Is only available if `nominationsHidden` is `false` */
   acceptedNominations?: Maybe<Array<Maybe<Nomination>>>;
@@ -122,10 +127,19 @@ export enum Feature {
   AccessAdmin = 'access_admin',
   ArticleEditor = 'article_editor',
   ElectionAdmin = 'election_admin',
+  FilesAdmin = 'files_admin',
+  HeheAdmin = 'hehe_admin',
+  MeetingsAdmin = 'meetings_admin',
   NewsEditor = 'news_editor',
   PostAdmin = 'post_admin',
-  Superadmin = 'superadmin'
+  Superadmin = 'superadmin',
+  UserAdmin = 'user_admin'
 }
+
+export type FeatureInfo = {
+  name: Feature;
+  description: Scalars['String'];
+};
 
 export type File = {
   accessType: AccessType;
@@ -636,11 +650,10 @@ export type Proposal = {
 export type Query = {
   article?: Maybe<Article>;
   articles: Array<Maybe<Article>>;
-  doors: Array<Door>;
+  doors: Array<DoorInfo>;
   election?: Maybe<Election>;
   elections: Array<Maybe<Election>>;
-  emergencyContacts: Array<EmergencyContact>;
-  features: Array<Feature>;
+  features: Array<FeatureInfo>;
   file: File;
   fileSystem: FileSystemResponse;
   files: Array<File>;
@@ -719,15 +732,6 @@ export type QueryElectionArgs = {
  */
 export type QueryElectionsArgs = {
   electionIds: Array<Scalars['ID']>;
-};
-
-
-/**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
- */
-export type QueryEmergencyContactsArgs = {
-  username: Scalars['String'];
 };
 
 
@@ -1008,6 +1012,7 @@ export type User = {
   address?: Maybe<Scalars['String']>;
   class: Scalars['String'];
   email: Scalars['String'];
+  emergencyContacts: Array<EmergencyContact>;
   firstName: Scalars['String'];
   isFuncUser?: Maybe<Scalars['Boolean']>;
   lastName: Scalars['String'];
@@ -1135,11 +1140,13 @@ export type ResolversTypes = ResolversObject<{
   Date: ResolverTypeWrapper<Scalars['Date']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Door: Door;
+  DoorInfo: ResolverTypeWrapper<DoorInfo>;
   Election: ResolverTypeWrapper<ElectionResponse>;
   EmergencyContact: ResolverTypeWrapper<EmergencyContact>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   EmergencyContactType: EmergencyContactType;
   Feature: Feature;
+  FeatureInfo: ResolverTypeWrapper<FeatureInfo>;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
@@ -1184,9 +1191,11 @@ export type ResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean'];
   Date: Scalars['Date'];
   DateTime: Scalars['DateTime'];
+  DoorInfo: DoorInfo;
   Election: ElectionResponse;
   EmergencyContact: EmergencyContact;
   Int: Scalars['Int'];
+  FeatureInfo: FeatureInfo;
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
@@ -1249,6 +1258,12 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
   name: 'DateTime';
 }
 
+export type DoorInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DoorInfo'] = ResolversParentTypes['DoorInfo']> = ResolversObject<{
+  name?: Resolver<ResolversTypes['Door'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type ElectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Election'] = ResolversParentTypes['Election']> = ResolversObject<{
   acceptedNominations?: Resolver<Maybe<Array<Maybe<ResolversTypes['Nomination']>>>, ParentType, ContextType>;
   closedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
@@ -1268,6 +1283,12 @@ export type EmergencyContactResolvers<ContextType = Context, ParentType extends 
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['EmergencyContactType'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type FeatureInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FeatureInfo'] = ResolversParentTypes['FeatureInfo']> = ResolversObject<{
+  name?: Resolver<ResolversTypes['Feature'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1418,11 +1439,10 @@ export type ProposalResolvers<ContextType = Context, ParentType extends Resolver
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
-  doors?: Resolver<Array<ResolversTypes['Door']>, ParentType, ContextType>;
+  doors?: Resolver<Array<ResolversTypes['DoorInfo']>, ParentType, ContextType>;
   election?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType, RequireFields<QueryElectionArgs, 'electionId'>>;
   elections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryElectionsArgs, 'electionIds'>>;
-  emergencyContacts?: Resolver<Array<ResolversTypes['EmergencyContact']>, ParentType, ContextType, RequireFields<QueryEmergencyContactsArgs, 'username'>>;
-  features?: Resolver<Array<ResolversTypes['Feature']>, ParentType, ContextType>;
+  features?: Resolver<Array<ResolversTypes['FeatureInfo']>, ParentType, ContextType>;
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
@@ -1459,6 +1479,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   class?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  emergencyContacts?: Resolver<Array<ResolversTypes['EmergencyContact']>, ParentType, ContextType>;
   firstName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   isFuncUser?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1486,8 +1507,10 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
+  DoorInfo?: DoorInfoResolvers<ContextType>;
   Election?: ElectionResolvers<ContextType>;
   EmergencyContact?: EmergencyContactResolvers<ContextType>;
+  FeatureInfo?: FeatureInfoResolvers<ContextType>;
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
   FileSystemResponsePath?: FileSystemResponsePathResolvers<ContextType>;

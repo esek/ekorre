@@ -1,8 +1,8 @@
 import { useDataLoader } from '@/dataloaders';
 import { reduce } from '@/reducers';
-import { notEmpty } from '@/util';
+import { hasAccess, hasAuthenticated, notEmpty } from '@/util';
 import { ElectionAPI } from '@api/election';
-import { NominationAnswer, Resolvers } from '@generated/graphql';
+import { Feature, NominationAnswer, Resolvers } from '@generated/graphql';
 import { electionReduce } from '@reducer/election/election';
 import { nominationReduce } from '@reducer/election/nomination';
 import { proposalReduce } from '@reducer/election/proposal';
@@ -12,11 +12,13 @@ const api = new ElectionAPI();
 const electionResolver: Resolvers = {
   Query: {
     openElection: async (_, __, ctx) => {
+      hasAuthenticated(ctx);
       const e = reduce(await api.getOpenElection(), electionReduce);
       ctx.electionDataLoader.prime(e.id ?? '', e);
       return e;
     },
-    latestElections: async (_, { limit, includeUnopened, includeHiddenNominations }) => {
+    latestElections: async (_, { limit, includeUnopened, includeHiddenNominations }, ctx) => {
+      hasAuthenticated(ctx);
       const e = await api.getLatestElections(
         limit ?? undefined,
         includeUnopened ?? true,
@@ -25,9 +27,11 @@ const electionResolver: Resolvers = {
       return reduce(e, electionReduce);
     },
     election: async (_, { electionId }, ctx) => {
+      hasAuthenticated(ctx);
       return ctx.electionDataLoader.load(electionId);
     },
     elections: async (_, { electionIds }, ctx) => {
+      hasAuthenticated(ctx);
       return Promise.all(
         electionIds.map(async (id) => {
           return ctx.electionDataLoader.load(id);
@@ -35,7 +39,8 @@ const electionResolver: Resolvers = {
       );
     },
     // Att användas av val-admin om nomineringar är hemliga
-    hiddenNominations: async (_, { electionId, answer }) => {
+    hiddenNominations: async (_, { electionId, answer }, ctx) => {
+      hasAccess(ctx, Feature.ElectionAdmin);
       const n = await api.getAllNominations(electionId, answer ?? undefined);
       return reduce(n, nominationReduce);
     },
@@ -56,37 +61,47 @@ const electionResolver: Resolvers = {
   },
   Mutation: {
     createElection: async (_, { electables, nominationsHidden }, ctx) => {
+      hasAccess(ctx, Feature.ElectionAdmin);
       const safeElectables = electables.filter(notEmpty);
       return api.createElection(ctx.getUsername(), safeElectables, nominationsHidden);
     },
-    addElectables: async (_, { electionId, postnames }) => {
+    addElectables: async (_, { electionId, postnames }, ctx) => {
+      hasAccess(ctx, Feature.ElectionAdmin);
       return api.addElectables(electionId, postnames ?? []);
     },
-    removeElectables: async (_, { electionId, postnames }) => {
+    removeElectables: async (_, { electionId, postnames }, ctx) => {
+      hasAccess(ctx, Feature.ElectionAdmin);
       return api.removeElectables(electionId, postnames ?? []);
     },
-    setElectables: async (_, { electionId, postnames }) => {
+    setElectables: async (_, { electionId, postnames }, ctx) => {
+      hasAccess(ctx, Feature.ElectionAdmin);
       return api.setElectables(electionId, postnames);
     },
-    setHiddenNominations: async (_, { electionId, hidden }) => {
+    setHiddenNominations: async (_, { electionId, hidden }, ctx) => {
+      hasAccess(ctx, Feature.ElectionAdmin);
       return api.setHiddenNominations(electionId, hidden);
     },
-    openElection: async (_, { electionId }) => {
+    openElection: async (_, { electionId }, ctx) => {
+      hasAccess(ctx, Feature.ElectionAdmin);
       return api.openElection(electionId);
     },
-    closeElection: async () => {
+    closeElection: async (_, _1, ctx) => {
+      hasAccess(ctx, Feature.ElectionAdmin);
       return api.closeElection();
     },
-    nominate: async (_, { username, postnames }) => {
+    nominate: async (_, { username, postnames }, ctx) => {
+      hasAuthenticated(ctx);
       return api.nominate(username, postnames);
     },
     respondToNomination: async (_, { postname, accepts }, ctx) => {
       return api.respondToNomination(ctx.getUsername(), postname, accepts);
     },
-    propose: async (_, { electionId, username, postname }) => {
+    propose: async (_, { electionId, username, postname }, ctx) => {
+      hasAccess(ctx, Feature.ElectionAdmin);
       return api.propose(electionId, username, postname);
     },
-    removeProposal: async (_, { electionId, username, postname }) => {
+    removeProposal: async (_, { electionId, username, postname }, ctx) => {
+      hasAccess(ctx, Feature.ElectionAdmin);
       return api.removeProposal(electionId, username, postname);
     },
   },

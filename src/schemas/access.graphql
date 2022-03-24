@@ -2,8 +2,8 @@
 type Query {
     individualAccess(username: String!): Access
     postAccess(postname: String!): Access
-    features: [Feature!]!
-    doors: [Door!]!
+    features: [FeatureInfo!]!
+    doors: [DoorInfo!]!
 }
 
 type Mutation {
@@ -22,6 +22,16 @@ input AccessInput {
     features: [Feature!]!
 }
 
+type FeatureInfo {
+    name: Feature!
+    description: String!
+}
+
+type DoorInfo {
+    name: Door!
+    description: String!
+}
+
 enum AccessResourceType {
     door
     feature
@@ -29,26 +39,30 @@ enum AccessResourceType {
 
 """This represets all doors that E-sektionen own"""
 enum Door {
-    cm,
-    sikrit,
-    biljard,
-    led,
-    bd,
-    ulla,
-    ekea,
     arkivet,
+    bd,
+    biljard,
+    cm,
+    ekea,
     hk,
-    pump,
-    pa,
     km
+    led,
+    pa,
+    pump,
+    sikrit,
+    ulla,
 }
 
 """Features are used for mapping access to a feature (ex article or election) for user or a post. This is not limited to efterphest"""
 enum Feature {
     superadmin,
-    post_admin,
+    access_admin,
     article_editor,
-    news_editor,
     election_admin,
-    access_admin
+    files_admin,
+    hehe_admin,
+    meetings_admin
+    news_editor,
+    post_admin,
+    user_admin,
 }

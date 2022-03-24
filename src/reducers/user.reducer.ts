@@ -17,7 +17,7 @@ export function userReduce(user: DatabaseUser): User {
   // If isFuncUser is undefined, assume false
   const isFuncUser = user.isFuncUser ?? false;
 
-  const u = {
+  const u: User = {
     ...reduced,
     photoUrl,
     isFuncUser,
@@ -25,6 +25,7 @@ export function userReduce(user: DatabaseUser): User {
     posts: [],
     userPostHistory: [],
     wikiEdits: 0,
+    emergencyContacts: [],
   };
   return u;
 }

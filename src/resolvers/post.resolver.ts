@@ -1,6 +1,7 @@
 import { reduce } from '@/reducers';
+import { hasAccess, hasAuthenticated } from '@/util';
 import { PostAPI } from '@api/post';
-import { Post, Resolvers, Utskott } from '@generated/graphql';
+import { Feature, Post, Resolvers, Utskott } from '@generated/graphql';
 import { postReduce } from '@reducer/post';
 
 const api = new PostAPI();
@@ -8,18 +9,21 @@ const api = new PostAPI();
 // TODO: Lägg till auth
 const postresolver: Resolvers = {
   Query: {
-    post: async (_, { name }) => {
+    post: async (_, { name }, ctx) => {
+      hasAuthenticated(ctx);
       const res = await api.getPost(name);
       if (res != null) return postReduce(res);
       return null;
     },
-    posts: async (_, { utskott, includeInactive }) => {
+    posts: async (_, { utskott, includeInactive }, ctx) => {
+      hasAuthenticated(ctx);
       if (utskott != null) {
         return reduce(await api.getPostsFromUtskott(utskott, includeInactive), postReduce);
       }
       return reduce(await api.getPosts(), postReduce);
     },
     groupedPosts: async (_, { includeInactive }, ctx) => {
+      hasAuthenticated(ctx);
       // Get all posts
       const allPosts = await api.getPosts(undefined, includeInactive);
 
@@ -50,16 +54,34 @@ const postresolver: Resolvers = {
     },
   },
   Mutation: {
-    addPost: (_, { info }) => api.createPost(info),
-    modifyPost: (_, { info }) => api.modifyPost(info),
-    addUsersToPost: (_, { usernames, postname, start, end }) =>
-      api.addUsersToPost(usernames, postname, start ?? undefined, end ?? undefined),
-    activatePost: (_, { postname }) => api.activatePost(postname),
-    deactivatePost: (_, { postname }) => api.deactivatePost(postname),
-    setUserPostEnd: (_, { username, postname, start, end }) =>
-      api.setUserPostEnd(username, postname, start, end),
-    removeHistoryEntry: (_, { username, postname, start, end }) =>
-      api.removeHistoryEntry(username, postname, start, end ?? undefined),
+    addPost: (_, { info }, ctx) => {
+      hasAccess(ctx, Feature.PostAdmin);
+      return api.createPost(info);
+    },
+    modifyPost: (_, { info }, ctx) => {
+      hasAccess(ctx, Feature.PostAdmin);
+      return api.modifyPost(info);
+    },
+    addUsersToPost: (_, { usernames, postname, start, end }, ctx) => {
+      hasAccess(ctx, Feature.PostAdmin);
+      return api.addUsersToPost(usernames, postname, start ?? undefined, end ?? undefined);
+    },
+    activatePost: (_, { postname }, ctx) => {
+      hasAccess(ctx, Feature.PostAdmin);
+      return api.activatePost(postname);
+    },
+    deactivatePost: (_, { postname }, ctx) => {
+      hasAccess(ctx, Feature.PostAdmin);
+      return api.deactivatePost(postname);
+    },
+    setUserPostEnd: (_, { username, postname, start, end }, ctx) => {
+      hasAccess(ctx, Feature.PostAdmin);
+      return api.setUserPostEnd(username, postname, start, end);
+    },
+    removeHistoryEntry: (_, { username, postname, start, end }, ctx) => {
+      hasAccess(ctx, Feature.PostAdmin);
+      return api.removeHistoryEntry(username, postname, start, end ?? undefined);
+    }
   },
   User: {
     posts: async ({ username }, _, ctx) => {

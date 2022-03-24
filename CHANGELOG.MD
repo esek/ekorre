@@ -9,11 +9,12 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Ändrat
 - Access API har blivit betydligt mycket enklare genom att det finns fördefinerade
 roller i en enum döpt till `Feature`. Dörrar finns även i en enum vid namn `Door`.
+- EmergencyContacts ligger på user objektet
 
 ### Borttaget
 - Allt som har med Access mappings att göra.
 - Doors api endpoint, detta ska lösas i en microservice.
-
+- emergencyContacts queryn
 ## [0.11.0] - 2022-02-16
 
 ### Tillagt

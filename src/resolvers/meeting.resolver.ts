@@ -1,7 +1,8 @@
 import { StrictObject } from '@/models/base';
 import { reduce } from '@/reducers';
+import { hasAccess } from '@/util';
 import { MeetingAPI } from '@api/meeting';
-import type { Resolvers } from '@generated/graphql';
+import { Feature, Resolvers } from '@generated/graphql';
 import { meetingReduce } from '@reducer/meeting';
 
 const api = new MeetingAPI();
@@ -59,16 +60,20 @@ const meetingResolver: Resolvers = {
     },
   },
   Mutation: {
-    addMeeting: async (_, { type, number, year }) => {
+    addMeeting: async (_, { type, number, year }, ctx) => {
+      hasAccess(ctx, Feature.MeetingsAdmin);
       return api.createMeeting(type, number ?? undefined, year ?? undefined);
     },
-    removeMeeting: async (_, { id }) => {
+    removeMeeting: async (_, { id }, ctx) => {
+      hasAccess(ctx, Feature.MeetingsAdmin);
       return api.removeMeeting(id);
     },
-    addFileToMeeting: async (_, { meetingId, fileId, fileType }) => {
+    addFileToMeeting: async (_, { meetingId, fileId, fileType }, ctx) => {
+      hasAccess(ctx, Feature.MeetingsAdmin);
       return api.addFileToMeeting(meetingId, fileId, fileType);
     },
-    removeFileFromMeeting: async (_, { meetingId, fileType }) => {
+    removeFileFromMeeting: async (_, { meetingId, fileType }, ctx) => {
+      hasAccess(ctx, Feature.MeetingsAdmin);
       return api.removeFileFromMeeting(meetingId, fileType);
     },
   },

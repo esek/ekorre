@@ -1,10 +1,11 @@
 import { hashWithSecret, verifyToken } from '@/auth';
 import { BadRequestError } from '@/errors/request.errors';
 import { TokenValue } from '@/models/auth';
+import { Context } from '@/models/context';
 import { reduce } from '@/reducers';
-import { stripObject } from '@/util';
+import { hasAccess, stripObject } from '@/util';
 import { UserAPI } from '@api/user';
-import type { Resolvers } from '@generated/graphql';
+import { Feature, Resolvers, User } from '@generated/graphql';
 import { userReduce } from '@reducer/user';
 import { sendEmail } from '@service/email';
 import EWiki from '@service/wiki';
@@ -12,8 +13,27 @@ import EWiki from '@service/wiki';
 const api = new UserAPI();
 const wiki = new EWiki();
 
+export const checkUserFieldAccess = (ctx: Context, obj: User) => {
+  if (ctx.getUsername() !== obj.username) {
+    hasAccess(ctx, Feature.UserAdmin);
+  }
+};
+
+
 const userResolver: Resolvers = {
   User: {
+    address: (obj, _, ctx) => {
+      checkUserFieldAccess(ctx, obj);
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return obj.address!;
+    },
+    zipCode: (obj, _, ctx) => {
+      checkUserFieldAccess(ctx, obj);
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return obj.zipCode!;
+    },
     wikiEdits: async ({ username }) => {
       if (!username) {
         return 0;
