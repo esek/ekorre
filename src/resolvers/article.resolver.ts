@@ -14,12 +14,7 @@ import { articleReducer } from '@reducer/article';
 const articleApi = new ArticleAPI();
 
 const checkEditAccess = async (ctx: Context, articleType: ArticleType) => {
-  if (articleType === ArticleType.Information) {
-    await hasAccess(ctx, Feature.ArticleEditor);
-  }
-  if (articleType === ArticleType.News) {
-    await hasAccess(ctx, Feature.NewsEditor);
-  }
+  await hasAccess(ctx, articleType === ArticleType.Information ? Feature.ArticleEditor : Feature.NewsEditor);
 };
 
 /**

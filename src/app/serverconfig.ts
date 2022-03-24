@@ -56,6 +56,10 @@ const apolloServerConfig: Config<ExpressContext> = {
      * @throws UnauthenticatedError if the access token is invalid
      */
     const getUsername = () => {
+      if (!accessToken) {
+        throw new UnauthenticatedError('Du behöver logga in för att göra detta!');
+      }
+
       try {
         const { username } = verifyToken<TokenValue>(accessToken, 'accessToken');
         return username;

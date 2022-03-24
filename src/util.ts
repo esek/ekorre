@@ -71,11 +71,7 @@ export const notEmpty = <ValueType>(value: ValueType | null | undefined): value 
 export const hasAccess = async (ctx: Context, requirement: Feature | Feature[]): Promise<void> => {
   if (config.SKIP_ACCESS_CHECKS) return;
 
-  const req: Feature[] = [];
-
-  if (!Array.isArray(requirement)) {
-    req.push(requirement);
-  }
+  const req = Array.isArray(requirement) ? requirement : [requirement];
 
   const {features} = await ctx.getAccess();
 
