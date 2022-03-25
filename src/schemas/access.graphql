@@ -1,17 +1,75 @@
-#import AccessResource from 'accessresources.graphql'
 
 type Query {
     individualAccess(username: String!): Access
     postAccess(postname: String!): Access
+    features: [FeatureInfo!]!
+    doors: [DoorInfo!]!
 }
 
 type Mutation {
-    setIndividualAccess(username: String!, access:[String!]!): Boolean!
-    setPostAccess(postname: String!, access:[String!]!): Boolean!
+    setIndividualAccess(username: String!, access: AccessInput!): Boolean!
+    setPostAccess(postname: String!, access: AccessInput!): Boolean!
+}
+
+extend type User {
+    """
+    This will be all the access have concated from Posts and personal
+    """
+    access: Access!
 }
 
 "Access will be treated as a immutable object!"
 type Access {
-    doors: [AccessResource!]!
-    web: [AccessResource!]!
+    doors: [Door!]!
+    features: [Feature!]!
+}
+
+input AccessInput {
+    doors: [Door!]!
+    features: [Feature!]!
+}
+
+type FeatureInfo {
+    name: Feature!
+    description: String!
+}
+
+type DoorInfo {
+    name: Door!
+    description: String!
+}
+
+enum AccessResourceType {
+    door
+    feature
+}
+
+"""This represets all doors that E-sektionen own"""
+enum Door {
+    arkivet,
+    bd,
+    biljard,
+    cm,
+    ekea,
+    hk,
+    km
+    led,
+    pa,
+    pump,
+    sikrit,
+    ulla,
+}
+
+"""Features are used for mapping access to a feature (ex article or election) for user or a post. This is not limited to efterphest"""
+enum Feature {
+    superadmin,
+    access_admin,
+    article_editor,
+    election_admin,
+    files_admin,
+    hehe_admin,
+    meetings_admin
+    news_editor,
+    post_admin,
+    user_admin,
 }

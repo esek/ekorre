@@ -1,4 +1,7 @@
+import type { AccessResourceType } from '@generated/graphql';
+
 export type DatabaseAccess = {
   refname: string;
-  refaccessresource: string;
+  resourcetype: AccessResourceType;
+  resource: string;
 };

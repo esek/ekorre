@@ -1,5 +1,6 @@
 import { DatabaseUser } from '@/models/db/user';
 import { userReduce } from '@/reducers/user.reducer';
+import { User } from '@generated/graphql';
 
 const dummyDbUser: DatabaseUser = {
   username: 'kk6969öö-s',
@@ -15,7 +16,7 @@ const dummyDbUser: DatabaseUser = {
 };
 
 test('that password is reduced properly', () => {
-  expect(userReduce(dummyDbUser)).toStrictEqual({
+  const compare: User = {
     username: 'kk6969öö-s',
     firstName: 'Kalle',
     lastName: 'Testballe',
@@ -24,11 +25,14 @@ test('that password is reduced properly', () => {
     isFuncUser: false,
     photoUrl: null,
     access: {
-      web: [],
+      features: [],
       doors: [],
     },
     posts: [],
     userPostHistory: [],
     wikiEdits: 0,
-  });
+    emergencyContacts: [],
+  };
+
+  expect(userReduce(dummyDbUser)).toStrictEqual(compare);
 });

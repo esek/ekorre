@@ -4,6 +4,17 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2022-03-23
+
+### Ändrat
+- Access API har blivit betydligt mycket enklare genom att det finns fördefinerade
+roller i en enum döpt till `Feature`. Dörrar finns även i en enum vid namn `Door`.
+- EmergencyContacts ligger på user objektet
+
+### Borttaget
+- Allt som har med Access mappings att göra.
+- Doors api endpoint, detta ska lösas i en microservice.
+- emergencyContacts queryn
 ## [0.11.0] - 2022-02-16
 
 ### Tillagt

@@ -1,4 +1,8 @@
 import { StrictObject } from '@/models/base';
+import { Feature } from '@generated/graphql';
+import { ForbiddenError } from '@/errors/request.errors';
+import { Context } from './models/context';
+import config from './config';
 
 /**
  * Converts a date to UTC format
@@ -56,4 +60,37 @@ export const stripObject = <E, T extends E>(obj: E): Partial<T> => {
 export const notEmpty = <ValueType>(value: ValueType | null | undefined): value is ValueType => {
   if (value === null || value === undefined) return false;
   return true;
+};
+
+/**
+ * Checks if user has access to a feature
+ * @param ctx Resolver context
+ * @param requirement Array or single element of required permissions
+ * @throws {ForbiddenError} if user does not have required permissions
+ */
+export const hasAccess = async (ctx: Context, requirement: Feature | Feature[]): Promise<void> => {
+  if (config.SKIP_ACCESS_CHECKS) return;
+
+  const req = Array.isArray(requirement) ? requirement : [requirement];
+
+  const {features} = await ctx.getAccess();
+
+  if (features.includes(Feature.Superadmin)) {
+    return;
+  }
+
+  if (features.some((f) => req.includes(f))) {
+    return;
+  }
+
+  throw new ForbiddenError('Aja baja det får du inte göra!');
+};
+
+/**
+ * Checks if the user is authenticated otherwise throws an error
+ * @param ctx Resolver context
+ * @throws {UnauthenticatedError} If the user is not authenticated
+ */
+export const hasAuthenticated = async (ctx: Context): Promise<void> => {
+  await ctx.getAccess();
 };

@@ -5,7 +5,7 @@ import { Access, User } from '@generated/graphql';
 export function userReduce(user: DatabaseUser): User {
   // Provide a stub for access to be resolved later.
   const access: Access = {
-    web: [],
+    features: [],
     doors: [],
   };
 
@@ -17,7 +17,7 @@ export function userReduce(user: DatabaseUser): User {
   // If isFuncUser is undefined, assume false
   const isFuncUser = user.isFuncUser ?? false;
 
-  const u = {
+  const u: User = {
     ...reduced,
     photoUrl,
     isFuncUser,
@@ -25,6 +25,7 @@ export function userReduce(user: DatabaseUser): User {
     posts: [],
     userPostHistory: [],
     wikiEdits: 0,
+    emergencyContacts: [],
   };
   return u;
 }

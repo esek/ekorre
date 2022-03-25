@@ -4,7 +4,7 @@ import { Access, Post } from '@generated/graphql';
 export function postReduce(post: DatabasePost): Post {
   const access: Access = {
     doors: [],
-    web: [],
+    features: [],
   };
 
   const p: Post = {
