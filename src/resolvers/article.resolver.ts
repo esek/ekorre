@@ -146,7 +146,12 @@ const articleResolver: Resolvers = {
     },
     modifyArticle: async (_, { articleId, entry }, ctx) => {
       const article = await articleApi.getArticle({ id: articleId, slug: null });
+
+      /**
+       * If trying to set a new articleType, make sure we check that the user is allowed to do so.
+       *  */
       await checkEditAccess(ctx, entry?.articleType ?? article.articleType);
+
       return articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
     },
     removeArticle: async (_, { articleId }, ctx) => {
