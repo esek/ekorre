@@ -4,4 +4,4 @@ CREATE TABLE "ApiKeys" (
 	"createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	"refcreator" TEXT NOT NULL,
 	FOREIGN KEY("refcreator") REFERENCES "Users"("username")
-)
+);

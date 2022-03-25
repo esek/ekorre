@@ -84,6 +84,14 @@ CREATE TABLE "IndividualAccess" (
 	FOREIGN KEY("refname") REFERENCES "Users"("username")
 );
 
+CREATE TABLE "ApiKeyAccess" (
+	"refname"	TEXT NOT NULL,
+	"resource"	TEXT NOT NULL,
+	"resourcetype" TEXT NOT NULL,
+	PRIMARY KEY("refname","resource"),
+	FOREIGN KEY("refname") REFERENCES "ApiKeys"("key")
+);
+
 INSERT INTO PostAccess VALUES('Macapär', 'sikrit', 'door');
 INSERT INTO PostAccess VALUES('Macapär', 'bd', 'door');
 INSERT INTO PostAccess VALUES('Macapär', 'superadmin', 'feature');
@@ -232,6 +240,14 @@ CREATE TABLE IF NOT EXISTS "Hehes" (
   FOREIGN KEY("refuploader") REFERENCES "Users"("username"),
   FOREIGN KEY("reffile") REFERENCES "Files"("id"),
   PRIMARY KEY ("number", "year")
+);
+
+CREATE TABLE "ApiKeys" (
+	"key"	TEXT PRIMARY KEY NOT NULL UNIQUE,
+	"description" TEXT NOT NULL,
+	"createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	"refcreator" TEXT NOT NULL,
+	FOREIGN KEY("refcreator") REFERENCES "Users"("username")
 );
 
 END TRANSACTION;
