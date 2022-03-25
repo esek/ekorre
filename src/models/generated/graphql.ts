@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse, MeetingResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse } from '../mappers';
+import type { ArticleResponse, FileResponse, MeetingResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse, ApiKeyResponse } from '../mappers';
 import type { Context } from '../context';
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -38,6 +38,13 @@ export enum AccessType {
   Authenticated = 'authenticated',
   Public = 'public'
 }
+
+export type ApiKey = {
+  access: Access;
+  creator: User;
+  description: Scalars['String'];
+  key: Scalars['String'];
+};
 
 /** Body is saved as HTML serverside, but edited in MarkDown */
 export type Article = {
@@ -86,8 +93,8 @@ export enum Door {
 }
 
 export type DoorInfo = {
-  name: Door;
   description: Scalars['String'];
+  name: Door;
 };
 
 export type Election = {
@@ -137,8 +144,8 @@ export enum Feature {
 }
 
 export type FeatureInfo = {
-  name: Feature;
   description: Scalars['String'];
+  name: Feature;
 };
 
 export type File = {
@@ -280,10 +287,12 @@ export type Mutation = {
   casCreateUser: Scalars['Boolean'];
   casLogin: CasLoginResponse;
   closeElection: Scalars['Boolean'];
+  createApiKey: Scalars['String'];
   createElection: Scalars['ID'];
   createFolder: Scalars['Boolean'];
   createUser: Scalars['Boolean'];
   deactivatePost: Scalars['Boolean'];
+  deleteApiKey: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
   /** Test user credentials and if valid get a jwt token */
   login?: Maybe<User>;
@@ -307,6 +316,7 @@ export type Mutation = {
   /** Only possible during open election, so electionId is known */
   respondToNomination: Scalars['Boolean'];
   sendEmail: Scalars['Boolean'];
+  setApiKeyAccess: Scalars['Boolean'];
   setElectables: Scalars['Boolean'];
   setHiddenNominations: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
@@ -385,6 +395,11 @@ export type MutationCasLoginArgs = {
 };
 
 
+export type MutationCreateApiKeyArgs = {
+  description: Scalars['String'];
+};
+
+
 export type MutationCreateElectionArgs = {
   electables: Array<Maybe<Scalars['String']>>;
   nominationsHidden: Scalars['Boolean'];
@@ -404,6 +419,11 @@ export type MutationCreateUserArgs = {
 
 export type MutationDeactivatePostArgs = {
   postname: Scalars['String'];
+};
+
+
+export type MutationDeleteApiKeyArgs = {
+  key: Scalars['String'];
 };
 
 
@@ -518,6 +538,12 @@ export type MutationSendEmailArgs = {
 };
 
 
+export type MutationSetApiKeyAccessArgs = {
+  access: AccessInput;
+  key: Scalars['String'];
+};
+
+
 export type MutationSetElectablesArgs = {
   electionId: Scalars['ID'];
   postnames: Array<Scalars['String']>;
@@ -531,14 +557,14 @@ export type MutationSetHiddenNominationsArgs = {
 
 
 export type MutationSetIndividualAccessArgs = {
-  username: Scalars['String'];
   access: AccessInput;
+  username: Scalars['String'];
 };
 
 
 export type MutationSetPostAccessArgs = {
-  postname: Scalars['String'];
   access: AccessInput;
+  postname: Scalars['String'];
 };
 
 
@@ -648,6 +674,8 @@ export type Proposal = {
  * does not take an `electionId` parameter.
  */
 export type Query = {
+  apiKey: ApiKey;
+  apiKeys: Array<ApiKey>;
   article?: Maybe<Article>;
   articles: Array<Maybe<Article>>;
   doors: Array<DoorInfo>;
@@ -685,6 +713,15 @@ export type Query = {
   searchUser: Array<User>;
   user?: Maybe<User>;
   utskott?: Maybe<Utskott>;
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryApiKeyArgs = {
+  key: Scalars['String'];
 };
 
 
@@ -1131,8 +1168,9 @@ export type ResolversTypes = ResolversObject<{
   AccessInput: AccessInput;
   AccessResourceType: AccessResourceType;
   AccessType: AccessType;
-  Article: ResolverTypeWrapper<ArticleResponse>;
+  ApiKey: ResolverTypeWrapper<ApiKeyResponse>;
   String: ResolverTypeWrapper<Scalars['String']>;
+  Article: ResolverTypeWrapper<ArticleResponse>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   ArticleType: ArticleType;
   CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
@@ -1184,8 +1222,9 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Access: Access;
   AccessInput: AccessInput;
-  Article: ArticleResponse;
+  ApiKey: ApiKeyResponse;
   String: Scalars['String'];
+  Article: ArticleResponse;
   ID: Scalars['ID'];
   CasLoginResponse: CasLoginResponse;
   Boolean: Scalars['Boolean'];
@@ -1228,6 +1267,14 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ApiKey'] = ResolversParentTypes['ApiKey']> = ResolversObject<{
+  access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
+  creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type ArticleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Article'] = ResolversParentTypes['Article']> = ResolversObject<{
   articleType?: Resolver<ResolversTypes['ArticleType'], ParentType, ContextType>;
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1259,8 +1306,8 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 }
 
 export type DoorInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DoorInfo'] = ResolversParentTypes['DoorInfo']> = ResolversObject<{
-  name?: Resolver<ResolversTypes['Door'], ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['Door'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1287,8 +1334,8 @@ export type EmergencyContactResolvers<ContextType = Context, ParentType extends 
 }>;
 
 export type FeatureInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FeatureInfo'] = ResolversParentTypes['FeatureInfo']> = ResolversObject<{
-  name?: Resolver<ResolversTypes['Feature'], ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['Feature'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1373,10 +1420,12 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  createApiKey?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateApiKeyArgs, 'description'>>;
   createElection?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'postname'>>;
+  deleteApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteApiKeyArgs, 'key'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
   login?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -1397,10 +1446,11 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
   respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postname'>>;
   sendEmail?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendEmailArgs, 'options'>>;
+  setApiKeyAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetApiKeyAccessArgs, 'access' | 'key'>>;
   setElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetElectablesArgs, 'electionId' | 'postnames'>>;
   setHiddenNominations?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetHiddenNominationsArgs, 'electionId' | 'hidden'>>;
-  setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'username' | 'access'>>;
-  setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'postname' | 'access'>>;
+  setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'access' | 'username'>>;
+  setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postname'>>;
   setUserPostEnd?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetUserPostEndArgs, 'end' | 'postname' | 'start' | 'username'>>;
   updateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
@@ -1437,6 +1487,8 @@ export type ProposalResolvers<ContextType = Context, ParentType extends Resolver
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
+  apiKey?: Resolver<ResolversTypes['ApiKey'], ParentType, ContextType, RequireFields<QueryApiKeyArgs, 'key'>>;
+  apiKeys?: Resolver<Array<ResolversTypes['ApiKey']>, ParentType, ContextType>;
   article?: Resolver<Maybe<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<Maybe<ResolversTypes['Article']>>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
   doors?: Resolver<Array<ResolversTypes['DoorInfo']>, ParentType, ContextType>;
@@ -1503,6 +1555,7 @@ export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType exte
 
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Access?: AccessResolvers<ContextType>;
+  ApiKey?: ApiKeyResolvers<ContextType>;
   Article?: ArticleResolvers<ContextType>;
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
   Date?: GraphQLScalarType;

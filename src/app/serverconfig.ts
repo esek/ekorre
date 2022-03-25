@@ -11,6 +11,7 @@ import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
 import { batchTagsFunction as batchArticleTagsFunction } from '@dataloader/tag';
 import { batchUsersFunction } from '@dataloader/user';
+import { AccessResourceType } from '@generated/graphql';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -50,6 +51,7 @@ const apolloServerConfig: Config<ExpressContext> = {
   context: ({ req, res }: ContextParams): Context => {
     const accessToken = req?.cookies[COOKIES.accessToken] ?? '';
     const refreshToken = req?.cookies[COOKIES.refreshToken] ?? '';
+    const bearerToken = req?.headers?.authorization ?? '';
 
     /**
      * Tries to verify the users access token
@@ -74,6 +76,18 @@ const apolloServerConfig: Config<ExpressContext> = {
      * @returns A list of the users access
      */
     const getAccess = async () => {
+      if (bearerToken) {
+        const access = await accessApi.getApiKeyAccess(
+          bearerToken.replace('Bearer ', '').toLowerCase(),
+        );
+
+        if (access?.length) {
+          return accessReducer(
+            access.map((a) => ({ ...a, resourcetype: AccessResourceType.Feature })),
+          );
+        }
+      }
+
       const username = getUsername();
       const access = await accessApi.getUserFullAccess(username);
 

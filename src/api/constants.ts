@@ -1,3 +1,5 @@
+export const API_KEY_ACCESS_TABLE = 'ApiKeyAccess';
+export const API_KEY_TABLE = 'ApiKeys';
 export const ARTICLE_TABLE = 'Articles';
 export const ARTICLE_TAGS_TABLE = 'ArticleTags';
 export const ELECTABLE_TABLE = 'Electables';

@@ -1,4 +1,6 @@
 
+#import User from './user.graphql'
+
 type Query {
     individualAccess(username: String!): Access
     postAccess(postname: String!): Access
@@ -9,6 +11,7 @@ type Query {
 type Mutation {
     setIndividualAccess(username: String!, access: AccessInput!): Boolean!
     setPostAccess(postname: String!, access: AccessInput!): Boolean!
+    setApiKeyAccess(key: String!, access: AccessInput!): Boolean!
 }
 
 extend type User {

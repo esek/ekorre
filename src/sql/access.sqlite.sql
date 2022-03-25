@@ -14,6 +14,14 @@ CREATE TABLE "IndividualAccess" (
 	FOREIGN KEY("refname") REFERENCES "Users"("username")
 );
 
+CREATE TABLE "ApiKeyAccess" (
+	"refname"	TEXT NOT NULL,
+	"resource"	TEXT NOT NULL,
+	"resourcetype" TEXT NOT NULL,
+	PRIMARY KEY("refname","resource"),
+	FOREIGN KEY("refname") REFERENCES "ApiKeys"("key")
+);
+
 INSERT INTO PostAccess VALUES('Macapär', 'sikrit', 'door');
 INSERT INTO PostAccess VALUES('Macapär', 'bd', 'door');
 INSERT INTO PostAccess VALUES('Macapär', 'superadmin', 'feature');

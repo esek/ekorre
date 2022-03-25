@@ -4,6 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2022-03-25
+
+### Tillagt
+- API Nyckel tabell för att kunna använda API-nycklar i andra applikationer.
+
+
 ## [0.12.0] - 2022-03-23
 
 ### Ändrat
