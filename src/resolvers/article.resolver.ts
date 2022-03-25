@@ -10,7 +10,6 @@ import { ArticleAPI } from '@api/article';
 import { DatabaseArticle } from '@db/article';
 import { ArticleType, Feature, Resolvers } from '@generated/graphql';
 import { articleReducer } from '@reducer/article';
-import { application } from 'express';
 
 const articleApi = new ArticleAPI();
 

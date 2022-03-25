@@ -1,9 +1,8 @@
 import type { FileResponse } from '@/models/mappers';
-import { DatabaseArticleTag } from '@db/article';
 import type { Access, Post, User } from '@generated/graphql';
-import { ExpressContext } from 'apollo-server-express';
+import type { ExpressContext } from 'apollo-server-express';
 import type DataLoader from 'dataloader';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 export type Context = {
   accessToken: string;
