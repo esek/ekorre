@@ -42,7 +42,7 @@ export enum AccessType {
 export type ApiKey = {
   access: Access;
   creator: User;
-  id: Scalars['Int'];
+  description: Scalars['String'];
   key: Scalars['String'];
 };
 
@@ -287,7 +287,7 @@ export type Mutation = {
   casCreateUser: Scalars['Boolean'];
   casLogin: CasLoginResponse;
   closeElection: Scalars['Boolean'];
-  createApiKey: Scalars['Boolean'];
+  createApiKey: Scalars['String'];
   createElection: Scalars['ID'];
   createFolder: Scalars['Boolean'];
   createUser: Scalars['Boolean'];
@@ -392,6 +392,11 @@ export type MutationCasCreateUserArgs = {
 
 export type MutationCasLoginArgs = {
   token: Scalars['String'];
+};
+
+
+export type MutationCreateApiKeyArgs = {
+  description: Scalars['String'];
 };
 
 
@@ -1164,7 +1169,6 @@ export type ResolversTypes = ResolversObject<{
   AccessResourceType: AccessResourceType;
   AccessType: AccessType;
   ApiKey: ResolverTypeWrapper<ApiKeyResponse>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
   String: ResolverTypeWrapper<Scalars['String']>;
   Article: ResolverTypeWrapper<ArticleResponse>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
@@ -1177,6 +1181,7 @@ export type ResolversTypes = ResolversObject<{
   DoorInfo: ResolverTypeWrapper<DoorInfo>;
   Election: ResolverTypeWrapper<ElectionResponse>;
   EmergencyContact: ResolverTypeWrapper<EmergencyContact>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   EmergencyContactType: EmergencyContactType;
   Feature: Feature;
   FeatureInfo: ResolverTypeWrapper<FeatureInfo>;
@@ -1218,7 +1223,6 @@ export type ResolversParentTypes = ResolversObject<{
   Access: Access;
   AccessInput: AccessInput;
   ApiKey: ApiKeyResponse;
-  Int: Scalars['Int'];
   String: Scalars['String'];
   Article: ArticleResponse;
   ID: Scalars['ID'];
@@ -1229,6 +1233,7 @@ export type ResolversParentTypes = ResolversObject<{
   DoorInfo: DoorInfo;
   Election: ElectionResponse;
   EmergencyContact: EmergencyContact;
+  Int: Scalars['Int'];
   FeatureInfo: FeatureInfo;
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
@@ -1265,7 +1270,7 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ApiKey'] = ResolversParentTypes['ApiKey']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
   creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -1415,7 +1420,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  createApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  createApiKey?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateApiKeyArgs, 'description'>>;
   createElection?: Resolver<ResolversTypes['ID'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
   createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;

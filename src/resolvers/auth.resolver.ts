@@ -1,15 +1,21 @@
 import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '@/auth';
 import config from '@/config';
+import { useDataLoader } from '@/dataloaders';
 import { ServerError, UnauthenticatedError } from '@/errors/request.errors';
 import type { TokenType } from '@/models/auth';
 import { reduce } from '@/reducers';
+import { hasAccess } from '@/util';
+import ApiKeyAPI from '@api/apikey';
 import { UserAPI } from '@api/user';
-import { Resolvers } from '@generated/graphql';
+import { Feature, Resolvers } from '@generated/graphql';
+import { apiKeyReducer } from '@reducer/apikey';
 import { userReduce } from '@reducer/user';
 import { validateCasTicket } from '@service/cas';
 import { Response } from 'express';
 
 const api = new UserAPI();
+const apiKeyApi = new ApiKeyAPI();
+
 const { COOKIE } = config;
 
 /**
@@ -34,6 +40,26 @@ const attachCookie = (
 };
 
 const authResolver: Resolvers = {
+  ApiKey: {
+    creator: useDataLoader((model, context) => ({
+      dataLoader: context.userDataLoader,
+      key: model.creator.username,
+    })),
+  },
+  Query: {
+    apiKey: async (_, { key }, ctx) => {
+      await hasAccess(ctx, [Feature.Superadmin, Feature.AccessAdmin]);
+      const dbKey = await apiKeyApi.getApiKey(key);
+
+      return reduce(dbKey, apiKeyReducer);
+    },
+    apiKeys: async (_, __, ctx) => {
+      await hasAccess(ctx, [Feature.Superadmin, Feature.AccessAdmin]);
+      const dbKeys = await apiKeyApi.getApiKeys();
+
+      return reduce(dbKeys, apiKeyReducer);
+    },
+  },
   Mutation: {
     login: async (_, { username, password }, { response }) => {
       try {
@@ -89,6 +115,16 @@ const authResolver: Resolvers = {
         hash,
         exists,
       };
+    },
+    createApiKey: async (_, { description }, ctx) => {
+      await hasAccess(ctx, Feature.Superadmin);
+      const res = await apiKeyApi.createApiKey(description, ctx.getUsername());
+      return res;
+    },
+    deleteApiKey: async (_, { key }, ctx) => {
+      await hasAccess(ctx, Feature.Superadmin);
+      const res = await apiKeyApi.removeApiKey(key);
+      return res;
     },
   },
 };

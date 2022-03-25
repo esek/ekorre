@@ -47,7 +47,7 @@ export class AccessAPI {
     return res;
   }
 
-  async getApiKeyAccess(apiKey: string): Promise<Omit<DatabaseAccess, 'resourcetype'>[]> {
+  async getApiKeyAccess(apiKey: string): Promise<DatabaseAccess[]> {
     const res = await db<DatabaseAccess>(API_KEY_ACCESS_TABLE).where({
       refname: apiKey,
     });

@@ -5,8 +5,8 @@ import { accessReducer } from './access.reducer';
 
 export const apiKeyReducer = (model: DatabaseApiKey): ApiKeyResponse => {
   return {
-    id: model.id,
     key: model.key,
+    description: model.description ?? '',
     access: accessReducer([]),
     creator: {
       username: model.refcreator,

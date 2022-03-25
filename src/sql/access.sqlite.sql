@@ -17,6 +17,7 @@ CREATE TABLE "IndividualAccess" (
 CREATE TABLE "ApiKeyAccess" (
 	"refname"	TEXT NOT NULL,
 	"resource"	TEXT NOT NULL,
+	"resourcetype" TEXT NOT NULL,
 	PRIMARY KEY("refname","resource"),
 	FOREIGN KEY("refname") REFERENCES "ApiKeys"("key")
 );
