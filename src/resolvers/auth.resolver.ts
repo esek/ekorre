@@ -44,7 +44,7 @@ const authResolver: Resolvers = {
   ApiKey: {
     creator: async (key, _, ctx) => {
       // only superadmins can see the creator
-      await hasAccess(ctx, [Feature.Superadmin]);
+      await hasAccess(ctx, Feature.Superadmin);
 
       return useDataLoader<ApiKeyResponse, User>((model) => {
         return { dataLoader: ctx.userDataLoader, key: model.creator.username };
