@@ -1,6 +1,6 @@
 import { hasAccess, hasAuthenticated } from '@/util';
 import { AccessAPI } from '@api/access';
-import { AccessResourceType, Door, Feature, Resolvers } from '@generated/graphql';
+import { Door, Feature, Resolvers } from '@generated/graphql';
 import { accessReducer, doorReducer, featureReducer } from '@reducer/access';
 
 const accessApi = new AccessAPI();
@@ -39,7 +39,7 @@ const accessresolver: Resolvers = {
   ApiKey: {
     access: async ({ key }) => {
       const access = await accessApi.getApiKeyAccess(key);
-      return accessReducer(access.map((a) => ({ ...a, resourcetype: AccessResourceType.Feature })));
+      return accessReducer(access);
     },
   },
   User: {
