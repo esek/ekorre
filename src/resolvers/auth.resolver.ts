@@ -48,13 +48,13 @@ const authResolver: Resolvers = {
   },
   Query: {
     apiKey: async (_, { key }, ctx) => {
-      await hasAccess(ctx, [Feature.AccessAdmin]);
+      await hasAccess(ctx, Feature.AccessAdmin);
       const dbKey = await apiKeyApi.getApiKey(key);
 
       return reduce(dbKey, apiKeyReducer);
     },
     apiKeys: async (_, __, ctx) => {
-      await hasAccess(ctx, [Feature.AccessAdmin]);
+      await hasAccess(ctx, Feature.AccessAdmin);
       const dbKeys = await apiKeyApi.getApiKeys();
 
       return reduce(dbKeys, apiKeyReducer);
