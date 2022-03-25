@@ -1,4 +1,5 @@
 import type { FileResponse } from '@/models/mappers';
+import { DatabaseArticleTag } from '@db/article';
 import type { Access, Post, User } from '@generated/graphql';
 import { ExpressContext } from 'apollo-server-express';
 import type DataLoader from 'dataloader';
@@ -15,6 +16,7 @@ export type Context = {
   postDataLoader: DataLoader<string, Post>;
   fileDataLoader: DataLoader<string, FileResponse>;
   electionDataLoader: DataLoader<string, ElectionResponse>;
+  articleTagsDataLoader: DataLoader<string, string[]>;
 };
 
 export type ContextParams = Omit<ExpressContext, 'req'> & { req: CustomReq };

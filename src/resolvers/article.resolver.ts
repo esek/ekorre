@@ -10,6 +10,7 @@ import { ArticleAPI } from '@api/article';
 import { DatabaseArticle } from '@db/article';
 import { ArticleType, Feature, Resolvers } from '@generated/graphql';
 import { articleReducer } from '@reducer/article';
+import { application } from 'express';
 
 const articleApi = new ArticleAPI();
 
@@ -36,6 +37,10 @@ const articleResolver: Resolvers = {
     })),
     lastUpdatedAt: (model) => new Date(model.lastUpdatedAt),
     createdAt: (model) => new Date(model.createdAt),
+    tags: useDataLoader((model, ctx) => ({
+      key: model?.id ?? '',
+      dataLoader: ctx.articleTagsDataLoader,
+    })),
   },
   Query: {
     newsentries: async (_, { creator, after, before, markdown }, ctx) => {

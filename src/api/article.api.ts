@@ -2,12 +2,12 @@
 import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { stripObject, toUTC } from '@/util';
-import type { DatabaseArticle } from '@db/article';
+import type { DatabaseArticle, DatabaseArticleTag } from '@db/article';
 import { ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
 import { convertMarkdownToHtml } from '@reducer/article';
 import { Maybe } from 'graphql/jsutils/Maybe';
 
-import { ARTICLE_TABLE } from './constants';
+import { ARTICLE_TABLE, ARTICLE_TAGS_TABLE } from './constants';
 import db from './knex';
 
 // Refs används när en annan databas innehåller informationen,
@@ -192,5 +192,26 @@ export class ArticleAPI {
   async removeArticle(id: string): Promise<boolean> {
     const res = await db<DatabaseArticle>(ARTICLE_TABLE).delete().where('id', id);
     return res > 0;
+  }
+
+  async getTagsForArticle(id: string): Promise<DatabaseArticleTag[]> {
+    const tags = await this.getTagsForArticles([id]);
+
+    return tags?.length !== 0 && tags[0]?.length > 0 ? tags[0] : [];
+  }
+
+  async getTagsForArticles(ids: string[]): Promise<DatabaseArticleTag[][]> {
+    const tags = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('id', ids);
+
+    if (tags.length === 0) {
+      return [];
+    }
+
+    // Går att optimera
+    const mapped = ids.map((id) => {
+      return tags.filter((tag) => tag.refarticle === id);
+    });
+
+    return mapped;
   }
 }

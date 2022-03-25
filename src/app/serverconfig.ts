@@ -9,6 +9,7 @@ import { AccessAPI } from '@api/access';
 import { batchElectionsFunction } from '@dataloader/election';
 import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
+import { batchTagsFunction as batchArticleTagsFunction } from '@dataloader/tag';
 import { batchUsersFunction } from '@dataloader/user';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
@@ -90,6 +91,7 @@ const apolloServerConfig: Config<ExpressContext> = {
       postDataLoader: createDataLoader(batchPostsFunction),
       fileDataLoader: createDataLoader(batchFilesFunction),
       electionDataLoader: createDataLoader(batchElectionsFunction),
+      articleTagsDataLoader: createDataLoader(batchArticleTagsFunction),
     };
   },
   debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),

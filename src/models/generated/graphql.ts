@@ -564,7 +564,7 @@ export type NewArticle = {
   articleType: ArticleType;
   body: Scalars['String'];
   signature: Scalars['String'];
-  tags?: Maybe<Array<Scalars['String']>>;
+  tags: Array<Scalars['String']>;
   title: Scalars['String'];
 };
 
