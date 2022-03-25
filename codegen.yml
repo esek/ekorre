@@ -18,6 +18,7 @@ generates:
         Proposal: ../mappers#ProposalResponse
         Nomination: ../mappers#NominationResponse
         Hehe: ../mappers#HeheResponse
+        ApiKey: ../mappers#ApiKeyResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"
