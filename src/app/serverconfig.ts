@@ -11,7 +11,6 @@ import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
 import { batchTagsFunction as batchArticleTagsFunction } from '@dataloader/tag';
 import { batchUsersFunction } from '@dataloader/user';
-import { AccessResourceType } from '@generated/graphql';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -51,7 +50,7 @@ const apolloServerConfig: Config<ExpressContext> = {
   context: ({ req, res }: ContextParams): Context => {
     const accessToken = req?.cookies[COOKIES.accessToken] ?? '';
     const refreshToken = req?.cookies[COOKIES.refreshToken] ?? '';
-    const bearerToken = req?.headers?.authorization ?? '';
+    const bearerToken = (req?.headers?.authorization ?? '').replace('Bearer ', '').toLowerCase();
 
     /**
      * Tries to verify the users access token
@@ -77,15 +76,9 @@ const apolloServerConfig: Config<ExpressContext> = {
      */
     const getAccess = async () => {
       if (bearerToken) {
-        const access = await accessApi.getApiKeyAccess(
-          bearerToken.replace('Bearer ', '').toLowerCase(),
-        );
+        const access = await accessApi.getApiKeyAccess(bearerToken);
 
-        if (access?.length) {
-          return accessReducer(
-            access.map((a) => ({ ...a, resourcetype: AccessResourceType.Feature })),
-          );
-        }
+        return accessReducer(access);
       }
 
       const username = getUsername();
@@ -97,6 +90,7 @@ const apolloServerConfig: Config<ExpressContext> = {
     return {
       accessToken,
       refreshToken,
+      apiKey: bearerToken,
       getUsername,
       getAccess,
       response: res,

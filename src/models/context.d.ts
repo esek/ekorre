@@ -7,6 +7,7 @@ import type { Request, Response } from 'express';
 export type Context = {
   accessToken: string;
   refreshToken: string;
+  apiKey: string;
   response: Response;
   request: CustomReq;
   getUsername: () => string;

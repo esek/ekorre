@@ -3,11 +3,12 @@ import config from '@/config';
 import { useDataLoader } from '@/dataloaders';
 import { ServerError, UnauthenticatedError } from '@/errors/request.errors';
 import type { TokenType } from '@/models/auth';
+import { ApiKeyResponse } from '@/models/mappers';
 import { reduce } from '@/reducers';
 import { hasAccess } from '@/util';
 import ApiKeyAPI from '@api/apikey';
 import { UserAPI } from '@api/user';
-import { Feature, Resolvers } from '@generated/graphql';
+import { Feature, Resolvers, User } from '@generated/graphql';
 import { apiKeyReducer } from '@reducer/apikey';
 import { userReduce } from '@reducer/user';
 import { validateCasTicket } from '@service/cas';
@@ -41,14 +42,22 @@ const attachCookie = (
 
 const authResolver: Resolvers = {
   ApiKey: {
-    creator: useDataLoader((model, context) => ({
-      dataLoader: context.userDataLoader,
-      key: model.creator.username,
-    })),
+    creator: async (key, _, ctx) => {
+      // only superadmins can see the creator
+      await hasAccess(ctx, [Feature.Superadmin]);
+
+      return useDataLoader<ApiKeyResponse, User>((model) => {
+        return { dataLoader: ctx.userDataLoader, key: model.creator.username };
+      })(key, _, ctx);
+    },
   },
   Query: {
     apiKey: async (_, { key }, ctx) => {
-      await hasAccess(ctx, Feature.AccessAdmin);
+      // if its the key that's calling it we want to be able to see the info
+      if (ctx.apiKey !== key) {
+        await hasAccess(ctx, Feature.Superadmin);
+      }
+
       const dbKey = await apiKeyApi.getApiKey(key);
 
       return reduce(dbKey, apiKeyReducer);
