@@ -14,7 +14,10 @@ import { articleReducer } from '@reducer/article';
 const articleApi = new ArticleAPI();
 
 const checkEditAccess = async (ctx: Context, articleType: ArticleType) => {
-  await hasAccess(ctx, articleType === ArticleType.Information ? Feature.ArticleEditor : Feature.NewsEditor);
+  await hasAccess(
+    ctx,
+    articleType === ArticleType.Information ? Feature.ArticleEditor : Feature.NewsEditor,
+  );
 };
 
 /**
@@ -143,7 +146,7 @@ const articleResolver: Resolvers = {
     },
     modifyArticle: async (_, { articleId, entry }, ctx) => {
       const article = await articleApi.getArticle({ id: articleId, slug: null });
-      await checkEditAccess(ctx, article.articleType);
+      await checkEditAccess(ctx, entry?.articleType ?? article.articleType);
       return articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
     },
     removeArticle: async (_, { articleId }, ctx) => {
