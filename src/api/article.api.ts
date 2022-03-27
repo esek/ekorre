@@ -117,10 +117,18 @@ export class ArticleAPI {
    */
   async getArticles(params: Partial<DatabaseArticle>): Promise<DatabaseArticle[]> {
     const safeParams = stripObject(params);
+    const { tags, ...rest } = safeParams;
 
-    const article = await db<DatabaseArticle>(ARTICLE_TABLE).where(safeParams);
+    const query = db<DatabaseArticle>(ARTICLE_TABLE).where(rest);
 
-    return article;
+    if (tags && tags.length > 0) {
+      const ids = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('tag', tags);
+      query.whereIn('id', ids.map((t) => t.refarticle));
+    }
+
+    const response = await query;
+
+    return response;
   }
 
   /**
@@ -201,7 +209,7 @@ export class ArticleAPI {
   }
 
   async getTagsForArticles(ids: string[]): Promise<DatabaseArticleTag[][]> {
-    const tags = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('id', ids);
+    const tags = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('refarticle', ids);
 
     if (tags.length === 0) {
       return [];

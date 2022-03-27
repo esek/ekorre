@@ -749,7 +749,7 @@ export type QueryArticlesArgs = {
   lastUpdatedAt?: Maybe<Scalars['DateTime']>;
   markdown?: Maybe<Scalars['Boolean']>;
   signature?: Maybe<Scalars['String']>;
-  tags?: Maybe<Array<Maybe<Scalars['String']>>>;
+  tags?: Maybe<Array<Scalars['String']>>;
   title?: Maybe<Scalars['String']>;
 };
 

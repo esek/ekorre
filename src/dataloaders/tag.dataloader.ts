@@ -7,19 +7,13 @@ export const articleApi = new ArticleAPI();
 
 /**
  * Funktion som används för att skapa en DataLoader
- * för att batcha User-requests och öka prestanda
+ * för att batcha Tag-requests och öka prestanda
  * markant
- * @param usernames List of usernames
+ * @param artcileIds List of articles to get tags for
  */
 export const batchTagsFunction = async (
   articleIds: readonly string[],
 ): Promise<ArrayLike<string[] | Error>> => {
-  /**
-   * Batch function used as parameter to DataLoader constructor,
-   * see /src/resolvers/README.md
-   * @param usernames
-   */
-
   const apiResponse = await articleApi.getTagsForArticles(articleIds as string[]);
 
   if (apiResponse === null)
