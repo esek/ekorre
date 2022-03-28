@@ -1,4 +1,4 @@
-import { COOKIES, EXPIRE_MINUTES, invalidateTokens, issueToken, verifyToken } from '@/auth';
+import { COOKIES, EXPIRE_MINUTES, issueToken, verifyToken } from '@/auth';
 import config from '@/config';
 import { TokenType, TokenValue } from '@/models/auth';
 import { UserAPI } from '@api/user';
@@ -27,13 +27,9 @@ authRoute.post('/refresh', (req, res) => {
 
     try {
       const refreshToken = cookies[COOKIES.refreshToken];
-      const accessToken = cookies[COOKIES.accessToken];
 
       // Get username from refresh token
       const verified = verifyToken<TokenValue>(refreshToken, 'refreshToken');
-
-      // Invalidate old tokens
-      invalidateTokens(accessToken, refreshToken);
 
       // Fetch user from db
       const user = await userAPI.getSingleUser(verified.username);
