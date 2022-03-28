@@ -1,8 +1,9 @@
+import { ForbiddenError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { Feature } from '@generated/graphql';
-import { ForbiddenError } from '@/errors/request.errors';
-import { Context } from './models/context';
+
 import config from './config';
+import { Context } from './models/context';
 
 /**
  * Converts a date to UTC format
@@ -73,7 +74,7 @@ export const hasAccess = async (ctx: Context, requirement: Feature | Feature[]):
 
   const req = Array.isArray(requirement) ? requirement : [requirement];
 
-  const {features} = await ctx.getAccess();
+  const { features } = await ctx.getAccess();
 
   if (features.includes(Feature.Superadmin)) {
     return;
