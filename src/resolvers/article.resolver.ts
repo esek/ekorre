@@ -14,7 +14,10 @@ import { articleReducer } from '@reducer/article';
 const articleApi = new ArticleAPI();
 
 const checkEditAccess = async (ctx: Context, articleType: ArticleType) => {
-  await hasAccess(ctx, articleType === ArticleType.Information ? Feature.ArticleEditor : Feature.NewsEditor);
+  await hasAccess(
+    ctx,
+    articleType === ArticleType.Information ? Feature.ArticleEditor : Feature.NewsEditor,
+  );
 };
 
 /**
@@ -36,6 +39,10 @@ const articleResolver: Resolvers = {
     })),
     lastUpdatedAt: (model) => new Date(model.lastUpdatedAt),
     createdAt: (model) => new Date(model.createdAt),
+    tags: useDataLoader((model, ctx) => ({
+      key: model?.id ?? '',
+      dataLoader: ctx.articleTagsDataLoader,
+    })),
   },
   Query: {
     newsentries: async (_, { creator, after, before, markdown }, ctx) => {
@@ -143,7 +150,12 @@ const articleResolver: Resolvers = {
     },
     modifyArticle: async (_, { articleId, entry }, ctx) => {
       const article = await articleApi.getArticle({ id: articleId, slug: null });
-      await checkEditAccess(ctx, article.articleType);
+
+      /**
+       * If trying to set a new articleType, make sure we check that the user is allowed to do so.
+       *  */
+      await checkEditAccess(ctx, entry?.articleType ?? article.articleType);
+
       return articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
     },
     removeArticle: async (_, { articleId }, ctx) => {

@@ -5,6 +5,7 @@ import { DatabasePost, DatabasePostHistory } from '@db/post';
 import { Access, AccessInput, AccessResourceType } from '@generated/graphql';
 
 import {
+  API_KEY_ACCESS_TABLE,
   IND_ACCESS_TABLE,
   POSTS_HISTORY_TABLE,
   POSTS_TABLE,
@@ -27,10 +28,9 @@ export class AccessAPI {
    * @param username användaren
    */
   async getIndividualAccess(username: string): Promise<DatabaseAccess[]> {
-    const res = await db<DatabaseAccess>(IND_ACCESS_TABLE)
-      .where({
-        refname: username,
-      });
+    const res = await db<DatabaseAccess>(IND_ACCESS_TABLE).where({
+      refname: username,
+    });
 
     return res;
   }
@@ -40,10 +40,17 @@ export class AccessAPI {
    * @param postname posten
    */
   async getPostAccess(postname: string): Promise<DatabaseAccess[]> {
-    const res = await db<DatabaseAccess>(POST_ACCESS_TABLE)
-      .where({
-        refname: postname,
-      });
+    const res = await db<DatabaseAccess>(POST_ACCESS_TABLE).where({
+      refname: postname,
+    });
+
+    return res;
+  }
+
+  async getApiKeyAccess(apiKey: string): Promise<DatabaseAccess[]> {
+    const res = await db<DatabaseAccess>(API_KEY_ACCESS_TABLE).where({
+      refname: apiKey,
+    });
 
     return res;
   }
@@ -64,20 +71,20 @@ export class AccessAPI {
     const { doors, features } = newaccess;
     const access: DatabaseAccess[] = [];
 
-    doors.forEach((door) => 
+    doors.forEach((door) =>
       access.push({
         refname: ref,
         resourcetype: AccessResourceType.Door,
         resource: door as string,
-      })
+      }),
     );
 
-    features.forEach((feature) => 
+    features.forEach((feature) =>
       access.push({
         refname: ref,
         resourcetype: AccessResourceType.Feature,
         resource: feature as string,
-      })
+      }),
     );
 
     const changedRows = await db<DatabaseAccess>(table).insert(access);
@@ -88,6 +95,14 @@ export class AccessAPI {
     }
 
     return true;
+  }
+
+  async setApiKeyAccess(key: string, newAccess: AccessInput): Promise<boolean> {
+    const status = this.setAccess(API_KEY_ACCESS_TABLE, key, newAccess);
+
+    logger.info(`Updated access for api key ${key}`);
+    logger.debug(`Updated access for api key ${key} to ${Logger.pretty(newAccess)}`);
+    return status;
   }
 
   /**
@@ -130,8 +145,7 @@ export class AccessAPI {
     posts: string[],
     includeInactivePosts = false,
   ): Promise<DatabaseAccess[]> {
-    const query = db<DatabaseAccess>(POST_ACCESS_TABLE)
-      .whereIn('refname', posts);
+    const query = db<DatabaseAccess>(POST_ACCESS_TABLE).whereIn('refname', posts);
 
     // Om inaktiva posters access inte ska inkluderas,
     // ta in `POSTS_TABLE` och se vilka som är aktiva

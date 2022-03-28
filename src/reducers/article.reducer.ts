@@ -1,5 +1,5 @@
 import { ArticleResponse } from '@/models/mappers';
-import type { DatabaseArticle } from '@db/article';
+import type { DatabaseArticle, DatabaseArticleTag } from '@db/article';
 import DOMPurify from 'dompurify';
 import { JSDOM } from 'jsdom';
 import showdown from 'showdown';
@@ -60,8 +60,6 @@ const articleReduce = (article: DatabaseArticle, markdown: boolean): ArticleResp
     ...reduced,
     body: sanitizedBody.trim(),
     slug: generateSlug(`${reduced.title}-${reduced.id ?? ''}`),
-    // Exteremely temporary fix for tags, as SQL can't store arrays
-    tags: (reduced.tags as unknown as string).toString().split(','),
     creator: {
       username: refcreator,
     },
@@ -94,3 +92,7 @@ export async function articleReducer(
   }
   return articleReduce(a, markdown);
 }
+
+export const articleTagReducer = (tags: DatabaseArticleTag[]): string[] => {
+  return tags.map((t) => t.tag);
+};

@@ -2,12 +2,12 @@
 import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { stripObject, toUTC } from '@/util';
-import type { DatabaseArticle } from '@db/article';
+import type { DatabaseArticle, DatabaseArticleTag } from '@db/article';
 import { ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
 import { convertMarkdownToHtml } from '@reducer/article';
 import { Maybe } from 'graphql/jsutils/Maybe';
 
-import { ARTICLE_TABLE } from './constants';
+import { ARTICLE_TABLE, ARTICLE_TAGS_TABLE } from './constants';
 import db from './knex';
 
 // Refs används när en annan databas innehåller informationen,
@@ -117,10 +117,18 @@ export class ArticleAPI {
    */
   async getArticles(params: Partial<DatabaseArticle>): Promise<DatabaseArticle[]> {
     const safeParams = stripObject(params);
+    const { tags, ...rest } = safeParams;
 
-    const article = await db<DatabaseArticle>(ARTICLE_TABLE).where(safeParams);
+    const query = db<DatabaseArticle>(ARTICLE_TABLE).where(rest);
 
-    return article;
+    if (tags?.length) {
+      const ids = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('tag', tags);
+      query.whereIn('id', ids.map((t) => t.refarticle));
+    }
+
+    const response = await query;
+
+    return response;
   }
 
   /**
@@ -192,5 +200,22 @@ export class ArticleAPI {
   async removeArticle(id: string): Promise<boolean> {
     const res = await db<DatabaseArticle>(ARTICLE_TABLE).delete().where('id', id);
     return res > 0;
+  }
+
+  async getTagsForArticle(id: string): Promise<DatabaseArticleTag[]> {
+    const tags = await this.getTagsForArticles([id]);
+
+    return tags?.length !== 0 && tags[0]?.length > 0 ? tags[0] : [];
+  }
+
+  async getTagsForArticles(ids: string[]): Promise<DatabaseArticleTag[][]> {
+    const tags = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('refarticle', ids);
+
+    // Går att optimera
+    const mapped = ids.map((id) => {
+      return tags.filter((tag) => tag.refarticle === id);
+    });
+
+    return mapped;
   }
 }

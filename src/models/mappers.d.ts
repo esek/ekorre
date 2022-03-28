@@ -9,7 +9,7 @@
  * 2) `generated/graphql.ts` ser bra ut
  */
 import {
-  AccessResource,
+  ApiKey,
   Article,
   Election,
   File,
@@ -58,4 +58,8 @@ export type NominationResponse = Partial<Omit<Nomination, 'user' | 'post'>> & {
 export type HeheResponse = Omit<Hehe, 'uploader' | 'file'> & {
   uploader: Partial<User>;
   file: Partial<File>;
+};
+
+export type ApiKeyResponse = Omit<ApiKey, 'creator' | 'refcreator'> & {
+  creator: Partial<User>;
 };
