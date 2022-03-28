@@ -163,8 +163,7 @@ export class ArticleAPI {
       reflastupdateby: creatorUsername,
     };
 
-    const idvect = await db<DatabaseArticle>(ARTICLE_TABLE).insert(article).returning('id');
-    const [id] = idvect;
+    const [id]: string | undefined [] = await db<DatabaseArticle>(ARTICLE_TABLE).insert(article).returning('id');
 
     if (id == null) {
       throw new Error('Kunde inte lägga till artikel');
