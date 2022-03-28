@@ -6,6 +6,7 @@ import { TokenValue } from '@/models/auth';
 import type { Context, ContextParams } from '@/models/context';
 import * as Resolvers from '@/resolvers';
 import { AccessAPI } from '@api/access';
+import ApiKeyAPI from '@api/apikey';
 import { batchElectionsFunction } from '@dataloader/election';
 import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
@@ -44,6 +45,7 @@ const schema = makeExecutableSchema({
 const apolloLogger = Logger.getLogger('Apollo');
 
 const accessApi = new AccessAPI();
+const apiKeyApi = new ApiKeyAPI();
 
 const apolloServerConfig: Config<ExpressContext> = {
   schema,
@@ -76,6 +78,12 @@ const apolloServerConfig: Config<ExpressContext> = {
      */
     const getAccess = async () => {
       if (bearerToken) {
+        const validKey = await apiKeyApi.checkApiKey(bearerToken);
+
+        if (!validKey) {
+          throw new UnauthenticatedError('Denna API nyckel är inte giltig!');
+        }
+
         const access = await accessApi.getApiKeyAccess(bearerToken);
 
         return accessReducer(access);
