@@ -121,7 +121,7 @@ export class ArticleAPI {
 
     const query = db<DatabaseArticle>(ARTICLE_TABLE).where(rest);
 
-    if (tags && tags.length > 0) {
+    if (tags?.length) {
       const ids = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('tag', tags);
       query.whereIn('id', ids.map((t) => t.refarticle));
     }
@@ -210,10 +210,6 @@ export class ArticleAPI {
 
   async getTagsForArticles(ids: string[]): Promise<DatabaseArticleTag[][]> {
     const tags = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('refarticle', ids);
-
-    if (tags.length === 0) {
-      return [];
-    }
 
     // Går att optimera
     const mapped = ids.map((id) => {
