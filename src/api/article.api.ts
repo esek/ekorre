@@ -115,7 +115,7 @@ export class ArticleAPI {
    * Returns a list of AticleModels from database WHERE params match.
    * @param params possible params are ArticleModel parts.
    */
-  async getArticles(params: Partial<DatabaseArticle>): Promise<DatabaseArticle[]> {
+  async getArticles(params: Partial<DatabaseArticle & { tags: string[] }>): Promise<DatabaseArticle[]> {
     const safeParams = stripObject(params);
     const { tags, ...rest } = safeParams;
 
@@ -150,22 +150,30 @@ export class ArticleAPI {
    * @param entry artikel som ska läggas till
    */
   async newArticle(creatorUsername: string, entry: NewArticle): Promise<DatabaseArticle> {
+
+    const { tags, ...rest } = entry;
+
     // Lägger till dagens datum som createdAt och lastUpdatedAt
     // samt sätter creator som lastUpdateBy
     const article: DatabaseArticle = {
-      ...entry,
+      ...rest,
       createdAt: toUTC(new Date()),
       lastUpdatedAt: toUTC(new Date()),
-      tags: entry.tags ?? [],
       refcreator: creatorUsername,
       reflastupdateby: creatorUsername,
     };
 
-    const res = await db<DatabaseArticle>(ARTICLE_TABLE).insert(article);
+    const [id]: string | undefined [] = await db<DatabaseArticle>(ARTICLE_TABLE).insert(article).returning('id');
+
+    if (id == null) {
+      throw new Error('Kunde inte lägga till artikel');
+    }
+
+    await this.addTags(id, tags);
 
     return {
       ...article,
-      id: res[0].toString() ?? -1,
+      id: id ?? -1,
     };
   }
 
@@ -181,7 +189,9 @@ export class ArticleAPI {
       throw new BadRequestError('Artiklar måste modifieras av inloggade användare');
     }
 
-    const update: StrictObject = stripObject(entry);
+    const { tags, ...rest } = entry;
+
+    const update: StrictObject = stripObject(rest);
 
     // We only want to update the body if it is passed
     if (update.body != null) {
@@ -193,6 +203,11 @@ export class ArticleAPI {
     update.lastUpdatedAt = toUTC(new Date());
 
     const res = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', id).update(update);
+
+    if (tags?.length) {
+      await this.removeTags(id);
+      await this.addTags(id, tags);
+    }
 
     return res > 0;
   }
@@ -217,5 +232,19 @@ export class ArticleAPI {
     });
 
     return mapped;
+  }
+
+  async addTags(articleId: string, tags: string[]): Promise<boolean> {
+    const tagentries: DatabaseArticleTag[] = tags.map((tag) => ({ tag, refarticle: articleId }));
+
+    // Should error here if anything goes wrong
+    await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).insert(tagentries);
+
+    return true;
+  }
+
+  async removeTags(articleId: string): Promise<boolean> {
+    await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).where('refarticle', articleId).delete();
+    return true;
   }
 }

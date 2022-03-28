@@ -60,6 +60,16 @@ class ApiKeyAPI {
     const res = await db<DatabaseApiKey>(API_KEY_TABLE);
     return res;
   }
+
+  async checkApiKey(key: string): Promise<boolean> {
+    const res = await db<DatabaseApiKey>(API_KEY_TABLE)
+      .where({
+        key,
+      })
+      .first();
+
+    return res != null;
+  }
 }
 
 export default ApiKeyAPI;
