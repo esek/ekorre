@@ -84,6 +84,14 @@ CREATE TABLE "IndividualAccess" (
 	FOREIGN KEY("refname") REFERENCES "Users"("username")
 );
 
+CREATE TABLE "ApiKeyAccess" (
+	"refname"	TEXT NOT NULL,
+	"resource"	TEXT NOT NULL,
+	"resourcetype" TEXT NOT NULL,
+	PRIMARY KEY("refname","resource"),
+	FOREIGN KEY("refname") REFERENCES "ApiKeys"("key")
+);
+
 INSERT INTO PostAccess VALUES('Macapär', 'sikrit', 'door');
 INSERT INTO PostAccess VALUES('Macapär', 'bd', 'door');
 INSERT INTO PostAccess VALUES('Macapär', 'superadmin', 'feature');
@@ -102,15 +110,25 @@ CREATE TABLE IF NOT EXISTS "Articles" (
   "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "lastUpdatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "signature" TEXT NOT NULL,
-  "tags" TEXT NOT NULL,
   "articleType" TEXT NOT NULL,
   FOREIGN KEY("refcreator") REFERENCES "Users"("username")
   FOREIGN KEY("reflastupdateby") REFERENCES "Users"("username")
 );
 
-INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('aa0000bb-s', 'aa0000bb-s', 'Nyhet 1', '<h1>Detta är en nyhet</h1><p>Body för nyheten<b>bold!</b></p>', 'AB', 'tag1,tag2','news');
-INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('bb1111cc-s', 'aa0000bb-s', 'Nyhet 2', '<h1>Detta är också en nyhet</h1><p>Body för nyheten<i>italic!</i></p>', 'Hejsan', 'tag1,tag2','news');
-INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('no0000oh-s', 'no0000oh-s', 'Info 1', '<h1>Detta är information</h1><p>Body för infon<s>strikethrough!</s></p>', 'XX', '','information');
+CREATE TABLE IF NOT EXISTS "ArticleTags" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "refarticle" INTEGER NOT NULL,
+  "tag" TEXT NOT NULL,
+  FOREIGN KEY("refarticle") REFERENCES "Articles"("id")
+);
+
+INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, articleType) VALUES ('aa0000bb-s', 'aa0000bb-s', 'Nyhet 1', '<h1>Detta är en nyhet</h1><p>Body för nyheten<b>bold!</b></p>', 'AB', 'news');
+INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, articleType) VALUES ('bb1111cc-s', 'aa0000bb-s', 'Nyhet 2', '<h1>Detta är också en nyhet</h1><p>Body för nyheten<i>italic!</i></p>', 'Hejsan', 'news');
+INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, articleType) VALUES ('no0000oh-s', 'no0000oh-s', 'Info 1', '<h1>Detta är information</h1><p>Body för infon<s>strikethrough!</s></p>', 'XX', 'information');
+
+INSERT INTO ArticleTags (refarticle, tag) VALUES (1, 'tag1');
+INSERT INTO ArticleTags (refarticle, tag) VALUES (1, 'tag2');
+INSERT INTO ArticleTags (refarticle, tag) VALUES (2, 'tag1');
 
 CREATE TABLE IF NOT EXISTS "Files" (
   "id" TEXT PRIMARY KEY,
@@ -222,6 +240,14 @@ CREATE TABLE IF NOT EXISTS "Hehes" (
   FOREIGN KEY("refuploader") REFERENCES "Users"("username"),
   FOREIGN KEY("reffile") REFERENCES "Files"("id"),
   PRIMARY KEY ("number", "year")
+);
+
+CREATE TABLE "ApiKeys" (
+	"key"	TEXT PRIMARY KEY NOT NULL UNIQUE,
+	"description" TEXT NOT NULL,
+	"createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	"refcreator" TEXT NOT NULL,
+	FOREIGN KEY("refcreator") REFERENCES "Users"("username")
 );
 
 END TRANSACTION;

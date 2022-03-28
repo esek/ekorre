@@ -1,12 +1,13 @@
 import type { FileResponse } from '@/models/mappers';
 import type { Access, Post, User } from '@generated/graphql';
-import { ExpressContext } from 'apollo-server-express';
+import type { ExpressContext } from 'apollo-server-express';
 import type DataLoader from 'dataloader';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 export type Context = {
   accessToken: string;
   refreshToken: string;
+  apiKey: string;
   response: Response;
   request: CustomReq;
   getUsername: () => string;
@@ -15,6 +16,7 @@ export type Context = {
   postDataLoader: DataLoader<string, Post>;
   fileDataLoader: DataLoader<string, FileResponse>;
   electionDataLoader: DataLoader<string, ElectionResponse>;
+  articleTagsDataLoader: DataLoader<string, string[]>;
 };
 
 export type ContextParams = Omit<ExpressContext, 'req'> & { req: CustomReq };

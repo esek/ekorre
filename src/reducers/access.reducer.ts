@@ -1,5 +1,12 @@
 import type { DatabaseAccess } from '@db/access';
-import { Access, AccessResourceType, Door, DoorInfo, Feature, FeatureInfo } from '@generated/graphql';
+import {
+  Access,
+  AccessResourceType,
+  Door,
+  DoorInfo,
+  Feature,
+  FeatureInfo,
+} from '@generated/graphql';
 
 /**
  * Reduce database access arrays to an access object
@@ -40,7 +47,7 @@ export const accessReducer = (dbAccess: DatabaseAccess[]): Access => {
   return access;
 };
 
-const featureDescriptions: Record<string, string> = {
+const featureDescriptions: Record<Feature, string> = {
   [Feature.AccessAdmin]: 'För att kunna administrera access',
   [Feature.PostAdmin]: 'För att kunna administrera poster och dess medlemmar',
   [Feature.UserAdmin]: 'För att kunna administrera användare',
@@ -50,6 +57,7 @@ const featureDescriptions: Record<string, string> = {
   [Feature.ArticleEditor]: 'För att kunna skriva informationssidor',
   [Feature.Superadmin]: 'För att kunna administrera allt',
   [Feature.MeetingsAdmin]: 'För att kunna administrera möten',
+  [Feature.FilesAdmin]: 'För att kunna administrera filer',
 };
 
 export const featureReducer = (features: Feature[]): FeatureInfo[] => {
@@ -59,12 +67,14 @@ export const featureReducer = (features: Feature[]): FeatureInfo[] => {
   }));
 
   // Superadmin should be first
-  const sorted = featureInfos.sort((a, b) => a.name === Feature.Superadmin ? -1 : a.name.localeCompare(b.name));
+  const sorted = featureInfos.sort((a, b) =>
+    a.name === Feature.Superadmin ? -1 : a.name.localeCompare(b.name),
+  );
 
   return sorted;
 };
 
-const doorDescriptions: Record<string, string> = {
+const doorDescriptions: Record<Door, string> = {
   [Door.Arkivet]: 'NollU:s svinstia',
   [Door.Bd]: 'Den blåa dörren i Edekvata',
   [Door.Biljard]: 'Skåpet i biljard',

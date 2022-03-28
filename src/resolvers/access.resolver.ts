@@ -20,9 +20,13 @@ const accessresolver: Resolvers = {
       return accessReducer(access);
     },
     features: () => featureReducer(Object.values(Feature)),
-    doors: () => doorReducer(Object.values(Door))
+    doors: () => doorReducer(Object.values(Door)),
   },
   Mutation: {
+    setApiKeyAccess: async (_, { access, key }, ctx) => {
+      await hasAccess(ctx, [Feature.AccessAdmin]);
+      return accessApi.setApiKeyAccess(key, access);
+    },
     setIndividualAccess: async (_, { username, access }, ctx) => {
       await hasAccess(ctx, Feature.AccessAdmin);
       return accessApi.setIndividualAccess(username, access);
@@ -30,7 +34,13 @@ const accessresolver: Resolvers = {
     setPostAccess: async (_, { postname, access }, ctx) => {
       await hasAccess(ctx, Feature.AccessAdmin);
       return accessApi.setPostAccess(postname, access);
-    }
+    },
+  },
+  ApiKey: {
+    access: async ({ key }) => {
+      const access = await accessApi.getApiKeyAccess(key);
+      return accessReducer(access);
+    },
   },
   User: {
     access: async ({ username }) => {
