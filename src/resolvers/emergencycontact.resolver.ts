@@ -1,17 +1,11 @@
 import { reduce } from '@/reducers';
 import EmergencyContactAPI from '@api/emergencycontact';
 import type { Resolvers } from '@generated/graphql';
-import { emergencyContactReducer } from '@reducer/emergencycontact';
+import { checkUserFieldAccess } from './user.resolver';
 
 const ecApi = new EmergencyContactAPI();
 
 const emergencycontactresolver: Resolvers = {
-  Query: {
-    emergencyContacts: async (_, { username }) => {
-      const contacts = await ecApi.getEmergencyContacts(username);
-      return reduce(contacts, emergencyContactReducer);
-    },
-  },
   Mutation: {
     addEmergencyContact: async (_, { name, phone, type }, { getUsername }) => {
       const username = getUsername();
@@ -25,6 +19,13 @@ const emergencycontactresolver: Resolvers = {
       return removed;
     },
   },
+  User: {
+    emergencyContacts: async (user, _, ctx) => {
+      checkUserFieldAccess(ctx, user);
+      const contacts = await ecApi.getEmergencyContacts(user.username);
+      return contacts;
+    }
+  }
 };
 
 export default emergencycontactresolver;

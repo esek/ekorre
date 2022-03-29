@@ -1,24 +1,19 @@
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import type {
-  PrismaAccessMapping,
-  PrismaAccessMappingType,
-  PrismaAccessResource,
-  PrismaIndividualAccess,
-  PrismaPostAccess,
-} from '@prisma/client';
+import { DatabaseAccess } from '@db/access';
+import { DatabasePost, DatabasePostHistory } from '@db/post';
+import { Access, AccessInput, AccessResourceType } from '@generated/graphql';
 
-import prisma from './prisma';
+import {
+  API_KEY_ACCESS_TABLE,
+  IND_ACCESS_TABLE,
+  POSTS_HISTORY_TABLE,
+  POSTS_TABLE,
+  POST_ACCESS_TABLE,
+} from './constants';
+import db from './knex';
 
 const logger = Logger.getLogger('AccessAPI');
-
-export type DatabaseIndividualJoinedAccess = PrismaIndividualAccess & {
-  resource: PrismaAccessResource;
-};
-
-export type DatabasePostJoinedAccess = PrismaPostAccess & {
-  resource: PrismaAccessResource;
-};
 
 /**
  * Det är api:n som hanterar access.
@@ -32,14 +27,10 @@ export class AccessAPI {
    * Hämta specifik access för en användare
    * @param username användaren
    */
-  async getIndividualAccess(username: string): Promise<DatabaseIndividualJoinedAccess[]> {
-    const access = await prisma.prismaIndividualAccess.findMany({
-      where: {
-        refUser: username,
-      },
-      include: {
-        resource: true,
-      },
+  // TODO: Migrera till prisma
+  async getIndividualAccess(username: string): Promise<DatabaseAccess[]> {
+    const res = await db<DatabaseAccess>(IND_ACCESS_TABLE).where({
+      refname: username,
     });
 
     console.log(access);
@@ -51,14 +42,19 @@ export class AccessAPI {
    * Hämta access för en post.
    * @param postname posten
    */
-  async getPostAccess(postname: string): Promise<DatabasePostJoinedAccess[]> {
-    const access = await prisma.prismaPostAccess.findMany({
-      where: {
-        refPost: postname,
-      },
-      include: {
-        resource: true,
-      },
+  // TOOD: Migrera till prisma
+  async getPostAccess(postname: string): Promise<DatabaseAccess[]> {
+    const res = await db<DatabaseAccess>(POST_ACCESS_TABLE).where({
+      refname: postname,
+    });
+
+    return res;
+  }
+
+  // TODO: Migrera till prisma
+  async getApiKeyAccess(apiKey: string): Promise<DatabaseAccess[]> {
+    const res = await db<DatabaseAccess>(API_KEY_ACCESS_TABLE).where({
+      refname: apiKey,
     });
 
     return access;
@@ -87,12 +83,73 @@ export class AccessAPI {
       const inserted = await prisma.prismaIndividualAccess.createMany({
         data: inserts,
       });
-
-      return inserted.count > 0;
     }
 
-    return false;
+      return inserted.count > 0;
   }
+
+      // TODO: Lös vilken av desssa som är korrekt
+  // /**
+  //  * Sätt access för en användare. VIKTIGT: Access är icke muterbart
+  //  * vilket innebär att accessobjektet som matas ska innehålla allt
+  //  * som behövs.
+  //  * @param username användaren
+  //  * @param newaccess den nya accessen
+  //  */
+  // async setIndividualAccess(username: string, newaccess: AccessInput): Promise<boolean> {
+  //   const status = this.setAccess(IND_ACCESS_TABLE, username, newaccess);
+
+  //   logger.info(`Updated access for user ${username}`);
+  //   logger.debug(`Updated access for user ${username} to ${Logger.pretty(newaccess)}`);
+  //   return status;
+  // }
+  
+  // TODO: Migrera till prisma
+  private async setAccess(table: string, ref: string, newaccess: Access): Promise<boolean> {
+    await db<DatabaseAccess>(table)
+      .where({
+        refname: ref,
+      })
+      .delete();
+
+    const { doors, features } = newaccess;
+    const access: DatabaseAccess[] = [];
+
+    doors.forEach((door) =>
+      access.push({
+        refname: ref,
+        resourcetype: AccessResourceType.Door,
+        resource: door as string,
+      }),
+    );
+
+    features.forEach((feature) =>
+      access.push({
+        refname: ref,
+        resourcetype: AccessResourceType.Feature,
+        resource: feature as string,
+      }),
+    );
+
+    const changedRows = await db<DatabaseAccess>(table).insert(access);
+
+    // Fett oklart men den ska kolla ifall det lyckades
+    if (changedRows.some((s) => s <= 0)) {
+      throw new ServerError('Failed to set access');
+    }
+
+    return true;
+  }
+
+  // TODO: Migrera till prisma
+  async setApiKeyAccess(key: string, newAccess: AccessInput): Promise<boolean> {
+    const status = this.setAccess(API_KEY_ACCESS_TABLE, key, newAccess);
+
+    logger.info(`Updated access for api key ${key}`);
+    logger.debug(`Updated access for api key ${key} to ${Logger.pretty(newAccess)}`);
+    return status;
+  }
+
 
   /**
    * Sätt access för en post. VIKTIGT: Access är icke muterbart
@@ -101,29 +158,35 @@ export class AccessAPI {
    * @param postname posten
    * @param newaccess den nya accessen
    */
-  async setPostAccess(slug: string, newaccess: string[]): Promise<boolean> {
-    // Only do insert with actual values.
-    const inserts = newaccess.map<Omit<PrismaPostAccess, 'id'>>((id) => ({
-      refResource: id,
-      refPost: slug,
-    }));
+  // TODO: Port to prisma
+// <<<<<<<
+//   async setPostAccess(slug: string, newaccess: string[]): Promise<boolean> {
+//     // Only do insert with actual values.
+//     const inserts = newaccess.map<Omit<PrismaPostAccess, 'id'>>((id) => ({
+//       refResource: id,
+//       refPost: slug,
+//     }));
+// =======
+//   async setPostAccess(postname: string, newaccess: AccessInput): Promise<boolean> {
+//     const status = this.setAccess(POST_ACCESS_TABLE, postname, newaccess);
+// >>>>>>>
 
-    await prisma.prismaPostAccess.deleteMany({
-      where: {
-        refPost: slug,
-      },
-    });
+//     await prisma.prismaPostAccess.deleteMany({
+//       where: {
+//         refPost: slug,
+//       },
+//     });
 
-    if (inserts.length > 0) {
-      const inserted = await prisma.prismaPostAccess.createMany({
-        data: inserts,
-      });
+//     if (inserts.length > 0) {
+//       const inserted = await prisma.prismaPostAccess.createMany({
+//         data: inserts,
+//       });
 
-      return inserted.count > 0;
-    }
+//       return inserted.count > 0;
+//     }
 
-    return false;
-  }
+//     return false;
+//   }
 
   /**
    * Hämta access för flera poster.
@@ -131,88 +194,89 @@ export class AccessAPI {
    * @param posts posterna
    * @param includeInactivePosts Om inaktiverade posters access ska tas med
    */
-  async getAccessForPosts(
-    posts: string[],
-    includeInactivePosts = false,
-  ): Promise<DatabasePostJoinedAccess[]> {
-    const data = await prisma.prismaPostAccess.findMany({
-      where: {
-        refPost: {
-          in: posts,
-        },
-        post: {
-          active: !includeInactivePosts ?? undefined,
-        },
-      },
-      include: {
-        resource: true,
-      },
-    });
+  // TODO: Migrate to prisma
+  // async getAccessForPosts(
+  //   posts: string[],
+  //   includeInactivePosts = false,
+  // ): Promise<DatabasePostJoinedAccess[]> {
+  //   const data = await prisma.prismaPostAccess.findMany({
+  //     where: {
+  //       refPost: {
+  //         in: posts,
+  //       },
+  //       post: {
+  //         active: !includeInactivePosts ?? undefined,
+  //       },
+  //     },
+  //     include: {
+  //       resource: true,
+  //     },
+  //   });
+  // ): Promise<DatabaseAccess[]> {
+  //   const query = db<DatabaseAccess>(POST_ACCESS_TABLE).whereIn('refname', posts);
 
-    return data;
-  }
+  //   return data;
+  // }
 
   /**
    * Gets the users access with respect to what posts they have
    * @param username The user to get
    * @returns A list of all the accessable resources
    */
-  async getUserPostAccess(username: string): Promise<DatabasePostJoinedAccess[]> {
-    // const res = await db<DatabaseAccess>(POST_ACCESS_TABLE)
-    //   .join<DatabaseAccessResource>(ACCESS_RESOURCES_TABLE, 'refaccessresource', 'slug')
-    //   .join<DatabasePostHistory>(POSTS_HISTORY_TABLE, 'refpost', 'refname')
-    //   .where({
-    //     refuser: username,
-    //   })
-    //   .andWhere((q) => {
-    //     // Only fetch active posts
-    //     q.whereNull('end').orWhere('end', '>', new Date().getTime());
-    //   })
-    //   .distinct(); // remove any duplicates
+  // TODO: Migrate to prisma
+  // async getUserPostAccess(username: string) {
+  //   const res = await db<DatabaseAccess>(POST_ACCESS_TABLE)
+  //     .join<DatabasePostHistory>(POSTS_HISTORY_TABLE, 'refpost', 'refname')
+  //     .where({
+  //       refuser: username,
+  //     })
+  //     .andWhere((q) => {
+  //       // Only fetch active posts
+  //       q.whereNull('end').orWhere('end', '>', new Date().getTime());
+  //     })
+  //     .distinct(); // remove any duplicates
 
-    const access = await prisma.prismaPostAccess.findMany({
-      where: {
-        post: {
-          history: {
-            every: {
-              AND: [
-                {
-                  refUser: username,
-                },
-                {
-                  OR: [
-                    {
-                      endDate: null,
-                    },
-                    {
-                      endDate: {
-                        gt: new Date(),
-                      },
-                    },
-                  ],
-                },
-              ],
-            },
-          },
-        },
-      },
-      distinct: ['refResource'],
-      include: {
-        resource: true,
-      },
-    });
+  //   const access = await prisma.prismaPostAccess.findMany({
+  //     where: {
+  //       post: {
+  //         history: {
+  //           every: {
+  //             AND: [
+  //               {
+  //                 refUser: username,
+  //               },
+  //               {
+  //                 OR: [
+  //                   {
+  //                     endDate: null,
+  //                   },
+  //                   {
+  //                     endDate: {
+  //                       gt: new Date(),
+  //                     },
+  //                   },
+  //                 ],
+  //               },
+  //             ],
+  //           },
+  //         },
+  //       },
+  //     },
+  //     distinct: ['refResource'],
+  //     include: {
+  //       resource: true,
+  //     },
+  //   });
 
-    return access;
-  }
+  //   return access;
+  // }
 
   /**
    * Gets a users entire access, including inherited access from posts
    * @param username The user whose access to get
    * @returns A list of databaseaccess objects
    */
-  async getUserFullAccess(
-    username: string,
-  ): Promise<(DatabasePostJoinedAccess | DatabaseIndividualJoinedAccess)[]> {
+  async getUserFullAccess(username: string): Promise<DatabaseAccess[]> {
     // Get the individual access for that user
     const individual = this.getIndividualAccess(username);
     // Get the postaccess for that users posts
@@ -222,73 +286,5 @@ export class AccessAPI {
 
     // Flatten the array of access from the promises
     return p.flat();
-  }
-
-  /**
-   * Gets the mapping for a resource
-   * @param type The type of resource (query or mutation)
-   * @param name The name of the resource
-   * @returns A list of mappings
-   */
-  async getAccessMapping(
-    name?: string,
-    type?: PrismaAccessMappingType,
-  ): Promise<PrismaAccessMapping[]> {
-    const mappings = await prisma.prismaAccessMapping.findMany({
-      where: {
-        AND: [
-          {
-            name,
-          },
-          {
-            type,
-          },
-        ],
-      },
-    });
-
-    return mappings;
-  }
-
-  /**
-   * Sets (overrides) the mapping for a resolver
-   * @param {string} resolverName The name of the resolver
-   * @param {string} resolverType The type of the resolver
-   * @param {string} slugs The slugs of the resoures to set
-   * @returns {boolean} True if successful
-   */
-  async setAccessMappings(
-    name: string,
-    type: PrismaAccessMappingType,
-    slugs?: string[],
-  ): Promise<boolean> {
-    // const q = db<DatabaseAccessMapping>(ACCESS_MAPPINGS_TABLE);
-
-    await prisma.prismaAccessMapping.deleteMany({
-      where: {
-        AND: [
-          {
-            name,
-          },
-          {
-            type,
-          },
-        ],
-      },
-    });
-
-    // if we have anything to add
-    if (slugs) {
-      try {
-        // await q.insert(slugs.map((s) => ({ refaccessresource: s, resolverName, resolverType })));
-        await prisma.prismaAccessMapping.createMany({
-          data: slugs.map((s) => ({ name, type, refResource: s })),
-        });
-      } catch {
-        throw new ServerError('Kunde inte skapa mappningen av resursen');
-      }
-    }
-
-    return true;
   }
 }

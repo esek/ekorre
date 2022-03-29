@@ -4,7 +4,7 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.12.0] - 2022-02-16
+## [0.14.0] - 2022-02-16
 
 ### Tillagt
 - `prisma` är nytt sätt att hantera databasen
@@ -21,6 +21,23 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Enums i GraphQL-schemas har nu konsekvent `UPPER_CASE`
 - `npm run generate` genererar nu både typer från GraphQL-schema och `PrismaClient` från prisma-schema. `npm run graphql:generate` ersätter gamla `npm run generate`
 
+## [0.13.0] - 2022-03-25
+
+### Tillagt
+- API Nyckel tabell för att kunna använda API-nycklar i andra applikationer.
+
+
+## [0.12.0] - 2022-03-23
+
+### Ändrat
+- Access API har blivit betydligt mycket enklare genom att det finns fördefinerade
+roller i en enum döpt till `Feature`. Dörrar finns även i en enum vid namn `Door`.
+- EmergencyContacts ligger på user objektet
+
+### Borttaget
+- Allt som har med Access mappings att göra.
+- Doors api endpoint, detta ska lösas i en microservice.
+- emergencyContacts queryn
 ## [0.11.0] - 2022-02-16
 
 ### Tillagt

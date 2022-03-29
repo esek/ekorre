@@ -1,12 +1,11 @@
-type Query {
-	emergencyContacts(username: String!): [EmergencyContact!]!
-}
-
 type Mutation {
-    addEmergencyContact(name: String!, phone: String!, type: EmergencyContactType!): Boolean! 
-		removeEmergencyContact(id: Int!): Boolean!
+	addEmergencyContact(name: String!, phone: String!, type: EmergencyContactType!): Boolean! 
+	removeEmergencyContact(id: Int!): Boolean!
 }
 
+extend type User {
+	emergencyContacts: [EmergencyContact!]!
+}
 
 type EmergencyContact {
 	id: Int!

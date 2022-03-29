@@ -9,6 +9,7 @@
  * 2) `generated/graphql.ts` ser bra ut
  */
 import {
+  ApiKey,
   Article,
   Election,
   File,
@@ -40,8 +41,6 @@ export type MeetingResponse = Partial<Omit<Meeting, 'summons' | 'documents' | 'l
   appendix?: Partial<File>;
 };
 
-export type AccessResourceResponse = Partial<PrismaAccessResource>;
-
 // prettier-ignore
 export type ElectionResponse = Partial<Omit<Election, 'creator' | 'electables' | 'proposals' | 'acceptedNominations'>> & {
   creator: Partial<User>;
@@ -60,4 +59,8 @@ export type NominationResponse = Partial<Omit<Nomination, 'user' | 'post'>> & {
 export type HeheResponse = Omit<Hehe, 'uploader' | 'file'> & {
   uploader: Partial<User>;
   file: Partial<File>;
+};
+
+export type ApiKeyResponse = Omit<ApiKey, 'creator' | 'refcreator'> & {
+  creator: Partial<User>;
 };

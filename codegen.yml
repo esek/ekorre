@@ -14,11 +14,11 @@ generates:
         Article: ../mappers#ArticleResponse
         File: ../mappers#FileResponse
         Meeting: ../mappers#MeetingResponse
-        AccessResource: ../mappers#AccessResourceResponse
         Election: ../mappers#ElectionResponse
         Proposal: ../mappers#ProposalResponse
         Nomination: ../mappers#NominationResponse
         Hehe: ../mappers#HeheResponse
+        ApiKey: ../mappers#ApiKeyResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"
