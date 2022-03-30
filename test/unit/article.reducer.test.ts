@@ -1,7 +1,7 @@
 /* eslint-disable no-multi-str */
 import { ArticleResponse } from '@/models/mappers';
-import { PrismaArticle } from '@prisma/client';
 import { ArticleType } from '@generated/graphql';
+import { PrismaArticle } from '@prisma/client';
 import { articleReducer, convertMarkdownToHtml } from '@reducer/article';
 
 const okMarkdown =

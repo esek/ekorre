@@ -8,7 +8,14 @@ import {
 import db from '@/api/knex';
 import { issueToken } from '@/auth';
 import { Door, Feature, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
-import { ADD_POST_MUTATION, ADD_USER_TO_POST, CREATE_USER_MUTATION, SET_POST_ACCESS_MUTATION, SET_USER_ACCESS_MUTATION, USER_WITH_ACCESS_QUERY } from '@test/utils/queries';
+import {
+  ADD_POST_MUTATION,
+  ADD_USER_TO_POST,
+  CREATE_USER_MUTATION,
+  SET_POST_ACCESS_MUTATION,
+  SET_USER_ACCESS_MUTATION,
+  USER_WITH_ACCESS_QUERY,
+} from '@test/utils/queries';
 import requestWithAuth from '@test/utils/requestWithAuth';
 
 // Ska vara tillgänglig för alla test

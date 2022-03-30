@@ -273,9 +273,9 @@ test('getting all nominations when none exists', async () => {
   await api.openElection(electionId);
 
   await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
-  await expect(api.getAllNominations(electionId, NominationResponse.NoAnswer)).resolves.toHaveLength(
-    0,
-  );
+  await expect(
+    api.getAllNominations(electionId, NominationResponse.NoAnswer),
+  ).resolves.toHaveLength(0);
 });
 
 test('getting all nominations for user with specified answer', async () => {
@@ -373,9 +373,9 @@ test('getting all nominations for user when none exists', async () => {
   await api.openElection(electionId);
 
   await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toHaveLength(0);
-  await expect(api.getAllNominations(electionId, NominationResponse.NoAnswer)).resolves.toHaveLength(
-    0,
-  );
+  await expect(
+    api.getAllNominations(electionId, NominationResponse.NoAnswer),
+  ).resolves.toHaveLength(0);
 });
 
 test('getting number of nominations', async () => {

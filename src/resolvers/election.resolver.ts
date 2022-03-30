@@ -54,11 +54,11 @@ const electionResolver: Resolvers = {
       );
       return reduce(n, nominationReduce);
     },
-    numberOfNominations: async (_, { electionId, postname }) => {
-      return api.getNumberOfNominations(electionId, postname ?? undefined);
+    numberOfNominations: async (_, { electionId, postId }) => {
+      return api.getNumberOfNominations(electionId, postId ?? undefined);
     },
-    numberOfProposals: async (_, { electionId, postname }) => {
-      return api.getNumberOfProposals(electionId, postname ?? undefined);
+    numberOfProposals: async (_, { electionId, postId }) => {
+      return api.getNumberOfProposals(electionId, postId ?? undefined);
     },
   },
   Mutation: {
@@ -67,17 +67,17 @@ const electionResolver: Resolvers = {
       const safeElectables = electables.filter(notEmpty);
       return api.createElection(ctx.getUsername(), safeElectables, nominationsHidden);
     },
-    addElectables: async (_, { electionId, postnames }, ctx) => {
+    addElectables: async (_, { electionId, postIds }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.addElectables(electionId, postnames ?? []);
+      return api.addElectables(electionId, postIds ?? []);
     },
-    removeElectables: async (_, { electionId, postnames }, ctx) => {
+    removeElectables: async (_, { electionId, postIds }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.removeElectables(electionId, postnames ?? []);
+      return api.removeElectables(electionId, postIds ?? []);
     },
-    setElectables: async (_, { electionId, postnames }, ctx) => {
+    setElectables: async (_, { electionId, postIds }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.setElectables(electionId, postnames);
+      return api.setElectables(electionId, postIds);
     },
     setHiddenNominations: async (_, { electionId, hidden }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
@@ -91,20 +91,20 @@ const electionResolver: Resolvers = {
       await hasAccess(ctx, Feature.ElectionAdmin);
       return api.closeElection();
     },
-    nominate: async (_, { username, postnames }, ctx) => {
+    nominate: async (_, { username, postIds }, ctx) => {
       await hasAuthenticated(ctx);
-      return api.nominate(username, postnames);
+      return api.nominate(username, postIds);
     },
-    respondToNomination: async (_, { postname, accepts }, ctx) => {
-      return api.respondToNomination(ctx.getUsername(), postname, accepts);
+    respondToNomination: async (_, { postId, accepts }, ctx) => {
+      return api.respondToNomination(ctx.getUsername(), postId, accepts);
     },
-    propose: async (_, { electionId, username, postname }, ctx) => {
+    propose: async (_, { electionId, username, postId }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.propose(electionId, username, postname);
+      return api.propose(electionId, username, postId);
     },
-    removeProposal: async (_, { electionId, username, postname }, ctx) => {
+    removeProposal: async (_, { electionId, username, postId }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.removeProposal(electionId, username, postname);
+      return api.removeProposal(electionId, username, postId);
     },
   },
   Election: {
@@ -160,7 +160,7 @@ const electionResolver: Resolvers = {
     })),
     post: useDataLoader((model, context) => ({
       dataLoader: context.postDataLoader,
-      key: model.post.slug,
+      key: model.post.id,
     })),
   },
   Nomination: {
@@ -170,7 +170,7 @@ const electionResolver: Resolvers = {
     })),
     post: useDataLoader((model, context) => ({
       dataLoader: context.postDataLoader,
-      key: model.post.slug,
+      key: model.post.id,
     })),
   },
 };

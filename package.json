@@ -19,6 +19,7 @@
     "test:regression": "jest test/regression --coverage=false",
     "benchmark": "ts-node tools/benchmark/index.ts",
     "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
     "prisma:migrate": "prisma migrate dev",
     "graphql:generate": "graphql-codegen --config codegen.yml",
     "generate": "npm run graphql:generate && npm run prisma:generate"
