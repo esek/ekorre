@@ -13,7 +13,7 @@ export type Context = {
   getUsername: () => string;
   getAccess: () => Promise<Access>;
   userDataLoader: DataLoader<string, User>;
-  postDataLoader: DataLoader<string, Post>;
+  postDataLoader: DataLoader<number, Post>;
   fileDataLoader: DataLoader<string, FileResponse>;
   electionDataLoader: DataLoader<number, ElectionResponse>;
   articleTagsDataLoader: DataLoader<string, string[]>;
