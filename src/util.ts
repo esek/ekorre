@@ -64,8 +64,8 @@ export const notEmpty = <ValueType>(value: ValueType | null | undefined): value 
 };
 
 // TODO: Remove if unused (was used by PostAPI)
-export const slugify = (str: number) =>
-  String(str)
+export const slugify = (str: string) =>
+  str
     .toLowerCase()
     .replace(/[åä]/g, 'a')
     .replace(/[ö]/g, 'o')

@@ -86,7 +86,6 @@ input ModifyPost {
 }
 
 type HistoryEntry {
-    "Post ID"
     id: Int!
     holder: User!
     start: Date!

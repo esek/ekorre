@@ -161,7 +161,7 @@ export class ArticleAPI {
         refLastUpdateBy: authorUsername,
         tags: {
           create: tags.map((tag) => ({ tag })),
-        }
+        },
       },
     });
 
@@ -189,14 +189,14 @@ export class ArticleAPI {
     update.lastUpdatedAt = toUTC(new Date());
 
     const safeTags = tags ?? [];
-    
+
     const res = await prisma.prismaArticle.update({
       data: {
         ...update,
         tags: {
           deleteMany: {},
           create: safeTags.map((tag) => ({ tag })),
-        }
+        },
       },
       where: {
         id,

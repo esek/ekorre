@@ -9,7 +9,7 @@ export const apiKeyReducer = (model: PrismaApiKey): ApiKeyResponse => {
     description: model.description ?? '',
     access: accessReducer([]),
     creator: {
-      username: model.refCreator
+      username: model.refCreator,
     },
   };
 };

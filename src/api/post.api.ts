@@ -69,7 +69,7 @@ export class PostAPI {
   async getPost(id: number): Promise<PrismaPost> {
     const post = await prisma.prismaPost.findFirst({
       where: {
-        id
+        id,
       },
     });
 
@@ -180,6 +180,7 @@ export class PostAPI {
     }));
 
     if (!insert.length) {
+      logger.info('Empty insert array at addUsersToPost');
       throw new ServerError('Användaren kunde inte läggas till');
     }
 
@@ -206,11 +207,12 @@ export class PostAPI {
     }
 
     // Kolla efter dubbletter först, fånga 404-felet och sätt doubles till false
-    const doubles = (await prisma.prismaPost.count({
-      where: {
-        postname: name,
-      }
-    })) > 0;
+    const doubles =
+      (await prisma.prismaPost.count({
+        where: {
+          postname: name,
+        },
+      })) > 0;
 
     if (doubles) {
       throw new BadRequestError('Denna posten finns redan');

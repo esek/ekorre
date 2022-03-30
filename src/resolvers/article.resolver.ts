@@ -3,15 +3,15 @@
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
 import { useDataLoader } from '@/dataloaders';
+import { NotFoundError } from '@/errors/request.errors';
 import { Context } from '@/models/context';
 import { ArticleResponse } from '@/models/mappers';
+import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { ArticleAPI } from '@api/article';
 import { Feature, Resolvers } from '@generated/graphql';
 import { PrismaArticleType } from '@prisma/client';
 import { articleReducer } from '@reducer/article';
-import { reduce } from '@/reducers';
-import { NotFoundError } from '@/errors/request.errors';
 
 const articleApi = new ArticleAPI();
 

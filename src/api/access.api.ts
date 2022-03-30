@@ -1,11 +1,16 @@
+import { PostAPI } from '@/api/post.api';
 import { Logger } from '@/logger';
-import { AccessInput, } from '@generated/graphql';
-import { Prisma, PrismaApiKeyAccess, PrismaIndividualAccess, PrismaPostAccess, PrismaResourceType } from '@prisma/client';
+import { AccessEntry } from '@/models/access';
+import { AccessInput } from '@generated/graphql';
+import {
+  Prisma,
+  PrismaApiKeyAccess,
+  PrismaIndividualAccess,
+  PrismaPostAccess,
+  PrismaResourceType,
+} from '@prisma/client';
 
 import prisma from './prisma';
-
-import { PostAPI } from '@/api/post.api';
-import { AccessEntry } from '@/models/access';
 
 const logger = Logger.getLogger('AccessAPI');
 const postApi = new PostAPI();
@@ -30,7 +35,7 @@ export class AccessAPI {
       },
       orderBy: {
         resource: 'desc',
-      }
+      },
     });
 
     return access;
@@ -48,7 +53,7 @@ export class AccessAPI {
       },
       orderBy: {
         resource: 'desc',
-      }
+      },
     });
 
     return access;
@@ -62,7 +67,7 @@ export class AccessAPI {
       },
       orderBy: {
         resource: 'desc',
-      }
+      },
     });
 
     return access;
@@ -79,7 +84,7 @@ export class AccessAPI {
     await prisma.prismaIndividualAccess.deleteMany({
       where: {
         refUser: username,
-      }
+      },
     });
 
     const { doors, features } = newaccess;
@@ -102,19 +107,19 @@ export class AccessAPI {
     );
 
     await prisma.prismaIndividualAccess.createMany({
-      data: access
+      data: access,
     });
 
     logger.info(`Updated access for user ${username}`);
     logger.debug(`Updated access for user ${username} to ${Logger.pretty(newaccess)}`);
     return true;
   }
-  
+
   async setApiKeyAccess(key: string, newaccess: AccessInput): Promise<boolean> {
     await prisma.prismaApiKeyAccess.deleteMany({
       where: {
         refApiKey: key,
-      }
+      },
     });
 
     const { doors, features } = newaccess;
@@ -137,14 +142,13 @@ export class AccessAPI {
     );
 
     await prisma.prismaApiKeyAccess.createMany({
-      data: access
+      data: access,
     });
 
     logger.info(`Updated access for key ${key}`);
     logger.debug(`Updated access for key ${key} to ${Logger.pretty(newaccess)}`);
     return true;
   }
-
 
   /**
    * Sätt access för en post. VIKTIGT: Access är icke muterbart
@@ -157,7 +161,7 @@ export class AccessAPI {
     await prisma.prismaPostAccess.deleteMany({
       where: {
         refPost: postId,
-      }
+      },
     });
 
     const { doors, features } = newaccess;
@@ -180,7 +184,7 @@ export class AccessAPI {
     );
 
     await prisma.prismaPostAccess.createMany({
-      data: access
+      data: access,
     });
 
     logger.info(`Updated access for post with id ${postId}`);
@@ -203,7 +207,7 @@ export class AccessAPI {
     const postAccess = prisma.prismaPostAccess.findMany({
       where: {
         refPost: {
-          in: posts.map(p => p.id)
+          in: posts.map((p) => p.id),
         },
       },
     });

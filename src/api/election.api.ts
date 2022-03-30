@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/indent */
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { post } from '@/resolvers';
 import { NominationAnswer } from '@generated/graphql';
 import {
   Prisma,
-  PrismaElectable,
   PrismaElection,
   PrismaNomination,
   PrismaNominationAnswer,
@@ -17,10 +15,10 @@ import prisma from './prisma';
 const logger = Logger.getLogger('ElectionAPI');
 
 type RawDbNomination = {
-  ref_election: number,
-  ref_post: number,
-  answer: PrismaNominationAnswer,
-  ref_user: string,
+  ref_election: number;
+  ref_post: number;
+  answer: PrismaNominationAnswer;
+  ref_user: string;
 };
 
 export class ElectionAPI {
@@ -510,7 +508,7 @@ export class ElectionAPI {
     const electables = await this.getAllElectables(openElection.id);
     const filteredPostIds = postIds.filter((e) => electables.includes(e));
 
-    if (filteredPostIds .length === 0) {
+    if (filteredPostIds.length === 0) {
       throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
     }
 
@@ -615,8 +613,8 @@ export class ElectionAPI {
             refElection: electionId,
             refUser: username,
             refPost: postId,
-          }
-        }
+          },
+        },
       });
 
       return true;

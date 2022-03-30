@@ -5,19 +5,19 @@ import { PrismaArticle } from '@prisma/client';
 
 export const articleReducer = (article: PrismaArticle): ArticleResponse => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { body, refAuthor, refLastUpdateBy, id, articleType, ...reduced } = article;
+  const { body, refAuthor, refLastUpdateBy, id, articleType, title, ...reduced } = article;
 
   const a: ArticleResponse = {
     ...reduced,
     body,
-    slug: slugify(id),
+    slug: slugify(title),
     author: {
       username: refAuthor,
     },
     lastUpdatedBy: {
       username: refLastUpdateBy,
     },
-    articleType: articleType as ArticleType
+    articleType: articleType as ArticleType,
   };
 
   return a;

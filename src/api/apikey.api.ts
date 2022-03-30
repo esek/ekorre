@@ -12,11 +12,13 @@ class ApiKeyAPI {
     const key = randomUUID();
 
     try {
-      await prisma.prismaApiKey.create({data: {
-        key,
-        description,
-        refCreator: username,
-      }});
+      await prisma.prismaApiKey.create({
+        data: {
+          key,
+          description,
+          refCreator: username,
+        },
+      });
     } catch (err) {
       logger.debug(err);
       throw new ServerError('Kunde inte skapa ny API nyckel');
@@ -46,7 +48,7 @@ class ApiKeyAPI {
     const apiKey = await prisma.prismaApiKey.findFirst({
       where: {
         key,
-      }
+      },
     });
 
     if (apiKey == null) {
@@ -65,7 +67,7 @@ class ApiKeyAPI {
     const apiKey = await prisma.prismaApiKey.findFirst({
       where: {
         key,
-      }
+      },
     });
 
     return apiKey != null;
