@@ -347,7 +347,7 @@ export type MutationAddArticleArgs = {
 
 export type MutationAddElectablesArgs = {
   electionId: Scalars['Int'];
-  postnames?: Maybe<Array<Scalars['String']>>;
+  postIds?: Maybe<Array<Scalars['Int']>>;
 };
 
 
@@ -458,7 +458,7 @@ export type MutationModifyPostArgs = {
 
 
 export type MutationNominateArgs = {
-  postnames: Array<Scalars['String']>;
+  postIds: Array<Scalars['Int']>;
   username: Scalars['String'];
 };
 
@@ -470,7 +470,7 @@ export type MutationOpenElectionArgs = {
 
 export type MutationProposeArgs = {
   electionId: Scalars['Int'];
-  postname: Scalars['String'];
+  postId: Scalars['Int'];
   username: Scalars['String'];
 };
 
@@ -482,7 +482,7 @@ export type MutationRemoveArticleArgs = {
 
 export type MutationRemoveElectablesArgs = {
   electionId: Scalars['Int'];
-  postnames?: Maybe<Array<Scalars['String']>>;
+  postIds?: Maybe<Array<Scalars['Int']>>;
 };
 
 
@@ -515,7 +515,7 @@ export type MutationRemoveMeetingArgs = {
 
 export type MutationRemoveProposalArgs = {
   electionId: Scalars['Int'];
-  postname: Scalars['String'];
+  postId: Scalars['Int'];
   username: Scalars['String'];
 };
 
@@ -534,7 +534,7 @@ export type MutationResetPasswordArgs = {
 
 export type MutationRespondToNominationArgs = {
   accepts: NominationAnswer;
-  postname: Scalars['String'];
+  postId: Scalars['Int'];
 };
 
 
@@ -551,7 +551,7 @@ export type MutationSetApiKeyAccessArgs = {
 
 export type MutationSetElectablesArgs = {
   electionId: Scalars['Int'];
-  postnames: Array<Scalars['String']>;
+  postIds: Array<Scalars['Int']>;
 };
 
 
@@ -928,7 +928,7 @@ export type QueryNewsentriesArgs = {
  */
 export type QueryNumberOfNominationsArgs = {
   electionId: Scalars['Int'];
-  postname?: Maybe<Scalars['String']>;
+  postId?: Maybe<Scalars['Int']>;
 };
 
 
@@ -938,7 +938,7 @@ export type QueryNumberOfNominationsArgs = {
  */
 export type QueryNumberOfProposalsArgs = {
   electionId: Scalars['Int'];
-  postname?: Maybe<Scalars['String']>;
+  postId?: Maybe<Scalars['Int']>;
 };
 
 
@@ -1434,9 +1434,9 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   modifyArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
-  nominate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationNominateArgs, 'postnames' | 'username'>>;
+  nominate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationNominateArgs, 'postIds' | 'username'>>;
   openElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenElectionArgs, 'electionId'>>;
-  propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postname' | 'username'>>;
+  propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postId' | 'username'>>;
   removeArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveArticleArgs, 'articleId'>>;
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId'>>;
   removeEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveEmergencyContactArgs, 'id'>>;
@@ -1444,13 +1444,13 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeHehe?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHeheArgs, 'number' | 'year'>>;
   removeHistoryEntry?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHistoryEntryArgs, 'id'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
-  removeProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProposalArgs, 'electionId' | 'postname' | 'username'>>;
+  removeProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProposalArgs, 'electionId' | 'postId' | 'username'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
-  respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postname'>>;
+  respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postId'>>;
   sendEmail?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendEmailArgs, 'options'>>;
   setApiKeyAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetApiKeyAccessArgs, 'access' | 'key'>>;
-  setElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetElectablesArgs, 'electionId' | 'postnames'>>;
+  setElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetElectablesArgs, 'electionId' | 'postIds'>>;
   setHiddenNominations?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetHiddenNominationsArgs, 'electionId' | 'hidden'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'access' | 'username'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postname'>>;
