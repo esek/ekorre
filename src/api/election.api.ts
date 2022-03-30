@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/indent */
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { reduce } from '@/reducers';
+import { post } from '@/resolvers';
 import { NominationAnswer } from '@generated/graphql';
 import {
   Prisma,
@@ -18,7 +18,7 @@ const logger = Logger.getLogger('ElectionAPI');
 
 type RawDbNomination = {
   ref_election: number,
-  ref_post: string,
+  ref_post: number,
   answer: PrismaNominationAnswer,
   ref_user: string,
 };
@@ -108,21 +108,21 @@ export class ElectionAPI {
    * Returnerar alla nomineringar för posten och valet, men bara
    * poster man kan nomineras till.
    * @param electionId ID på ett val
-   * @param postname Namnet på posten
+   * @param postId ID på en post
    * @returns Lista över nomineringar
    */
-  async getNominations(electionId: number, postname: string): Promise<PrismaNomination[]> {
+  async getNominations(electionId: number, postId: number): Promise<PrismaNomination[]> {
     const n = await prisma.prismaNomination.findMany({
       where: {
         refElection: electionId,
-        refPost: postname,
+        refPost: postId,
 
         // Bara om valet har denna posten som valbar,
         // så att det kan stängas av och på
         election: {
           electables: {
             some: {
-              refPost: postname,
+              refPost: postId,
             },
           },
         },
@@ -194,11 +194,11 @@ export class ElectionAPI {
    * det totala antalet nomineringar. Svaret kan inte specificeras, då det lämnar ut för
    * mycket information. Räknar inte nomineringar som inte finns som electables.
    * @param electionId ID på ett val
-   * @param postname Namnet på posten
+   * @param postId ID på en post
    * @returns Ett heltal (`number`)
    */
-  async getNumberOfNominations(electionId: number, postname?: string): Promise<number> {
-    const aq = Prisma.sql`AND nominations.ref_post = ${postname}`;
+  async getNumberOfNominations(electionId: number, postId?: number): Promise<number> {
+    const aq = Prisma.sql`AND nominations.ref_post = ${postId}`;
 
     const c = await prisma.$queryRaw<number[]>`
       SELECT count(id)
@@ -206,7 +206,7 @@ export class ElectionAPI {
       LEFT JOIN electables
       USING (ref_election, ref_post)
       WHERE nominations.ref_election = ${electionId}
-      ${postname != null ? aq : Prisma.empty}
+      ${postId != null ? aq : Prisma.empty}
     `;
 
     return c.length === 0 ? 0 : c[0];
@@ -216,14 +216,14 @@ export class ElectionAPI {
    * Räknar antalet förslag för en post och ett möte. Om posten utelämnas returneras
    * det totala antalet förslag.
    * @param electionId ID på ett val
-   * @param postname Namnet på posten
+   * @param postId ID på en post
    * @returns Ett heltal (`number`)
    */
-  async getNumberOfProposals(electionId: number, postname?: string): Promise<number> {
+  async getNumberOfProposals(electionId: number, postId?: number): Promise<number> {
     const c = prisma.prismaProposal.count({
       where: {
         refElection: electionId,
-        refPost: postname,
+        refPost: postId,
       },
     });
 
@@ -247,9 +247,9 @@ export class ElectionAPI {
   /**
    * Hittar alla valbara poster (postnamn) för ett val.
    * @param electionId ID på ett val
-   * @returns Lista på `postnames`
+   * @returns Lista på `posts.id`
    */
-  async getAllElectables(electionId: number): Promise<string[]> {
+  async getAllElectables(electionId: number): Promise<number[]> {
     const electableRows = await prisma.prismaElectable.findMany({
       select: {
         refPost: true,
@@ -259,22 +259,22 @@ export class ElectionAPI {
       },
     });
 
-    const refposts = electableRows.map((e) => e.refPost);
+    const refPosts = electableRows.map((e) => e.refPost);
 
-    return refposts;
+    return refPosts;
   }
 
   /**
    * Skapar ett nytt val, förutsatt att det inte finns några öppna val,
    * eller val som inte har ett datum de stängdes.
    * @param creatorUsername Användarnamnet på skaparen av valet
-   * @param electables En lista med postnamn
+   * @param electables En lista med post-ID:n
    * @param nominationsHidden Om nomineringar ska vara dolda för alla utom den som blivit nominerad och valadmin
    * @returns `electionId` hos skapade mötet
    */
   async createElection(
     creatorUsername: string,
-    electables: string[],
+    electables: number[],
     nominationsHidden: boolean,
   ): Promise<number> {
     // Vi försäkrar oss om att det senaste valet är stängt
@@ -314,16 +314,16 @@ export class ElectionAPI {
   /**
    * Försöker att lägga till alla poster som valbara i det specificerade valet.
    * @param electionId ID på ett val
-   * @param postnames Lista på postslugs
+   * @param postIds Lista på post-ID:n
    */
-  async addElectables(electionId: number, postnames: string[]): Promise<boolean> {
-    if (postnames.length === 0) {
+  async addElectables(electionId: number, postIds: number[]): Promise<boolean> {
+    if (postIds.length === 0) {
       throw new BadRequestError('Inga poster specificerade');
     }
 
     try {
       await prisma.prismaElectable.createMany({
-        data: postnames.map((p) => {
+        data: postIds.map((p) => {
           return {
             refElection: electionId,
             refPost: p,
@@ -345,10 +345,10 @@ export class ElectionAPI {
   /**
    * Tar bort alla poster som valbara i det specificerade valet
    * @param electionId ID på ett val
-   * @param postnames Lista på postslugs
+   * @param postIds Lista på post-ID:n
    */
-  async removeElectables(electionId: number, postnames: string[]): Promise<boolean> {
-    if (postnames.length === 0) {
+  async removeElectables(electionId: number, postIds: number[]): Promise<boolean> {
+    if (postIds.length === 0) {
       throw new BadRequestError('Inga poster specificerade');
     }
 
@@ -356,12 +356,12 @@ export class ElectionAPI {
       where: {
         refElection: electionId,
         refPost: {
-          in: postnames,
+          in: postIds,
         },
       },
     });
 
-    if (count !== postnames.length) {
+    if (count !== postIds.length) {
       logger.debug(`Could not delete all electables for election with ID ${electionId}`);
       throw new ServerError('Kunde inte ta bort alla valbara poster');
     }
@@ -372,10 +372,10 @@ export class ElectionAPI {
   /**
    * Försöker att lägga till alla poster som valbara i det specificerade valet.
    * @param electionId ID på ett val
-   * @param postnames Lista på postslugs
+   * @param postIds Lista på post-ID:n
    */
-  async setElectables(electionId: number, postnames: string[]): Promise<boolean> {
-    if (postnames.length < 1) {
+  async setElectables(electionId: number, postIds: number[]): Promise<boolean> {
+    if (postIds.length < 1) {
       throw new BadRequestError('Inga valbara poster definierades');
     }
     try {
@@ -389,7 +389,7 @@ export class ElectionAPI {
           },
         }),
         prisma.prismaElectable.createMany({
-          data: postnames.map((p) => {
+          data: postIds.map((p) => {
             return {
               refElection: electionId,
               refPost: p,
@@ -497,10 +497,10 @@ export class ElectionAPI {
    * Försöker hitta ett öppet val och om det finns, nominerar
    * användaren till alla poster om de finns som electables.
    * @param username Användarnamn på den som ska nomineras
-   * @param postnames Namnet på alla poster personen ska nomineras till
+   * @param postIds ID:t på alla poster personen ska nomineras till
    */
-  async nominate(username: string, postnames: string[]): Promise<boolean> {
-    if (postnames.length === 0) {
+  async nominate(username: string, postIds: number[]): Promise<boolean> {
+    if (postIds.length === 0) {
       throw new BadRequestError('Inga postslugs specificerade');
     }
 
@@ -508,9 +508,9 @@ export class ElectionAPI {
 
     // Nomineringar måste finnas som electables
     const electables = await this.getAllElectables(openElection.id);
-    const filteredPostnames = postnames.filter((e) => electables.includes(e));
+    const filteredPostIds = postIds.filter((e) => electables.includes(e));
 
-    if (filteredPostnames.length === 0) {
+    if (filteredPostIds .length === 0) {
       throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
     }
 
@@ -520,11 +520,11 @@ export class ElectionAPI {
       // vad som finns i databasen redan
       await prisma.prismaNomination.createMany({
         skipDuplicates: true, // Ignorera om nomineringen redan finns
-        data: filteredPostnames.map((postname) => {
+        data: filteredPostIds.map((postId) => {
           return {
             refElection: openElection.id,
             refUser: username,
-            refPost: postname,
+            refPost: postId,
             answer: PrismaNominationAnswer.NO_ANSWER,
           };
         }),
@@ -543,7 +543,7 @@ export class ElectionAPI {
 
   async respondToNomination(
     username: string,
-    postname: string,
+    postId: number,
     answer: NominationAnswer,
   ): Promise<boolean> {
     const openElection = await this.getOpenElection();
@@ -558,7 +558,7 @@ export class ElectionAPI {
           refElection_refPost_refUser: {
             refElection: openElection.id,
             refUser: username,
-            refPost: postname,
+            refPost: postId,
           },
         },
       });
@@ -577,26 +577,26 @@ export class ElectionAPI {
    * det får valberedningen lösa!
    * @param electionId ID på ett val
    * @param username Användarnamn på den som ska föreslås
-   * @param postname Posten användaren ska föreslås på
+   * @param postId Posten användaren ska föreslås på
    */
-  async propose(electionId: number, username: string, postname: string): Promise<boolean> {
+  async propose(electionId: number, username: string, postId: number): Promise<boolean> {
     try {
       await prisma.prismaProposal.create({
         data: {
           refElection: electionId,
           refUser: username,
-          refPost: postname,
+          refPost: postId,
         },
       });
 
       return true;
     } catch (err) {
       logger.error(
-        `Could not insert proposal for user ${username} and post ${postname} in election with ID ${electionId} due to error:\n\t${JSON.stringify(
+        `Could not insert proposal for user ${username} and post ID ${postId} in election with ID ${electionId} due to error:\n\t${JSON.stringify(
           err,
         )}`,
       );
-      throw new ServerError(`Kunde inte föreslå användaren ${username} till posten ${postname}`);
+      throw new ServerError(`Kunde inte föreslå användaren ${username} till posten ID ${postId}`);
     }
   }
 
@@ -604,17 +604,17 @@ export class ElectionAPI {
    * Försöker ta bort en av valberedningens förslag till en post.
    * @param electionId ID på valet
    * @param username Användarnamn på föreslagen person
-   * @param postname Namnet på posten personen föreslagits till
+   * @param postId ID på posten personen föreslagits till
    * @throws `ServerError` om förslaget inte kunde tas bort (eller det aldrig fanns)
    */
-  async removeProposal(electionId: number, username: string, postname: string): Promise<boolean> {
+  async removeProposal(electionId: number, username: string, postId: number): Promise<boolean> {
     try {
       await prisma.prismaProposal.delete({
         where: {
           refElection_refPost_refUser: {
             refElection: electionId,
             refUser: username,
-            refPost: postname,
+            refPost: postId,
           }
         }
       });
@@ -622,10 +622,10 @@ export class ElectionAPI {
       return true;
     } catch {
       logger.error(
-        `Could not delete proposal for user ${username} and post ${postname} in election with ID ${electionId}}`,
+        `Could not delete proposal for user ${username} and post ID ${postId} in election with ID ${electionId}}`,
       );
       throw new ServerError(
-        `Kunde inte ta bort föreslaget för användaren ${username} till posten ${postname}, vilket kan bero på att föreslaget inte fanns`,
+        `Kunde inte ta bort föreslaget för användaren ${username} till posten med ID ${postId}, vilket kan bero på att föreslaget inte fanns`,
       );
     }
   }
