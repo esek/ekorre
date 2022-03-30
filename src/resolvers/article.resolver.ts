@@ -3,20 +3,22 @@
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
 import { useDataLoader } from '@/dataloaders';
+import { NotFoundError } from '@/errors/request.errors';
 import { Context } from '@/models/context';
 import { ArticleResponse } from '@/models/mappers';
+import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { ArticleAPI } from '@api/article';
-import { DatabaseArticle } from '@db/article';
-import { ArticleType, Feature, Resolvers } from '@generated/graphql';
+import { Feature, Resolvers } from '@generated/graphql';
+import { PrismaArticleType } from '@prisma/client';
 import { articleReducer } from '@reducer/article';
 
 const articleApi = new ArticleAPI();
 
-const checkEditAccess = async (ctx: Context, articleType: ArticleType) => {
+const checkEditAccess = async (ctx: Context, articleType: PrismaArticleType) => {
   await hasAccess(
     ctx,
-    articleType === ArticleType.Information ? Feature.ArticleEditor : Feature.NewsEditor,
+    articleType === PrismaArticleType.INFORMATION ? Feature.ArticleEditor : Feature.NewsEditor,
   );
 };
 
@@ -39,15 +41,10 @@ const articleResolver: Resolvers = {
     })),
     lastUpdatedAt: (model) => new Date(model.lastUpdatedAt),
     createdAt: (model) => new Date(model.createdAt),
-    tags: useDataLoader((model, ctx) => ({
-      key: model?.id ?? '',
-      dataLoader: ctx.articleTagsDataLoader,
-    })),
   },
   Query: {
-    newsentries: async (_, { creator, after, before, markdown }, ctx) => {
+    newsentries: async (_, { creator, after, before }, ctx) => {
       await hasAuthenticated(ctx);
-      const safeMarkdown = markdown ?? false;
       let articleResponse: ArticleResponse[];
 
       if (!creator && !after && !before) {
@@ -69,9 +66,8 @@ const articleResolver: Resolvers = {
 
       return articleResponse;
     },
-    latestnews: async (_, { limit, markdown }, ctx) => {
+    latestnews: async (_, { limit }, ctx) => {
       await hasAuthenticated(ctx);
-      const safeMarkdown = markdown ?? false;
       let articleResponse: ArticleResponse[];
 
       // Om vi inte gett en limit returnerar vi bara alla artiklar
@@ -98,7 +94,7 @@ const articleResolver: Resolvers = {
 
       // Om API::n returnerar null finns inte artikeln; returnera null
       if (apiResponse == null) {
-        return null;
+        throw new NotFoundError('Artikeln finns inte');
       }
 
       return reduce(apiResponse, articleReducer);
@@ -115,7 +111,7 @@ const articleResolver: Resolvers = {
           {
             tags: {
               some: {
-                id: {
+                tag: {
                   in: tags ?? [],
                 },
               },
@@ -135,7 +131,7 @@ const articleResolver: Resolvers = {
       return reduce(apiResponse, articleReducer);
     },
     modifyArticle: async (_, { articleId, entry }, ctx) => {
-      const article = await articleApi.getArticle({ id: articleId, slug: null });
+      const article = await articleApi.getArticle(articleId, undefined);
 
       /**
        * If trying to set a new articleType, make sure we check that the user is allowed to do so.
@@ -145,7 +141,7 @@ const articleResolver: Resolvers = {
       return articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
     },
     removeArticle: async (_, { articleId }, ctx) => {
-      const article = await articleApi.getArticle({ id: articleId, slug: null });
+      const article = await articleApi.getArticle(articleId, undefined);
       await checkEditAccess(ctx, article.articleType);
       return articleApi.removeArticle(articleId);
     },

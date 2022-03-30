@@ -14,7 +14,7 @@ if (config.DEV) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const result = await next(params);
     const after = Date.now();
-    console.log(`Query ${params.model ?? ''}.${params.action} took ${after - before}ms`);
+    logger.debug(`Query ${params.model ?? ''}.${params.action} took ${after - before}ms`);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result;
   });
@@ -30,7 +30,6 @@ prisma.$use(async (params, next) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result;
   } catch (err) {
-    console.log(err);
     logger.error(err);
     throw new ServerError('Ett databasfel inträffade');
   }

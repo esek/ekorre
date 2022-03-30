@@ -19,7 +19,6 @@ export const checkUserFieldAccess = async (ctx: Context, obj: User) => {
   }
 };
 
-
 const userResolver: Resolvers = {
   User: {
     address: async (obj, _, ctx) => {

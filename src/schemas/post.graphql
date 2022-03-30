@@ -5,7 +5,7 @@
 scalar Date
 
 type Query {
-    post(slug: String!): Post
+    post(id: Int!): Post
     posts(utskott: Utskott, includeInactive: Boolean!): [Post]
     groupedPosts(includeInactive: Boolean!): [GroupedPost]!
     numberOfVolunteers(date: Date): Int!
@@ -14,15 +14,15 @@ type Query {
 type Mutation {
     addPost(info: NewPost!): Boolean!
     modifyPost(info: ModifyPost!): Boolean!
-    addUsersToPost(usernames: [String!]!, postname: String!, start: Date, end: Date): Boolean!
-    activatePost(slug: String!): Boolean!
-    deactivatePost(slug: String!): Boolean!
+    addUsersToPost(usernames: [String!]!, id: Int!, start: Date, end: Date): Boolean!
+    activatePost(id: Int!): Boolean!
+    deactivatePost(id: Int!): Boolean!
     setUserPostEnd(id: Int!, end: Date!): Boolean!
     removeHistoryEntry(id: Int!): Boolean!
 }
 
 type Post {
-    slug: String!,
+    id: Int!,
     postname: String!
     utskott: Utskott!
     postType: PostType!
@@ -67,7 +67,8 @@ input NewPost {
 }
 
 input ModifyPost {
-    name: String!
+    id: Int!
+    name: String
     utskott: Utskott
     postType: PostType
 
@@ -85,7 +86,7 @@ input ModifyPost {
 }
 
 type HistoryEntry {
-    postname: String!
+    id: Int!
     holder: User!
     start: Date!
     end: Date

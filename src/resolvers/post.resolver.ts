@@ -8,9 +8,9 @@ const api = new PostAPI();
 
 const postresolver: Resolvers = {
   Query: {
-    post: async (_, { slug }, ctx) => {
+    post: async (_, { id }, ctx) => {
       await hasAuthenticated(ctx);
-      const res = await api.getPost(slug);
+      const res = await api.getPost(id);
       if (res != null) return postReduce(res);
       return null;
     },
@@ -36,7 +36,7 @@ const postresolver: Resolvers = {
 
         const reducedPost = reduce(post, postReduce);
 
-        ctx.postDataLoader.prime(reducedPost.postname, reducedPost);
+        ctx.postDataLoader.prime(reducedPost.id, reducedPost);
 
         // Add the posts to the object by the utskott
         temp[post.utskott].push(reducedPost);
@@ -61,17 +61,17 @@ const postresolver: Resolvers = {
       await hasAccess(ctx, Feature.PostAdmin);
       return api.modifyPost(info);
     },
-    addUsersToPost: async (_, { usernames, postname, start, end }, ctx) => {
+    addUsersToPost: async (_, { usernames, id, start, end }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
-      return api.addUsersToPost(usernames, postname, start ?? undefined, end ?? undefined);
+      return api.addUsersToPost(usernames, id, start ?? undefined, end ?? undefined);
     },
-    activatePost: async (_, { slug }, ctx) => {
+    activatePost: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
-      return api.setPostStatus(slug, true);
+      return api.setPostStatus(id, true);
     },
-    deactivatePost: async (_, { slug }, ctx) => {
+    deactivatePost: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
-      return api.setPostStatus(slug, false);
+      return api.setPostStatus(id, false);
     },
     setUserPostEnd: async (_, { id, end }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
@@ -80,7 +80,7 @@ const postresolver: Resolvers = {
     removeHistoryEntry: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
       return api.removeHistoryEntry(id);
-    }
+    },
   },
   User: {
     posts: async ({ username }, _, ctx) => {
@@ -90,7 +90,7 @@ const postresolver: Resolvers = {
       reduced.forEach((p) => {
         // Vi vill inte ladda in dessa fler gånger
         // i samma request, så vi sparar dem i vår dataloader
-        ctx.postDataLoader.prime(p.postname, p);
+        ctx.postDataLoader.prime(p.id, p);
       });
 
       return reduced;
@@ -120,8 +120,8 @@ const postresolver: Resolvers = {
     },
   },
   Post: {
-    history: async ({ postname }, _, ctx) => {
-      const entries = await api.getHistoryEntries({ refPost: postname });
+    history: async ({ id }, _, ctx) => {
+      const entries = await api.getHistoryEntries({ refPost: id });
 
       const a = Promise.all(
         entries.map(async (e) => {
@@ -135,7 +135,7 @@ const postresolver: Resolvers = {
             safeEnd = new Date(endDate);
           }
 
-          return { postname: refPost, holder, start: new Date(startDate), end: safeEnd };
+          return { id: refPost, holder, start: new Date(startDate), end: safeEnd };
         }),
       );
       return a;

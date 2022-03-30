@@ -4,10 +4,10 @@ scalar Date
 scalar DateTime
 
 type Query {
-  newsentries(creator: String, after: DateTime, before: DateTime): [Article]!
-  latestnews(limit: Int): [Article]!
-  article(id: Int, slug: String): Article
-  articles(id: Int, author: String, tags: [Int!]): [Article]!
+  newsentries(creator: String, after: DateTime, before: DateTime): [Article!]!
+  latestnews(limit: Int): [Article!]!
+  article(id: Int, slug: String): Article!
+  articles(id: Int, author: String, tags: [String!]): [Article!]!
 }
 
 type Mutation {
@@ -18,7 +18,7 @@ type Mutation {
 
 "Body is saved as HTML serversInte, but edited in MarkDown"
 type Article {
-  id: Int
+  id: Int!
 
   "Used in URLs, but Intentification is done using only tail (Int)"
   slug: String
@@ -34,7 +34,7 @@ type Article {
 }
 
 type ArticleTag {
-  id: Int
+  id: Int!
   tag: String!
   createdAt: DateTime!
 }

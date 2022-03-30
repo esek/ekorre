@@ -1,15 +1,15 @@
 import { ApiKeyResponse } from '@/models/mappers';
-import { DatabaseApiKey } from '@db/apikey';
+import { PrismaApiKey } from '@prisma/client';
 
 import { accessReducer } from './access.reducer';
 
-export const apiKeyReducer = (model: DatabaseApiKey): ApiKeyResponse => {
+export const apiKeyReducer = (model: PrismaApiKey): ApiKeyResponse => {
   return {
     key: model.key,
     description: model.description ?? '',
     access: accessReducer([]),
     creator: {
-      username: model.refcreator,
+      username: model.refCreator,
     },
   };
 };

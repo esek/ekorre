@@ -9,7 +9,7 @@ export function proposalReduce(dbProposal: PrismaProposal): ProposalResponse {
       username: refUser,
     },
     post: {
-      postname: refPost,
+      id: refPost,
     },
   };
 
