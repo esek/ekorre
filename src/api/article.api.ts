@@ -1,11 +1,31 @@
 /* eslint-disable class-methods-use-this */
 import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
+<<<<<<< HEAD
 import { slugify, stripObject, toUTC } from '@/util';
 import { ModifyArticle, NewArticle } from '@generated/graphql';
 import { Prisma, PrismaArticle, PrismaArticleType } from '@prisma/client';
 
 import prisma from './prisma';
+=======
+import { stripObject, toUTC } from '@/util';
+import type { DatabaseArticle, DatabaseArticleTag } from '@db/article';
+import { ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
+import { convertMarkdownToHtml } from '@reducer/article';
+import { Maybe } from 'graphql/jsutils/Maybe';
+
+import { ARTICLE_TABLE, ARTICLE_TAGS_TABLE } from './constants';
+import db from './knex';
+
+// Refs används när en annan databas innehåller informationen,
+// så denna innehåller bara en referens för att kunna hitta
+// rätt i den
+
+type GetArticleParams = {
+  id: Maybe<string>;
+  slug: Maybe<string>;
+};
+>>>>>>> 6259fc36b23d2a6f070633cbbe48f4d57967e7a2
 
 /**
  * Det här är API:n för att hantera artiklar
@@ -114,6 +134,7 @@ export class ArticleAPI {
    * Returns a list of PrismaArticles from database WHERE params match.
    * @param params possible params are ArticleModel parts.
    */
+<<<<<<< HEAD
   async getArticles(params: Prisma.PrismaArticleWhereInput): Promise<PrismaArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
@@ -122,6 +143,22 @@ export class ArticleAPI {
     });
 
     return a;
+=======
+  async getArticles(params: Partial<DatabaseArticle & { tags: string[] }>): Promise<DatabaseArticle[]> {
+    const safeParams = stripObject(params);
+    const { tags, ...rest } = safeParams;
+
+    const query = db<DatabaseArticle>(ARTICLE_TABLE).where(rest);
+
+    if (tags?.length) {
+      const ids = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('tag', tags);
+      query.whereIn('id', ids.map((t) => t.refarticle));
+    }
+
+    const response = await query;
+
+    return response;
+>>>>>>> 6259fc36b23d2a6f070633cbbe48f4d57967e7a2
   }
 
   /**
@@ -147,6 +184,7 @@ export class ArticleAPI {
    * @param authorUsername Användarnamn på skaparen
    * @param entry artikel som ska läggas till
    */
+<<<<<<< HEAD
   async newArticle(authorUsername: string, entry: NewArticle): Promise<PrismaArticle> {
     // todo: update so tags are set as well
     const { tags, ...reduced } = entry;
@@ -164,6 +202,34 @@ export class ArticleAPI {
     });
 
     return res;
+=======
+  async newArticle(creatorUsername: string, entry: NewArticle): Promise<DatabaseArticle> {
+
+    const { tags, ...rest } = entry;
+
+    // Lägger till dagens datum som createdAt och lastUpdatedAt
+    // samt sätter creator som lastUpdateBy
+    const article: DatabaseArticle = {
+      ...rest,
+      createdAt: toUTC(new Date()),
+      lastUpdatedAt: toUTC(new Date()),
+      refcreator: creatorUsername,
+      reflastupdateby: creatorUsername,
+    };
+
+    const [id]: string | undefined [] = await db<DatabaseArticle>(ARTICLE_TABLE).insert(article).returning('id');
+
+    if (id == null) {
+      throw new Error('Kunde inte lägga till artikel');
+    }
+
+    await this.addTags(id, tags);
+
+    return {
+      ...article,
+      id: id ?? -1,
+    };
+>>>>>>> 6259fc36b23d2a6f070633cbbe48f4d57967e7a2
   }
 
   /**
@@ -178,7 +244,9 @@ export class ArticleAPI {
       throw new BadRequestError('Artiklar måste modifieras av inloggade användare');
     }
 
-    const update: StrictObject = stripObject(entry);
+    const { tags, ...rest } = entry;
+
+    const update: StrictObject = stripObject(rest);
 
     update.reflastupdateby = updaterUsername;
 
@@ -193,9 +261,18 @@ export class ArticleAPI {
       },
     });
 
+<<<<<<<HEAD
     // const res = await db<PrismaArticle>(ARTICLE_TABLE).where('id', id).update(update);
 
     return res != null;
+=======
+    if (tags?.length) {
+      await this.removeTags(id);
+      await this.addTags(id, tags);
+    }
+
+    return res > 0;
+>>>>>>> 6259fc36b23d2a6f070633cbbe48f4d57967e7a2
   }
 
   async removeArticle(id: number): Promise<boolean> {
@@ -206,5 +283,36 @@ export class ArticleAPI {
     });
 
     return res != null;
+  }
+
+  async getTagsForArticle(id: string): Promise<DatabaseArticleTag[]> {
+    const tags = await this.getTagsForArticles([id]);
+
+    return tags?.length !== 0 && tags[0]?.length > 0 ? tags[0] : [];
+  }
+
+  async getTagsForArticles(ids: string[]): Promise<DatabaseArticleTag[][]> {
+    const tags = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('refarticle', ids);
+
+    // Går att optimera
+    const mapped = ids.map((id) => {
+      return tags.filter((tag) => tag.refarticle === id);
+    });
+
+    return mapped;
+  }
+
+  async addTags(articleId: string, tags: string[]): Promise<boolean> {
+    const tagentries: DatabaseArticleTag[] = tags.map((tag) => ({ tag, refarticle: articleId }));
+
+    // Should error here if anything goes wrong
+    await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).insert(tagentries);
+
+    return true;
+  }
+
+  async removeTags(articleId: string): Promise<boolean> {
+    await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).where('refarticle', articleId).delete();
+    return true;
   }
 }

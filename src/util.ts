@@ -1,4 +1,9 @@
+import { ForbiddenError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
+import { Feature } from '@generated/graphql';
+
+import config from './config';
+import { Context } from './models/context';
 
 /**
  * Converts a date to UTC format
@@ -58,6 +63,7 @@ export const notEmpty = <ValueType>(value: ValueType | null | undefined): value 
   return true;
 };
 
+// TODO: Remove if unused (was used by PostAPI)
 export const slugify = (str: string) =>
   str
     .toLowerCase()
@@ -66,3 +72,36 @@ export const slugify = (str: string) =>
     .replace(/[^a-z0-9 -]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
+
+/**
+ * Checks if user has access to a feature
+ * @param ctx Resolver context
+ * @param requirement Array or single element of required permissions
+ * @throws {ForbiddenError} if user does not have required permissions
+ */
+export const hasAccess = async (ctx: Context, requirement: Feature | Feature[]): Promise<void> => {
+  if (config.SKIP_ACCESS_CHECKS) return;
+
+  const req = Array.isArray(requirement) ? requirement : [requirement];
+
+  const { features } = await ctx.getAccess();
+
+  if (features.includes(Feature.Superadmin)) {
+    return;
+  }
+
+  if (features.some((f) => req.includes(f))) {
+    return;
+  }
+
+  throw new ForbiddenError('Aja baja det får du inte göra!');
+};
+
+/**
+ * Checks if the user is authenticated otherwise throws an error
+ * @param ctx Resolver context
+ * @throws {UnauthenticatedError} If the user is not authenticated
+ */
+export const hasAuthenticated = async (ctx: Context): Promise<void> => {
+  await ctx.getAccess();
+};

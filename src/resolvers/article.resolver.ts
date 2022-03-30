@@ -3,13 +3,22 @@
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
 import { useDataLoader } from '@/dataloaders';
+import { Context } from '@/models/context';
 import { ArticleResponse } from '@/models/mappers';
-import { reduce } from '@/reducers';
+import { hasAccess, hasAuthenticated } from '@/util';
 import { ArticleAPI } from '@api/article';
-import { Resolvers } from '@generated/graphql';
+import { DatabaseArticle } from '@db/article';
+import { ArticleType, Feature, Resolvers } from '@generated/graphql';
 import { articleReducer } from '@reducer/article';
 
 const articleApi = new ArticleAPI();
+
+const checkEditAccess = async (ctx: Context, articleType: ArticleType) => {
+  await hasAccess(
+    ctx,
+    articleType === ArticleType.Information ? Feature.ArticleEditor : Feature.NewsEditor,
+  );
+};
 
 /**
  * Maps an `DatabaseArticle` i.e. a partial of `Article` to an ArticleResponse object
@@ -30,9 +39,15 @@ const articleResolver: Resolvers = {
     })),
     lastUpdatedAt: (model) => new Date(model.lastUpdatedAt),
     createdAt: (model) => new Date(model.createdAt),
+    tags: useDataLoader((model, ctx) => ({
+      key: model?.id ?? '',
+      dataLoader: ctx.articleTagsDataLoader,
+    })),
   },
   Query: {
-    newsentries: async (_, { creator, after, before }) => {
+    newsentries: async (_, { creator, after, before, markdown }, ctx) => {
+      await hasAuthenticated(ctx);
+      const safeMarkdown = markdown ?? false;
       let articleResponse: ArticleResponse[];
 
       if (!creator && !after && !before) {
@@ -54,7 +69,9 @@ const articleResolver: Resolvers = {
 
       return articleResponse;
     },
-    latestnews: async (_, { limit }) => {
+    latestnews: async (_, { limit, markdown }, ctx) => {
+      await hasAuthenticated(ctx);
+      const safeMarkdown = markdown ?? false;
       let articleResponse: ArticleResponse[];
 
       // Om vi inte gett en limit returnerar vi bara alla artiklar
@@ -112,13 +129,26 @@ const articleResolver: Resolvers = {
   },
   Mutation: {
     addArticle: async (_, { entry }, ctx) => {
+      await checkEditAccess(ctx, entry.articleType);
       // Special type of reduce
       const apiResponse = await articleApi.newArticle(ctx.getUsername(), entry);
       return reduce(apiResponse, articleReducer);
     },
-    modifyArticle: (_, { articleId, entry }, ctx) =>
-      articleApi.modifyArticle(articleId, ctx.getUsername(), entry),
-    removeArticle: (_, { articleId }) => articleApi.removeArticle(articleId),
+    modifyArticle: async (_, { articleId, entry }, ctx) => {
+      const article = await articleApi.getArticle({ id: articleId, slug: null });
+
+      /**
+       * If trying to set a new articleType, make sure we check that the user is allowed to do so.
+       *  */
+      await checkEditAccess(ctx, entry?.articleType ?? article.articleType);
+
+      return articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
+    },
+    removeArticle: async (_, { articleId }, ctx) => {
+      const article = await articleApi.getArticle({ id: articleId, slug: null });
+      await checkEditAccess(ctx, article.articleType);
+      return articleApi.removeArticle(articleId);
+    },
   },
 };
 

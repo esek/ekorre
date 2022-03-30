@@ -1,14 +1,29 @@
 # import User from 'user.graphql'
+# import Access from 'access.graphql'
+
+type Query {
+    apiKey(key: String!): ApiKey!
+    apiKeys: [ApiKey!]!
+}
 
 type Mutation {
   "Test user credentials and if valid get a jwt token"
   login(username: String!, password: String!): User
   logout: Boolean
   casLogin(token: String!): CasLoginResponse!
+  createApiKey(description: String!): String!
+  deleteApiKey(key: String!): Boolean!
 }
 
 type CasLoginResponse {
   username: String!
   hash: String
   exists: Boolean!
+}
+
+type ApiKey {
+    key: String!
+    description: String!
+    access: Access!
+    creator: User!
 }

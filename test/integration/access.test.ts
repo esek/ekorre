@@ -1,5 +1,4 @@
 import {
-  ACCESS_RESOURCES_TABLE,
   IND_ACCESS_TABLE,
   POSTS_HISTORY_TABLE,
   POSTS_TABLE,
@@ -7,82 +6,10 @@ import {
   USER_TABLE,
 } from '@/api/constants';
 import db from '@/api/knex';
-import apolloServerConfig from '@/app/serverconfig';
-import {
-  AccessResource,
-  AccessResourceType,
-  NewPost,
-  NewUser,
-  PostType,
-  Utskott,
-} from '@generated/graphql';
-import { ApolloServer } from 'apollo-server-express';
-
-const apolloServer = new ApolloServer(apolloServerConfig);
-
-const USER_WITH_ACCESS_AND_RESOURCES_QUERY = `
-	query ($username: String!) {
-		user(username: $username) {
-			firstName
-			lastName
-			username
-      access {
-        web {
-          slug
-        }
-        doors {
-          slug
-        }
-      }
-	}
-}
-`;
-
-const CREATE_USER_MUTATION = `
-  mutation ($input: NewUser!) {
-    createUser(input: $input)
-  }
-`;
-
-const ADD_POST_MUTATION = `
-  mutation ($info: NewPost!) {
-    addPost(info: $info)
-  }
-`;
-
-const ADD_USER_TO_POST = `
-  mutation ($usernames: [String!]!, $postname: String!) {
-    addUsersToPost(usernames: $usernames, postname: $postname)
-  }
-`;
-
-const ADD_ACCESS_RESOURCE_MUTATION = `
-  mutation (
-    $name: String!
-    $description: String!
-    $resourceType: AccessResourceType!
-    $slug: String!
-  ) {
-    addAccessResource(
-      name: $name
-      description: $description
-      resourceType: $resourceType
-      slug: $slug
-    )
-  }
-`;
-
-const SET_USER_ACCESS_MUTATION = `
-	mutation ($username: String!, $access: [String!]!) {
-		setIndividualAccess(username: $username, access: $access)
-	}
-`;
-
-const SET_POST_ACCESS_MUTATION = `
-	mutation ($postname: String!, $access: [String!]!) {
-		setPostAccess(postname: $postname, access: $access)
-	}
-`;
+import { issueToken } from '@/auth';
+import { Door, Feature, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
+import { ADD_POST_MUTATION, ADD_USER_TO_POST, CREATE_USER_MUTATION, SET_POST_ACCESS_MUTATION, SET_USER_ACCESS_MUTATION, USER_WITH_ACCESS_QUERY } from '@test/utils/queries';
+import requestWithAuth from '@test/utils/requestWithAuth';
 
 // Ska vara tillgänglig för alla test
 const mockNewUser: NewUser = {
@@ -102,35 +29,50 @@ const mockPost: NewPost = {
   interviewRequired: false,
 };
 
-const mockAccessResource0: AccessResource = {
-  name: 'Katakomberna',
-  slug: 'dungeons',
-  description: 'Asbest + Sex cave == Kul för hela Sektionen...?',
-  resourceType: AccessResourceType.Door,
-};
+const addMockUserAndPost = async () => {
+  const superadminToken = issueToken({ username: 'aa0000bb-s' }, 'accessToken');
 
-const mockAccessResource1: AccessResource = {
-  name: 'Dungeon Master',
-  slug: 'sexmastare',
-  description: 'Har hand om katakombernas webbsida, xxx.esek.se (TBA)',
-  resourceType: AccessResourceType.Web,
+  const createUserRes = await requestWithAuth(
+    CREATE_USER_MUTATION,
+    { input: mockNewUser },
+    superadminToken,
+  );
+
+  expect(createUserRes.errors).toBeUndefined();
+  expect(createUserRes?.data?.createUser).toBeTruthy();
+
+  const addPostRes = await requestWithAuth(ADD_POST_MUTATION, { info: mockPost }, superadminToken);
+
+  expect(addPostRes.errors).toBeUndefined();
+  expect(addPostRes?.data?.addPost).toBeTruthy();
+
+  // Add user to new post
+  const addUsersToPostRes = await requestWithAuth(
+    ADD_USER_TO_POST,
+    { usernames: [mockNewUser.username], postname: mockPost.name },
+    superadminToken,
+  );
+
+  expect(addUsersToPostRes.errors).toBeUndefined();
+  expect(addUsersToPostRes?.data?.addUsersToPost).toBeTruthy();
 };
 
 const clearDb = async () => {
   await Promise.all([
     db(IND_ACCESS_TABLE).delete().where('refname', mockNewUser.username),
     db(POST_ACCESS_TABLE).delete().where('refname', mockPost.name),
+    db(POSTS_HISTORY_TABLE).delete().where('refuser', mockNewUser.username),
+    db(POSTS_TABLE).delete().where('postname', mockPost.name),
+    db(USER_TABLE).delete().where('username', mockNewUser.username),
   ]);
-  await db(POSTS_HISTORY_TABLE).delete().where('refuser', mockNewUser.username);
-  await db(POSTS_TABLE).delete().where('postname', mockPost.name);
-  await db(USER_TABLE).delete().where('username', mockNewUser.username);
-  await db(ACCESS_RESOURCES_TABLE)
-    .delete()
-    .whereIn('slug', [mockAccessResource0.slug, mockAccessResource1.slug]);
 };
 
 beforeAll(async () => {
   await clearDb();
+});
+
+beforeEach(async () => {
+  await addMockUserAndPost();
 });
 
 afterAll(async () => {
@@ -138,75 +80,32 @@ afterAll(async () => {
 });
 
 test('setting and getting full access of user', async () => {
-  const createUserRes = await apolloServer.executeOperation({
-    query: CREATE_USER_MUTATION,
-    variables: {
-      input: mockNewUser,
-    },
-  });
-
-  expect(createUserRes.errors).toBeUndefined();
-  expect(createUserRes?.data?.createUser).toBeTruthy();
-
-  const addPostRes = await apolloServer.executeOperation({
-    query: ADD_POST_MUTATION,
-    variables: {
-      info: mockPost,
-    },
-  });
-
-  expect(addPostRes.errors).toBeUndefined();
-  expect(addPostRes?.data?.addPost).toBeTruthy();
-
-  // Add user to new post
-  const addUsersToPostRes = await apolloServer.executeOperation({
-    query: ADD_USER_TO_POST,
-    variables: {
-      usernames: [mockNewUser.username],
-      postname: mockPost.name,
-    },
-  });
-
-  expect(addUsersToPostRes.errors).toBeUndefined();
-  expect(addUsersToPostRes?.data?.addUsersToPost).toBeTruthy();
-
-  // We can do these two at the 'same' time
-  const [addAccessResourceRes0, addAccessResourceRes1] = await Promise.all([
-    apolloServer.executeOperation({
-      query: ADD_ACCESS_RESOURCE_MUTATION,
-      variables: {
-        ...mockAccessResource0,
-      },
-    }),
-    apolloServer.executeOperation({
-      query: ADD_ACCESS_RESOURCE_MUTATION,
-      variables: {
-        ...mockAccessResource1,
-      },
-    }),
-  ]);
-
-  expect(addAccessResourceRes0.errors).toBeUndefined();
-  expect(addAccessResourceRes0?.data?.addAccessResource).toBeTruthy();
-  expect(addAccessResourceRes1.errors).toBeUndefined();
-  expect(addAccessResourceRes1?.data?.addAccessResource).toBeTruthy();
+  const superadminToken = issueToken({ username: 'aa0000bb-s' }, 'accessToken');
 
   // Set individual access and post access
   const [setIndividualAccessRes, setPostAccessRes] = await Promise.all([
-    apolloServer.executeOperation({
-      query: SET_USER_ACCESS_MUTATION,
-      variables: {
+    requestWithAuth(
+      SET_USER_ACCESS_MUTATION,
+      {
         username: mockNewUser.username,
-        access: [mockAccessResource0.slug, 'super-admin'], // We use some values defined by test db
+        access: {
+          features: [Feature.AccessAdmin],
+          doors: [Door.Bd],
+        },
       },
-    }),
-    apolloServer.executeOperation({
-      query: SET_POST_ACCESS_MUTATION,
-      variables: {
+      superadminToken,
+    ),
+    requestWithAuth(
+      SET_POST_ACCESS_MUTATION,
+      {
         postname: mockPost.name,
-        access: [mockAccessResource1.slug, 'bd', 'super-admin'],
+        access: {
+          features: [Feature.Superadmin],
+          doors: [Door.Hk],
+        },
       },
-    }),
+      superadminToken,
+    ),
   ]);
 
   expect(setIndividualAccessRes.errors).toBeUndefined();
@@ -215,27 +114,22 @@ test('setting and getting full access of user', async () => {
   expect(setPostAccessRes?.data?.setPostAccess).toBeTruthy();
 
   // Now we check if we get the correct total access!
-  const userWithAccessRes = await apolloServer.executeOperation({
-    query: USER_WITH_ACCESS_AND_RESOURCES_QUERY,
-    variables: {
+  const userWithAccessRes = await requestWithAuth(
+    USER_WITH_ACCESS_QUERY,
+    {
       username: mockNewUser.username,
     },
-  });
+    superadminToken,
+  );
 
   expect(userWithAccessRes.errors).toBeUndefined();
   expect(userWithAccessRes?.data?.user).toMatchObject({
     firstName: mockNewUser.firstName,
     lastName: mockNewUser.lastName,
     username: mockNewUser.username,
+    access: {
+      features: [Feature.AccessAdmin, Feature.Superadmin],
+      doors: [Door.Bd, Door.Hk],
+    },
   });
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(userWithAccessRes?.data?.user?.access?.doors).toEqual(
-    expect.arrayContaining([{ slug: mockAccessResource0.slug }, { slug: 'bd' }]),
-  );
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  expect(userWithAccessRes?.data?.user?.access?.web).toEqual(
-    expect.arrayContaining([{ slug: mockAccessResource1.slug }, { slug: 'super-admin' }]),
-  );
 });

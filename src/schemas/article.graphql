@@ -49,7 +49,7 @@ input NewArticle {
   title: String!
   body: String!
   signature: String!
-  tags: [String!]
+  tags: [String!]!
   articleType: ArticleType!
 }
 

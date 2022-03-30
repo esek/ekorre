@@ -68,60 +68,38 @@ INSERT INTO Posts (postname,utskott,posttype,spots,description,active,interviewR
 INSERT INTO PostHistory (refpost,refuser,"start","end") VALUES ('Macapär','aa0000bb-s', 1577833200, 1609369200);
 INSERT INTO PostHistory (refpost,refuser,"start","end") VALUES ('Macapär','aa0000bb-s', 1609369200, null);
 
-END TRANSACTION;
-BEGIN TRANSACTION;
-
-CREATE TABLE "AccessResources" (
-  "slug" TEXT PRIMARY KEY NOT NULL,
-  "name" TEXT NOT NULL,
-  "description" TEXT,
-  "resourceType" TEXT NOT NULL
-);
-
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("sikrit", "Sikrit", "Rummet med en massa skräp", "DOOR");
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("bd", "Blå Dörren", "Coolaste rummet i edekvata", "DOOR");
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("ekea", "EKEA", "Här finns bord och skor", "DOOR");
-
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("super-admin", "Superadmin", "Får göra allt", "WEB");
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("ahs", "AHS", "Alkoholhanteringssystemet", "WEB");
-INSERT INTO AccessResources (slug, name, description, resourceType) VALUES ("article-editor", "Artikelredigerare", "Kan skapa och redigera artiklar", "WEB");
-
 CREATE TABLE "PostAccess" (
 	"refname"	TEXT NOT NULL,
-	"refaccessresource"	TEXT NOT NULL,
-	PRIMARY KEY("refname","refaccessresource"),
-	FOREIGN KEY("refname") REFERENCES "Posts"("postname"),
-	FOREIGN KEY("refaccessresource") REFERENCES "AccessResources"("slug")
+	"resource"	TEXT NOT NULL,
+	"resourcetype" TEXT NOT NULL,
+	PRIMARY KEY("refname","resource")
+	FOREIGN KEY("refname") REFERENCES "Posts"("postname")
 );
 
 CREATE TABLE "IndividualAccess" (
 	"refname"	TEXT NOT NULL,
-	"refaccessresource"	TEXT NOT NULL,
-	PRIMARY KEY("refname","refaccessresource"),
-	FOREIGN KEY("refname") REFERENCES "Users"("username"),
-	FOREIGN KEY("refaccessresource") REFERENCES "AccessResources"("slug")
+	"resource"	TEXT NOT NULL,
+	"resourcetype" TEXT NOT NULL,
+	PRIMARY KEY("refname","resource")
+	FOREIGN KEY("refname") REFERENCES "Users"("username")
 );
 
-INSERT INTO PostAccess VALUES('Macapär', 'sikrit');
-INSERT INTO PostAccess VALUES('Macapär', 'bd');
-INSERT INTO PostAccess VALUES('Macapär', 'super-admin');
-INSERT INTO PostAccess VALUES('Ordförande', 'sikrit');
-
-INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'sikrit');
-INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'ekea');
-INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'super-admin'); -- this allows aa0000bb-s to access everything by default
-
-CREATE TABLE "AccessMappings" (
-  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
-  "refaccessresource" TEXT,
-  "resolverType" TEXT NOT NULL,
-  "resolverName" TEXT NOT NULL,
-	FOREIGN KEY("refaccessresource") REFERENCES "AccessResources"("slug")
-  CONSTRAINT "uniqueMapping" UNIQUE ("refaccessresource", "resolverType", "resolverName")
-  CONSTRAINT "noLoginMapping" CHECK ("resolverName" <> "login") -- Stupid to disallow login for not logged in users
-  CONSTRAINT "noCasLoginMapping" CHECK ("resolverName" <> "casLogin")
+CREATE TABLE "ApiKeyAccess" (
+	"refname"	TEXT NOT NULL,
+	"resource"	TEXT NOT NULL,
+	"resourcetype" TEXT NOT NULL,
+	PRIMARY KEY("refname","resource"),
+	FOREIGN KEY("refname") REFERENCES "ApiKeys"("key")
 );
 
+INSERT INTO PostAccess VALUES('Macapär', 'sikrit', 'door');
+INSERT INTO PostAccess VALUES('Macapär', 'bd', 'door');
+INSERT INTO PostAccess VALUES('Macapär', 'superadmin', 'feature');
+INSERT INTO PostAccess VALUES('Ordförande', 'sikrit', 'door');
+
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'sikrit', 'door');
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'ekea', 'door');
+INSERT INTO IndividualAccess VALUES('aa0000bb-s', 'superadmin', 'feature'); -- this allows aa0000bb-s to access everything by default
 
 CREATE TABLE IF NOT EXISTS "Articles" (
   "id" INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -132,15 +110,25 @@ CREATE TABLE IF NOT EXISTS "Articles" (
   "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "lastUpdatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   "signature" TEXT NOT NULL,
-  "tags" TEXT NOT NULL,
   "articleType" TEXT NOT NULL,
   FOREIGN KEY("refcreator") REFERENCES "Users"("username")
   FOREIGN KEY("reflastupdateby") REFERENCES "Users"("username")
 );
 
-INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('aa0000bb-s', 'aa0000bb-s', 'Nyhet 1', '<h1>Detta är en nyhet</h1><p>Body för nyheten<b>bold!</b></p>', 'AB', 'tag1,tag2','news');
-INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('bb1111cc-s', 'aa0000bb-s', 'Nyhet 2', '<h1>Detta är också en nyhet</h1><p>Body för nyheten<i>italic!</i></p>', 'Hejsan', 'tag1,tag2','news');
-INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, tags, articleType) VALUES ('no0000oh-s', 'no0000oh-s', 'Info 1', '<h1>Detta är information</h1><p>Body för infon<s>strikethrough!</s></p>', 'XX', '','information');
+CREATE TABLE IF NOT EXISTS "ArticleTags" (
+  "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "refarticle" INTEGER NOT NULL,
+  "tag" TEXT NOT NULL,
+  FOREIGN KEY("refarticle") REFERENCES "Articles"("id")
+);
+
+INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, articleType) VALUES ('aa0000bb-s', 'aa0000bb-s', 'Nyhet 1', '<h1>Detta är en nyhet</h1><p>Body för nyheten<b>bold!</b></p>', 'AB', 'news');
+INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, articleType) VALUES ('bb1111cc-s', 'aa0000bb-s', 'Nyhet 2', '<h1>Detta är också en nyhet</h1><p>Body för nyheten<i>italic!</i></p>', 'Hejsan', 'news');
+INSERT INTO Articles (refcreator, reflastupdateby, title, body, signature, articleType) VALUES ('no0000oh-s', 'no0000oh-s', 'Info 1', '<h1>Detta är information</h1><p>Body för infon<s>strikethrough!</s></p>', 'XX', 'information');
+
+INSERT INTO ArticleTags (refarticle, tag) VALUES (1, 'tag1');
+INSERT INTO ArticleTags (refarticle, tag) VALUES (1, 'tag2');
+INSERT INTO ArticleTags (refarticle, tag) VALUES (2, 'tag1');
 
 CREATE TABLE IF NOT EXISTS "Files" (
   "id" TEXT PRIMARY KEY,
@@ -252,6 +240,14 @@ CREATE TABLE IF NOT EXISTS "Hehes" (
   FOREIGN KEY("refuploader") REFERENCES "Users"("username"),
   FOREIGN KEY("reffile") REFERENCES "Files"("id"),
   PRIMARY KEY ("number", "year")
+);
+
+CREATE TABLE "ApiKeys" (
+	"key"	TEXT PRIMARY KEY NOT NULL UNIQUE,
+	"description" TEXT NOT NULL,
+	"createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	"refcreator" TEXT NOT NULL,
+	FOREIGN KEY("refcreator") REFERENCES "Users"("username")
 );
 
 END TRANSACTION;

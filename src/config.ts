@@ -70,6 +70,7 @@ const config = {
   HOST: process.env.HOST ?? '0.0.0.0',
   DEV: process.env.NODE_ENV !== 'production',
   DB,
+  SKIP_ACCESS_CHECKS: process.env.SKIP_ACCESS_CHECKS?.toLowerCase() === 'true',
   FILES,
   EBREV,
   CORS,

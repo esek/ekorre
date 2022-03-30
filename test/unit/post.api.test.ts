@@ -29,7 +29,7 @@ const np: NewPost = {
 };
 
 const a: Access = {
-  web: [],
+  features: [],
   doors: [],
 };
 
@@ -56,9 +56,9 @@ const removePostHistory = async (username: string) => {
   await db(POSTS_HISTORY_TABLE).delete().where({ refuser: username });
 };
 
-const clearDb = () => {
-  removePostHistory(DUMMY_USER.username);
-  removePost('Underphøs');
+const clearDb = async () => {
+  await removePostHistory(DUMMY_USER.username);
+  await removePost('Underphøs');
 };
 
 beforeAll(async () => {

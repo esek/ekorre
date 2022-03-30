@@ -3,14 +3,20 @@ import { COOKIES, verifyToken } from '@/auth';
 import { UnauthenticatedError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { TokenValue } from '@/models/auth';
+import { AccessAPI } from '@api/access';
 import FileAPI from '@api/file';
-import { userApi } from '@dataloader/user';
-import { AccessType } from '@generated/graphql';
+import { UserAPI } from '@api/user';
 import { PrismaUser as User } from '@prisma/client';
+import { AccessType, Feature } from '@generated/graphql';
+import { accessReducer } from '@reducer/access';
 import { RequestHandler } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 
 const logger = Logger.getLogger('RestAuth');
+
+const userApi = new UserAPI();
+const accessApi = new AccessAPI();
+const fileApi = new FileAPI();
 
 /**
  * Express middleware to set a getUser helper method on res.locals.getUser
@@ -64,52 +70,53 @@ export const verifyAuthenticated: RequestHandlerWithLocals = async (_req, res, n
 
 /**
  * Express middleware to ensure that a user has the correct read access for a specific file
- * @param api Files API
  */
 
-export const verifyFileReadAccess =
-  (api: FileAPI): RequestHandlerWithLocals =>
-  (req, res, next) => {
-    // IIFE because .use does not expect a promise
-    (async () => {
-      const { url } = req;
-      const id = url.substring(url.lastIndexOf('/') + 1).split('?')[0];
-      // return null if file doesn't exist
-      const file = await api.getFileData(id).catch((_) => null);
+export const verifyFileReadAccess: RequestHandlerWithLocals = async (req, res, next) => {
+  // IIFE because .use does not expect a promise
+  const { url } = req;
+  const id = url.substring(url.lastIndexOf('/') + 1).split('?')[0];
+  // return null if file doesn't exist
+  const file = await fileApi.getFileData(id).catch(() => null);
 
-      if (file == null) {
-        logger.debug(`Could not find file '${id}' in DB`);
-        res.status(404).send();
-        return;
-      }
+  if (file == null) {
+    logger.debug(`Could not find file '${id}' in DB`);
+    res.status(404).send();
+    return;
+  }
 
-      // If public file, just go to content
-      if (file.accessType === AccessType.Public) {
+  // If public file, just go to content
+  if (file.accessType === AccessType.Public) {
+    next();
+    return;
+  }
+
+  try {
+    const user = await res.locals.getUser();
+
+    // If only login is required, proceed (authentication is checked beforehand)
+    if (file.accessType === AccessType.Authenticated) {
+      next();
+      return;
+    }
+
+    // if admin is required
+    if (file.accessType === AccessType.Admin) {
+      const userAccess = await accessApi.getUserFullAccess(user.username);
+      const { features } = accessReducer(userAccess);
+
+      if (features.some((f) => [Feature.Superadmin, Feature.FilesAdmin].includes(f))) {
         next();
         return;
       }
+    }
 
-      try {
-        const user = await res.locals.getUser();
+    // If none of tgithe above verifications succeeded, user is not authorized
+    throw new UnauthenticatedError('Du har inte access');
+  } catch (error) {
+    // Return 403 if no token was provided or it verification failed
+    logger.error(`Error in verification middleware - ${error as string}`);
 
-        if (file.accessType === AccessType.Admin && user) {
-          // TODO: Verify that user is admin
-          next();
-          return;
-        }
-
-        if (file.accessType === AccessType.Authenticated && user) {
-          next();
-          return;
-        }
-
-        // If none of tgithe above verifications succeeded, user is not authorized
-        throw new UnauthenticatedError('Du har inte access');
-      } catch (error) {
-        // Return 403 if no token was provided or it verification failed
-        logger.error(`Error in verification middleware - ${error as string}`);
-
-        res.status(403).send('Access Denied');
-      }
-    })();
-  };
+    res.status(403).send('Access Denied');
+  }
+};

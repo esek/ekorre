@@ -16,3 +16,5 @@ srv
 
 #Windows
 *.exe
+
+srv/
