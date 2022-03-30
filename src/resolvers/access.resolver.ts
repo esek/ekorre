@@ -13,9 +13,9 @@ const accessresolver: Resolvers = {
 
       return accessReducer(access);
     },
-    postAccess: async (_, { postname }, ctx) => {
+    postAccess: async (_, { postId }, ctx) => {
       await hasAuthenticated(ctx);
-      const access = await accessApi.getPostAccess(postname);
+      const access = await accessApi.getPostAccess(postId);
 
       return accessReducer(access);
     },
@@ -31,9 +31,9 @@ const accessresolver: Resolvers = {
       await hasAccess(ctx, Feature.AccessAdmin);
       return accessApi.setIndividualAccess(username, access);
     },
-    setPostAccess: async (_, { postname, access }, ctx) => {
+    setPostAccess: async (_, { postId, access }, ctx) => {
       await hasAccess(ctx, Feature.AccessAdmin);
-      return accessApi.setPostAccess(postname, access);
+      return accessApi.setPostAccess(postId, access);
     },
   },
   ApiKey: {
@@ -50,11 +50,9 @@ const accessresolver: Resolvers = {
     },
   },
   Post: {
-    access: async ({ postname }) => {
+    access: async ({ id }) => {
       // Maybe implement API method that takes single postname.
-      const postAccess = await accessApi.getAccessForPosts([postname]).catch(() => {
-        return [];
-      });
+      const postAccess = await accessApi.getPostAccess(id);
       return accessReducer(postAccess);
     },
   },

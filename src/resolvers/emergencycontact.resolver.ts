@@ -1,6 +1,7 @@
 import { reduce } from '@/reducers';
 import EmergencyContactAPI from '@api/emergencycontact';
 import type { Resolvers } from '@generated/graphql';
+import { emergencyContactReducer } from '@reducer/emergencycontact';
 import { checkUserFieldAccess } from './user.resolver';
 
 const ecApi = new EmergencyContactAPI();
@@ -23,7 +24,7 @@ const emergencycontactresolver: Resolvers = {
     emergencyContacts: async (user, _, ctx) => {
       checkUserFieldAccess(ctx, user);
       const contacts = await ecApi.getEmergencyContacts(user.username);
-      return contacts;
+      return reduce(contacts, emergencyContactReducer);
     }
   }
 };

@@ -1,10 +1,9 @@
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { DatabaseApiKey } from '@db/apikey';
+import { PrismaApiKey } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
-import { API_KEY_TABLE } from './constants';
-import db from './knex';
+import prisma from './prisma';
 
 const logger = Logger.getLogger('ApiKeyAPI');
 
@@ -12,13 +11,14 @@ class ApiKeyAPI {
   async createApiKey(description: string, username: string): Promise<string> {
     const key = randomUUID();
 
-    const res = await db<DatabaseApiKey>(API_KEY_TABLE).insert({
-      key,
-      description,
-      refcreator: username,
-    });
-
-    if (res.length === 0) {
+    try {
+      await prisma.prismaApiKey.create({data: {
+        key,
+        description,
+        refCreator: username,
+      }});
+    } catch (err) {
+      logger.debug(err);
       throw new ServerError('Kunde inte skapa ny API nyckel');
     }
 
@@ -27,48 +27,48 @@ class ApiKeyAPI {
   }
 
   async removeApiKey(key: string): Promise<boolean> {
-    const res = await db<DatabaseApiKey>(API_KEY_TABLE)
-      .where({
-        key,
-      })
-      .del();
-
-    if (res > 0) {
-      logger.info(`Removed API key ${key}`);
-      return true;
+    try {
+      await prisma.prismaApiKey.delete({
+        where: {
+          key,
+        },
+      });
+    } catch (err) {
+      logger.warn(`Could not remove API key ${key}`);
+      return false;
     }
 
-    logger.warn(`Could not remove API key ${key}`);
-    return false;
+    logger.info(`Removed API key ${key}`);
+    return true;
   }
 
-  async getApiKey(key: string): Promise<DatabaseApiKey> {
-    const res = await db<DatabaseApiKey>(API_KEY_TABLE)
-      .where({
+  async getApiKey(key: string): Promise<PrismaApiKey> {
+    const apiKey = await prisma.prismaApiKey.findFirst({
+      where: {
         key,
-      })
-      .first();
+      }
+    });
 
-    if (!res) {
-      throw new NotFoundError('Denna API nyckeln finns inte');
+    if (apiKey == null) {
+      throw new NotFoundError('Kunde inte hitta API nyckel');
     }
 
-    return res;
+    return apiKey;
   }
 
-  async getApiKeys(): Promise<DatabaseApiKey[]> {
-    const res = await db<DatabaseApiKey>(API_KEY_TABLE);
-    return res;
+  async getApiKeys(): Promise<PrismaApiKey[]> {
+    const apiKeys = await prisma.prismaApiKey.findMany();
+    return apiKeys;
   }
 
   async checkApiKey(key: string): Promise<boolean> {
-    const res = await db<DatabaseApiKey>(API_KEY_TABLE)
-      .where({
+    const apiKey = await prisma.prismaApiKey.findFirst({
+      where: {
         key,
-      })
-      .first();
+      }
+    });
 
-    return res != null;
+    return apiKey != null;
   }
 }
 

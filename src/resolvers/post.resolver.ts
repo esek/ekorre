@@ -90,7 +90,7 @@ const postresolver: Resolvers = {
       reduced.forEach((p) => {
         // Vi vill inte ladda in dessa fler gånger
         // i samma request, så vi sparar dem i vår dataloader
-        ctx.postDataLoader.prime(p.postname, p);
+        ctx.postDataLoader.prime(p.id, p);
       });
 
       return reduced;

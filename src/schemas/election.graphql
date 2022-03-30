@@ -26,7 +26,7 @@ type Query {
 }
 
 type Mutation {
-  createElection(electables: [String]!, nominationsHidden: Boolean!): Int!
+  createElection(electables: [Int!]!, nominationsHidden: Boolean!): Int!
   addElectables(electionId: Int!, postIds: [Int!]): Boolean!
   removeElectables(electionId: Int!, postIds: [Int!]): Boolean!
   setElectables(electionId: Int!, postIds: [Int!]!): Boolean!
