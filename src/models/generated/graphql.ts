@@ -269,9 +269,10 @@ export type ModifyArticle = {
 
 export type ModifyPost = {
   description?: Maybe<Scalars['String']>;
+  id: Scalars['Int'];
   /** Om sökande valbereds och kallas till intervju */
   interviewRequired?: Maybe<Scalars['Boolean']>;
-  name: Scalars['String'];
+  name?: Maybe<Scalars['String']>;
   postType?: Maybe<PostType>;
   /**
    * Hur många platser en post har.

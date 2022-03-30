@@ -67,7 +67,8 @@ input NewPost {
 }
 
 input ModifyPost {
-    name: String!
+    id: Int!
+    name: String
     utskott: Utskott
     postType: PostType
 

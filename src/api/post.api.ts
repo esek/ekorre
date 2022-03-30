@@ -236,7 +236,7 @@ export class PostAPI {
    * @param entry Modifiering av existerande artikel
    */
   async modifyPost(entry: ModifyPost): Promise<boolean> {
-    const { name, ...update }: StrictObject = stripObject(entry);
+    const { id, ...update }: StrictObject = stripObject(entry);
 
     // Om vi ändrar posttyp eller antal måste detta kontrolleras
     // Får vi spots i `entry` jämför vi med det, annars måste
@@ -251,7 +251,7 @@ export class PostAPI {
         // Vi måste kolla i databasen vad denna post har för postType
         const existingPost = await prisma.prismaPost.findFirst({
           where: {
-            postname: name as string,
+            id: id as number,
           },
           select: {
             postType: true,
@@ -268,7 +268,7 @@ export class PostAPI {
     } else if (entry.postType !== undefined) {
       const existingPost = await prisma.prismaPost.count({
         where: {
-          postname: name as string,
+          id: id as number,
         },
       });
 
@@ -277,7 +277,7 @@ export class PostAPI {
       // Vi vill inte uppdatera något av dem
       const post = await prisma.prismaPost.update({
         where: {
-          slug: slugify(name),
+          id: id as number,
         },
         data: update,
       });
@@ -292,7 +292,7 @@ export class PostAPI {
 
     const post = await prisma.prismaPost.update({
       where: {
-        slug: slugify(name),
+        id: id as number,
       },
       data: {
         ...update,
@@ -305,7 +305,7 @@ export class PostAPI {
 
   /**
    * Sätter active-statusen för en post
-   * @param slug Sluggen för posten
+   * @param id ID för posten
    * @param active Om posten ska vara markerad aktiv
    * @returns Om en uppdatering gjordes
    */
