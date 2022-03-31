@@ -3,7 +3,6 @@
 // används på flera olika ställen i API:n. Jag har utgått
 // från detta projekt: https://github.com/benawad/graphql-n-plus-one-example
 import { useDataLoader } from '@/dataloaders';
-import { NotFoundError } from '@/errors/request.errors';
 import { Context } from '@/models/context';
 import { ArticleResponse } from '@/models/mappers';
 import { reduce } from '@/reducers';
