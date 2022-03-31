@@ -92,11 +92,6 @@ const articleResolver: Resolvers = {
       // Vi måste använda UserAPI:n för att få fram denna användare.
       const apiResponse = await articleApi.getArticle(id ?? undefined, slug ?? undefined);
 
-      // Om API::n returnerar null finns inte artikeln; returnera null
-      if (apiResponse == null) {
-        throw new NotFoundError('Artikeln finns inte');
-      }
-
       return reduce(apiResponse, articleReducer);
     },
     articles: async (_, { author, id, tags }) => {
@@ -131,7 +126,7 @@ const articleResolver: Resolvers = {
       return reduce(apiResponse, articleReducer);
     },
     modifyArticle: async (_, { articleId, entry }, ctx) => {
-      const article = await articleApi.getArticle(articleId, undefined);
+      const article = await articleApi.getArticle(articleId);
 
       /**
        * If trying to set a new articleType, make sure we check that the user is allowed to do so.
@@ -141,7 +136,7 @@ const articleResolver: Resolvers = {
       return articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
     },
     removeArticle: async (_, { articleId }, ctx) => {
-      const article = await articleApi.getArticle(articleId, undefined);
+      const article = await articleApi.getArticle(articleId);
       await checkEditAccess(ctx, article.articleType);
       return articleApi.removeArticle(articleId);
     },
