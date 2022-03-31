@@ -6,7 +6,7 @@ import type { TokenType } from '@/models/auth';
 import { ApiKeyResponse } from '@/models/mappers';
 import { reduce } from '@/reducers';
 import { hasAccess } from '@/util';
-import ApiKeyAPI from '@api/apikey';
+import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
 import { Feature, Resolvers, User } from '@generated/graphql';
 import { apiKeyReducer } from '@reducer/apikey';

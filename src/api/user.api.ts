@@ -1,4 +1,5 @@
 /* eslint-disable class-methods-use-this */
+import config from '@/config';
 import { Logger } from '@/logger';
 import type { NewUser } from '@generated/graphql';
 import { PrismaPasswordReset, PrismaUser } from '@prisma/client';
@@ -329,5 +330,15 @@ export class UserAPI {
     const passwordHash = this.hashPassword(password, passwordSalt);
 
     return { passwordSalt, passwordHash };
+  }
+
+  async clear() {
+    if (!config.DEV) {
+      throw new Error('Tried to clear accesses in production!');
+    }
+    const users = prisma.prismaUser.deleteMany();
+    const resets = prisma.prismaPasswordReset.deleteMany();
+
+    await Promise.all([users, resets]);
   }
 }

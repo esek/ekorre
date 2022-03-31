@@ -1,4 +1,5 @@
 import { PostAPI } from '@/api/post.api';
+import config from '@/config';
 import { Logger } from '@/logger';
 import { AccessEntry } from '@/models/access';
 import { AccessInput } from '@generated/graphql';
@@ -34,7 +35,7 @@ export class AccessAPI {
         refUser: username,
       },
       orderBy: {
-        resource: 'desc',
+        resource: 'asc',
       },
     });
 
@@ -52,7 +53,7 @@ export class AccessAPI {
         refPost: postname,
       },
       orderBy: {
-        resource: 'desc',
+        resource: 'asc',
       },
     });
 
@@ -66,7 +67,7 @@ export class AccessAPI {
         refApiKey: apiKey,
       },
       orderBy: {
-        resource: 'desc',
+        resource: 'asc',
       },
     });
 
@@ -106,13 +107,13 @@ export class AccessAPI {
       }),
     );
 
-    await prisma.prismaIndividualAccess.createMany({
+    const res = await prisma.prismaIndividualAccess.createMany({
       data: access,
     });
 
     logger.info(`Updated access for user ${username}`);
     logger.debug(`Updated access for user ${username} to ${Logger.pretty(newaccess)}`);
-    return true;
+    return res.count === access.length;
   }
 
   async setApiKeyAccess(key: string, newaccess: AccessInput): Promise<boolean> {
@@ -218,5 +219,20 @@ export class AccessAPI {
 
     // Flatten the array of access from the promises
     return sorted;
+  }
+
+  /**
+   * Used for testing
+   * Will clear every access!!!
+   */
+  async clear() {
+    if (!config.DEV) {
+      throw new Error('Tried to clear accesses in production!');
+    }
+    const individual = prisma.prismaIndividualAccess.deleteMany({});
+    const post = prisma.prismaPostAccess.deleteMany({});
+    const apiKey = prisma.prismaApiKeyAccess.deleteMany({});
+
+    await Promise.all([individual, post, apiKey]);
   }
 }

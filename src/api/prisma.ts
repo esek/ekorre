@@ -31,6 +31,12 @@ prisma.$use(async (params, next) => {
     return result;
   } catch (err) {
     logger.error(err);
+
+    // Kasta om fel så att man kan läsa dem i dev
+    if (config.DEV) {
+      throw err;
+    }
+
     throw new ServerError('Ett databasfel inträffade');
   }
 });

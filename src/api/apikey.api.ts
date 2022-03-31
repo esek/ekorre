@@ -1,3 +1,4 @@
+import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { PrismaApiKey } from '@prisma/client';
@@ -7,7 +8,7 @@ import prisma from './prisma';
 
 const logger = Logger.getLogger('ApiKeyAPI');
 
-class ApiKeyAPI {
+export class ApiKeyAPI {
   async createApiKey(description: string, username: string): Promise<string> {
     const key = randomUUID();
 
@@ -72,6 +73,12 @@ class ApiKeyAPI {
 
     return apiKey != null;
   }
-}
 
-export default ApiKeyAPI;
+  async clear() {
+    if (!config.DEV) {
+      throw new ServerError('Kan inte ta bort API nycklar i produktion');
+    }
+
+    await prisma.prismaApiKey.deleteMany();
+  }
+}
