@@ -54,7 +54,7 @@ model PrismaPostAccess {
   post         PrismaPost         @relation(name: "PrismaPostToPrismaPostAccess", fields: [refPost], references: [id])
   refPost      Int                @map("ref_post")
   resourceType PrismaResourceType @map("ref_resource_type")
-  resource     String             @map("resource")
+  resource     String
 
   @@map("post_accesses")
 }
