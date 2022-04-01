@@ -2,7 +2,7 @@ import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { AccessType, FileSystemResponsePath, FileType } from '@generated/graphql';
-import { PrismaFile, PrismaAccessType } from '@prisma/client';
+import { Prisma, PrismaAccessType, PrismaFile } from '@prisma/client';
 import { createHash } from 'crypto';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs';
@@ -144,10 +144,14 @@ class FileAPI {
   }
 
   async getMultipleFiles(type?: FileType): Promise<PrismaFile[]> {
+    const where: Prisma.PrismaFileWhereInput = {};
+
+    if (type) {
+      where.type = type;
+    }
+
     const f = await prisma.prismaFile.findMany({
-      where: {
-        type,
-      },
+      where,
     });
 
     return f;
@@ -193,10 +197,10 @@ class FileAPI {
           },
           OR: {
             name: {
-              contains: search,
+              search: search,
             },
             id: {
-              contains: search,
+              search: search,
             },
           },
         },

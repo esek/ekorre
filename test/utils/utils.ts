@@ -1,7 +1,7 @@
 import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
-import { AccessInput, NewUser } from '@generated/graphql';
+import { Feature, NewUser } from '@generated/graphql';
 
 /**
  * Extrahera en token ur en set-cookie-sträng, eller returnera
@@ -27,25 +27,31 @@ const userApi = new UserAPI();
 const apiKeyApi = new ApiKeyAPI();
 const accessApi = new AccessAPI();
 
-export const genUserWithAccess = (userInfo: NewUser, access: AccessInput): [NOOP, NOOP] => {
+export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, NOOP] => {
   const create = async () => {
     await userApi.createUser(userInfo);
-    await accessApi.setIndividualAccess(userInfo.username, access);
+    await accessApi.setIndividualAccess(userInfo.username, { features: access, doors: [] });
   };
 
   const remove = async () => {
-    await userApi.clear();
+    await userApi.deleteUser(userInfo.username);
   };
 
   return [create, remove];
 };
 
-export const genApiKey = (userInfo: NewUser, access: AccessInput): [NOOP<string>, NOOP] => {
+export const genApiKey = (
+  userInfo: NewUser,
+  access: Feature[],
+  createNewUser: boolean = true,
+): [NOOP<string>, NOOP] => {
   let apikey: string;
   const create = async () => {
-    await userApi.createUser(userInfo);
+    if (createNewUser) {
+      await userApi.createUser(userInfo);
+    }
     apikey = await apiKeyApi.createApiKey('Test API key', userInfo.username);
-    await accessApi.setApiKeyAccess(apikey, access);
+    await accessApi.setApiKeyAccess(apikey, { features: access, doors: [] });
 
     return apikey;
   };

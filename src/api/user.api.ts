@@ -322,6 +322,16 @@ export class UserAPI {
     return { passwordSalt, passwordHash };
   }
 
+  async deleteUser(username: string): Promise<boolean> {
+    const res = await prisma.prismaUser.delete({
+      where: {
+        username,
+      },
+    });
+
+    return res != null;
+  }
+
   async clear() {
     if (!config.DEV) {
       throw new Error('Tried to clear accesses in production!');

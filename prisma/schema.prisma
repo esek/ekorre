@@ -192,7 +192,7 @@ model PrismaFile {
   folderLocation       String           @map("folder_location")
   accessType           PrismaAccessType
   createdAt            DateTime         @default(now()) @map("created_at")
-  uploader             PrismaUser       @relation(name: "PrismaFileToPrismaUser", fields: [refUploader], references: [username])
+  uploader             PrismaUser       @relation(name: "PrismaFileToPrismaUser", fields: [refUploader], references: [username], onDelete: Cascade)
   refUploader          String           @map("ref_uploader")
   heHe                 PrismaHehe?      @relation(name: "PrismaFileToPrismaHehe")
   meetingSummons       PrismaMeeting?   @relation(name: "MeetingSummons")

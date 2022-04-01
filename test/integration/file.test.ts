@@ -1,338 +1,324 @@
-import { FILE_TABLE } from '@/api/constants';
-import db from '@/api/knex';
 import { app } from '@/app/app';
-import apolloServerConfig from '@/app/serverconfig';
 import { COOKIES, issueToken } from '@/auth';
 import config from '@/config';
 import FileAPI from '@api/file';
-import { DatabaseFile } from '@db/file';
-import { AccessType, File as GqlFile, FileType } from '@generated/graphql';
-import { ApolloServer } from 'apollo-server-express';
-import axios from 'axios';
-import { createWriteStream, ReadStream, rmSync } from 'fs';
+import { UserAPI } from '@api/user';
+import { AccessType, Feature, File, FileType, NewUser } from '@generated/graphql';
+import requestWithAuth from '@test/utils/requestWithAuth';
+import { genUserWithAccess } from '@test/utils/utils';
 import { resolve } from 'path';
 import request from 'supertest';
 
+type UploadFileOptions = {
+  withFile?: boolean;
+  withAuth?: boolean;
+};
+
 const fileApi = new FileAPI();
+const userApi = new UserAPI();
 
-// get example image from lorem picsum
-const URL = 'https://picsum.photos/200';
+const testFiles = ['test-image.jpeg', 'test-textfile.txt'];
+const testUser: NewUser = {
+  username: 'emilbajs',
+  firstName: 'Blennow',
+  lastName: 'Magsjuk',
+  password: 'test',
+  class: 'E69',
+};
 
-const TEST_FILE_NAME = 'lorem-picusm.jpg';
-const TEST_USERNAME = 'no0000oh-s';
-
-const path = resolve(__dirname, '../data', TEST_FILE_NAME);
-
+const path = (fileName: string) => resolve(__dirname, '../data', fileName);
+const [createUser, teardown] = genUserWithAccess(testUser, [Feature.FilesAdmin]);
 const baseURL = (endpoint: string) => `${config.FILES.ENDPOINT}/${endpoint}`;
 
+const removeCreatedFiles = async () => {
+  const removes = await fileApi.searchFiles('test');
+  return Promise.all(removes.map((f) => fileApi.deleteFile(f.id)));
+};
+
+beforeAll(async () => {
+  await createUser();
+});
+
+afterAll(async () => {
+  await Promise.all([removeCreatedFiles(), teardown()]);
+});
+
+const r = request(app);
+
+const baseUploadFile = (
+  accessToken: string,
+  endpoint: string,
+  filename: string,
+  opts: UploadFileOptions,
+) => {
+  const req = r.post(baseURL(endpoint)).field('name', filename);
+  const { withFile = true, withAuth = true } = opts;
+
+  if (withFile) {
+    req.attach('file', path(filename));
+  }
+
+  if (withAuth) {
+    req.set('Cookie', [`${COOKIES.accessToken}=${accessToken}`]);
+  }
+
+  return req;
+};
+
 describe('uploading files', () => {
-  /* download example file */
-  beforeAll((cb) => {
-    axios.get<ReadStream>(URL, { method: 'GET', responseType: 'stream' }).then((res) => {
-      const w = res.data.pipe(createWriteStream(path));
-      w.on('finish', cb);
-    });
-  });
+  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
 
-  /* Remove temp file and clear from db */
-  afterAll(async () => {
-    rmSync(path, { force: true });
-
-    // Search all files that contain the test file name
-    const createdFiles = await fileApi.searchFiles(TEST_FILE_NAME);
-
-    const deletes = createdFiles.map((file) => fileApi.deleteFile(file.id));
-
-    await Promise.all(deletes);
-  });
-
-  const r = request(app);
-
-  const attachFile = (username = TEST_USERNAME, withFile = true, isAvatar = false) => {
-    const token = issueToken({ username }, 'accessToken');
-
-    const req = r
-      .post(baseURL(`/upload${isAvatar ? '/avatar' : ''}`))
-      .field('name', TEST_FILE_NAME)
-      .set('Cookie', [`${COOKIES.accessToken}=${token}`]);
-
-    if (withFile) {
-      req.attach('file', path);
-    }
-
-    return req;
+  const uploadFile = (filename: string, opts: UploadFileOptions = {}) => {
+    return baseUploadFile(accessToken, 'upload', filename, opts);
   };
 
+  afterEach(async () => {
+    await removeCreatedFiles();
+  });
+
   it('fails without a file', async () => {
-    await attachFile(TEST_USERNAME, false).expect(400);
+    await uploadFile('', { withFile: false }).expect(400);
   });
 
-  it('fails without username', async () => {
-    await attachFile('', true).expect(401);
-  });
-
-  it('fails with username that doesnt exist', async () => {
-    await attachFile('ba1234js-s', true).expect(401);
+  it('fails without a username', async () => {
+    await uploadFile(testFiles[0], { withAuth: false }).expect(401);
   });
 
   it('can automatically set the accesstype', async () => {
-    const res = await attachFile().expect(200);
+    const res = await uploadFile(testFiles[0]).expect(200);
 
     expect(res.body).toMatchObject({
       accessType: AccessType.Public,
       createdBy: {
-        username: TEST_USERNAME,
+        username: testUser.username,
       },
-      name: TEST_FILE_NAME,
+      name: testFiles[0],
       type: FileType.Image,
     });
   });
 
   it('can explicitly set the accesstype', async () => {
-    const res = await attachFile().field('accessType', AccessType.Authenticated).expect(200);
+    const res = await uploadFile(testFiles[0])
+      .field('accessType', AccessType.Authenticated)
+      .expect(200);
 
     expect(res.body).toMatchObject({
       accessType: AccessType.Authenticated,
       createdBy: {
-        username: TEST_USERNAME,
+        username: testUser.username,
       },
-      name: TEST_FILE_NAME,
+      name: testFiles[0],
       type: FileType.Image,
     });
   });
 
   it('can upload a file in a subfolder', async () => {
-    const res = await attachFile().field('path', 'test-folder').expect(200);
+    const [file] = testFiles;
+    const res = await uploadFile(file).field('path', 'test-folder').expect(200);
 
     expect(res.body).toMatchObject({
       accessType: AccessType.Public,
       createdBy: {
-        username: TEST_USERNAME,
+        username: testUser.username,
       },
-      name: TEST_FILE_NAME,
+      name: file,
     });
 
-    expect((res.body as GqlFile).folderLocation).toMatch(/test-folder/);
+    expect((res.body as File).folderLocation).toMatch(/test-folder/);
   });
 
-  // A request with multiple files should still just result in one file being uploaded
   it('can handle multiple files', async () => {
-    const res = await attachFile().attach('file', path).expect(200);
+    const [file1, file2] = testFiles;
+    const res = await uploadFile(file1).attach('file', path(file2)).expect(200);
 
     expect(res.body).toMatchObject({
       accessType: AccessType.Public,
-      createdBy: {
-        username: TEST_USERNAME,
-      },
-      name: TEST_FILE_NAME,
-    });
-  });
-
-  describe('avatars', () => {
-    it('fails without a file', async () => {
-      await attachFile(TEST_USERNAME, false, true).expect(400);
+      name: file1,
     });
 
-    it('fails if there is no username', async () => {
-      await attachFile('', true, true).expect(401);
-    });
-
-    it('uploads a file', async () => {
-      const res = await attachFile(TEST_USERNAME, true, true).expect(200);
-
-      expect(res.body).toMatchObject({
-        accessType: AccessType.Authenticated,
-        createdBy: {
-          username: TEST_USERNAME,
-        },
-        name: TEST_FILE_NAME,
-        type: FileType.Image,
-      });
-    });
-
-    it('overrides existing avatar', async () => {
-      const res1 = await attachFile(TEST_USERNAME, true, true).expect(200);
-
-      expect(res1.body).toMatchObject({
-        accessType: AccessType.Authenticated,
-        createdBy: {
-          username: TEST_USERNAME,
-        },
-        name: TEST_FILE_NAME,
-        type: FileType.Image,
-      });
-    });
-
-    it('can handle multiple files', async () => {
-      const res = await attachFile(TEST_USERNAME, true, true).attach('file', path).expect(200);
-
-      expect(res.body).toMatchObject({
-        accessType: AccessType.Authenticated,
-        createdBy: {
-          username: TEST_USERNAME,
-        },
-        name: TEST_FILE_NAME,
-      });
+    expect(res.body).not.toMatchObject({
+      name: file2,
     });
   });
 });
 
-describe('fetching files', () => {
-  const apolloServer = new ApolloServer({
-    ...apolloServerConfig,
-    context: (props) => {
-      if (typeof apolloServerConfig.context === 'function') {
-        return {
-          ...(apolloServerConfig.context(props) as Record<string, unknown>),
-          getUsername: () => TEST_USERNAME,
-        };
-      }
+describe('avatars', () => {
+  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
 
-      return {};
-    },
+  const uploadFile = (filename: string, opts: UploadFileOptions = {}) => {
+    return baseUploadFile(accessToken, 'upload/avatar', filename, opts);
+  };
+
+  afterEach(async () => {
+    await removeCreatedFiles();
   });
 
-  const TEST_FOLDER_NAME = 'test-folder';
+  it('fails without a file', async () => {
+    await uploadFile('', { withFile: false }).expect(400);
+  });
 
-  const GET_FILES_QUERY = `
-    query($type: FileType) {
-      files(type: $type) {
-        id
-        name
-        type
-        folderLocation
-      }
-    }
-  `;
+  it('fails without a username', async () => {
+    await uploadFile(testFiles[0], { withAuth: false }).expect(401);
+  });
 
-  const GET_FILE_QUERY = `
-    query($id: ID!) {
-      file(id: $id) {
-        id
-        name
-        type
-        folderLocation
-        createdBy {
-          username
-        }
-      }
-    }
-  `;
+  it('can handle multiple files', async () => {
+    const [file1, file2] = testFiles;
+    const res = await uploadFile(file1).attach('file', path(file2)).expect(200);
 
-  const GET_FILESYSTEM_QUERY = `
-    query($folder: String!) {
-      fileSystem(folder: $folder) {
-        files {
-          id
-          name
-          type
-          folderLocation 
-        }
-        path {
-          id
-          name
-        }
-      }
-    }
-  `;
-
-  const SEARCH_FILES_QUERY = `
-    query($search: String!) {
-      searchFiles(search: $search) {
-        name
-        id
-      }
-    }
-  `;
-
-  const CREATE_FOLDER_MUTATION = `
-    mutation($path: String!, $name: String!) {
-      createFolder(path: $path, name: $name)
-    }
-  `;
-
-  const DELETE_FILE_MUTATION = `
-    mutation($id: ID!) {
-      deleteFile(id: $id)
-    }
-  `;
-
-  it('gets multiple files', async () => {
-    const res = await apolloServer.executeOperation({
-      query: GET_FILES_QUERY,
+    expect(res.body).toMatchObject({
+      accessType: AccessType.Authenticated,
+      name: file1,
     });
 
+    expect(res.body).not.toMatchObject({
+      name: file2,
+    });
+  });
+
+  it('overrides existing avatar', async () => {
+    const res1 = await uploadFile(testFiles[0]).expect(200);
+    const user = userApi.getSingleUser(testUser.username);
+    expect((await user).photoUrl).toBe(res1.body.folderLocation);
+
+    const res2 = await uploadFile(testFiles[0]).expect(200);
+    const updatedUser = await userApi.getSingleUser(testUser.username);
+    expect(updatedUser.photoUrl).not.toBe(res1.body.folderLocation);
+    expect(updatedUser.photoUrl).toBe(res2.body.folderLocation);
+  });
+});
+
+describe('fetching files', () => {
+  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
+
+  beforeAll(async () => {
+    await removeCreatedFiles();
+
+    await Promise.all([
+      baseUploadFile(accessToken, 'upload', testFiles[0], {})
+        .field('accessType', AccessType.Public)
+        .expect(200),
+      baseUploadFile(accessToken, 'upload', testFiles[0], {})
+        .field('accessType', AccessType.Authenticated)
+        .expect(200),
+      baseUploadFile(accessToken, 'upload', testFiles[1], {})
+        .field('accessType', AccessType.Admin)
+        .expect(200),
+    ]);
+  });
+
+  const GET_FILES_QUERY = `
+	query($type: FileType) {
+		files(type: $type) {
+			id
+			name
+			type
+			folderLocation
+		}
+	}
+`;
+
+  const GET_FILE_QUERY = `
+	query($id: ID!) {
+		file(id: $id) {
+			id
+			name
+			type
+			folderLocation
+			createdBy {
+				username
+			}
+		}
+	}
+`;
+
+  const GET_FILESYSTEM_QUERY = `
+	query($folder: String!) {
+		fileSystem(folder: $folder) {
+			files {
+				id
+				name
+				type
+				folderLocation 
+			}
+			path {
+				id
+				name
+			}
+		}
+	}
+`;
+
+  const SEARCH_FILES_QUERY = `
+	query($search: String!) {
+		searchFiles(search: $search) {
+			name
+			id
+		}
+	}
+`;
+
+  const CREATE_FOLDER_MUTATION = `
+	mutation($path: String!, $name: String!) {
+		createFolder(path: $path, name: $name)
+	}
+`;
+
+  const DELETE_FILE_MUTATION = `
+	mutation($id: ID!) {
+		deleteFile(id: $id)
+	}
+`;
+
+  it('gets multiple files', async () => {
+    const res = await requestWithAuth(GET_FILES_QUERY, {}, accessToken);
+
     expect(res.errors).toBeUndefined();
-    expect((res.data?.files as GqlFile[])?.length).toBeGreaterThan(0);
+    expect((res.data?.files as File[])?.length).toBeGreaterThan(0);
   });
 
   it('gets files by type', async () => {
-    const res = await apolloServer.executeOperation({
-      query: GET_FILES_QUERY,
-      variables: {
-        type: FileType.Text,
-      },
-    });
+    const res = await requestWithAuth(GET_FILES_QUERY, { type: FileType.Image }, accessToken);
 
     expect(res.errors).toBeUndefined();
-    expect((res.data?.files as GqlFile[])?.length).toBeGreaterThan(0);
+    expect((res.data?.files as File[])?.length).toBeGreaterThan(0);
 
     expect(res.data?.files).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: 'text.txt' })]),
+      expect.arrayContaining([expect.objectContaining({ type: FileType.Image })]),
     );
-
     expect(res.data?.files).toEqual(
-      expect.not.arrayContaining([expect.objectContaining({ type: FileType.Image })]),
+      expect.not.arrayContaining([expect.objectContaining({ type: FileType.Text })]),
     );
   });
 
   it('gets a single file', async () => {
-    const testFileId = '098f6bcd4621d373cade4e832627b4f6.txt';
+    const [file] = await fileApi.getMultipleFiles(FileType.Image);
 
-    const res = await apolloServer.executeOperation({
-      query: GET_FILE_QUERY,
-      variables: {
-        id: testFileId,
-      },
-    });
+    const res = await requestWithAuth(GET_FILE_QUERY, { id: file.id }, accessToken);
 
     expect(res.errors).toBeUndefined();
     expect(res.data?.file).toMatchObject({
-      id: testFileId,
-      name: 'text.txt',
-      type: FileType.Text,
+      id: file.id,
+      name: testFiles[0],
+      type: FileType.Image,
     });
   });
 
   it('gets the correct files in the filesystem', async () => {
-    const res = await apolloServer.executeOperation({
-      query: GET_FILESYSTEM_QUERY,
-      variables: {
-        folder: '',
-      },
-    });
+    const res = await requestWithAuth(GET_FILESYSTEM_QUERY, { folder: '' }, accessToken);
 
     expect(res.errors).toBeUndefined();
 
     expect(res.data?.fileSystem).toMatchObject({
       files: expect.arrayContaining([
         expect.objectContaining({
-          name: 'esek.png',
-        }),
-        expect.not.objectContaining({
-          name: 'text.txt', // this file is in a subfolder so it shouldn't be returned
+          name: testFiles[0],
         }),
       ]) as unknown[], // super ugly but ts complains
     });
   });
 
   it('fails if trying to serach for nothing', async () => {
-    const res = await apolloServer.executeOperation({
-      query: SEARCH_FILES_QUERY,
-      variables: {
-        search: '',
-      },
-    });
+    const res = await requestWithAuth(SEARCH_FILES_QUERY, { search: '' }, accessToken);
 
     expect(res.errors).toBeDefined();
     expect(res.errors).toEqual(
@@ -346,115 +332,117 @@ describe('fetching files', () => {
   });
 
   it('can search for multiple files', async () => {
-    const res = await apolloServer.executeOperation({
-      query: SEARCH_FILES_QUERY,
-      variables: {
-        search: 'text',
-      },
-    });
+    const res = await requestWithAuth(SEARCH_FILES_QUERY, { search: testFiles[0] }, accessToken);
 
     expect(res.errors).toBeUndefined();
 
-    expect((res.data?.searchFiles as GqlFile[])?.length).toBe(1);
+    expect((res.data?.searchFiles as File[])?.length).toBeGreaterThan(0);
 
     expect(res.data?.searchFiles).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          name: 'text.txt',
+          name: testFiles[0],
         }),
       ]),
     );
   });
-
-  it('can create a folder', async () => {
-    const res = await apolloServer.executeOperation({
-      query: CREATE_FOLDER_MUTATION,
-
-      variables: {
-        name: TEST_FOLDER_NAME,
-        path: '',
-      },
-    });
-
-    expect(res.errors).toBeUndefined();
-    expect(res.data?.createFolder).toBe(true);
-  });
-
-  it('can delete the folder', async () => {
-    const folder = await db<DatabaseFile>(FILE_TABLE)
-      .where({
-        name: TEST_FOLDER_NAME,
-      })
-      .first();
-
-    if (!folder) {
-      fail('Folder not found');
-    }
-
-    const res = await apolloServer.executeOperation({
-      query: DELETE_FILE_MUTATION,
-      variables: {
-        id: folder.id,
-      },
-    });
-
-    expect(res.errors).toBeUndefined();
-    expect(res.data?.deleteFile).toBe(true);
-  });
 });
 
 describe('reading files', () => {
-  const r = request(app);
+  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
 
-  const ESEK_IMAGE = 'c703198a20f148f392061060f651fdb3.png';
-  const TEXT_FILE = '6f837f0400bd1eb70f3648fc31343ecc/098f6bcd4621d373cade4e832627b4f6.txt';
+  beforeAll(async () => {
+    await removeCreatedFiles();
 
-  const token = issueToken({ username: TEST_USERNAME }, 'accessToken');
+    await Promise.all([
+      baseUploadFile(accessToken, 'upload', testFiles[0], {})
+        .field('accessType', AccessType.Public)
+        .expect(200),
+      baseUploadFile(accessToken, 'upload', testFiles[0], {})
+        .field('accessType', AccessType.Authenticated)
+        .expect(200),
+      baseUploadFile(accessToken, 'upload', testFiles[1], {})
+        .field('accessType', AccessType.Admin)
+        .expect(200),
+    ]);
+  });
 
   /**
    * Gets the content type from the response headers
-   * @param res request
+   * @param headers request headers
    */
   const getContentType = (headers: Record<string, string>) => {
     return headers['content-type'];
   };
 
+  const getFile = async (accessType: AccessType) => {
+    const files = await fileApi.getMultipleFiles();
+    const file = files.find((f) => f.accessType === accessType);
+
+    if (!file) {
+      throw new Error(`Could not find file with accesstype ${accessType}`);
+    }
+
+    return file;
+  };
+
   it('can read a public file', async () => {
-    const res = await r.get(baseURL(ESEK_IMAGE)).expect(200);
-    expect(getContentType(res.headers)).toBe('image/png');
+    const file = await getFile(AccessType.Public);
+    const res = await r.get(baseURL(file.folderLocation)).expect(200);
+    expect(getContentType(res.headers)).toBe('image/jpeg');
   });
 
   it("can't read a file that requires authentication", async () => {
-    await r.get(baseURL(TEXT_FILE)).expect(403);
+    const file = await getFile(AccessType.Authenticated);
+    await r.get(baseURL(file.folderLocation)).expect(403);
+  });
+
+  it('can read an authenticated file', async () => {
+    const file = await getFile(AccessType.Authenticated);
+    const res = await r
+      .get(baseURL(file.folderLocation))
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+
+    expect(getContentType(res.headers)).toBe('image/jpeg');
   });
 
   it('can get the token is in cookie', async () => {
+    const file = await getFile(AccessType.Authenticated);
     const res = await r
-      .get(baseURL(TEXT_FILE))
-      .set('Cookie', `e-access-token=${token}`)
+      .get(baseURL(file.folderLocation))
+      .set('Cookie', `e-access-token=${accessToken}`)
       .expect(200);
 
-    expect(getContentType(res.headers)).toBe('text/plain; charset=UTF-8');
+    expect(getContentType(res.headers)).toBe('image/jpeg');
   });
 
   it('can get the token is in query', async () => {
-    const res = await r.get(baseURL(TEXT_FILE)).query({ token }).expect(200);
-    expect(getContentType(res.headers)).toBe('text/plain; charset=UTF-8');
+    const file = await getFile(AccessType.Authenticated);
+    const res = await r.get(baseURL(file.folderLocation)).query({ token: accessToken }).expect(200);
+
+    expect(getContentType(res.headers)).toBe('image/jpeg');
   });
 
   it('can get the bearer token is in header', async () => {
-    const res = await r.get(baseURL(TEXT_FILE)).set('authorization', `Bearer ${token}`).expect(200);
-    expect(getContentType(res.headers)).toBe('text/plain; charset=UTF-8');
+    const file = await getFile(AccessType.Authenticated);
+    const res = await r
+      .get(baseURL(file.folderLocation))
+      .set('authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    expect(getContentType(res.headers)).toBe('image/jpeg');
   });
 
   it('can get the token is in header', async () => {
-    const res = await r.get(baseURL(TEXT_FILE)).set('authorization', token).expect(200);
-    expect(getContentType(res.headers)).toBe('text/plain; charset=UTF-8');
+    const file = await getFile(AccessType.Authenticated);
+    const res = await r
+      .get(baseURL(file.folderLocation))
+      .set('authorization', accessToken)
+      .expect(200);
+    expect(getContentType(res.headers)).toBe('image/jpeg');
   });
 
   it('returns 404 if the file is not found', async () => {
     await r.get(baseURL('not-found.txt')).expect(404);
   });
-
-  // TODO: Test cases for files that require specific access
 });
