@@ -160,7 +160,7 @@ model PrismaElection {
 }
 
 model PrismaNomination {
-  answer      PrismaNominationAnswer @default(NO_ANSWER)
+  answer      PrismaNominationAnswer @default(NOT_ANSWERED)
   user        PrismaUser             @relation(name: "PrismaNominationToPrismaUser", fields: [refUser], references: [username])
   refUser     String                 @map("ref_user")
   post        PrismaPost             @relation(name: "PrismaNominationToPrismaPost", fields: [refPost], references: [id])
@@ -294,7 +294,7 @@ enum PrismaArticleType {
 enum PrismaNominationAnswer {
   YES
   NO
-  NO_ANSWER
+  NOT_ANSWERED
 
   @@map("nomination_responses")
 }

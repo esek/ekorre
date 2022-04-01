@@ -77,5 +77,5 @@ type Nomination {
 enum NominationAnswer {
   YES
   NO
-  NO_ANSWER
+  NOT_ANSWERED
 }

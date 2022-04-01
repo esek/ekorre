@@ -523,7 +523,7 @@ export class ElectionAPI {
             refElection: openElection.id,
             refUser: username,
             refPost: postId,
-            answer: PrismaNominationAnswer.NO_ANSWER,
+            answer: PrismaNominationAnswer.NOT_ANSWERED,
           };
         }),
       });

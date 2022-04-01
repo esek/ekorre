@@ -628,7 +628,7 @@ export type Nomination = {
 export enum NominationAnswer {
   Yes = 'YES',
   No = 'NO',
-  NoAnswer = 'NO_ANSWER'
+  NotAnswered = 'NOT_ANSWERED'
 }
 
 

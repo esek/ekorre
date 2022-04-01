@@ -20,6 +20,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - I flertalet graphql-schemas är olika ID:n bytade från `ID!` till `Int!`. Detta då `ID!` blir till typen `string` i TypeScript, men vi använder det som `AUTO_INCREMENT` i databasen och `number` i TS
 - Enums i GraphQL-schemas har nu konsekvent `UPPER_CASE`
 - `npm run generate` genererar nu både typer från GraphQL-schema och `PrismaClient` från prisma-schema. `npm run graphql:generate` ersätter gamla `npm run generate`
+- I `election` har `NO_ANSWER` ändrats till `NOT_ANSWERED` för tydlighet
 
 ## [0.13.0] - 2022-03-25
 
