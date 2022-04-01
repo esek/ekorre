@@ -1,7 +1,7 @@
 import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
-import { AccessInput, AccessResourceType, Feature } from '@generated/graphql';
+import { AccessInput, AccessResourceType, Door, Feature } from '@generated/graphql';
 import { PrismaApiKeyAccess, PrismaIndividualAccess } from '@prisma/client';
 
 type UnionPrismaAccess = PrismaIndividualAccess & PrismaApiKeyAccess;
@@ -16,7 +16,9 @@ const username1 = 'te1111st-s';
 let apiKey: string;
 
 beforeAll(async () => {
-  await Promise.all([userApi.clear(), apiKeyApi.clear()]);
+  await accessApi.clear();
+  await apiKeyApi.clear();
+  await userApi.clear();
 
   const c1 = userApi.createUser({
     username: username0,
@@ -41,12 +43,18 @@ beforeAll(async () => {
   apiKey = key;
 });
 
-beforeAll(async () => {
+afterAll(async () => {
   await accessApi.clear();
+  await apiKeyApi.clear();
+  await userApi.clear();
 });
 
-const setGetTest = async (setCall: (a: AccessInput) => Promise<boolean>, getCall: () => Promise<Partial<UnionPrismaAccess>[]>, access: AccessInput, expected: Partial<UnionPrismaAccess>[]) => {
-  const res = await setCall(access);
+const setGetTest = async (
+  setCall: () => Promise<boolean>,
+  getCall: () => Promise<Partial<UnionPrismaAccess>[]>,
+  expected: Partial<UnionPrismaAccess>[],
+) => {
+  const res = await setCall();
   expect(res).toBe(true);
 
   const accessGotten = await getCall();
@@ -57,96 +65,166 @@ const setGetTest = async (setCall: (a: AccessInput) => Promise<boolean>, getCall
   }
 };
 
+const accessSingleInput: AccessInput = {
+  doors: [Door.Bd],
+  features: [Feature.AccessAdmin],
+};
+
+const expectedAccessSingleInput: Partial<UnionPrismaAccess>[] = [
+  {
+    resource: Feature.AccessAdmin,
+    resourceType: AccessResourceType.Feature,
+  },
+  {
+    resource: Door.Bd,
+    resourceType: AccessResourceType.Door,
+  },
+];
+
+const otherAccessSingleInput: AccessInput = {
+  doors: [Door.Hk],
+  features: [Feature.Superadmin],
+};
+
+const expectedAccessOtherSingleInput: Partial<UnionPrismaAccess>[] = [
+  {
+    resource: Door.Hk,
+    resourceType: AccessResourceType.Door,
+  },
+  {
+    resource: Feature.Superadmin,
+    resourceType: AccessResourceType.Feature,
+  },
+];
+
+const accessMultipleInput: AccessInput = {
+  doors: [Door.Bd, Door.Hk],
+  features: [Feature.AccessAdmin, Feature.Superadmin],
+};
+
+const expectedAccessMultipleInput: Partial<UnionPrismaAccess>[] = [
+  {
+    resource: Feature.AccessAdmin,
+    resourceType: AccessResourceType.Feature,
+  },
+  {
+    resource: Door.Bd,
+    resourceType: AccessResourceType.Door,
+  },
+  {
+    resource: Door.Hk,
+    resourceType: AccessResourceType.Door,
+  },
+  {
+    resource: Feature.Superadmin,
+    resourceType: AccessResourceType.Feature,
+  },
+];
+
+const emptyAccess: AccessInput = { doors: [], features: [] };
+
+const accessWithUnkownFeature: AccessInput = {
+  doors: [],
+  features: [Feature.Superadmin, 'unknown' as Feature],
+};
+
+const accessWithUnkownDoor: AccessInput = {
+  doors: [Door.Bd, 'unknown' as Door],
+  features: [],
+};
+
 describe('setting/getting access for user', () => {
-  test('setting access for user', async () => {
-    const access: AccessInput = {
-      doors: [],
-      features: [Feature.AccessAdmin],
-    };
+  const mapAccess = (access: Partial<UnionPrismaAccess>[], refUser: string = username0) =>
+    access.map((a) => ({ ...a, refUser }));
+  const setAccess =
+    (input: AccessInput, username = username0) =>
+    () =>
+      accessApi.setIndividualAccess(username, input);
+  const getAccess = (username = username0) => accessApi.getIndividualAccess(username);
 
-    const expectedAccess: Partial<PrismaIndividualAccess> = {
-      refUser: username0,
-      resource: Feature.AccessAdmin,
-      resourceType: AccessResourceType.Feature,
-    };
+  it('setting single access', async () => {
+    const expectedAccess = mapAccess(expectedAccessSingleInput);
 
-    await setGetTest((a) => accessApi.setIndividualAccess(username0, a), () => accessApi.getIndividualAccess(username0), access, [expectedAccess]);
+    await setGetTest(setAccess(accessSingleInput), getAccess, expectedAccess);
   });
 
-  test('setting access for user with multiple features', async () => {
-    await accessApi.clear();
+  it('changing access', async () => {
+    const expectedAccess = mapAccess(expectedAccessOtherSingleInput);
 
-    const access: AccessInput = {
-      doors: [],
-      features: [Feature.AccessAdmin, Feature.Superadmin],
-    };
-
-    const expectedAccess: Partial<PrismaIndividualAccess>[] = [
-      {
-        refUser: username0,
-        resource: Feature.AccessAdmin,
-        resourceType: AccessResourceType.Feature,
-      },
-      {
-        refUser: username0,
-        resource: Feature.Superadmin,
-        resourceType: AccessResourceType.Feature,
-      },
-    ];
-
-    await setGetTest((a) => accessApi.setIndividualAccess(username0, a), () => accessApi.getIndividualAccess(username0), access, expectedAccess);
+    await setGetTest(setAccess(otherAccessSingleInput), getAccess, expectedAccess);
   });
 
-  test('removing access for user', async () => {
-    const access: AccessInput = { doors: [], features: [] };
+  it('setting access with multiple features', async () => {
+    const expectedAccess = mapAccess(expectedAccessMultipleInput);
 
-    await setGetTest((a) => accessApi.setIndividualAccess(username0, a), () => accessApi.getIndividualAccess(username0), access, []);
+    await setGetTest(setAccess(accessMultipleInput), getAccess, expectedAccess);
+  });
+
+  it('removing access', async () => {
+    await setGetTest(setAccess(emptyAccess), getAccess, []);
+  });
+
+  it('setting access for unkown', async () => {
+    await expect(setAccess(accessSingleInput, 'unknown')).rejects.toThrowError();
+  });
+
+  it('setting access with invalid feature', async () => {
+    await expect(setAccess(accessWithUnkownFeature)).rejects.toThrowError();
+  });
+
+  it('setting access with invalid door', async () => {
+    await expect(setAccess(accessWithUnkownDoor)).rejects.toThrowError();
+  });
+
+  it('getting access for unkown', async () => {
+    expect(await getAccess('unknown')).toEqual([]);
   });
 });
 
-describe('setting/getting access for apiKey', () => {
-  test('setting access for apiKey', async () => {
-    const access: AccessInput = {
-      doors: [],
-      features: [Feature.AccessAdmin],
-    };
+describe('setting/getting access for apikey', () => {
+  const mapAccess = (access: Partial<UnionPrismaAccess>[], refApiKey: string = apiKey) =>
+    access.map((a) => ({ ...a, refApiKey }));
+  const setAccess =
+    (input: AccessInput, apikey = apiKey) =>
+    () =>
+      accessApi.setApiKeyAccess(apikey, input);
+  const getAccess = (apikey = apiKey) => accessApi.getApiKeyAccess(apikey);
 
-    const expectedAccess: Partial<PrismaApiKeyAccess> = {
-      refApiKey: apiKey,
-      resource: Feature.AccessAdmin,
-      resourceType: AccessResourceType.Feature,
-    };
+  it('setting single access', async () => {
+    const expectedAccess = mapAccess(expectedAccessSingleInput);
 
-    await setGetTest((a) => accessApi.setApiKeyAccess(apiKey, a), () => accessApi.getApiKeyAccess(apiKey), access, [expectedAccess]);
+    await setGetTest(setAccess(accessSingleInput), getAccess, expectedAccess);
   });
 
-  test('setting access for key with multiple features', async () => {
-    await accessApi.clear();
+  it('changing access', async () => {
+    const expectedAccess = mapAccess(expectedAccessOtherSingleInput);
 
-    const access: AccessInput = {
-      doors: [],
-      features: [Feature.AccessAdmin, Feature.Superadmin],
-    };
-
-    const expectedAccess: Partial<PrismaApiKeyAccess>[] = [
-      {
-        refApiKey: apiKey,
-        resource: Feature.AccessAdmin,
-        resourceType: AccessResourceType.Feature,
-      },
-      {
-        refApiKey: apiKey,
-        resource: Feature.Superadmin,
-        resourceType: AccessResourceType.Feature,
-      },
-    ];
-
-    await setGetTest((a) => accessApi.setApiKeyAccess(apiKey, a), () => accessApi.getApiKeyAccess(apiKey), access, expectedAccess);
+    await setGetTest(setAccess(otherAccessSingleInput), getAccess, expectedAccess);
   });
 
-  test('removing access for user', async () => {
-    const access: AccessInput = { doors: [], features: [] };
+  it('setting access with multiple features', async () => {
+    const expectedAccess = mapAccess(expectedAccessMultipleInput);
 
-    await setGetTest((a) => accessApi.setApiKeyAccess(apiKey, a), () => accessApi.getApiKeyAccess(apiKey), access, []);
+    await setGetTest(setAccess(accessMultipleInput), getAccess, expectedAccess);
+  });
+
+  it('removing access', async () => {
+    await setGetTest(setAccess(emptyAccess), getAccess, []);
+  });
+
+  it('setting access for unkown', async () => {
+    await expect(setAccess(accessSingleInput, 'unknown')).rejects.toThrowError();
+  });
+
+  it('setting access with invalid feature', async () => {
+    await expect(setAccess(accessWithUnkownFeature)).rejects.toThrowError();
+  });
+
+  it('setting access with invalid door', async () => {
+    await expect(setAccess(accessWithUnkownDoor)).rejects.toThrowError();
+  });
+
+  it('getting access for unkown', async () => {
+    expect(await getAccess('unknown')).toEqual([]);
   });
 });

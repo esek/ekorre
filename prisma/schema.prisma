@@ -12,7 +12,7 @@ model PrismaIndividualAccess {
   id           Int                @id @default(autoincrement())
   user         PrismaUser         @relation(name: "PrismaIndividualAccessToPrismaUser", fields: [refUser], references: [username], onDelete: Cascade)
   refUser      String             @map("ref_user")
-  resourceType PrismaResourceType @map("ref_resource_type")
+  resourceType PrismaResourceType @map("resource_type")
   resource     String
 
   @@map("individual_accesses")
@@ -53,7 +53,7 @@ model PrismaPostAccess {
   id           Int                @id @default(autoincrement())
   post         PrismaPost         @relation(name: "PrismaPostToPrismaPostAccess", fields: [refPost], references: [id], onDelete: Cascade)
   refPost      Int                @map("ref_post")
-  resourceType PrismaResourceType @map("ref_resource_type")
+  resourceType PrismaResourceType @map("resource_type")
   resource     String
 
   @@map("post_accesses")
@@ -80,6 +80,16 @@ model PrismaPost {
   @@map("posts")
 }
 
+model PrismaApiKeyAccess {
+  id           Int                @id @default(autoincrement())
+  apiKey       PrismaApiKey       @relation(name: "PrismaApiKeyToPrismaApiKeyAccess", fields: [refApiKey], references: [key], onDelete: Cascade)
+  refApiKey    String             @map("ref_api_key")
+  resourceType PrismaResourceType @map("resource_type")
+  resource     String             @map("resource")
+
+  @@map("api_key_accesses")
+}
+
 model PrismaApiKey {
   key                String               @id
   description        String
@@ -90,16 +100,6 @@ model PrismaApiKey {
   PrismaApiKeyAccess PrismaApiKeyAccess[] @relation("PrismaApiKeyToPrismaApiKeyAccess")
 
   @@map("api_keys")
-}
-
-model PrismaApiKeyAccess {
-  id           Int                @id @default(autoincrement())
-  apiKey       PrismaApiKey       @relation(name: "PrismaApiKeyToPrismaApiKeyAccess", fields: [refApiKey], references: [key], onDelete: Cascade)
-  refApiKey    String             @map("ref_api_key")
-  resourceType PrismaResourceType @map("ref_resource_type")
-  resource     String             @map("resource")
-
-  @@map("api_key_accesses")
 }
 
 model PrismaArticleTag {
