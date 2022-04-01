@@ -1,8 +1,9 @@
 import { PostAPI } from '@/api/post.api';
 import config from '@/config';
+import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { AccessEntry } from '@/models/access';
-import { AccessInput } from '@generated/graphql';
+import { AccessInput, Door, Feature } from '@generated/graphql';
 import {
   Prisma,
   PrismaApiKeyAccess,
@@ -91,21 +92,27 @@ export class AccessAPI {
     const { doors, features } = newaccess;
     const access: Prisma.PrismaIndividualAccessUncheckedCreateInput[] = [];
 
-    doors.forEach((door) =>
+    doors.forEach((door) => {
+      if (!Object.values(Door).includes(door)) {
+        throw new ServerError(`${door} är inte en känd dörr`);
+      }
       access.push({
         refUser: username,
         resourceType: PrismaResourceType.door,
         resource: door as string,
-      }),
-    );
+      });
+    });
 
-    features.forEach((feature) =>
+    features.forEach((feature) => {
+      if (!Object.values(Feature).includes(feature)) {
+        throw new ServerError(`${feature} är inte en känd feature`);
+      }
       access.push({
         refUser: username,
         resourceType: PrismaResourceType.feature,
         resource: feature,
-      }),
-    );
+      });
+    });
 
     const res = await prisma.prismaIndividualAccess.createMany({
       data: access,
@@ -126,29 +133,35 @@ export class AccessAPI {
     const { doors, features } = newaccess;
     const access: Prisma.PrismaApiKeyAccessUncheckedCreateInput[] = [];
 
-    doors.forEach((door) =>
+    doors.forEach((door) => {
+      if (!Object.values(Door).includes(door)) {
+        throw new ServerError(`${door} är inte en känd dörr`);
+      }
       access.push({
         refApiKey: key,
         resourceType: PrismaResourceType.door,
         resource: door as string,
-      }),
-    );
+      });
+    });
 
-    features.forEach((feature) =>
+    features.forEach((feature) => {
+      if (!Object.values(Feature).includes(feature)) {
+        throw new ServerError(`${feature} är inte en känd feature`);
+      }
       access.push({
         refApiKey: key,
         resourceType: PrismaResourceType.feature,
         resource: feature,
-      }),
-    );
+      });
+    });
 
-    await prisma.prismaApiKeyAccess.createMany({
+    const res = await prisma.prismaApiKeyAccess.createMany({
       data: access,
     });
 
     logger.info(`Updated access for key ${key}`);
     logger.debug(`Updated access for key ${key} to ${Logger.pretty(newaccess)}`);
-    return true;
+    return res.count === access.length;
   }
 
   /**
