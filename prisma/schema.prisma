@@ -83,8 +83,8 @@ model PrismaPost {
 model PrismaApiKey {
   key                String               @id
   description        String
-  createdAt          DateTime             @default(now())
-  lastUsedAt         DateTime?
+  createdAt          DateTime             @default(now()) @map("created_at")
+  lastUsedAt         DateTime?            @map("last_used_at")
   creator            PrismaUser           @relation(name: "PrismaApiKeyToPrismaUser", fields: [refCreator], references: [username])
   refCreator         String               @map("ref_creator")
   PrismaApiKeyAccess PrismaApiKeyAccess[] @relation("PrismaApiKeyToPrismaApiKeyAccess")
