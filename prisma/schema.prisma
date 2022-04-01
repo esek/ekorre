@@ -13,7 +13,7 @@ model PrismaIndividualAccess {
   user         PrismaUser         @relation(name: "PrismaIndividualAccessToPrismaUser", fields: [refUser], references: [username])
   refUser      String             @map("ref_user")
   resourceType PrismaResourceType @map("ref_resource_type")
-  resource     String             @map("resource")
+  resource     String
 
   @@map("individual_accesses")
 }
