@@ -29,15 +29,4 @@ export const users = [
     class: 'BME19',
     email: 'no0000oh-s@student.lu.se',
   },
-  {
-    username: 'funcUser_Coolkid',
-    passwordHash:
-      'glowAU4b0/zhRpqCUiMc8CtRqxySFUxZLvPLiXPPMUS6RapfgACfSDGSqvjc5PLALmqH2IAX3omnr9JuH1NOfA==',
-    passwordSalt: 'salt',
-    firstName: 'Mr.',
-    lastName: 'Test',
-    class: 'E69',
-    email: 'no-reply@esek.se',
-    isFuncUser: true,
-  },
 ];

@@ -44,7 +44,6 @@ model PrismaUser {
   zipCode           String?                  @map("zip_code")
   website           String?
   dateJoined        DateTime                 @default(now()) @map("date_joined")
-  isFuncUser        Boolean                  @default(false) @map("is_func_user")
 
   @@index([firstName, lastName])
   @@map("users")

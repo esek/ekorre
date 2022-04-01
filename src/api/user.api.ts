@@ -181,9 +181,6 @@ export class UserAPI {
    * @param input den nya användarinformationen
    */
   async createUser(input: NewUser): Promise<PrismaUser> {
-    // Utgå från att det inte är en funktionell användare om inget annat ges
-    const isFuncUser = !!input.isFuncUser; // Trick för att konvertera till bool
-
     const { password, ...inputReduced } = input;
 
     if (password === '') {
@@ -194,8 +191,8 @@ export class UserAPI {
 
     let { username = '' } = input;
 
-    // Inga tomma användarnamn och får inte starta med funcUser om de inte är det
-    if (username === '' || (username.startsWith('funcUser_') && !isFuncUser)) {
+    // Inga tomma användarnamn
+    if (username === '') {
       throw new BadRequestError('Ogiltigt användarnamn');
     }
 
@@ -206,12 +203,6 @@ export class UserAPI {
       email = `${username}@student.lu.se`;
     }
 
-    if (isFuncUser) {
-      const prefix = 'funcUser_';
-      username = username.startsWith(prefix) ? username : `${prefix}${username}`;
-      email = 'no-reply@esek.se';
-    }
-
     const createdUser = await prisma.prismaUser.create({
       data: {
         ...inputReduced,
@@ -219,7 +210,6 @@ export class UserAPI {
         email,
         passwordHash,
         passwordSalt,
-        isFuncUser,
       },
     });
 

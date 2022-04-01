@@ -126,6 +126,7 @@ npm run generate
 ```
 
 Det kan hända att VScode eller annan IDE gnäller på dina typer även om du genererat nya. Då bör du i VScode köra `Ctrl+Shift+P` följt av `Reload Window`.
+
 #### Kodstil
 
 Eslint och prettier är konfigurerat och det
@@ -186,19 +187,6 @@ automatisk testning. Testerna hittas i `test/` och baseras på testningsramverke
 trackas code coverage (alltså hur stor del av koden som körs i tester) på GitLab. Högt coverage garanterar inte att saker
 fungerar som de ska, men utan något coverage famlar man helt i blinda. Det är nästan krav att ny kod även kommer med tester.
 Hur ska du annars kunna bevisa att din kod gör det du säger?
-
-# Att använda ekorre i andra projekt (funktionella användare)
-
-`ekorre` är sättet att komma åt sektionens databas, och är med det sättet även fler projekt än
-`efterphest` (eee.esek.se) kommer åt viktiga funktioner. För att ett annat projekt ska komma åt data
-utan en inloggad användare (t.ex. i en backend) behöver de en _funktionell användare_. En funktionell 
-är en `User` där `funcUser` är satt till `true`. En funktionell användares `Username` ska alltid börja med `funcUser_` följt av vilket projekt den är kopplad till.
-
-Eftersom funktionella användare ofta behöver många rättigheter ska lösenord till dessa vara så långa
-som möjligt, och helst helt slumpmässiga.
-
-Självklart får funktionella användare endast existera på backenden, långt ifrån användaren. Det är alltså __totalförbjudet__ att skicka användaruppgifter till funktionella användare till frontend. Istället ska i de fallen
-användarens egen inlogg användas.
 
 # Docker
 
