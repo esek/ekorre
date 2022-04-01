@@ -10,7 +10,7 @@ generator client {
 
 model PrismaIndividualAccess {
   id           Int                @id @default(autoincrement())
-  user         PrismaUser         @relation(name: "PrismaIndividualAccessToPrismaUser", fields: [refUser], references: [username])
+  user         PrismaUser         @relation(name: "PrismaIndividualAccessToPrismaUser", fields: [refUser], references: [username], onDelete: Cascade)
   refUser      String             @map("ref_user")
   resourceType PrismaResourceType @map("ref_resource_type")
   resource     String
@@ -51,7 +51,7 @@ model PrismaUser {
 
 model PrismaPostAccess {
   id           Int                @id @default(autoincrement())
-  post         PrismaPost         @relation(name: "PrismaPostToPrismaPostAccess", fields: [refPost], references: [id])
+  post         PrismaPost         @relation(name: "PrismaPostToPrismaPostAccess", fields: [refPost], references: [id], onDelete: Cascade)
   refPost      Int                @map("ref_post")
   resourceType PrismaResourceType @map("ref_resource_type")
   resource     String
@@ -85,7 +85,7 @@ model PrismaApiKey {
   description        String
   createdAt          DateTime             @default(now()) @map("created_at")
   lastUsedAt         DateTime?            @map("last_used_at")
-  creator            PrismaUser           @relation(name: "PrismaApiKeyToPrismaUser", fields: [refCreator], references: [username])
+  creator            PrismaUser           @relation(name: "PrismaApiKeyToPrismaUser", fields: [refCreator], references: [username], onDelete: Cascade)
   refCreator         String               @map("ref_creator")
   PrismaApiKeyAccess PrismaApiKeyAccess[] @relation("PrismaApiKeyToPrismaApiKeyAccess")
 
@@ -94,7 +94,7 @@ model PrismaApiKey {
 
 model PrismaApiKeyAccess {
   id           Int                @id @default(autoincrement())
-  apiKey       PrismaApiKey       @relation(name: "PrismaApiKeyToPrismaApiKeyAccess", fields: [refApiKey], references: [key])
+  apiKey       PrismaApiKey       @relation(name: "PrismaApiKeyToPrismaApiKeyAccess", fields: [refApiKey], references: [key], onDelete: Cascade)
   refApiKey    String             @map("ref_api_key")
   resourceType PrismaResourceType @map("ref_resource_type")
   resource     String             @map("resource")
@@ -105,7 +105,7 @@ model PrismaApiKeyAccess {
 model PrismaArticleTag {
   id         Int           @id @default(autoincrement())
   tag        String
-  article    PrismaArticle @relation(name: "PrismaArticleToPrismaArticleTag", fields: [refArticle], references: [id])
+  article    PrismaArticle @relation(name: "PrismaArticleToPrismaArticleTag", fields: [refArticle], references: [id], onDelete: Cascade)
   refArticle Int           @map("ref_article")
 
   @@map("article_tags")
