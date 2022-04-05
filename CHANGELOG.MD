@@ -21,6 +21,8 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Enums i GraphQL-schemas har nu konsekvent `UPPER_CASE`
 - `npm run generate` genererar nu både typer från GraphQL-schema och `PrismaClient` från prisma-schema. `npm run graphql:generate` ersätter gamla `npm run generate`
 - I `election` har `NO_ANSWER` ändrats till `NOT_ANSWERED` för tydlighet
+- Poster har nu ID och inte slugs, för att tillåta namn att ändras ordentligt. `addPost` returnerar numera en integer med det nya post-ID:t
+- `npm run generate` genererar nu både GQL och Prisma
 
 ## [0.13.0] - 2022-03-25
 

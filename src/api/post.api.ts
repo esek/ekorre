@@ -199,11 +199,11 @@ export class PostAPI {
     spots,
     description,
     interviewRequired,
-  }: NewPost): Promise<boolean> {
+  }: NewPost): Promise<number> {
     const s = checkPostTypeAndSpots(postType, spots);
 
     if (s === null) {
-      return false;
+      throw new BadRequestError('Inkompatibel posttyp och antal poster')
     }
 
     // Kolla efter dubbletter först, fånga 404-felet och sätt doubles till false
@@ -218,7 +218,7 @@ export class PostAPI {
       throw new BadRequestError('Denna posten finns redan');
     }
 
-    const post = await prisma.prismaPost.create({
+    const { id } = await prisma.prismaPost.create({
       data: {
         postname: name,
         utskott,
@@ -230,7 +230,7 @@ export class PostAPI {
       },
     });
 
-    return post != null;
+    return id;
   }
 
   /**
