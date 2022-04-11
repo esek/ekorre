@@ -284,17 +284,17 @@ test('deleting user from post', async () => {
   expect(ok).toBe(true);
 
   // Nu borde DUMMY_USER.username ha en post
-  const res = await api.getPostsForUser(DUMMY_USER.username);
+  const res = await api.getHistoryEntries({ refUser: DUMMY_USER.username });
   expect(res.length).not.toBe(0);
 
-  const removed = await api.removeHistoryEntry(DUMMY_USER.username, np.name, startDate);
+  const removed = await api.removeHistoryEntry(res[0].id);
   expect(removed).toBe(true);
 
   await expect(api.getPostsForUser(DUMMY_USER.username)).resolves.toHaveLength(0);
 });
 
 test('modifying post in allowed way', async () => {
-  const localMp: ModifyPost = {
+  const localMp: Omit<ModifyPost, 'id'> = {
     ...mp,
     utskott: Utskott.Styrelsen,
     postType: PostType.ExactN,
@@ -305,7 +305,7 @@ test('modifying post in allowed way', async () => {
   const postId = await api.createPost(np);
   expect(postId).toBeInstanceOf(Number);
 
-  const ok = await api.modifyPost(localMp);
+  const ok = await api.modifyPost({ id: postId, ...localMp});
   expect(ok).toBe(true);
 
   const res = await api.getPost(postId);
@@ -433,7 +433,8 @@ test('set end time of history entry', async () => {
   await api.addUsersToPost([DUMMY_USER.username], postId, startDate);
 
   // Som default ska `end` bli null
-  expect((await api.getHistoryEntries({ refUser: DUMMY_USER.username }))[0]).toEqual({
+  const { id, ...reduced } = (await api.getHistoryEntries({ refUser: DUMMY_USER.username }))[0];
+  expect(reduced).toEqual({
     refUser: DUMMY_USER.username,
     refPost: np.name,
     start: midnightTimestamp(startDate, 'after'),
@@ -442,7 +443,7 @@ test('set end time of history entry', async () => {
 
   // Nu kollar vi om vi kan lägga till ett slutdatum
   await expect(
-    api.setUserPostEnd(DUMMY_USER.username, np.name, startDate, endDate),
+    api.setUserPostEnd(id, endDate),
   ).resolves.toBeTruthy();
   expect((await api.getHistoryEntries({ refUser: DUMMY_USER.username }))[0]).toEqual({
     refUser: DUMMY_USER.username,
