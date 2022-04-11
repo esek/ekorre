@@ -245,13 +245,13 @@ model PrismaMeeting {
 }
 
 model PrismaPostHistory {
-  id        Int        @id @default(autoincrement())
-  user      PrismaUser @relation(name: "PrismaPostHistoryToPrismaUser", fields: [refUser], references: [username])
-  refUser   String     @map("ref_user")
-  post      PrismaPost @relation(name: "PrismaPostToPrismaPostHistory", fields: [refPost], references: [id])
-  refPost   Int        @map("ref_post")
-  startDate DateTime   @map("start_date")
-  endDate   DateTime?  @map("end_date")
+  id      Int        @id @default(autoincrement())
+  user    PrismaUser @relation(name: "PrismaPostHistoryToPrismaUser", fields: [refUser], references: [username])
+  refUser String     @map("ref_user")
+  post    PrismaPost @relation(name: "PrismaPostToPrismaPostHistory", fields: [refPost], references: [id])
+  refPost Int        @map("ref_post")
+  start   DateTime   @map("start")
+  end     DateTime?  @map("end")
 
   @@map("post_histories")
 }
