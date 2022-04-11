@@ -128,7 +128,8 @@ const electionResolver: Resolvers = {
       return null;
     },
     electables: async (model, _, ctx) => {
-      const refPosts = await api.getAllElectables(model.id ?? -1);
+      // To prevent 0 from giving -1, thx JS very cool
+      const refPosts = await api.getAllElectables(model.id === 0 ? 0 : model.id ?? -1);
       return Promise.all(
         refPosts.map(async (e) => {
           return ctx.postDataLoader.load(e);
