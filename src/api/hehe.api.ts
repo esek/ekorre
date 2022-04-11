@@ -1,3 +1,4 @@
+import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { PrismaHehe } from '@prisma/client';
@@ -14,10 +15,7 @@ export class HeheAPI {
    */
   async getAllHehes(limit?: number, sortOrder: 'desc' | 'asc' = 'desc'): Promise<PrismaHehe[]> {
     const h = await prisma.prismaHehe.findMany({
-      orderBy: {
-        year: sortOrder,
-        number: sortOrder,
-      },
+      orderBy: [{ year: sortOrder }, { number: sortOrder }],
       take: limit,
     });
 
@@ -111,5 +109,12 @@ export class HeheAPI {
         'Kunde inte radera upplagan av HeHE, vilket kan bero på att den inte finns',
       );
     }
+  }
+
+  async clear() {
+    if (!config.DEV) {
+      throw new Error('Tried to clear accesses in production!');
+    }
+    await prisma.prismaHehe.deleteMany();
   }
 }

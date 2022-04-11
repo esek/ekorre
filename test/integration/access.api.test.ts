@@ -332,8 +332,8 @@ describe('getting combined access', () => {
     const expectedAccess1 = mapAccess(expectedAccessSingleInput);
     const expectedAccess2 = mapAccess(expectedAccessOtherSingleInput);
 
-    const expectedAccess = [...expectedAccess1, ...expectedAccess2].sort((a, b) =>
-      a.resource?.localeCompare(b.resource ?? '') ?? 0
+    const expectedAccess = [...expectedAccess1, ...expectedAccess2].sort(
+      (a, b) => a.resource?.localeCompare(b.resource ?? '') ?? 0,
     );
 
     await setGetTest(setAccessFunc, getAccess, expectedAccess);
