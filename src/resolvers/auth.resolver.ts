@@ -5,7 +5,7 @@ import { ServerError, UnauthenticatedError } from '@/errors/request.errors';
 import type { TokenType } from '@/models/auth';
 import { ApiKeyResponse } from '@/models/mappers';
 import { reduce } from '@/reducers';
-import { hasAccess } from '@/util';
+import { hasAccess, hasAuthenticated } from '@/util';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
 import { Feature, Resolvers, User } from '@generated/graphql';
@@ -77,8 +77,10 @@ const authResolver: Resolvers = {
 
       return reduce(dbKeys, apiKeyReducer);
     },
-    loginProviders: async (_, __, { getUsername }) => {
-      const providers = await api.getLoginProviders(getUsername());
+    loginProviders: async (_, __, ctx) => {
+      await hasAuthenticated(ctx);
+
+      const providers = await api.getLoginProviders(ctx.getUsername());
       return providers;
     },
   },
@@ -159,7 +161,8 @@ const authResolver: Resolvers = {
 
       return linked;
     },
-    unlinkProvider: async (_, { linkId }) => {
+    unlinkProvider: async (_, { linkId }, ctx) => {
+      await hasAuthenticated(ctx);
       const unlinked = await api.unlinkLoginProvider(linkId);
       return unlinked;
     },
