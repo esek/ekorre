@@ -271,8 +271,8 @@ export type ModifyPost = {
   id: Scalars['Int'];
   /** Om sökande valbereds och kallas till intervju */
   interviewRequired?: Maybe<Scalars['Boolean']>;
-  name?: Maybe<Scalars['String']>;
   postType?: Maybe<PostType>;
+  postname?: Maybe<Scalars['String']>;
   /**
    * Hur många platser en post har.
    * `-1` symboliserar godtyckligt antal
