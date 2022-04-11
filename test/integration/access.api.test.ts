@@ -1,7 +1,15 @@
 import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
+import { PostAPI } from '@api/post';
 import { UserAPI } from '@api/user';
-import { AccessInput, AccessResourceType, Door, Feature } from '@generated/graphql';
+import {
+  AccessInput,
+  AccessResourceType,
+  Door,
+  Feature,
+  PostType,
+  Utskott,
+} from '@generated/graphql';
 import { PrismaApiKeyAccess, PrismaIndividualAccess } from '@prisma/client';
 
 type UnionPrismaAccess = PrismaIndividualAccess & PrismaApiKeyAccess;
@@ -9,13 +17,16 @@ type UnionPrismaAccess = PrismaIndividualAccess & PrismaApiKeyAccess;
 const accessApi = new AccessAPI();
 const userApi = new UserAPI();
 const apiKeyApi = new ApiKeyAPI();
+const postApi = new PostAPI();
 
 const username0 = 'te0000st-s';
 const username1 = 'te1111st-s';
 
 let apiKey: string;
+let postId0: number;
 
 beforeAll(async () => {
+  await postApi.clear();
   await accessApi.clear();
   await apiKeyApi.clear();
   await userApi.clear();
@@ -36,7 +47,17 @@ beforeAll(async () => {
     class: 'EXX',
   });
 
-  await Promise.all([c1, c2]);
+  const p1 = postApi.createPost({
+    name: 'Test',
+    description: 'Test',
+    spots: 1,
+    postType: PostType.ExactN,
+    utskott: Utskott.Infu,
+  });
+
+  const [, , postNumber1] = await Promise.all([c1, c2, p1]);
+
+  postId0 = postNumber1;
 
   const key = await apiKeyApi.createApiKey('Test API key', username0);
 
@@ -45,6 +66,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await accessApi.clear();
+  await postApi.clear();
   await apiKeyApi.clear();
   await userApi.clear();
 });
@@ -226,5 +248,98 @@ describe('setting/getting access for apikey', () => {
 
   it('getting access for unkown', async () => {
     expect(await getAccess('unknown')).toEqual([]);
+  });
+});
+
+describe('setting/getting access for post', () => {
+  beforeAll(async () => {
+    await accessApi.clear();
+    await postApi.addUsersToPost([username0], postId0);
+  });
+
+  afterAll(async () => {
+    await postApi.clearHistory();
+  });
+
+  const mapAccess = (access: Partial<UnionPrismaAccess>[], refPost: number = postId0) =>
+    access.map((a) => ({ ...a, refPost }));
+  const setAccess =
+    (input: AccessInput, postId = postId0) =>
+    () =>
+      accessApi.setPostAccess(postId, input);
+  const getAccess = (postId = postId0) => accessApi.getPostAccess(postId);
+
+  it('setting single access', async () => {
+    const expectedAccess = mapAccess(expectedAccessSingleInput);
+
+    await setGetTest(setAccess(accessSingleInput), getAccess, expectedAccess);
+  });
+
+  it('changing access', async () => {
+    const expectedAccess = mapAccess(expectedAccessOtherSingleInput);
+
+    await setGetTest(setAccess(otherAccessSingleInput), getAccess, expectedAccess);
+  });
+
+  it('setting access with multiple features', async () => {
+    const expectedAccess = mapAccess(expectedAccessMultipleInput);
+
+    await setGetTest(setAccess(accessMultipleInput), getAccess, expectedAccess);
+  });
+
+  it('removing access', async () => {
+    await setGetTest(setAccess(emptyAccess), getAccess, []);
+  });
+
+  it('setting access for unkown', async () => {
+    await expect(setAccess(accessSingleInput, -1)).rejects.toThrowError();
+  });
+
+  it('setting access with invalid feature', async () => {
+    await expect(setAccess(accessWithUnkownFeature)).rejects.toThrowError();
+  });
+
+  it('setting access with invalid door', async () => {
+    await expect(setAccess(accessWithUnkownDoor)).rejects.toThrowError();
+  });
+
+  it('getting access for unkown', async () => {
+    expect(await getAccess(-1)).toEqual([]);
+  });
+});
+
+describe('getting combined access', () => {
+  beforeAll(async () => {
+    await postApi.clearHistory();
+
+    await postApi.addUsersToPost([username0], postId0);
+  });
+
+  const mapAccess = (access: Partial<UnionPrismaAccess>[], refUser: string = username0) =>
+    access.map((a) => ({ ...a, refUser }));
+  const getAccess = (username = username0) => accessApi.getUserFullAccess(username);
+
+  it('getting combined access for user', async () => {
+    const setAccessFunc = async () => {
+      const a1 = accessApi.setIndividualAccess(username0, accessSingleInput);
+      const a2 = accessApi.setPostAccess(postId0, otherAccessSingleInput);
+
+      const [r1, r2] = await Promise.all([a1, a2]);
+
+      return r1 && r2;
+    };
+
+    const expectedAccess1 = mapAccess(expectedAccessSingleInput);
+    const expectedAccess2 = mapAccess(expectedAccessOtherSingleInput);
+
+    const expectedAccess = [...expectedAccess1, ...expectedAccess2].sort((a, b) =>
+      a.resource?.localeCompare(b.resource ?? '') ?? 0
+    );
+
+    await setGetTest(setAccessFunc, getAccess, expectedAccess);
+  });
+
+  it('getting combined access for unkown', async () => {
+    expect(await accessApi.getUserFullAccess('unknown')).toEqual([]);
   });
 });

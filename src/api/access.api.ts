@@ -181,21 +181,27 @@ export class AccessAPI {
     const { doors, features } = newaccess;
     const access: Prisma.PrismaPostAccessUncheckedCreateInput[] = [];
 
-    doors.forEach((door) =>
+    doors.forEach((door) => {
+      if (!Object.values(Door).includes(door)) {
+        throw new ServerError(`${door} är inte en känd feature`);
+      }
       access.push({
         refPost: postId,
         resourceType: PrismaResourceType.door,
         resource: door as string,
-      }),
-    );
+      });
+    });
 
-    features.forEach((feature) =>
+    features.forEach((feature) => {
+      if (!Object.values(Feature).includes(feature)) {
+        throw new ServerError(`${feature} är inte en känd feature`);
+      }
       access.push({
         refPost: postId,
         resourceType: PrismaResourceType.feature,
         resource: feature,
-      }),
-    );
+      });
+    });
 
     await prisma.prismaPostAccess.createMany({
       data: access,
