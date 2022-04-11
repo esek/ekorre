@@ -197,10 +197,10 @@ class FileAPI {
           },
           OR: {
             name: {
-              search: search,
+              search,
             },
             id: {
-              search: search,
+              search,
             },
           },
         },
