@@ -51,10 +51,10 @@ model PrismaUser {
 }
 
 model PrismaLoginProvider {
-  id       Int    @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   provider String
   token    String
-  email    String
+  email    String?
 
   user    PrismaUser @relation(name: "PrismaUserToPrismaLoginProvider", fields: [refUser], references: [username])
   refUser String     @map("ref_user")

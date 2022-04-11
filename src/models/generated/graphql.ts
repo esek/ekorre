@@ -201,7 +201,7 @@ export type HistoryEntry = {
 };
 
 export type LoginProvider = {
-  email: Scalars['String'];
+  email?: Maybe<Scalars['String']>;
   id: Scalars['Int'];
   provider: Scalars['String'];
   token: Scalars['String'];
@@ -698,7 +698,7 @@ export type Proposal = {
 };
 
 export type ProviderOptions = {
-  email: Scalars['String'];
+  email?: Maybe<Scalars['String']>;
   provider: Scalars['String'];
   token: Scalars['String'];
 };
@@ -1415,7 +1415,7 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
 }>;
 
 export type LoginProviderResolvers<ContextType = Context, ParentType extends ResolversParentTypes['LoginProvider'] = ResolversParentTypes['LoginProvider']> = ResolversObject<{
-  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   provider?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   token?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

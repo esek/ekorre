@@ -42,13 +42,13 @@ type ApiKey {
 
 input ProviderOptions {
   token: String!
-  email: String!
+  email: String
   provider: String!
 }
 
 type LoginProvider {
   id: Int!
   token: String!
-  email: String!
+  email: String
   provider: String!
 }
