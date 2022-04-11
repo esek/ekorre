@@ -1,8 +1,8 @@
-import { DatabaseUser } from '@/models/db/user';
 import { userReduce } from '@/reducers/user.reducer';
 import { User } from '@generated/graphql';
+import { PrismaUser } from '@prisma/client';
 
-const dummyDbUser: DatabaseUser = {
+const dummyDbUser: PrismaUser = {
   username: 'kk6969öö-s',
   // Pass är salt
   passwordHash:
@@ -12,7 +12,12 @@ const dummyDbUser: DatabaseUser = {
   lastName: 'Testballe',
   email: 'no-reply@esek.se',
   class: 'E18',
-  isFuncUser: false,
+  address: 'Testgatan 1',
+  zipCode: '12345',
+  phone: null,
+  dateJoined: new Date('1999-03-13'),
+  photoUrl: null,
+  website: null,
 };
 
 test('that password is reduced properly', () => {
@@ -22,8 +27,11 @@ test('that password is reduced properly', () => {
     lastName: 'Testballe',
     email: 'no-reply@esek.se',
     class: 'E18',
-    isFuncUser: false,
     photoUrl: null,
+    address: 'Testgatan 1',
+    zipCode: '12345',
+    phone: null,
+    website: null,
     access: {
       features: [],
       doors: [],
