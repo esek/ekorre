@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/indent */
+import config from '@/config';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
+import { post } from '@/resolvers';
 import { NominationAnswer } from '@generated/graphql';
 import {
   Prisma,
@@ -149,7 +151,7 @@ export class ElectionAPI {
     const n = await prisma.$queryRaw<RawDbNomination[]>`
       SELECT *
       FROM nominations
-      LEFT JOIN electables
+      JOIN electables
       USING (ref_election, ref_post)
       WHERE nominations.ref_election = ${electionId}
       ${answer != null ? aq : Prisma.empty}
@@ -177,9 +179,10 @@ export class ElectionAPI {
 
     const n = await prisma.$queryRaw<RawDbNomination[]>`
       SELECT *
-      WHERE nominations.ref_election = ${electionId}
-      LEFT JOIN electables
+      FROM nominations
+      JOIN electables
       USING (ref_election, ref_post)
+      WHERE nominations.ref_election = ${electionId}
       AND nominations.ref_user = ${username}
       ${answer != null ? aq : Prisma.empty}
     `;
@@ -198,16 +201,16 @@ export class ElectionAPI {
   async getNumberOfNominations(electionId: number, postId?: number): Promise<number> {
     const aq = Prisma.sql`AND nominations.ref_post = ${postId}`;
 
-    const c = await prisma.$queryRaw<number[]>`
-      SELECT count(id)
+    const c = await prisma.$queryRaw<Record<string, number>[]>`
+      SELECT count(*)
       FROM nominations
-      LEFT JOIN electables
+      JOIN electables
       USING (ref_election, ref_post)
       WHERE nominations.ref_election = ${electionId}
       ${postId != null ? aq : Prisma.empty}
     `;
 
-    return c.length === 0 ? 0 : c[0];
+    return c.length === 0 ? 0 : c[0].count;
   }
 
   /**
@@ -373,9 +376,6 @@ export class ElectionAPI {
    * @param postIds Lista på post-ID:n
    */
   async setElectables(electionId: number, postIds: number[]): Promise<boolean> {
-    if (postIds.length < 1) {
-      throw new BadRequestError('Inga valbara poster definierades');
-    }
     try {
       // Vi rollbacka om inte hela operationen fungerar
       await prisma.$transaction([
@@ -435,10 +435,9 @@ export class ElectionAPI {
    * @param electionId ID på ett val
    */
   async openElection(electionId: number): Promise<boolean> {
-    try {
       // Markerar valet som öppet, men bara om det inte redan stängts
       // måste använda updateMany för att kunna söka på `openedAt`
-      await prisma.prismaElection.updateMany({
+      const { count } = await prisma.prismaElection.updateMany({
         data: {
           openedAt: new Date(),
           open: true,
@@ -449,13 +448,19 @@ export class ElectionAPI {
           open: false,
         },
       });
+      
+      if (count < 1) {
+        throw new BadRequestError(
+          'Antingen är valet redan öppet eller stängt, eller så finns det inte.',
+        );
+      }
+      
+      if (count > 1) {
+        // Detta ska i princip aldrig kunna hända då alla val har unika ID:n
+       throw new ServerError('Mer än ett val öppnades, vilket inte ska kunna hända!');
+      }
 
       return true;
-    } catch {
-      throw new BadRequestError(
-        'Antingen är valet redan öppet eller stängt, eller så finns det inte.',
-      );
-    }
   }
 
   /**
@@ -625,6 +630,20 @@ export class ElectionAPI {
       throw new ServerError(
         `Kunde inte ta bort föreslaget för användaren ${username} till posten med ID ${postId}, vilket kan bero på att föreslaget inte fanns`,
       );
+    }
+  }
+
+  /**
+   * Clear all data related to elections from the database
+   */
+  async clear() {
+    if (config.DEV) {
+      await prisma.prismaElectable.deleteMany();
+      await prisma.prismaProposal.deleteMany();
+      await prisma.prismaNomination.deleteMany();
+      await prisma.prismaElection.deleteMany();
+    } else {
+      throw new ServerError('Cannot clear DB in production');
     }
   }
 }
