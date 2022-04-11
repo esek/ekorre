@@ -435,32 +435,32 @@ export class ElectionAPI {
    * @param electionId ID på ett val
    */
   async openElection(electionId: number): Promise<boolean> {
-      // Markerar valet som öppet, men bara om det inte redan stängts
-      // måste använda updateMany för att kunna söka på `openedAt`
-      const { count } = await prisma.prismaElection.updateMany({
-        data: {
-          openedAt: new Date(),
-          open: true,
-        },
-        where: {
-          id: electionId,
-          openedAt: null,
-          open: false,
-        },
-      });
-      
-      if (count < 1) {
-        throw new BadRequestError(
-          'Antingen är valet redan öppet eller stängt, eller så finns det inte.',
-        );
-      }
-      
-      if (count > 1) {
-        // Detta ska i princip aldrig kunna hända då alla val har unika ID:n
-       throw new ServerError('Mer än ett val öppnades, vilket inte ska kunna hända!');
-      }
+    // Markerar valet som öppet, men bara om det inte redan stängts
+    // måste använda updateMany för att kunna söka på `openedAt`
+    const { count } = await prisma.prismaElection.updateMany({
+      data: {
+        openedAt: new Date(),
+        open: true,
+      },
+      where: {
+        id: electionId,
+        openedAt: null,
+        open: false,
+      },
+    });
 
-      return true;
+    if (count < 1) {
+      throw new BadRequestError(
+        'Antingen är valet redan öppet eller stängt, eller så finns det inte.',
+      );
+    }
+
+    if (count > 1) {
+      // Detta ska i princip aldrig kunna hända då alla val har unika ID:n
+      throw new ServerError('Mer än ett val öppnades, vilket inte ska kunna hända!');
+    }
+
+    return true;
   }
 
   /**

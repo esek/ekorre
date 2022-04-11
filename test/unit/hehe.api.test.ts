@@ -27,8 +27,8 @@ const generateDummyHehe = async (overrides: Partial<PrismaHehe> = {}): Promise<P
       name: `heheApiTestFile${ctr}`,
       folderLocation: 'heheApiTestFile',
       type: 'dummy',
-      accessType: 'PUBLIC'
-    }
+      accessType: 'PUBLIC',
+    },
   });
 
   return {
@@ -72,8 +72,8 @@ afterAll(async () => {
     where: {
       name: {
         contains: 'heheApiTestFile',
-      }
-    }
+      },
+    },
   });
 });
 
@@ -139,7 +139,7 @@ test('getting multiple HeHEs by year', async () => {
   const [, localHehe0, localHehe1] = hehes;
 
   // Lägg till våra HeHE
-  await prisma.prismaHehe.createMany({ data: hehes});
+  await prisma.prismaHehe.createMany({ data: hehes });
 
   const res = await api.getHehesByYear(DUMMY_HEHE.year);
 

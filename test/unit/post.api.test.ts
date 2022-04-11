@@ -1,10 +1,10 @@
 import { PostAPI } from '@/api/post.api';
+import prisma from '@/api/prisma';
 import { UserAPI } from '@/api/user.api';
+import { BadRequestError } from '@/errors/request.errors';
 import { postReduce } from '@/reducers/post.reducer';
 import { midnightTimestamp } from '@/util';
-import prisma from '@/api/prisma';
 import { Access, ModifyPost, NewPost, NewUser, Post, PostType, Utskott } from '@generated/graphql';
-import { BadRequestError } from '@/errors/request.errors';
 import { PrismaPost } from '@prisma/client';
 
 const api = new PostAPI();
@@ -47,7 +47,7 @@ const removePost = async (postname: string) => {
   await prisma.prismaPost.deleteMany({
     where: {
       postname, // We can use postname, ID is not needed
-    }
+    },
   });
 };
 
@@ -55,7 +55,7 @@ const removePostHistory = async (username: string) => {
   await prisma.prismaPostHistory.deleteMany({
     where: {
       refUser: username,
-    }
+    },
   });
 };
 
@@ -77,7 +77,7 @@ afterAll(async () => {
   await prisma.prismaUser.delete({
     where: {
       username: DUMMY_USER.username,
-    }
+    },
   });
 });
 
@@ -292,7 +292,7 @@ test('modifying post in allowed way', async () => {
   const postId = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
-  const ok = await api.modifyPost({ id: postId, ...localMp});
+  const ok = await api.modifyPost({ id: postId, ...localMp });
   expect(ok).toBe(true);
 
   const res = await api.getPost(postId);
@@ -320,7 +320,7 @@ test('modyfing post without touching neither PostType nor spots', async () => {
     utskott: Utskott.Styrelsen,
     id: postId,
   };
-  
+
   const ok = await api.modifyPost(localMp);
   expect(ok).toBe(true);
 
@@ -348,7 +348,7 @@ test('increasing spots with postType set to u', async () => {
     interviewRequired: true,
     id: postId,
   };
-  
+
   // API should silently fix spots to 2
 
   const res = await api.getPost(postId);
@@ -425,11 +425,9 @@ test('set end time of history entry', async () => {
     });
 
     // Nu kollar vi om vi kan lägga till ett slutdatum
-    await expect(
-      api.setUserPostEnd(id, end),
-    ).resolves.toBeTruthy();
+    await expect(api.setUserPostEnd(id, end)).resolves.toBeTruthy();
   }
-  
+
   const { id, ...reduced } = (await api.getHistoryEntries({ refUser: DUMMY_USER.username }))[0];
   expect(reduced).toEqual({
     refUser: DUMMY_USER.username,
