@@ -1,4 +1,5 @@
 /* eslint-disable class-methods-use-this */
+import config from '@/config';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { StrictObject } from '@/models/base';
@@ -120,14 +121,16 @@ export class PostAPI {
         ...where,
         history: {
           some: {
-            refUser: username,
-            AND: {
-              endDate: null,
-              OR: {
-                endDate: {
+            OR: [
+              { end: null },
+              {
+                end: {
                   gt: new Date(),
                 },
               },
+            ],
+            AND: {
+              refUser: username,
             },
           },
         },
@@ -175,8 +178,8 @@ export class PostAPI {
 
       // Vi sparar som timestamp i DB
       // Start ska alltid vara 00:00, end alltid 23:59
-      startDate: new Date(midnightTimestamp(start != null ? start : new Date(), 'after')),
-      endDate: end != null ? new Date(midnightTimestamp(end, 'before')) : null,
+      start: new Date(midnightTimestamp(start != null ? start : new Date(), 'after')),
+      end: end != null ? new Date(midnightTimestamp(end, 'before')) : null,
     }));
 
     if (!insert.length) {
@@ -203,7 +206,7 @@ export class PostAPI {
     const s = checkPostTypeAndSpots(postType, spots);
 
     if (s === null) {
-      throw new BadRequestError('Inkompatibel posttyp och antal poster')
+      throw new BadRequestError('Inkompatibel posttyp och antal poster');
     }
 
     // Kolla efter dubbletter först, fånga 404-felet och sätt doubles till false
@@ -343,15 +346,17 @@ export class PostAPI {
 
     const count = await prisma.prismaPostHistory.count({
       where: {
-        startDate: {
-          lt: safeDate,
-        },
-        AND: {
-          endDate: {
-            gt: safeDate,
+        OR: [
+          { end: null },
+          {
+            end: {
+              gte: safeDate,
+            },
           },
-          OR: {
-            endDate: null,
+        ],
+        AND: {
+          start: {
+            lte: safeDate,
           },
         },
       },
@@ -375,7 +380,7 @@ export class PostAPI {
         id,
       },
       data: {
-        endDate: new Date(midnightTimestamp(end, 'before')),
+        end: new Date(midnightTimestamp(end, 'before')),
       },
     });
 
@@ -397,11 +402,19 @@ export class PostAPI {
   }
 
   async clear() {
-    await prisma.prismaPostHistory.deleteMany();
-    await prisma.prismaPost.deleteMany();
+    if (config.DEV) {
+      await prisma.prismaPostHistory.deleteMany();
+      await prisma.prismaPost.deleteMany();
+    } else {
+      throw new ServerError('Cannot clear DB in production');
+    }
   }
 
   async clearHistory() {
-    await prisma.prismaPostHistory.deleteMany();
+    if (config.DEV) {
+      await prisma.prismaPostHistory.deleteMany();
+    } else {
+      throw new ServerError('Cannot clear DB in production');
+    }
   }
 }

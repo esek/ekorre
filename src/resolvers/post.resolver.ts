@@ -106,14 +106,14 @@ const postresolver: Resolvers = {
           const post = await ctx.postDataLoader.load(e.refPost);
 
           // Konvertera timestamp till datum
-          const { startDate, endDate, ...reduced } = e;
+          const { start, end, ...reduced } = e;
           let safeEnd: Date | null = null;
 
-          if (endDate != null) {
-            safeEnd = new Date(endDate);
+          if (end != null) {
+            safeEnd = new Date(end);
           }
 
-          return { ...reduced, post, start: new Date(startDate), end: safeEnd };
+          return { ...reduced, post, start: new Date(start), end: safeEnd };
         }),
       );
       return a;
@@ -128,14 +128,14 @@ const postresolver: Resolvers = {
           const holder = await ctx.userDataLoader.load(e.refUser);
 
           // Konvertera timestamp till datum
-          const { startDate, endDate, refPost } = e;
+          const { start, end, refPost } = e;
           let safeEnd: Date | null = null;
 
-          if (endDate != null) {
-            safeEnd = new Date(endDate);
+          if (end != null) {
+            safeEnd = new Date(end);
           }
 
-          return { id: refPost, holder, start: new Date(startDate), end: safeEnd };
+          return { id: refPost, holder, start: new Date(start), end: safeEnd };
         }),
       );
       return a;

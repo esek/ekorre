@@ -2,16 +2,18 @@ import { Access, Post, PostType, Utskott } from '@generated/graphql';
 import { PrismaPost } from '@prisma/client';
 
 export function postReduce(post: PrismaPost): Post {
+  const { postType, utskott, ...reduced } = post;
+
   const access: Access = {
     doors: [],
     features: [],
   };
 
   const p: Post = {
-    ...post,
+    ...reduced,
     access,
-    postType: post.postType as PostType,
-    utskott: post.utskott as Utskott,
+    postType: postType as PostType,
+    utskott: utskott as Utskott,
     history: [], // Det här fylls på senare,
   };
 

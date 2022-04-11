@@ -7,7 +7,7 @@ TODO: Uppdatera för docker compose, prisma och postgres
 
 + Hur man installerar docker compose
 + Hur man kör docker compose
-+ Hur man skapar schema i databasen (`npx prisma db push`)
++ Hur man skapar schema i databasen (`npx prisma db push --force-reset`)
 + Hur man seedar databasen med prisma (`npx prisma db seed`)
 
 ## Hur startar jag?
