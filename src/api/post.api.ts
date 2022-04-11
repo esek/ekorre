@@ -395,4 +395,13 @@ export class PostAPI {
 
     return history != null;
   }
+
+  async clear() {
+    await prisma.prismaPostHistory.deleteMany();
+    await prisma.prismaPost.deleteMany();
+  }
+
+  async clearHistory() {
+    await prisma.prismaPostHistory.deleteMany();
+  }
 }
