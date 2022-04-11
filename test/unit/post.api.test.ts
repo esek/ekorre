@@ -4,8 +4,8 @@ import { postReduce } from '@/reducers/post.reducer';
 import { midnightTimestamp } from '@/util';
 import prisma from '@/api/prisma';
 import { Access, ModifyPost, NewPost, NewUser, Post, PostType, Utskott } from '@generated/graphql';
-import { PrismaPost } from '@prisma/client';
 import { BadRequestError } from '@/errors/request.errors';
+import { PrismaPost } from '@prisma/client';
 
 const api = new PostAPI();
 const userApi = new UserAPI();
@@ -28,26 +28,19 @@ const np: NewPost = {
   interviewRequired: false,
 };
 
-const a: Access = {
-  features: [],
-  doors: [],
-};
-
 // ID given by `createPost`
-const p: Omit<Post, 'id'> = {
+const p: Omit<PrismaPost, 'id'> = {
   postname: 'Underphøs',
   utskott: Utskott.Nollu,
   postType: PostType.U,
   spots: 1,
   description: 'Är helt underbar',
   active: true,
-  interviewRequired: true,
-  access: a,
-  history: [],
+  interviewRequired: false,
 };
 
 const mp: Omit<ModifyPost, 'id'> = {
-  name: 'Underphøs',
+  postname: 'Underphøs',
 };
 
 const removePost = async (postname: string) => {
@@ -90,7 +83,7 @@ afterAll(async () => {
 
 test('getting all posts', async () => {
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const allPosts = await api.getPosts();
   expect(allPosts.length).toBeGreaterThan(0);
@@ -98,7 +91,7 @@ test('getting all posts', async () => {
 
 test('getting all posts from utskott', async () => {
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const allPosts = await api.getPostsFromUtskott(np.utskott);
   expect(allPosts.length).toBeGreaterThan(0);
@@ -107,7 +100,7 @@ test('getting all posts from utskott', async () => {
 test('getting history entries for user', async () => {
   // Vi skapar först en post och lägger till en user på den
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const ok = await api.addUsersToPost([DUMMY_USER.username], postId);
   expect(ok).toBe(true);
@@ -125,7 +118,7 @@ test('getting history entries for user', async () => {
 
 test('adding post', async () => {
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const res = await api.getPost(postId);
   if (res !== null) {
@@ -140,7 +133,7 @@ test('adding post', async () => {
 
 test('adding duplicate post', async () => {
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   await expect(api.createPost(np)).rejects.toThrowError('Denna posten finns redan');
 });
@@ -153,14 +146,13 @@ test('adding post with ea type and defined number', async () => {
   };
 
   const postId = await api.createPost(localNp);
-  expect(postId).toBe(true);
+  expect(postId).toEqual(expect.any(Number));
 
   const res = await api.getPost(postId);
   if (res !== null) {
-    const { active, interviewRequired, ...reducedRes } = postReduce(res);
+    const { id, ...reducedRes } = res;
+    expect(id).toEqual(expect.any(Number));
     expect(reducedRes).toStrictEqual({ ...p, postType: PostType.Ea, spots: -1 });
-    expect(active).toBeTruthy();
-    expect(interviewRequired).toBeFalsy();
   } else {
     expect(res).not.toBeNull();
   }
@@ -174,7 +166,7 @@ test('adding post with ea type and undefined number', async () => {
   };
 
   const postId = await api.createPost(localNp);
-  expect(postId).toBe(true);
+  expect(postId).toEqual(expect.any(Number));
 
   const res = await api.getPost(postId);
   if (res !== null) {
@@ -195,7 +187,7 @@ test('adding post with n type and defined number', async () => {
   };
 
   const postId = await api.createPost(localNp);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const res = await api.getPost(postId);
   if (res !== null) {
@@ -228,7 +220,7 @@ test('adding post with n type, defined number, and undefined description and int
   };
 
   const postId = await api.createPost(localNp);
-  expect(postId).toBe(true);
+  expect(postId).toEqual(expect.any(Number));
 
   const res = await api.getPost(postId);
   if (res !== null) {
@@ -258,7 +250,7 @@ test('adding post with n type and undefined number', async () => {
 
 test('adding user to post', async () => {
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const ok = await api.addUsersToPost([DUMMY_USER.username], postId);
   expect(ok).toBe(true);
@@ -276,7 +268,7 @@ test('adding user to post', async () => {
 
 test('deleting user from post', async () => {
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const startDate = new Date();
 
@@ -303,7 +295,7 @@ test('modifying post in allowed way', async () => {
   };
 
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const ok = await api.modifyPost({ id: postId, ...localMp});
   expect(ok).toBe(true);
@@ -326,7 +318,7 @@ test('modifying post in allowed way', async () => {
 
 test('modyfing post without touching neither PostType nor spots', async () => {
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const localMp: ModifyPost = {
     ...mp,
@@ -353,7 +345,7 @@ test('modyfing post without touching neither PostType nor spots', async () => {
 
 test('increasing spots with postType set to u', async () => {
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const localMp: ModifyPost = {
     ...mp,
@@ -380,7 +372,7 @@ test('increasing spots with postType set to u', async () => {
 
 test('changing postType to e.a. from u without changing spots', async () => {
   const postId = await api.createPost(np);
-  expect(postId).toBeInstanceOf(Number);
+  expect(postId).toEqual(expect.any(Number));
 
   const localMp: ModifyPost = {
     ...mp,
