@@ -1,4 +1,5 @@
 /* eslint-disable class-methods-use-this */
+import config from '@/config';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { StrictObject } from '@/models/base';
@@ -401,11 +402,19 @@ export class PostAPI {
   }
 
   async clear() {
-    await prisma.prismaPostHistory.deleteMany();
-    await prisma.prismaPost.deleteMany();
+    if (config.DEV) {
+      await prisma.prismaPostHistory.deleteMany();
+      await prisma.prismaPost.deleteMany();
+    } else {
+      throw new ServerError('Cannot clear DB in production');
+    }
   }
 
   async clearHistory() {
-    await prisma.prismaPostHistory.deleteMany();
+    if (config.DEV) {
+      await prisma.prismaPostHistory.deleteMany();
+    } else {
+      throw new ServerError('Cannot clear DB in production');
+    }
   }
 }
