@@ -12,8 +12,10 @@ const ARTICLE_FIELDS = `
   createdAt
   lastUpdatedAt
   articleType
-  tags
-  creator {
+  tags {
+    tag
+  }
+  author {
     username
   }
   lastUpdatedBy {

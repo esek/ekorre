@@ -1,15 +1,15 @@
 import type { ProposalResponse } from '@/models/mappers';
-import type { DatabaseProposal } from '@db/election';
+import type { PrismaProposal } from '@prisma/client';
 
-export function proposalReduce(dbProposal: DatabaseProposal): ProposalResponse {
-  const { refuser, refpost } = dbProposal;
+export function proposalReduce(dbProposal: PrismaProposal): ProposalResponse {
+  const { refUser, refPost } = dbProposal;
 
   const pr = {
     user: {
-      username: refuser,
+      username: refUser,
     },
     post: {
-      postname: refpost,
+      id: refPost,
     },
   };
 

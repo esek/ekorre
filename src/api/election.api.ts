@@ -1,20 +1,48 @@
 /* eslint-disable @typescript-eslint/indent */
+import config from '@/config';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import {
-  DatabaseElectable,
-  DatabaseElection,
-  DatabaseNomination,
-  DatabaseProposal,
-} from '@db/election';
+import { post } from '@/resolvers';
 import { NominationAnswer } from '@generated/graphql';
+import {
+  Prisma,
+  PrismaElection,
+  PrismaNomination,
+  PrismaNominationAnswer,
+  PrismaProposal,
+} from '@prisma/client';
 
-import { ELECTABLE_TABLE, ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE } from './constants';
-import db from './knex';
+import prisma from './prisma';
 
 const logger = Logger.getLogger('ElectionAPI');
 
+type RawDbNomination = {
+  ref_election: number;
+  ref_post: number;
+  answer: PrismaNominationAnswer;
+  ref_user: string;
+};
+
 export class ElectionAPI {
+  /**
+   * Converts raw nomination rows to `PrismaNomination[]`
+   */
+  reduceRawDbNominations(rows: RawDbNomination[]): PrismaNomination[] {
+    const res: PrismaNomination[] = rows.map((r) => {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const { ref_election, ref_post, ref_user, ...reduced } = r;
+
+      return {
+        ...reduced,
+        refElection: ref_election,
+        refPost: ref_post,
+        refUser: ref_user,
+      };
+    });
+
+    return res;
+  }
+
   /**
    * @param limit Gräns på antal möten. Om null ges alla möten
    * @returns Senaste mötet som skapades
@@ -23,22 +51,17 @@ export class ElectionAPI {
     limit?: number,
     includeUnopened = true,
     includeHiddenNominations = true,
-  ): Promise<DatabaseElection[]> {
-    const query = db<DatabaseElection>(ELECTION_TABLE).select('*').orderBy('id', 'desc');
-
-    if (!includeUnopened) {
-      query.whereNotNull('openedAt');
-    }
-
-    if (!includeHiddenNominations) {
-      query.where('nominationsHidden', false);
-    }
-
-    if (limit != null) {
-      query.limit(limit);
-    }
-
-    const e = await query;
+  ): Promise<PrismaElection[]> {
+    const e = await prisma.prismaElection.findMany({
+      where: {
+        open: includeUnopened ? undefined : true,
+        nominationsHidden: includeHiddenNominations ? undefined : false,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+    });
 
     return e;
   }
@@ -47,11 +70,15 @@ export class ElectionAPI {
    * @returns Senaste mötet markerat som `open`
    * @throws `NotFoundError`
    */
-  async getOpenElection(): Promise<DatabaseElection> {
-    const e = await db<DatabaseElection>(ELECTION_TABLE)
-      .where('open', true)
-      .orderBy('createdAt', 'desc')
-      .first();
+  async getOpenElection(): Promise<PrismaElection> {
+    const e = await prisma.prismaElection.findFirst({
+      where: {
+        open: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
     if (e == null) {
       throw new NotFoundError('Hittade inga öppna val');
@@ -65,10 +92,14 @@ export class ElectionAPI {
    * @param electionIds En lista med `electionId`
    * @returns En lista med val
    */
-  async getMultipleElections(
-    electionIds: string[] | readonly string[],
-  ): Promise<DatabaseElection[]> {
-    const e = await db<DatabaseElection>(ELECTION_TABLE).whereIn('id', electionIds);
+  async getMultipleElections(electionIds: number[] | readonly number[]): Promise<PrismaElection[]> {
+    const e = await prisma.prismaElection.findMany({
+      where: {
+        id: {
+          in: electionIds.slice(),
+        },
+      },
+    });
 
     return e;
   }
@@ -77,20 +108,26 @@ export class ElectionAPI {
    * Returnerar alla nomineringar för posten och valet, men bara
    * poster man kan nomineras till.
    * @param electionId ID på ett val
-   * @param postname Namnet på posten
+   * @param postId ID på en post
    * @returns Lista över nomineringar
    */
-  async getNominations(electionId: string, postname: string): Promise<DatabaseNomination[]> {
-    // prettier-ignore
-    const n = await db<DatabaseNomination>(NOMINATION_TABLE)
-      .leftJoin<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
-        q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
-          `${ELECTABLE_TABLE}.refpost`,
-          `${NOMINATION_TABLE}.refpost`,
-        );
-      })
-      .where(`${NOMINATION_TABLE}.refelection`, electionId)
-      .where(`${NOMINATION_TABLE}.refpost`, postname);
+  async getNominations(electionId: number, postId: number): Promise<PrismaNomination[]> {
+    const n = await prisma.prismaNomination.findMany({
+      where: {
+        refElection: electionId,
+        refPost: postId,
+
+        // Bara om valet har denna posten som valbar,
+        // så att det kan stängas av och på
+        election: {
+          electables: {
+            some: {
+              refPost: postId,
+            },
+          },
+        },
+      },
+    });
 
     return n;
   }
@@ -104,26 +141,23 @@ export class ElectionAPI {
    * @returns Lista över nomineringar
    */
   async getAllNominations(
-    electionId: string,
+    electionId: number,
     answer?: NominationAnswer,
-  ): Promise<DatabaseNomination[]> {
-    // prettier-ignore
-    const query = db<DatabaseNomination>(NOMINATION_TABLE)
-      .join<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
-      q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
-        `${ELECTABLE_TABLE}.refpost`,
-        `${NOMINATION_TABLE}.refpost`,
-      );
-    })
-      .where(`${NOMINATION_TABLE}.refelection`, electionId);
+  ): Promise<PrismaNomination[]> {
+    // TODO: Finns det ett sätt att göra detta på en query
+    // utan raw?
+    const aq = Prisma.sql`AND nominations.answer = ${answer}`;
 
-    if (answer != null) {
-      query.where('accepted', answer);
-    }
+    const n = await prisma.$queryRaw<RawDbNomination[]>`
+      SELECT *
+      FROM nominations
+      JOIN electables
+      USING (ref_election, ref_post)
+      WHERE nominations.ref_election = ${electionId}
+      ${answer != null ? aq : Prisma.empty}
+    `;
 
-    const n = await query;
-
-    return n;
+    return this.reduceRawDbNominations(n);
   }
 
   /**
@@ -135,30 +169,25 @@ export class ElectionAPI {
    * @returns Lista över nomineringar
    */
   async getAllNominationsForUser(
-    electionId: string,
+    electionId: number,
     username: string,
     answer?: NominationAnswer,
-  ): Promise<DatabaseNomination[]> {
-    // prettier-ignore
-    const query = db<DatabaseNomination>(NOMINATION_TABLE)
-      .join<DatabaseElectable>(ELECTABLE_TABLE, (q) => {
-      q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
-        `${ELECTABLE_TABLE}.refpost`,
-        `${NOMINATION_TABLE}.refpost`,
-      );
-    })
-      .where(`${NOMINATION_TABLE}.refelection`, electionId)
-      .where(`${NOMINATION_TABLE}.refuser`, username);
+  ): Promise<PrismaNomination[]> {
+    // TODO: Finns det ett sätt att göra detta på en query
+    // utan raw?
+    const aq = Prisma.sql`AND nominations.answer = ${answer}`;
 
-    if (answer != null) {
-      query.where('accepted', answer);
-    }
+    const n = await prisma.$queryRaw<RawDbNomination[]>`
+      SELECT *
+      FROM nominations
+      JOIN electables
+      USING (ref_election, ref_post)
+      WHERE nominations.ref_election = ${electionId}
+      AND nominations.ref_user = ${username}
+      ${answer != null ? aq : Prisma.empty}
+    `;
 
-    // Vi måste kontrollera att nomineringar är för
-    // en valid electable
-    const n = await query;
-
-    return n;
+    return this.reduceRawDbNominations(n);
   }
 
   /**
@@ -166,75 +195,52 @@ export class ElectionAPI {
    * det totala antalet nomineringar. Svaret kan inte specificeras, då det lämnar ut för
    * mycket information. Räknar inte nomineringar som inte finns som electables.
    * @param electionId ID på ett val
-   * @param postname Namnet på posten
+   * @param postId ID på en post
    * @returns Ett heltal (`number`)
    */
-  async getNumberOfNominations(electionId: string, postname?: string): Promise<number> {
-    // prettier-ignore
-    const query = db(NOMINATION_TABLE)
-      .leftJoin<DatabaseElectable>(ELECTABLE_TABLE, (q) => {// eslint-disable indent
-      q.on(`${ELECTABLE_TABLE}.refelection`, `${NOMINATION_TABLE}.refelection`).andOn(
-        `${ELECTABLE_TABLE}.refpost`,
-        `${NOMINATION_TABLE}.refpost`,
-      );
-    })
-      .where(`${NOMINATION_TABLE}.refelection`, electionId)
-      .count<Record<string, number>>(`${ELECTABLE_TABLE}.refelection AS count`);
+  async getNumberOfNominations(electionId: number, postId?: number): Promise<number> {
+    const aq = Prisma.sql`AND nominations.ref_post = ${postId}`;
 
-    if (postname != null) {
-      query.where(`${NOMINATION_TABLE}.refpost`, postname);
-    }
+    const c = await prisma.$queryRaw<Record<string, number>[]>`
+      SELECT count(*)
+      FROM nominations
+      JOIN electables
+      USING (ref_election, ref_post)
+      WHERE nominations.ref_election = ${electionId}
+      ${postId != null ? aq : Prisma.empty}
+    `;
 
-    const i = await query.first();
-
-    if (i == null || i.count == null) {
-      logger.debug(
-        `Kunde inte räkna antalet nomineringar för valet ${electionId} och posten ${
-          postname ?? 'alla poster'
-        }, count var ${JSON.stringify(i)}`,
-      );
-      throw new ServerError('Kunde inte räkna antal nomineringar');
-    }
-
-    return i.count;
+    return c.length === 0 ? 0 : c[0].count;
   }
 
   /**
    * Räknar antalet förslag för en post och ett möte. Om posten utelämnas returneras
    * det totala antalet förslag.
    * @param electionId ID på ett val
-   * @param postname Namnet på posten
+   * @param postId ID på en post
    * @returns Ett heltal (`number`)
    */
-  async getNumberOfProposals(electionId: string, postname?: string): Promise<number> {
-    const query = db(PROPOSAL_TABLE)
-      .where('refelection', electionId)
-      .count<Record<string, number>>('refelection AS count');
+  async getNumberOfProposals(electionId: number, postId?: number): Promise<number> {
+    const c = prisma.prismaProposal.count({
+      where: {
+        refElection: electionId,
+        refPost: postId,
+      },
+    });
 
-    if (postname != null) {
-      query.where('refpost', postname);
-    }
-
-    const i = await query.first();
-
-    if (i == null || i.count == null) {
-      logger.debug(
-        `Kunde inte räkna antalet förslag för valet ${electionId} och posten ${
-          postname ?? 'alla poster'
-        }, count var ${JSON.stringify(i)}`,
-      );
-      throw new ServerError('Kunde inte räkna antal förslag');
-    }
-
-    return i.count;
+    return c;
   }
 
   /**
    * Hittar alla valberedningens nomineringar för ett val.
    * @param electionId ID på ett val
    */
-  async getAllProposals(electionId: string): Promise<DatabaseProposal[]> {
-    const p = await db<DatabaseProposal>(PROPOSAL_TABLE).where('refelection', electionId);
+  async getAllProposals(electionId: number): Promise<PrismaProposal[]> {
+    const p = await prisma.prismaProposal.findMany({
+      where: {
+        refElection: electionId,
+      },
+    });
 
     return p;
   }
@@ -242,31 +248,36 @@ export class ElectionAPI {
   /**
    * Hittar alla valbara poster (postnamn) för ett val.
    * @param electionId ID på ett val
-   * @returns Lista på `postnames`
+   * @returns Lista på `posts.id`
    */
-  async getAllElectables(electionId: string): Promise<string[]> {
-    const electableRows = await db<DatabaseElectable>(ELECTABLE_TABLE)
-      .select('refpost')
-      .where('refelection', electionId);
+  async getAllElectables(electionId: number): Promise<number[]> {
+    const electableRows = await prisma.prismaElectable.findMany({
+      select: {
+        refPost: true,
+      },
+      where: {
+        refElection: electionId,
+      },
+    });
 
-    const refposts = electableRows.map((e) => e.refpost);
+    const refPosts = electableRows.map((e) => e.refPost);
 
-    return refposts;
+    return refPosts;
   }
 
   /**
    * Skapar ett nytt val, förutsatt att det inte finns några öppna val,
    * eller val som inte har ett datum de stängdes.
    * @param creatorUsername Användarnamnet på skaparen av valet
-   * @param electables En lista med postnamn
+   * @param electables En lista med post-ID:n
    * @param nominationsHidden Om nomineringar ska vara dolda för alla utom den som blivit nominerad och valadmin
    * @returns `electionId` hos skapade mötet
    */
   async createElection(
     creatorUsername: string,
-    electables: string[],
+    electables: number[],
     nominationsHidden: boolean,
-  ): Promise<string> {
+  ): Promise<number> {
     // Vi försäkrar oss om att det senaste valet är stängt
     const lastElection = (await this.getLatestElections(1))[0];
     if (lastElection != null && (lastElection?.open || lastElection?.closedAt == null)) {
@@ -275,59 +286,51 @@ export class ElectionAPI {
       );
     }
 
-    const electionId = (
-      await db<DatabaseElection>(ELECTION_TABLE).insert(
-        {
-          refcreator: creatorUsername,
+    try {
+      const createdElection = await prisma.prismaElection.create({
+        data: {
+          refCreator: creatorUsername,
           nominationsHidden,
+
+          // Nested create
+          electables: {
+            createMany: {
+              data: electables.map((e) => {
+                return {
+                  refPost: e,
+                };
+              }),
+            },
+          },
         },
-        'id', // Return `id` of created election
-      )
-    )[0];
-
-    if (electionId == null) {
-      logger.error('Failed to create new election for unknown reason');
-      throw new ServerError('Kunde inte skapa ett nytt val');
-    }
-
-    if (electables.length !== 0) {
-      const electableRows: DatabaseElectable[] = electables.map((e) => {
-        return { refelection: electionId, refpost: e };
       });
 
-      try {
-        await db(ELECTABLE_TABLE).insert(electableRows);
-      } catch (err) {
-        logger.debug(
-          `Could not insert electables when creating election with ID ${electionId} due to error:\n\t${JSON.stringify(
-            err,
-          )}`,
-        );
-        throw new ServerError(
-          'Kunde inte lägga till valbara poster. Försök lägga till dessa manuellt',
-        );
-      }
+      return createdElection.id;
+    } catch (err) {
+      logger.error(`Error when trying to create new election:\n\t${JSON.stringify(err)}`);
+      throw new ServerError('Kunde inte skapa elections eller electables');
     }
-
-    return electionId;
   }
 
   /**
    * Försöker att lägga till alla poster som valbara i det specificerade valet.
    * @param electionId ID på ett val
-   * @param postnames Lista på postnamn
+   * @param postIds Lista på post-ID:n
    */
-  async addElectables(electionId: string, postnames: string[]): Promise<boolean> {
-    if (postnames.length === 0) {
-      throw new BadRequestError('Inga postnamn specificerade');
+  async addElectables(electionId: number, postIds: number[]): Promise<boolean> {
+    if (postIds.length === 0) {
+      throw new BadRequestError('Inga poster specificerade');
     }
 
-    const electableRows: DatabaseElectable[] = postnames.map((postname) => {
-      return { refelection: electionId, refpost: postname };
-    });
-
     try {
-      await db(ELECTABLE_TABLE).insert(electableRows);
+      await prisma.prismaElectable.createMany({
+        data: postIds.map((p) => {
+          return {
+            refElection: electionId,
+            refPost: p,
+          };
+        }),
+      });
     } catch (err) {
       logger.debug(
         `Could not insert electables for election with ID ${electionId} due to error:\n\t${JSON.stringify(
@@ -343,19 +346,23 @@ export class ElectionAPI {
   /**
    * Tar bort alla poster som valbara i det specificerade valet
    * @param electionId ID på ett val
-   * @param postnames Lista på postnamn
+   * @param postIds Lista på post-ID:n
    */
-  async removeElectables(electionId: string, postnames: string[]): Promise<boolean> {
-    if (postnames.length === 0) {
-      throw new BadRequestError('Inga postnamn specificerade');
+  async removeElectables(electionId: number, postIds: number[]): Promise<boolean> {
+    if (postIds.length === 0) {
+      throw new BadRequestError('Inga poster specificerade');
     }
 
-    const res = await db(ELECTABLE_TABLE)
-      .delete()
-      .where('refelection', electionId)
-      .whereIn('refpost', postnames);
+    const { count } = await prisma.prismaElectable.deleteMany({
+      where: {
+        refElection: electionId,
+        refPost: {
+          in: postIds,
+        },
+      },
+    });
 
-    if (res !== postnames.length) {
+    if (count !== postIds.length) {
       logger.debug(`Could not delete all electables for election with ID ${electionId}`);
       throw new ServerError('Kunde inte ta bort alla valbara poster');
     }
@@ -366,29 +373,35 @@ export class ElectionAPI {
   /**
    * Försöker att lägga till alla poster som valbara i det specificerade valet.
    * @param electionId ID på ett val
-   * @param postnames Lista på postnamn
+   * @param postIds Lista på post-ID:n
    */
-  async setElectables(electionId: string, postnames: string[]): Promise<boolean> {
-    const q = db<DatabaseElectable>(ELECTABLE_TABLE);
-
+  async setElectables(electionId: number, postIds: number[]): Promise<boolean> {
     try {
-      // Remove existing electables
-      await q.where({ refelection: electionId }).delete();
-
-      if (postnames.length > 0) {
-        const electableRows: DatabaseElectable[] = postnames.map((postname) => {
-          return { refelection: electionId, refpost: postname };
-        });
-
-        await db(ELECTABLE_TABLE).insert(electableRows);
-      }
+      // Vi rollbacka om inte hela operationen fungerar
+      await prisma.$transaction([
+        prisma.prismaElectable.deleteMany({
+          where: {
+            refElection: {
+              in: electionId,
+            },
+          },
+        }),
+        prisma.prismaElectable.createMany({
+          data: postIds.map((p) => {
+            return {
+              refElection: electionId,
+              refPost: p,
+            };
+          }),
+        }),
+      ]);
     } catch (err) {
       logger.debug(
         `Could not insert electables for election with ID ${electionId} due to error:\n\t${JSON.stringify(
           err,
         )}`,
       );
-      throw new ServerError('Kunde inte lägga alla valbara poster');
+      throw new ServerError('Kunde inte sätta alla valbara poster, ingen operation utfördes');
     }
 
     return true;
@@ -400,35 +413,51 @@ export class ElectionAPI {
    * @param hidden Om alla ska kunna vem som tackat ja till vad eller ej
    * @returns Om en ändring gjordes eller ej
    */
-  async setHiddenNominations(electionId: string, hidden: boolean): Promise<boolean> {
-    const res = await db<DatabaseElection>(ELECTION_TABLE)
-      .update('nominationsHidden', hidden)
-      .where('id', electionId);
-    return res > 0;
+  async setHiddenNominations(electionId: number, hidden: boolean): Promise<boolean> {
+    try {
+      await prisma.prismaElection.update({
+        data: {
+          nominationsHidden: hidden,
+        },
+        where: {
+          id: electionId,
+        },
+      });
+
+      return true;
+    } catch {
+      throw new BadRequestError('Kunde inte uppdatera nomineringssynligheten');
+    }
   }
 
   /**
    * Öppnar ett val, förutsatt att det inte redan stängts en gång
    * @param electionId ID på ett val
    */
-  async openElection(electionId: string): Promise<boolean> {
+  async openElection(electionId: number): Promise<boolean> {
     // Markerar valet som öppet, men bara om det inte redan stängts
-    const res = await db<DatabaseElection>(ELECTION_TABLE)
-      .update({
-        openedAt: Date.now(), // Current timestamp
+    // måste använda updateMany för att kunna söka på `openedAt`
+    const { count } = await prisma.prismaElection.updateMany({
+      data: {
+        openedAt: new Date(),
         open: true,
-      })
-      .where({
+      },
+      where: {
         id: electionId,
-        openedAt: null, // Annars återställer vi ju timestamp om vi öppnar redan öppet val
+        openedAt: null,
         open: false,
-      })
-      .whereNull('closedAt');
+      },
+    });
 
-    if (res === 0) {
+    if (count < 1) {
       throw new BadRequestError(
         'Antingen är valet redan öppet eller stängt, eller så finns det inte.',
       );
+    }
+
+    if (count > 1) {
+      // Detta ska i princip aldrig kunna hända då alla val har unika ID:n
+      throw new ServerError('Mer än ett val öppnades, vilket inte ska kunna hända!');
     }
 
     return true;
@@ -439,65 +468,72 @@ export class ElectionAPI {
    * då endast ett ska kunna vara öppet samtidigt.
    */
   async closeElection(): Promise<boolean> {
-    const res = await db<DatabaseElection>(ELECTION_TABLE)
-      .update({
-        closedAt: Date.now(),
-        open: false,
-      })
-      .where({ open: true });
+    try {
+      const { count } = await prisma.prismaElection.updateMany({
+        data: {
+          closedAt: new Date(),
+          open: false,
+        },
+        where: {
+          open: true,
+        },
+      });
 
-    if (res > 1) {
-      logger.warn(
-        'VARNING: Anrop till closeElection stängde mer än ett val! Endast ett val ska kunna vara öppet samtidigt!',
-      );
-      throw new ServerError(
-        'Mer än ett val stängdes, men fler än ett val ska inte kunna vara öppna samtidigt!',
-      );
+      if (count < 1) {
+        throw new BadRequestError('Antingen är valet redan stängt, eller så finns det inte.');
+      } else if (count > 1) {
+        logger.warn(
+          'VARNING: Anrop till closeElection stängde mer än ett val! Endast ett val ska kunna vara öppet samtidigt!',
+        );
+        throw new ServerError(
+          'Mer än ett val stängdes, men fler än ett val ska inte kunna vara öppna samtidigt!',
+        );
+      }
+
+      return true;
+    } catch {
+      throw new ServerError('Något gick fel då valet skulle stängas!');
     }
-
-    if (res === 0) {
-      throw new BadRequestError('Antingen är valet redan stängt, eller så finns det inte.');
-    }
-
-    return true;
   }
 
   /**
    * Försöker hitta ett öppet val och om det finns, nominerar
    * användaren till alla poster om de finns som electables.
    * @param username Användarnamn på den som ska nomineras
-   * @param postnames Namnet på alla poster personen ska nomineras till
+   * @param postIds ID:t på alla poster personen ska nomineras till
    */
-  async nominate(username: string, postnames: string[]): Promise<boolean> {
-    if (postnames.length === 0) {
-      throw new BadRequestError('Inga postnamn specificerade');
+  async nominate(username: string, postIds: number[]): Promise<boolean> {
+    if (postIds.length === 0) {
+      throw new BadRequestError('Inga postslugs specificerade');
     }
 
     const openElection = await this.getOpenElection();
 
     // Nomineringar måste finnas som electables
     const electables = await this.getAllElectables(openElection.id);
-    const filteredPostnames = postnames.filter((e) => electables.includes(e));
+    const filteredPostIds = postIds.filter((e) => electables.includes(e));
 
-    if (filteredPostnames.length === 0) {
+    if (filteredPostIds.length === 0) {
       throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
     }
-
-    const nominationRows: DatabaseNomination[] = filteredPostnames.map((postname) => ({
-      refelection: openElection.id,
-      refuser: username,
-      refpost: postname,
-      accepted: NominationAnswer.NoAnswer,
-    }));
 
     try {
       // Om nomineringen redan finns, ignorera den
       // utan att ge error för att inte avslöja
       // vad som finns i databasen redan
-      await db<DatabaseNomination>(NOMINATION_TABLE)
-        .insert(nominationRows)
-        .onConflict(['refelection', 'refuser', 'refpost'])
-        .ignore();
+      await prisma.prismaNomination.createMany({
+        skipDuplicates: true, // Ignorera om nomineringen redan finns
+        data: filteredPostIds.map((postId) => {
+          return {
+            refElection: openElection.id,
+            refUser: username,
+            refPost: postId,
+            answer: PrismaNominationAnswer.NOT_ANSWERED,
+          };
+        }),
+      });
+
+      return true;
     } catch (err) {
       logger.debug(
         `Could not insert all nominations for election with ID ${
@@ -506,27 +542,34 @@ export class ElectionAPI {
       );
       throw new ServerError('Kunde inte nominera till alla poster');
     }
-
-    return true;
   }
 
   async respondToNomination(
     username: string,
-    postname: string,
-    accepts: NominationAnswer,
+    postId: number,
+    answer: NominationAnswer,
   ): Promise<boolean> {
     const openElection = await this.getOpenElection();
-    const res = await db<DatabaseNomination>(NOMINATION_TABLE).update('accepted', accepts).where({
-      refelection: openElection.id,
-      refuser: username,
-      refpost: postname,
-    });
 
-    if (res === 0) {
-      throw new NotFoundError('Kunde inte hitta nomineringen, eller så är valet stängt!');
+    try {
+      await prisma.prismaNomination.update({
+        data: {
+          answer,
+        },
+        where: {
+          // Dessa tre är unik
+          refElection_refPost_refUser: {
+            refElection: openElection.id,
+            refUser: username,
+            refPost: postId,
+          },
+        },
+      });
+
+      return true;
+    } catch {
+      throw new NotFoundError('Kunde inte hitta nomineringen!');
     }
-
-    return true;
   }
 
   /**
@@ -537,23 +580,26 @@ export class ElectionAPI {
    * det får valberedningen lösa!
    * @param electionId ID på ett val
    * @param username Användarnamn på den som ska föreslås
-   * @param postname Posten användaren ska föreslås på
+   * @param postId Posten användaren ska föreslås på
    */
-  async propose(electionId: string, username: string, postname: string): Promise<boolean> {
+  async propose(electionId: number, username: string, postId: number): Promise<boolean> {
     try {
-      await db<DatabaseProposal>(PROPOSAL_TABLE).insert({
-        refelection: electionId,
-        refuser: username,
-        refpost: postname,
+      await prisma.prismaProposal.create({
+        data: {
+          refElection: electionId,
+          refUser: username,
+          refPost: postId,
+        },
       });
+
       return true;
     } catch (err) {
       logger.error(
-        `Could not insert proposal for user ${username} and post ${postname} in election with ID ${electionId} due to error:\n\t${JSON.stringify(
+        `Could not insert proposal for user ${username} and post ID ${postId} in election with ID ${electionId} due to error:\n\t${JSON.stringify(
           err,
         )}`,
       );
-      throw new ServerError(`Kunde inte föreslå användaren ${username} till posten ${postname}`);
+      throw new ServerError(`Kunde inte föreslå användaren ${username} till posten ID ${postId}`);
     }
   }
 
@@ -561,25 +607,43 @@ export class ElectionAPI {
    * Försöker ta bort en av valberedningens förslag till en post.
    * @param electionId ID på valet
    * @param username Användarnamn på föreslagen person
-   * @param postname Namnet på posten personen föreslagits till
+   * @param postId ID på posten personen föreslagits till
    * @throws `ServerError` om förslaget inte kunde tas bort (eller det aldrig fanns)
    */
-  async removeProposal(electionId: string, username: string, postname: string): Promise<boolean> {
-    const res = await db<DatabaseProposal>(PROPOSAL_TABLE).delete().where({
-      refelection: electionId,
-      refuser: username,
-      refpost: postname,
-    });
+  async removeProposal(electionId: number, username: string, postId: number): Promise<boolean> {
+    try {
+      await prisma.prismaProposal.delete({
+        where: {
+          refElection_refPost_refUser: {
+            refElection: electionId,
+            refUser: username,
+            refPost: postId,
+          },
+        },
+      });
 
-    if (res === 0) {
+      return true;
+    } catch {
       logger.error(
-        `Could not delete proposal for user ${username} and post ${postname} in election with ID ${electionId}}`,
+        `Could not delete proposal for user ${username} and post ID ${postId} in election with ID ${electionId}}`,
       );
       throw new ServerError(
-        `Kunde inte ta bort föreslaget för användaren ${username} till posten ${postname}, vilket kan bero på att föreslaget inte fanns`,
+        `Kunde inte ta bort föreslaget för användaren ${username} till posten med ID ${postId}, vilket kan bero på att föreslaget inte fanns`,
       );
     }
+  }
 
-    return true;
+  /**
+   * Clear all data related to elections from the database
+   */
+  async clear() {
+    if (config.DEV) {
+      await prisma.prismaElectable.deleteMany();
+      await prisma.prismaProposal.deleteMany();
+      await prisma.prismaNomination.deleteMany();
+      await prisma.prismaElection.deleteMany();
+    } else {
+      throw new ServerError('Cannot clear DB in production');
+    }
   }
 }

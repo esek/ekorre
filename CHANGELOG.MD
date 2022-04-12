@@ -4,6 +4,26 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2022-02-16
+
+### Tillagt
+- `prisma` är nytt sätt att hantera databasen
+- Tillhörande schemas till `prisma`
+- `postgresql` är ny hard dependency, även för dev
+- Flertalet index i `schema.prisma` (dvs. databasen) för nycklar som ofta förekommer i queries men sällan i mutations.
+- Numera används docker compose (via `docker-compose.yml`) för att hantera databas i utveckling/testning och CI
+
+### Borttaget
+- `knex` är inte längre dependency
+
+### Ändrat
+- I flertalet graphql-schemas är olika ID:n bytade från `ID!` till `Int!`. Detta då `ID!` blir till typen `string` i TypeScript, men vi använder det som `AUTO_INCREMENT` i databasen och `number` i TS
+- Enums i GraphQL-schemas har nu konsekvent `UPPER_CASE`
+- `npm run generate` genererar nu både typer från GraphQL-schema och `PrismaClient` från prisma-schema. `npm run graphql:generate` ersätter gamla `npm run generate`
+- I `election` har `NO_ANSWER` ändrats till `NOT_ANSWERED` för tydlighet
+- Poster har nu ID och inte slugs, för att tillåta namn att ändras ordentligt. `addPost` returnerar numera en integer med det nya post-ID:t
+- `npm run generate` genererar nu både GQL och Prisma
+
 ## [0.13.0] - 2022-03-25
 
 ### Tillagt

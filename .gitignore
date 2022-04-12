@@ -9,6 +9,7 @@ public.local
 startup.tmp.log
 coverage
 __pycache__
+srv
 
 #Mac files
 .DS_Store

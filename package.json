@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "E-Sektionens backend",
   "main": "src/index.ts",
   "scripts": {
@@ -9,7 +9,6 @@
     "prestart": "npm run build",
     "start": "npm run run",
     "dev": "nodemon -e ts,graphql --watch src --exec \"node --nolazy --inspect -r tsconfig-paths/register -r ts-node/register src/index.ts\"",
-    "generate": "graphql-codegen --config codegen.yml",
     "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" \"test/**/*.ts\" --write",
     "lint": "eslint src",
     "lint:test": "eslint test",
@@ -18,7 +17,13 @@
     "test:unit": "jest test/unit",
     "test:integration": "jest test/integration",
     "test:regression": "jest test/regression --coverage=false",
-    "benchmark": "ts-node tools/benchmark/index.ts"
+    "benchmark": "ts-node tools/benchmark/index.ts",
+    "prisma:reset": "prisma generate --force-reset && prisma db push",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:migrate": "prisma migrate dev",
+    "graphql:generate": "graphql-codegen --config codegen.yml",
+    "generate": "npm run graphql:generate && npm run prisma:generate"
   },
   "author": "Emil Blennow <emil.blennow99@gmail.com",
   "contributors": [
@@ -30,12 +35,16 @@
     "email": "macapar@esek.se"
   },
   "license": "ISC",
+  "prisma": {
+    "seed": "ts-node prisma/data/seed.ts"
+  },
   "dependencies": {
     "@graphql-tools/graphql-file-loader": "^7.3.3",
     "@graphql-tools/load": "^7.5.1",
     "@graphql-tools/merge": "^8.2.1",
     "@graphql-tools/schema": "^8.3.1",
     "@graphql-tools/utils": "^8.5.3",
+    "@prisma/client": "^3.9.1",
     "apollo-graphql": "^0.9.5",
     "apollo-server": "^3.5.0",
     "apollo-server-core": "^3.5.0",
@@ -56,12 +65,11 @@
     "jsdom": "^16.5.2",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.95.15",
-    "mysql2": "^2.2.5",
+    "pg": "^8.7.3",
     "regenerator-runtime": "^0.13.7",
     "set-cookie-parser": "^2.4.8",
     "showdown": "^1.9.1",
     "source-map-support": "^0.5.19",
-    "sqlite3": "^5.0.2",
     "ts-node": "^9.0.0",
     "tsconfig-paths": "^3.12.0",
     "type-graphql": "^1.0.0",
@@ -95,6 +103,8 @@
     "nanospinner": "^1.0.0",
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2",
+    "prisma": "^3.9.1",
+    "prisma-dbml-generator": "^0.8.3",
     "supertest": "^6.2.1",
     "ts-jest": "^27.0.5"
   }

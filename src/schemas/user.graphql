@@ -44,9 +44,6 @@ type User {
   Past and current posts held by this user
   """
   userPostHistory: [UserPostHistoryEntry]!
-
-  isFuncUser: Boolean
-
   wikiEdits: Int!
 }
 
@@ -57,7 +54,6 @@ input NewUser {
   class: String!
   email: String
   password: String!
-  isFuncUser: Boolean
 }
 
 input UpdateUser {

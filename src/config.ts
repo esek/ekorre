@@ -4,6 +4,14 @@ import path from 'path';
 // Read dot-env file
 dotenv.config();
 
+const DB = {
+  CLIENT: process.env.DB_CLIENT ?? 'postgres',
+  USERNAME: process.env.DB_USERNAME ?? '',
+  PASSWORD: process.env.DB_PASSWORD ?? '',
+  NAME: process.env.DB_NAME ?? '',
+  HOST: process.env.DB_HOST ?? 'localhost:5432',
+};
+
 /**
  * Config for file-handling
  * @param {string} ENDPOINT - The endpoint in Ekorre to expose with files (ex. https://api.esek.se/{endpoint})
@@ -61,6 +69,7 @@ const config = {
   PORT: parseInt(process.env.PORT ?? '5000', 10),
   HOST: process.env.HOST ?? '0.0.0.0',
   DEV: process.env.NODE_ENV !== 'production',
+  DB,
   SKIP_ACCESS_CHECKS: process.env.SKIP_ACCESS_CHECKS?.toLowerCase() === 'true',
   FILES,
   EBREV,

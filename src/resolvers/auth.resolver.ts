@@ -6,7 +6,7 @@ import type { TokenType } from '@/models/auth';
 import { ApiKeyResponse } from '@/models/mappers';
 import { reduce } from '@/reducers';
 import { hasAccess } from '@/util';
-import ApiKeyAPI from '@api/apikey';
+import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
 import { Feature, Resolvers, User } from '@generated/graphql';
 import { apiKeyReducer } from '@reducer/apikey';
@@ -46,7 +46,7 @@ const authResolver: Resolvers = {
       // only superadmins can see the creator
       await hasAccess(ctx, Feature.Superadmin);
 
-      return useDataLoader<ApiKeyResponse, User>((model) => {
+      return useDataLoader<ApiKeyResponse, string, User>((model) => {
         return { dataLoader: ctx.userDataLoader, key: model.creator.username };
       })(key, _, ctx);
     },

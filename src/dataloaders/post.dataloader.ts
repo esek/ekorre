@@ -13,20 +13,20 @@ export const postApi = new PostAPI();
  * Funktion som används för att skapa en DataLoader
  * för att batcha Post-requests och öka prestanda
  * markant
- * @param postnames List of postnames
+ * @param postIds List of post IDs
  */
 export const batchPostsFunction = async (
-  postnames: readonly string[],
+  postIds: readonly number[],
 ): Promise<ArrayLike<Post | Error>> => {
   /**
    * Batch function used as parameter to DataLoader constructor,
    * see /src/resolvers/README.md
-   * @param postnames
+   * @param postIds
    */
-  const apiResponse = await postApi.getMultiplePosts(postnames);
+  const apiResponse = await postApi.getMultiplePosts([...postIds]);
   if (apiResponse == null) return [];
 
   const posts = reduce(apiResponse, postReduce);
 
-  return sortBatchResult<string, Post>(postnames, 'postname', posts, 'No result for post');
+  return sortBatchResult<number, Post>(postIds, 'id', posts, 'No result for post');
 };

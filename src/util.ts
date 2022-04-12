@@ -63,6 +63,16 @@ export const notEmpty = <ValueType>(value: ValueType | null | undefined): value 
   return true;
 };
 
+// TODO: Remove if unused (was used by PostAPI)
+export const slugify = (str: string) =>
+  str
+    .toLowerCase()
+    .replace(/[åä]/g, 'a')
+    .replace(/[ö]/g, 'o')
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+
 /**
  * Checks if user has access to a feature
  * @param ctx Resolver context

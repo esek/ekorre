@@ -1,15 +1,15 @@
 import { HeheResponse } from '@/models/mappers';
-import { DatabaseHehe } from '@db/hehe';
+import { PrismaHehe } from '@prisma/client';
 
-export const heheReduce = (dbHehe: DatabaseHehe): HeheResponse => {
-  const { refuploader, reffile, ...reduced } = dbHehe;
+export const heheReduce = (dbHehe: PrismaHehe): HeheResponse => {
+  const { refUploader, refFile, ...reduced } = dbHehe;
   return {
     ...reduced,
     uploader: {
-      username: refuploader,
+      username: refUploader,
     },
     file: {
-      id: reffile,
+      id: refFile,
     },
   };
 };

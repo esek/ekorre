@@ -1,4 +1,4 @@
-import db from '@/api/knex';
+import prisma from '@/api/prisma';
 import { Router } from 'express';
 
 import packageJson from '../../package.json';
@@ -11,10 +11,7 @@ const healthRoute = Router();
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 healthRoute.get('/', async (req, res) => {
   // Try to run a dummy query to see if db is up
-  const dbOk = await db
-    .raw('select 1 + 1 as result')
-    .then(() => true)
-    .catch(() => false);
+  const dbOk = await prisma.$queryRaw`SELECT 1 + 1 AS result`.then(() => true).catch(() => false);
 
   return res.send({
     status: {

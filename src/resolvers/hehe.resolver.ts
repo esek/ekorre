@@ -43,7 +43,7 @@ const heheResolver: Resolvers = {
     removeHehe: async (_, { number, year }, ctx) => {
       await hasAccess(ctx, Feature.HeheAdmin);
       return api.removeHehe(number, year);
-    }
+    },
   },
 };
 

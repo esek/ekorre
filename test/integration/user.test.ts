@@ -32,7 +32,7 @@ test('getting user', async () => {
   expect(userResponse?.data?.user).toMatchObject({
     firstName: 'Lena',
     lastName: 'Handén',
-    email: 'aa0000bb-s@student.lu.se',
+    email: 'no0000oh-s@student.lu.se',
     class: 'BME19',
   });
 });

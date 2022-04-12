@@ -1,16 +1,11 @@
-import { ELECTABLE_TABLE, ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE } from '@/api/constants';
-import db from '@/api/knex';
 import { ElectionAPI } from '@api/election';
-import {
-  DatabaseElectable,
-  DatabaseElection,
-  DatabaseNomination,
-  DatabaseProposal,
-} from '@db/election';
 import { Election, NominationAnswer } from '@generated/graphql';
+import { PrismaClient } from '@prisma/client';
 import { ApiRequest, GraphqlResponse } from '@test/models/test';
 import { AXIOS_CONFIG } from '@test/utils/axiosConfig';
 import axios from 'axios';
+
+const prisma = new PrismaClient();
 
 const api = new ElectionAPI();
 interface ElectionResponse {
@@ -34,46 +29,25 @@ const ELECTION_QUERY = `
 }
 `;
 
-let preTestElectionTable: DatabaseElection[];
-let preTestElectableTable: DatabaseElectable[];
-let preTestProposalTable: DatabaseProposal[];
-let preTestNominationTable: DatabaseNomination[];
-
 const clearDatabase = async () => {
   // Vi sätter `where` till något som alltid är sant
-  await db<DatabaseElectable>(ELECTABLE_TABLE).delete().whereNotNull('refelection');
-  await db<DatabaseProposal>(PROPOSAL_TABLE).delete().whereNotNull('refelection');
-  await db<DatabaseNomination>(NOMINATION_TABLE).delete().whereNotNull('refelection');
-  await db<DatabaseElection>(ELECTION_TABLE).delete().whereNotNull('id');
+  await prisma.prismaElectable.deleteMany();
+  await prisma.prismaProposal.deleteMany();
+  await prisma.prismaNomination.deleteMany();
+  await prisma.prismaElection.deleteMany();
 };
-
-beforeAll(async () => {
-  preTestElectionTable = await db<DatabaseElection>(ELECTION_TABLE).select('*');
-  preTestElectableTable = await db<DatabaseElectable>(ELECTABLE_TABLE).select('*');
-  preTestProposalTable = await db<DatabaseProposal>(PROPOSAL_TABLE).select('*');
-  preTestNominationTable = await db<DatabaseNomination>(NOMINATION_TABLE).select('*');
-  await clearDatabase();
-});
 
 afterEach(async () => {
   await clearDatabase();
 });
 
-afterAll(async () => {
-  // Sätt in cachade värden igen
-  await db<DatabaseElection>(ELECTION_TABLE).insert(preTestElectionTable);
-  await db<DatabaseElectable>(ELECTABLE_TABLE).insert(preTestElectableTable);
-  await db<DatabaseProposal>(PROPOSAL_TABLE).insert(preTestProposalTable);
-  await db<DatabaseNomination>(NOMINATION_TABLE).insert(preTestNominationTable);
-});
-
 test('getting nominations when nominations are hidden', async () => {
-  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], true);
+  const electionId = await api.createElection('aa0000bb-s', ['macapar', 'teknokrat'], true);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
-  await expect(api.nominate('aa0000bb-s', ['Macapär'])).resolves.toBeTruthy();
-  await expect(api.nominate('bb1111cc-s', ['Macapär', 'Teknokrat'])).resolves.toBeTruthy();
+  await expect(api.nominate('aa0000bb-s', ['macapar'])).resolves.toBeTruthy();
+  await expect(api.nominate('bb1111cc-s', ['macapar', 'macapar'])).resolves.toBeTruthy();
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', 'macapar', NominationAnswer.Yes),
   ).resolves.toBeTruthy();
   expect((await api.getAllNominations(electionId, NominationAnswer.Yes)).length).toBeGreaterThan(0);
 
@@ -86,7 +60,7 @@ test('getting nominations when nominations are hidden', async () => {
   await axiosInstance
     .post<ApiRequest, GraphqlResponse<ElectionResponse>>('/', electionData)
     .then((res) => {
-      expect(res.data.data.openElection.id).toEqual(electionId.toString());
+      expect(res.data.data.openElection.id).toEqual(electionId);
 
       // Nomineringar är dolda, så man ska inte kunna
       // få ut accepterade nomineringar om man inte
@@ -99,7 +73,7 @@ test('getting nominations when nominations are hidden', async () => {
   await axiosInstance
     .post<ApiRequest, GraphqlResponse<ElectionResponse>>('/', electionData)
     .then((res) => {
-      expect(res.data.data.openElection.id).toEqual(electionId.toString());
+      expect(res.data.data.openElection.id).toEqual(electionId);
 
       const { acceptedNominations } = res.data.data.openElection;
 
