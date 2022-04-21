@@ -136,6 +136,8 @@ deploy image:
       --env WIKI_PASSWORD=$WIKI_PASSWORD
       --env WIKI_BASE_URL="https://wiki.esek.se"
       --env COOKIE_DOMAIN=esek.se
+      --env EBREV_URL=$EBREV_URL
+      --env EBREV_API_KEY=$EBREV_API_KEY
       --network traefik
       --label "traefik.http.routers.$PROJECT_NAME.rule=Host(\`$DEPLOY_NAME.esek.se\`)"
       -d $CI_REGISTRY_IMAGE
