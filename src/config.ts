@@ -22,7 +22,7 @@ const FILES = {
  */
 const EBREV = {
   URL: process.env.EBREV_URL ?? 'https://localhost:8081',
-  API_TOKEN: process.env.EBREV_API_TOKEN ?? '',
+  API_TOKEN: process.env.EBREV_API_KEY ?? '',
 };
 
 /**
