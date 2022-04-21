@@ -112,7 +112,7 @@ const userResolver: Resolvers = {
 
       await sendEmail(user.email, 'Glömt lösenord?', 'forgot-password', {
         firstName: user.firstName,
-        resetLink: `https://esek.se/account/forgot-password?token=${token}&username=${user.username}`,
+        resetLink: `https://auth.esek.se/password?token=${token}&username=${user.username}`,
         contactEmail: 'macapar@esek.se',
         userEmail: user.email,
       });
