@@ -2,6 +2,7 @@ import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
 import { Feature, NewUser } from '@generated/graphql';
+import { PrismaUser } from '@prisma/client';
 
 /**
  * Extrahera en token ur en set-cookie-sträng, eller returnera
@@ -44,7 +45,7 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
  * Generates a new user with random username, name etc.
  * Usernames are memoized so doubles are avoided
  */
-export const genRandomUser = (): [NOOP, NOOP] => {
+export const genRandomUser = (): [Promise<PrismaUser>, NOOP] => {
   // Fill set with seeded usernames to begin with
   const usedUsernames = new Set(['aa0000bb-s', 'bb1111cc-s', 'no0000oh-s']);
   
@@ -67,7 +68,7 @@ export const genRandomUser = (): [NOOP, NOOP] => {
     return attemptedUsername;
   };
   
-  return ((): [NOOP, NOOP] => {
+  return ((): [Promise<PrismaUser>, NOOP] => {
     const ru: NewUser = {
       class: `${getRandString().substring(0, 1)}`,
       firstName: getRandString().substring(0, 7),
@@ -76,13 +77,17 @@ export const genRandomUser = (): [NOOP, NOOP] => {
       username: getRandomUsername(),
     };
 
-    const create = async () => {
+    /**
+     * Creates a random user, returning the API response
+     * @returns 
+     */
+    const create = async (): Promise<PrismaUser> => {
       try {
-        await userApi.createUser(ru);
+        return userApi.createUser(ru);
       } catch (err) {
         // If we against all odds have a double
         console.log('Attempt to create random user failed, trying again...');
-        await create();
+        return create();
       }
     };
 
