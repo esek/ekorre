@@ -49,7 +49,7 @@ test('creating valid VTM/HTM/VM specifying year but not number', async () => {
     refSummons: null,
     refDocuments: null,
     refLateDocuments: null,
-    refProtocl: null,
+    refProtocol: null,
   });
 });
 
@@ -67,7 +67,7 @@ test('creating valid VTM/HTM/VM specifying number but not year', async () => {
     refSummons: null,
     refDocuments: null,
     refLateDocuments: null,
-    refProtocl: null,
+    refProtocol: null,
   });
 });
 
@@ -97,7 +97,7 @@ test('creating two concurrent board meetings', async () => {
     refSummons: null,
     refDocuments: null,
     refLateDocuments: null,
-    refProtocl: null,
+    refProtocol: null,
   });
 });
 
@@ -127,6 +127,7 @@ test('get multiple meetings', async () => {
   const m = await api.getMultipleMeetings({
     where: { type: MeetingType.Sm, number: 5, year: undefined },
   });
+  
   expect(m.length).toBe(1);
   expect(m[0]).toMatchObject({
     type: MeetingType.Sm,
@@ -150,9 +151,11 @@ test('finding multiple non-existant meetings', async () => {
 test('adding file to meeting', async () => {
   await api.createMeeting(MeetingType.Extra, 1, 2021);
   const { id } = (await api.getAllMeetings())[0];
+  
   await expect(
     api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Summons),
   ).resolves.toBeTruthy();
+  
   const { refSummons } = await api.getSingleMeeting(id);
   expect(refSummons).toStrictEqual(DUMMY_FILE.id);
 });
@@ -160,6 +163,7 @@ test('adding file to meeting', async () => {
 test('adding duplicate file to meeting', async () => {
   await api.createMeeting(MeetingType.Sm, 1, 2021);
   const { id } = (await api.getAllMeetings())[0];
+  // TODO: Detta failar p.g.a. nullcheck i databasen för dubbletter ej funkar
   await api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Protocol);
   await expect(
     api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Protocol),

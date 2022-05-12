@@ -87,7 +87,9 @@ export class MeetingAPI {
     let safeNbr: number;
     if (number == null || !Number.isSafeInteger(number)) {
       const lastMeeting = await prisma.prismaMeeting.findFirst({
+        where: { year },
         select: { number: true },
+        orderBy: [{ number: 'desc' }],
       });
 
       if (lastMeeting == null) {
