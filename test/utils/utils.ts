@@ -90,6 +90,8 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
  * Jag ville göra detta till en klass men Blennow o Foobar klagade --Emil
  */
 export const genRandomUser = (access: Feature[]): [() => Promise<PrismaUser>, NOOP] => {
+  let triesLeft = 10; // Recursion protection
+
   const ru: NewUser = {
     class: `${stringGenerator(1)}19`,
     firstName: stringGenerator(4),
@@ -103,6 +105,12 @@ export const genRandomUser = (access: Feature[]): [() => Promise<PrismaUser>, NO
    * @returns
    */
   const create = async (): Promise<PrismaUser> => {
+    if (triesLeft === 0) {
+      throw new Error('Could not create random user');
+    } else {
+      triesLeft -= 1;
+    }
+
     let createdUser;
     try {
       createdUser = await userApi.createUser(ru);
@@ -124,6 +132,8 @@ export const genRandomUser = (access: Feature[]): [() => Promise<PrismaUser>, NO
 };
 
 export const genRandomPost = (): [() => Promise<number>, NOOP] => {
+  let triesLeft = 10; // Recursion protection
+
   const possiblePostTypes = [PostType.Ea, PostType.ExactN, PostType.N, PostType.U];
   const possibleUtskott = [
     Utskott.Cm,
@@ -143,16 +153,24 @@ export const genRandomPost = (): [() => Promise<number>, NOOP] => {
     name: getRandomPostname(),
     postType: possiblePostTypes[Math.floor(Math.random() * possiblePostTypes.length)],
     utskott: possibleUtskott[Math.floor(Math.random() * possibleUtskott.length)],
+    spots: 1,
   };
 
   let createdPostId: number;
 
   const create = async (): Promise<number> => {
+    if (triesLeft === 0) {
+      throw new Error('Could not create random user');
+    } else {
+      triesLeft -= 1;
+    }
+
     try {
       createdPostId = await postApi.createPost(rp);
     } catch (err) {
       // If we against all odds have a double
       console.log('Attempt to create random post failed, trying again...');
+      console.log(err);
       return create();
     }
     return createdPostId;
