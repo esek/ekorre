@@ -40,6 +40,55 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
   return [create, remove];
 };
 
+/**
+ * Generates a new user with random username, name etc.
+ * Usernames are memoized so doubles are avoided
+ */
+export const genRandomUser = (): [NOOP, NOOP] => {
+  // Fill set with seeded usernames to begin with
+  const usedUsernames = new Set(['aa0000bb-s', 'bb1111cc-s', 'no0000oh-s']);
+  
+  const getRandString = (): string => Math.random().toString(36);
+  
+  /**
+   * Generates a random username on format ccNNNNcc-s, but checks so that it doesn't already exist
+   * Also reserves the username in the usedUsernames set
+   */
+  const getRandomUsername = (): string => {
+    const getRandNumberString = (): string => String(Math.floor(Math.random() * (9999) + 9999)).padStart(4, '0');
+    
+    const attemptedUsername = `${getRandString().substring(0, 2)}${getRandNumberString()}${getRandString().substring(0, 2)}-s`;
+    
+    if (usedUsernames.has(attemptedUsername)) {
+      // We try again
+      return getRandomUsername();
+    }
+    usedUsernames.add(attemptedUsername);
+    return attemptedUsername;
+  };
+  
+  return ((): [NOOP, NOOP] => {
+    const ru: NewUser = {
+      class: `${getRandString().substring(0, 1)}`,
+      firstName: getRandString().substring(0, 7),
+      lastName: getRandString().substring(0, 19),
+      password: getRandString().substring(0, 38),
+      username: getRandomUsername(),
+    };
+
+    const create = async () => {
+      await userApi.createUser(ru);
+    };
+
+    const remove = async () => {
+      await userApi.deleteUser(ru.username);
+      usedUsernames.delete(ru.username);
+    };
+
+    return [create, remove];
+  })();
+};
+
 export const genApiKey = (
   userInfo: NewUser,
   access: Feature[],
