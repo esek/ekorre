@@ -3,7 +3,7 @@ import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
 import { postApi } from '@dataloader/post';
 import { Feature, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
-import { prisma, PrismaPost, PrismaUser } from '@prisma/client';
+import { PrismaUser } from '@prisma/client';
 
 /**
  * Extrahera en token ur en set-cookie-sträng, eller returnera
