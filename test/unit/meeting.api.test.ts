@@ -1,40 +1,38 @@
-import { FILE_TABLE, MEETING_TABLE } from '@/api/constants';
-import db from '@/api/knex';
 import { MeetingAPI } from '@/api/meeting.api';
+import prisma from '@/api/prisma';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
-import { DatabaseFile } from '@/models/db/file';
-import { DatabaseMeeting } from '@/models/db/meeting';
 import { AccessType, FileType, MeetingDocumentType, MeetingType } from '@generated/graphql';
+import { PrismaFile } from '@prisma/client';
+import { genRandomUser } from '@test/utils/utils';
+
+const [createDummyUser, deleteDummyUser] = genRandomUser([]);
 
 const api = new MeetingAPI();
 
 // Vi behöver en fejkfil p.g.a. FOREIGN KEY CONSTRAINT
-const DUMMY_FILE: DatabaseFile = {
-  id: 'meetingApiTestFile',
-  refuploader: 'aa0000bb-s',
+const DUMMY_FILE: PrismaFile = {
+  id: 'meetingFile0',
+  refUploader: '', // Is changed in beforeAll()
   name: 'Kvittoförstärkning för sista måltiden',
   type: FileType.Image,
   folderLocation: '',
   accessType: AccessType.Admin,
-  createdAt: Date.now(),
+  createdAt: new Date(),
 };
 
 beforeEach(async () => {
-  // Delete all rows
-  await db<DatabaseMeeting>(MEETING_TABLE).delete().where('id', '!=', 'null');
+  await api.clear();
 });
 
-// Vi sparar databasen före och lägger tillbaka den efter
-let dbBefore: DatabaseMeeting[];
 beforeAll(async () => {
-  dbBefore = await db<DatabaseMeeting>(MEETING_TABLE).select('*');
-  await db<DatabaseFile>(FILE_TABLE).insert(DUMMY_FILE);
+  const { username } = await createDummyUser();
+  DUMMY_FILE.refUploader = username;
+  await prisma.prismaFile.create({ data: DUMMY_FILE });
 });
 
 afterAll(async () => {
-  await db<DatabaseMeeting>(MEETING_TABLE).delete().where('id', '!=', 'null');
-  await db<DatabaseMeeting>(MEETING_TABLE).insert(dbBefore);
-  await db<DatabaseFile>(FILE_TABLE).delete().where('id', DUMMY_FILE.id);
+  await api.clear();
+  await Promise.all([prisma.prismaFile.deleteMany(), deleteDummyUser()]);
 });
 
 test('creating valid VTM/HTM/VM specifying year but not number', async () => {
@@ -48,10 +46,10 @@ test('creating valid VTM/HTM/VM specifying year but not number', async () => {
     type: MeetingType.Vtm,
     number: 1,
     year: 2008,
-    refsummons: null,
-    refdocuments: null,
-    reflateDocuments: null,
-    refprotocol: null,
+    refSummons: null,
+    refDocuments: null,
+    refLateDocuments: null,
+    refProtocl: null,
   });
 });
 
@@ -66,10 +64,10 @@ test('creating valid VTM/HTM/VM specifying number but not year', async () => {
     type: MeetingType.Htm,
     number: 3,
     year: new Date().getFullYear(),
-    refsummons: null,
-    refdocuments: null,
-    reflateDocuments: null,
-    refprotocol: null,
+    refSummons: null,
+    refDocuments: null,
+    refLateDocuments: null,
+    refProtocl: null,
   });
 });
 
@@ -83,7 +81,7 @@ test('deleting meeting', async () => {
 
 test('deleting non-existant meeting', async () => {
   // ID does not matter, the database is empty
-  await expect(api.removeMeeting('1')).rejects.toThrowError(NotFoundError);
+  await expect(api.removeMeeting(1)).rejects.toThrowError(NotFoundError);
 });
 
 test('creating two concurrent board meetings', async () => {
@@ -96,10 +94,10 @@ test('creating two concurrent board meetings', async () => {
     type: MeetingType.Sm,
     number: 5,
     year: 2021,
-    refsummons: null,
-    refdocuments: null,
-    reflateDocuments: null,
-    refprotocol: null,
+    refSummons: null,
+    refDocuments: null,
+    refLateDocuments: null,
+    refProtocl: null,
   });
 });
 
@@ -126,7 +124,9 @@ test('get multiple meetings', async () => {
   await api.createMeeting(MeetingType.Htm, 1, 1999);
   await api.createMeeting(MeetingType.Sm, 5, 1667);
 
-  const m = await api.getMultipleMeetings({ type: MeetingType.Sm, number: 5, year: undefined });
+  const m = await api.getMultipleMeetings({
+    where: { type: MeetingType.Sm, number: 5, year: undefined },
+  });
   expect(m.length).toBe(1);
   expect(m[0]).toMatchObject({
     type: MeetingType.Sm,
@@ -136,14 +136,14 @@ test('get multiple meetings', async () => {
 });
 
 test('finding non-existant meeting', async () => {
-  await expect(api.getSingleMeeting('trams som INTE är ett id')).rejects.toThrowError(
+  await expect(api.getSingleMeeting(-1337)).rejects.toThrowError(
     new NotFoundError('Mötet kunde inte hittas'),
   );
 });
 
 test('finding multiple non-existant meetings', async () => {
   await expect(
-    api.getMultipleMeetings({ type: MeetingType.Sm, number: 5000, year: 0 }),
+    api.getMultipleMeetings({ where: { type: MeetingType.Sm, number: 5000, year: 0 } }),
   ).resolves.toHaveLength(0);
 });
 
@@ -153,8 +153,8 @@ test('adding file to meeting', async () => {
   await expect(
     api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Summons),
   ).resolves.toBeTruthy();
-  const { refsummons } = await api.getSingleMeeting(id);
-  expect(refsummons).toStrictEqual(DUMMY_FILE.id);
+  const { refSummons } = await api.getSingleMeeting(id);
+  expect(refSummons).toStrictEqual(DUMMY_FILE.id);
 });
 
 test('adding duplicate file to meeting', async () => {
@@ -170,11 +170,11 @@ test('removing document from meeting', async () => {
   await api.createMeeting(MeetingType.Extra, 1, 2021);
   const { id } = (await api.getAllMeetings())[0];
   await api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Summons);
-  expect((await api.getSingleMeeting(id)).refsummons).toStrictEqual(DUMMY_FILE.id);
+  expect((await api.getSingleMeeting(id)).refSummons).toStrictEqual(DUMMY_FILE.id);
 
   // Remove it again
   await expect(api.removeFileFromMeeting(id, MeetingDocumentType.Summons)).resolves.toBeTruthy();
-  expect((await api.getSingleMeeting(id)).refsummons).toBeNull();
+  expect((await api.getSingleMeeting(id)).refSummons).toBeNull();
 });
 
 test('removing non-existant document', async () => {
@@ -186,6 +186,6 @@ test('removing non-existant document', async () => {
 test('removing file from non-existant meeting', async () => {
   // Vilket ID som helst fungerar, databasen ska vara tom just nu
   await expect(
-    api.removeFileFromMeeting('420', MeetingDocumentType.LateDocuments),
+    api.removeFileFromMeeting(420, MeetingDocumentType.LateDocuments),
   ).rejects.toThrowError(ServerError);
 });

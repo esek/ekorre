@@ -1,6 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
+import { devGuard } from '@/util';
 import { MeetingDocumentType, MeetingType } from '@generated/graphql';
 import { Prisma, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
 
@@ -16,10 +17,7 @@ export class MeetingAPI {
    */
   async getAllMeetings(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<PrismaMeeting[]> {
     const m = await prisma.prismaMeeting.findMany({
-      orderBy: {
-        year: sortOrder,
-        number: sortOrder,
-      },
+      orderBy: [{ year: sortOrder }, { number: sortOrder }],
       take: limit,
     });
 
@@ -61,10 +59,7 @@ export class MeetingAPI {
       where: {
         type: 'SM',
       },
-      orderBy: {
-        number: 'desc',
-        year: 'desc',
-      },
+      orderBy: [{ number: 'desc' }, { year: 'desc' }],
       take: limit,
     });
 
@@ -171,7 +166,7 @@ export class MeetingAPI {
    */
   async addFileToMeeting(
     meetingId: number,
-    fileId: number,
+    fileId: string,
     fileType: MeetingDocumentType,
   ): Promise<boolean> {
     const d = this.createDataForMeetingType(fileType, fileId);
@@ -234,7 +229,7 @@ export class MeetingAPI {
    */
   private createDataForMeetingType(
     fileType: MeetingDocumentType,
-    content: number | null | undefined,
+    content: string | null | undefined,
   ) {
     let data = {};
     switch (fileType) {
@@ -268,5 +263,16 @@ export class MeetingAPI {
     }
 
     return data;
+  }
+
+  /**
+   * Clears all meetings from the database
+   *
+   * Only usable in dev, and will fail if called in an production environment
+   */
+  async clear() {
+    devGuard('Cannot clear meeting history in production');
+
+    await prisma.prismaMeeting.deleteMany();
   }
 }
