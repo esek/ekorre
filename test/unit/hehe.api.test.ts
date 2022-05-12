@@ -1,25 +1,26 @@
 import { HeheAPI } from '@/api/hehe.api';
 import prisma from '@/api/prisma';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
-import { UserAPI } from '@api/user';
+import { Feature } from '@generated/graphql';
 import { PrismaHehe } from '@prisma/client';
+import { genRandomUser } from '@test/utils/utils';
 
 const api = new HeheAPI();
-const userApi = new UserAPI();
 
 let ctr = 1;
 
-const USERNAME0 = 'aa0000bb-s';
+const [createDummyUser, deleteDummyUser] = genRandomUser([Feature.HeheAdmin]);
 
-const DUMMY_HEHE: PrismaHehe = {
+let USERNAME0 = ''; // Initial dummy value
+
+const DUMMY_HEHE: Omit<PrismaHehe, 'refUploader'> = {
   number: 1,
   year: 1658,
-  refUploader: USERNAME0,
   refFile: '',
   uploadedAt: new Date(),
 };
 
-const generateDummyHehe = async (overrides: Partial<PrismaHehe> = {}): Promise<PrismaHehe> => {
+const generateDummyHehe = async (uploaderUsername: string, overrides: Partial<PrismaHehe> = {}): Promise<PrismaHehe> => {
   ctr += 1;
   const { id } = await prisma.prismaFile.create({
     data: {
@@ -35,29 +36,22 @@ const generateDummyHehe = async (overrides: Partial<PrismaHehe> = {}): Promise<P
     ...DUMMY_HEHE,
     number: ctr,
     refFile: id,
+    refUploader: uploaderUsername,
     uploadedAt: new Date(),
     ...overrides,
   };
 };
 
-const generateDummyHehes = () => {
-  const localHehe0 = generateDummyHehe({ year: 2021, number: 3 });
-  const localHehe1 = generateDummyHehe({ number: 1 });
-  const localHehe2 = generateDummyHehe({ number: 2 });
+const generateDummyHehes = (uploaderUsername: string) => {
+  const localHehe0 = generateDummyHehe(uploaderUsername, { year: 2021, number: 3 });
+  const localHehe1 = generateDummyHehe(uploaderUsername, { number: 1 });
+  const localHehe2 = generateDummyHehe(uploaderUsername, { number: 2 });
 
   return Promise.all([localHehe0, localHehe1, localHehe2]);
 };
 
 beforeAll(async () => {
-  await userApi.clear();
-  await userApi.createUser({
-    firstName: 'Test',
-    lastName: 'Testsson',
-    class: 'EXX',
-    password: 'test',
-    email: 'test@esek.se',
-    username: USERNAME0,
-  });
+  USERNAME0 = (await createDummyUser()).username;
 });
 
 beforeEach(async () => {
@@ -67,7 +61,7 @@ beforeEach(async () => {
 
 afterAll(async () => {
   await api.clear();
-  await userApi.clear();
+  await deleteDummyUser();
   await prisma.prismaFile.deleteMany({
     where: {
       name: {
@@ -78,7 +72,7 @@ afterAll(async () => {
 });
 
 test('getting all HeHEs without limit, ascending order', async () => {
-  const hehes = await generateDummyHehes();
+  const hehes = await generateDummyHehes(USERNAME0);
 
   // Lägg till våra HeHE
   await prisma.prismaHehe.createMany({ data: hehes });
@@ -95,7 +89,7 @@ test('getting all HeHEs without limit, ascending order', async () => {
 });
 
 test('getting all HeHEs without limit, descending order', async () => {
-  const hehes = await generateDummyHehes();
+  const hehes = await generateDummyHehes(USERNAME0);
 
   // Lägg till våra HeHE
   await prisma.prismaHehe.createMany({ data: hehes });
@@ -111,7 +105,7 @@ test('getting all HeHEs without limit, descending order', async () => {
 });
 
 test('getting all HeHEs with limit', async () => {
-  const hehes = await generateDummyHehes();
+  const hehes = await generateDummyHehes(USERNAME0);
 
   // Lägg till våra HeHE
   await prisma.prismaHehe.createMany({ data: hehes });
@@ -124,7 +118,7 @@ test('getting all HeHEs when none exists', async () => {
 });
 
 test('getting single HeHE', async () => {
-  const dummy = await generateDummyHehe();
+  const dummy = await generateDummyHehe(USERNAME0);
   await prisma.prismaHehe.create({ data: dummy });
   await expect(api.getHehe(dummy.number, dummy.year)).resolves.toMatchObject(dummy);
 });
@@ -134,7 +128,7 @@ test('getting non-existant single HeHE', async () => {
 });
 
 test('getting multiple HeHEs by year', async () => {
-  const hehes = await generateDummyHehes();
+  const hehes = await generateDummyHehes(USERNAME0);
 
   const [, localHehe0, localHehe1] = hehes;
 
@@ -152,7 +146,7 @@ test('getting multiple HeHEs by year when none exists', async () => {
 });
 
 test('adding HeHE', async () => {
-  const dummy = await generateDummyHehe();
+  const dummy = await generateDummyHehe(USERNAME0);
 
   await expect(api.getAllHehes()).resolves.toHaveLength(0);
   await expect(
@@ -166,7 +160,7 @@ test('adding HeHE', async () => {
 });
 
 test('adding duplicate HeHE', async () => {
-  const dummy = await generateDummyHehe();
+  const dummy = await generateDummyHehe(USERNAME0);
   await expect(api.getAllHehes()).resolves.toHaveLength(0);
   await expect(
     api.addHehe(dummy.refUploader, dummy.refFile, dummy.number, dummy.year),
@@ -182,7 +176,7 @@ test('adding duplicate HeHE', async () => {
 
 test('removing HeHE', async () => {
   await expect(api.getAllHehes()).resolves.toHaveLength(0);
-  const dummy = await generateDummyHehe();
+  const dummy = await generateDummyHehe(USERNAME0);
   await prisma.prismaHehe.create({ data: dummy });
   await expect(api.getAllHehes()).resolves.toHaveLength(1);
   await expect(api.removeHehe(dummy.number, dummy.year)).resolves.toBeTruthy();
