@@ -69,11 +69,12 @@ export const genRandomUser = (): [() => Promise<PrismaUser>, NOOP] => {
   };
   
   return ((): [() => Promise<PrismaUser>, NOOP] => {
+    const rs = getRandString();
     const ru: NewUser = {
-      class: `${getRandString().substring(0, 1)}`,
-      firstName: getRandString().substring(0, 7),
-      lastName: getRandString().substring(0, 19),
-      password: getRandString().substring(0, 38),
+      class: `${rs.substring(0, 1)}19`,
+      firstName: rs.substring(0, 7),
+      lastName: rs.substring(0, 19),
+      password: rs.substring(0, 38),
       username: getRandomUsername(),
     };
 
