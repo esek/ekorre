@@ -43,7 +43,7 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
 export const genApiKey = (
   userInfo: NewUser,
   access: Feature[],
-  createNewUser: boolean = true,
+  createNewUser = true,
 ): [NOOP<string>, NOOP] => {
   let apikey: string;
   const create = async () => {
