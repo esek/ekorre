@@ -79,8 +79,8 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await Promise.all([
-    deleteUser1,
-    deleteUser2
+    deleteUser1(),
+    deleteUser2(),
   ]);
 });
 
