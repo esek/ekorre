@@ -1,5 +1,5 @@
 import { issueToken } from '@/auth';
-import { Article, ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
+import { Article, ArticleType, Feature, ModifyArticle, NewArticle } from '@generated/graphql';
 import requestWithAuth from '@test/utils/requestWithAuth';
 import { genRandomUser } from '@test/utils/utils';
 
@@ -49,8 +49,8 @@ mutation($articleId: ID!) {
 }
 `;
 
-const [createUser1, deleteUser1] = genRandomUser();
-const [createUser2, deleteUser2] = genRandomUser();
+const [createUser1, deleteUser1] = genRandomUser([Feature.ArticleEditor]);
+const [createUser2, deleteUser2] = genRandomUser([Feature.ArticleEditor]);
 
 let TEST_USERNAME_0: string;
 let TEST_USERNAME_1: string;

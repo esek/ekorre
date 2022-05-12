@@ -45,21 +45,25 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
  * Generates a new user with random username, name etc.
  * Usernames are memoized so doubles are avoided
  */
-export const genRandomUser = (): [() => Promise<PrismaUser>, NOOP] => {
+export const genRandomUser = (access: Feature[]): [() => Promise<PrismaUser>, NOOP] => {
   // Fill set with seeded usernames to begin with
   const usedUsernames = new Set(['aa0000bb-s', 'bb1111cc-s', 'no0000oh-s']);
-  
+
   const getRandString = (): string => Math.random().toString(36);
-  
+
   /**
    * Generates a random username on format ccNNNNcc-s, but checks so that it doesn't already exist
    * Also reserves the username in the usedUsernames set
    */
   const getRandomUsername = (): string => {
-    const getRandNumberString = (): string => String(Math.floor(Math.random() * (9999) + 9999)).padStart(4, '0');
-    
-    const attemptedUsername = `${getRandString().substring(0, 2)}${getRandNumberString()}${getRandString().substring(0, 2)}-s`;
-    
+    const getRandNumberString = (): string =>
+      String(Math.floor(Math.random() * 9999 + 9999)).padStart(4, '0');
+
+    const attemptedUsername = `${getRandString().substring(
+      0,
+      2,
+    )}${getRandNumberString()}${getRandString().substring(0, 2)}-s`;
+
     if (usedUsernames.has(attemptedUsername)) {
       // We try again
       return getRandomUsername();
@@ -67,7 +71,7 @@ export const genRandomUser = (): [() => Promise<PrismaUser>, NOOP] => {
     usedUsernames.add(attemptedUsername);
     return attemptedUsername;
   };
-  
+
   return ((): [() => Promise<PrismaUser>, NOOP] => {
     const rs = getRandString();
     const ru: NewUser = {
@@ -80,16 +84,19 @@ export const genRandomUser = (): [() => Promise<PrismaUser>, NOOP] => {
 
     /**
      * Creates a random user, returning the API response
-     * @returns 
+     * @returns
      */
     const create = async (): Promise<PrismaUser> => {
+      let createdUser;
       try {
-        return userApi.createUser(ru);
+        createdUser = await userApi.createUser(ru);
       } catch (err) {
         // If we against all odds have a double
         console.log('Attempt to create random user failed, trying again...');
         return create();
       }
+      await accessApi.setIndividualAccess(createdUser.username, { features: access, doors: [] });
+      return createdUser;
     };
 
     const remove = async () => {
