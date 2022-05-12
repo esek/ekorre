@@ -49,8 +49,8 @@ mutation($articleId: ID!) {
 }
 `;
 
-const [createUser1, deleteUser1] = genRandomUser([Feature.ArticleEditor]);
-const [createUser2, deleteUser2] = genRandomUser([Feature.ArticleEditor]);
+const [createUser1, deleteUser1] = genRandomUser([Feature.NewsEditor]);
+const [createUser2, deleteUser2] = genRandomUser([Feature.NewsEditor]);
 
 let TEST_USERNAME_0: string;
 let TEST_USERNAME_1: string;
