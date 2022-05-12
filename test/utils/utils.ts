@@ -25,20 +25,21 @@ export const extractToken = (tokenName: string, s?: string): string | null => {
 
 const usedUsernames = new Set(['aa0000bb-s', 'bb1111cc-s', 'no0000oh-s']);
 
+// Fult men eneklt att förstå
+const stringGenerator = (len: number) => {
+  const chars = 'abcdefghijklmnopqrstuvwxyz';
+  let result = '';
+  for (let i = 0; i < len; i += 1) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
 /**
  * Generates a random username on format ccNNNNcc-s, but checks so that it doesn't already exist
  * Also reserves the username in the usedUsernames set
  */
 export const getRandomUsername = (): string => {
-  // Fult men eneklt att förstå
-  const stringGenerator = (len: number) => {
-    const chars = 'abcdefghijklmnopqrstuvwxyz';
-    let result = '';
-    for (let i = 0; i < len; i += 1) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  };
 
   const firstPart = stringGenerator(2);
   const numberPart = Math.floor(1000 + Math.random() * 9000);
@@ -49,6 +50,7 @@ export const getRandomUsername = (): string => {
     return getRandomUsername();
   }
   
+  usedUsernames.add(attemptedUsername);
   return attemptedUsername;
 };
 
@@ -77,17 +79,12 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
   * Jag ville göra detta till en klass men Blennow o Foobar klagade --Emil
  */
 export const genRandomUser = (access: Feature[]): [() => Promise<PrismaUser>, NOOP] => {
-  // Fill set with seeded usernames to begin with
-
-  const getRandString = (): string => Math.random().toString(36);
-
   return ((): [() => Promise<PrismaUser>, NOOP] => {
-    const rs = getRandString();
     const ru: NewUser = {
-      class: `${rs.substring(0, 1)}19`,
-      firstName: rs.substring(0, 7),
-      lastName: rs.substring(0, 19),
-      password: rs.substring(0, 38),
+      class: `${stringGenerator(1)}19`,
+      firstName: stringGenerator(4),
+      lastName: stringGenerator(11),
+      password: stringGenerator(11),
       username: getRandomUsername(),
     };
 
