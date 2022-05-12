@@ -44,6 +44,8 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
 /**
  * Generates a new user with random username, name etc.
  * Usernames are memoized so doubles are avoided
+  * 
+  * Jag ville göra detta till en klass men Blennow o Foobar klagade --Emil
  */
 export const genRandomUser = (access: Feature[]): [() => Promise<PrismaUser>, NOOP] => {
   // Fill set with seeded usernames to begin with
