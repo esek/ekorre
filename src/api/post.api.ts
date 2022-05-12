@@ -24,23 +24,21 @@ const checkPostTypeAndSpots = (
   postType: Maybe<PostType>,
   spots: Maybe<number> | undefined,
 ): number | null => {
-  let s: number | null;
-  if (postType === PostType.U) {
-    s = 1;
-  } else if (postType === PostType.Ea) {
-    s = -1;
-  } else if (postType === PostType.N || postType === PostType.ExactN) {
-    // Om posten ska ha n möjliga platser måste spots ha
-    // definierats
-    if (spots !== undefined && spots !== null && spots >= 0) {
-      s = spots;
-    } else {
-      s = null;
-    }
-  } else {
-    s = null;
+  switch (postType) {
+    case PostType.U:
+      return 1;
+    case PostType.Ea:
+      return -1;
+    case PostType.N:
+    case PostType.ExactN:
+      if (spots != null && spots >= 0) {
+        return spots;
+      }
+      break;
+    default:
   }
-  return s;
+
+  return null;
 };
 
 /**

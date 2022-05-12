@@ -1,26 +1,19 @@
 import { PostAPI } from '@/api/post.api';
 import prisma from '@/api/prisma';
-import { UserAPI } from '@/api/user.api';
 import { BadRequestError } from '@/errors/request.errors';
-import { postReduce } from '@/reducers/post.reducer';
 import { midnightTimestamp } from '@/util';
-import { Access, ModifyPost, NewPost, NewUser, Post, PostType, Utskott } from '@generated/graphql';
+import { ModifyPost, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
 import { PrismaPost } from '@prisma/client';
+import { genRandomUser, getRandomPostname } from '@test/utils/utils';
 
 const api = new PostAPI();
-const userApi = new UserAPI();
 
 // P.g.a. FOREIGN KEY constraint
-const DUMMY_USER: NewUser = {
-  username: 'testPostApiTestUser',
-  firstName: 'Adde',
-  lastName: 'Heinrichson',
-  class: 'E18',
-  password: 'hunter2',
-};
+let dummyUser: NewUser;
+let removeDummyUser: () => Promise<void>;
 
 const np: NewPost = {
-  name: 'Underphøs',
+  name: getRandomPostname(),
   utskott: Utskott.Nollu,
   postType: PostType.U,
   spots: 1,
@@ -30,7 +23,7 @@ const np: NewPost = {
 
 // ID given by `createPost`
 const p: Omit<PrismaPost, 'id'> = {
-  postname: 'Underphøs',
+  postname: np.name,
   utskott: Utskott.Nollu,
   postType: PostType.U,
   spots: 1,
@@ -40,45 +33,35 @@ const p: Omit<PrismaPost, 'id'> = {
 };
 
 const mp: Omit<ModifyPost, 'id'> = {
-  postname: 'Underphøs',
+  postname: np.name,
 };
 
-const removePost = async (postname: string) => {
-  await prisma.prismaPost.deleteMany({
-    where: {
-      postname, // We can use postname, ID is not needed
-    },
-  });
-};
+beforeEach(async () => {
+  const [createUser, removeUser] = genRandomUser([]);
+  const prismaUser = await createUser();
+  removeDummyUser = removeUser;
 
-const removePostHistory = async (username: string) => {
-  await prisma.prismaPostHistory.deleteMany({
-    where: {
-      refUser: username,
-    },
-  });
-};
-
-const clearDb = async () => {
-  await removePostHistory(DUMMY_USER.username);
-  await removePost('Underphøs');
-};
-
-beforeAll(async () => {
-  await userApi.createUser(DUMMY_USER);
+  dummyUser = {
+    username: prismaUser.username,
+    class: prismaUser.class,
+    email: prismaUser.email,
+    firstName: prismaUser.firstName,
+    lastName: prismaUser.lastName,
+    password: 'randomstringdontreallymatter',
+  };
 });
 
-beforeEach(clearDb);
-
-afterEach(clearDb);
+afterEach(async () => {
+  await api.clearHistoryForUser(dummyUser.username);
+  await prisma.prismaPost.deleteMany({
+    where: {
+      postname: np.name
+    }
+  });
+});
 
 afterAll(async () => {
-  clearDb();
-  await prisma.prismaUser.delete({
-    where: {
-      username: DUMMY_USER.username,
-    },
-  });
+  await removeDummyUser();
 });
 
 test('getting all posts', async () => {
@@ -102,17 +85,17 @@ test('getting history entries for user', async () => {
   const postId = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
-  const ok = await api.addUsersToPost([DUMMY_USER.username], postId);
+  const ok = await api.addUsersToPost([dummyUser.username], postId);
   expect(ok).toBe(true);
 
-  const dph = await api.getHistoryEntries({ refUser: DUMMY_USER.username });
+  const dph = await api.getHistoryEntries({ refUser: dummyUser.username });
   expect(dph.length).toBe(1);
 
   // Tar bort start och slutdatum
   const { id, start, end, ...reducedDph } = dph[0];
   expect(reducedDph).toStrictEqual({
     refPost: postId,
-    refUser: DUMMY_USER.username,
+    refUser: dummyUser.username,
   });
 });
 
@@ -248,10 +231,10 @@ test('adding user to post', async () => {
   const postId = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
-  const ok = await api.addUsersToPost([DUMMY_USER.username], postId);
+  const ok = await api.addUsersToPost([dummyUser.username], postId);
   expect(ok).toBe(true);
 
-  const res = (await api.getPostsForUser(DUMMY_USER.username))[0];
+  const res = (await api.getPostsForUser(dummyUser.username))[0];
   if (res != null) {
     const { id, ...reducedRes } = res;
     expect(id).toEqual(expect.any(Number));
@@ -267,17 +250,17 @@ test('deleting user from post', async () => {
 
   const start = new Date();
 
-  const ok = await api.addUsersToPost([DUMMY_USER.username], postId, start);
+  const ok = await api.addUsersToPost([dummyUser.username], postId, start);
   expect(ok).toBe(true);
 
   // Nu borde DUMMY_USER.username ha en post
-  const res = await api.getHistoryEntries({ refUser: DUMMY_USER.username });
+  const res = await api.getHistoryEntries({ refUser: dummyUser.username });
   expect(res.length).not.toBe(0);
 
   const removed = await api.removeHistoryEntry(res[0].id);
   expect(removed).toBe(true);
 
-  await expect(api.getPostsForUser(DUMMY_USER.username)).resolves.toHaveLength(0);
+  await expect(api.getPostsForUser(dummyUser.username)).resolves.toHaveLength(0);
 });
 
 test('modifying post in allowed way', async () => {
@@ -387,7 +370,7 @@ test('changing postType to e.a. from u without changing spots', async () => {
 
 test('get current number of volunteers', async () => {
   const postId = await api.createPost(np);
-  await api.addUsersToPost([DUMMY_USER.username], postId);
+  await api.addUsersToPost([dummyUser.username], postId);
 
   // Vår dummy-db innehåller några också
   expect(await api.getNumberOfVolunteers()).toBeGreaterThanOrEqual(1);
@@ -398,7 +381,7 @@ test('get number of volunteers in year 1700', async () => {
   const end = new Date('1700-12-31');
   expect(await api.getNumberOfVolunteers(start)).toBe(0);
   const postId = await api.createPost(np);
-  await api.addUsersToPost([DUMMY_USER.username], postId, start, end);
+  await api.addUsersToPost([dummyUser.username], postId, start, end);
 
   // Number of volunteers
   const oldVolunteers = await api.getNumberOfVolunteers(start);
@@ -412,13 +395,13 @@ test('set end time of history entry', async () => {
   const start = new Date('1666-03-13');
   const end = new Date('1666-12-31');
   const postId = await api.createPost(np);
-  await api.addUsersToPost([DUMMY_USER.username], postId, start);
+  await api.addUsersToPost([dummyUser.username], postId, start);
 
   {
     // Som default ska `end` bli null
-    const { id, ...reduced } = (await api.getHistoryEntries({ refUser: DUMMY_USER.username }))[0];
+    const { id, ...reduced } = (await api.getHistoryEntries({ refUser: dummyUser.username }))[0];
     expect(reduced).toEqual({
-      refUser: DUMMY_USER.username,
+      refUser: dummyUser.username,
       refPost: postId,
       start: new Date(midnightTimestamp(start, 'after')),
       end: null,
@@ -428,9 +411,9 @@ test('set end time of history entry', async () => {
     await expect(api.setUserPostEnd(id, end)).resolves.toBeTruthy();
   }
 
-  const { id, ...reduced } = (await api.getHistoryEntries({ refUser: DUMMY_USER.username }))[0];
+  const { id, ...reduced } = (await api.getHistoryEntries({ refUser: dummyUser.username }))[0];
   expect(reduced).toEqual({
-    refUser: DUMMY_USER.username,
+    refUser: dummyUser.username,
     refPost: postId,
     start: new Date(midnightTimestamp(start, 'after')),
     end: new Date(midnightTimestamp(end, 'before')),
