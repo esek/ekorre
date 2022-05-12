@@ -191,19 +191,21 @@ class FileAPI {
   async searchFiles(search: string): Promise<PrismaFile[]> {
     const f = await prisma.prismaFile.findMany({
       where: {
-        AND: {
-          type: {
-            not: FileType.Folder,
-          },
-          OR: {
+        type: {
+          not: FileType.Folder,
+        },
+        OR: [
+          {
             name: {
               search,
             },
+          },
+          {
             id: {
               search,
             },
-          },
-        },
+          }
+        ]
       },
     });
 
