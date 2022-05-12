@@ -1,24 +1,23 @@
-import { PASSWORD_RESET_TABLE, USER_TABLE } from '@/api/constants';
-import db from '@/api/knex';
 import { UserAPI } from '@/api/user.api';
 import { BadRequestError, NotFoundError, UnauthenticatedError } from '@/errors/request.errors';
-import { DatabaseUser } from '@/models/db/user';
 import { NewUser } from '@generated/graphql';
+import { PrismaUser } from '@prisma/client';
+import { getRandomUsername } from '@test/utils/utils';
 
 const api = new UserAPI();
 
 // Ska vara tillgänglig för alla test
 const mockNewUser0: NewUser = {
-  username: 'userApiTest0',
+  username: getRandomUsername(),
   firstName: 'Albrecht',
   lastName: 'Testfall',
   class: 'BME07',
   password: 'hunter2',
 };
 
-// Att anv'ndas godtyckligt
+// Att användas godtyckligt
 const mockNewUser1: NewUser = {
-  username: 'userApiTest1',
+  username: getRandomUsername(),
   firstName: 'Kalle',
   lastName: 'Testman',
   class: 'E72',
@@ -30,24 +29,22 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
-  await db(USER_TABLE)
-    .delete()
-    .whereIn('username', [mockNewUser1.username, `funcUser_${mockNewUser1.username}`]);
-  // Delete EVERYTHING
-  await db(PASSWORD_RESET_TABLE).delete().where('token', '=', null);
-  jest.useRealTimers();
+  try {
+    await api.deleteUser(mockNewUser1.username);
+  } catch (e) {
+    // ignorera
+  }
 });
 
 afterAll(async () => {
-  await db(USER_TABLE).delete().whereIn('username', [mockNewUser0.username, mockNewUser1.username]);
+  await api.deleteUser(mockNewUser0.username);
 });
 
-test('create new valid non-funcUser user without email', async () => {
+test('create new valid user without email', async () => {
   const resDbUser = await api.createUser(mockNewUser1);
   const dbUser = await api.getSingleUser(mockNewUser1.username);
 
   // Convert from SQLite to boolean
-  dbUser.isFuncUser = !!dbUser.isFuncUser;
 
   // dbUser will contain some null values
   expect(dbUser).toMatchObject(resDbUser);
@@ -56,17 +53,13 @@ test('create new valid non-funcUser user without email', async () => {
 
   // Antar studentmail om inget annat ges
   expect(dbUser.email).toStrictEqual(`${mockNewUser1.username}@student.lu.se`);
-  expect(dbUser.isFuncUser).toBeFalsy();
 });
 
-test('create new valid non-funcUser user with email', async () => {
+test('create new valid user with email', async () => {
   const localMu = { email: 'mrcool@apkollen.se', ...mockNewUser1 };
 
   const resDbUser = await api.createUser(localMu);
   const dbUser = await api.getSingleUser(localMu.username);
-
-  // Convert from SQLite to boolean
-  dbUser.isFuncUser = !!dbUser.isFuncUser;
 
   // dbUser will contain some null values
   expect(dbUser).toMatchObject(resDbUser);
@@ -75,10 +68,9 @@ test('create new valid non-funcUser user with email', async () => {
 
   // Antar studentmail om inget annat ges
   expect(dbUser.email).toStrictEqual(localMu.email);
-  expect(dbUser.isFuncUser).toBeFalsy();
 });
 
-test('create new non-funcUser user with empty username', async () => {
+test('create new user with empty username', async () => {
   const localMu = { ...mockNewUser1 };
   localMu.username = '';
 
@@ -86,59 +78,8 @@ test('create new non-funcUser user with empty username', async () => {
   await expect(api.getSingleUser(localMu.username)).rejects.toThrowError(NotFoundError);
 });
 
-test('create new non-funcUser user with funcUser prefix', async () => {
-  const localMu = { ...mockNewUser1 };
-  localMu.username = `funcUser_${localMu.username}`;
-
-  await expect(api.createUser(localMu)).rejects.toThrowError(BadRequestError);
-  await expect(api.getSingleUser(localMu.username)).rejects.toThrowError(NotFoundError);
-});
-
 test('creating duplicate user fails', async () => {
-  await expect(api.createUser(mockNewUser0)).rejects.toThrowError(BadRequestError);
-});
-
-test('create new valid funcUser user', async () => {
-  const localMu = { email: 'mrcool@apkollen.se', ...mockNewUser1 };
-  localMu.username = `funcUser_${localMu.username}`;
-  localMu.isFuncUser = true;
-
-  const resDbUser = await api.createUser(localMu);
-  const dbUser = await api.getSingleUser(localMu.username);
-
-  // Convert from SQLite to boolean
-  dbUser.isFuncUser = !!dbUser.isFuncUser;
-
-  // dbUser will contain some null values
-  expect(dbUser).toMatchObject(resDbUser);
-  expect(dbUser.passwordSalt).not.toContain(localMu.password);
-  expect(dbUser.passwordHash).not.toContain(localMu.password);
-
-  // Alla funcUsers ska ha no-reply
-  expect(dbUser.email).toStrictEqual('no-reply@esek.se');
-  expect(dbUser.isFuncUser).toBeTruthy();
-});
-
-test('create new funcUser user without funcUser prefix', async () => {
-  const localMu = { email: 'mrcool@apkollen.se', ...mockNewUser1 };
-  localMu.isFuncUser = true;
-
-  const expectedUsername = `funcUser_${localMu.username}`;
-
-  const resDbUser = await api.createUser(localMu);
-  const dbUser = await api.getSingleUser(expectedUsername);
-
-  // Convert from SQLite to boolean
-  dbUser.isFuncUser = !!dbUser.isFuncUser;
-
-  // dbUser will contain some null values
-  expect(dbUser).toMatchObject(resDbUser);
-  expect(dbUser.passwordSalt).not.toContain(localMu.password);
-  expect(dbUser.passwordHash).not.toContain(localMu.password);
-
-  // Alla funcUsers ska ha no-reply
-  expect(dbUser.email).toStrictEqual('no-reply@esek.se');
-  expect(dbUser.isFuncUser).toBeTruthy();
+  await expect(api.createUser(mockNewUser0)).rejects.toThrowError();
 });
 
 test('valid login', async () => {
@@ -183,7 +124,7 @@ test('get multiple non-existant users', async () => {
 });
 
 test('updating existing user', async () => {
-  const uu: Partial<DatabaseUser> = {
+  const uu: Partial<PrismaUser> = {
     firstName: 'Adolf',
     phone: '1234657890',
     address: 'Kämnärsvägen 22F',
@@ -193,8 +134,6 @@ test('updating existing user', async () => {
 
   await api.createUser(mockNewUser1);
   const dbRes = await api.getSingleUser(mockNewUser1.username);
-
-  dbRes.isFuncUser = !!dbRes.isFuncUser;
 
   expect(dbRes).toMatchObject(dbRes);
 
@@ -212,20 +151,26 @@ test('updating username', async () => {
 });
 
 test('updating non-existant user', async () => {
-  await expect(api.updateUser('Obv. fake username', { firstName: 'Adolf' })).rejects.toThrowError(
-    BadRequestError,
-  );
+  await expect(api.updateUser('Obv. fake username', { firstName: 'Adolf' })).rejects.toThrowError();
 });
 
 test('search for users by username that exists', async () => {
-  await api.createUser(mockNewUser1);
-  expect((await api.searchUser('Test1')).length).toBe(1);
-  expect((await api.searchUser('userapi')).length).toBe(2);
+  // Generate a username that shares the first 2 letters
+  const sharedUsername = `${mockNewUser0.username.substring(0, 2)}${mockNewUser1.username.substring(
+    2,
+  )}`;
+  const mockUsr: NewUser = { ...mockNewUser1, username: sharedUsername };
+  await api.createUser(mockUsr);
+  expect((await api.searchUser('nouserhasthis')).length).toBe(0);
+  expect((await api.searchUser(mockNewUser0.username)).length).toBe(1);
+  expect((await api.searchUser(sharedUsername.substring(0, 2))).length).toBe(2);
+  await api.deleteUser(sharedUsername);
 });
 
 test('search for user by name that exists', async () => {
-  await api.createUser(mockNewUser1);
-  expect((await api.searchUser('kalle')).length).toBe(1);
+  expect((await api.searchUser(mockNewUser0.username)).length).toBe(1);
+  expect((await api.searchUser(mockNewUser0.firstName)).length).toBe(1);
+  expect((await api.searchUser(mockNewUser0.lastName)).length).toBe(1);
 });
 
 test('search for non-existant user', async () => {

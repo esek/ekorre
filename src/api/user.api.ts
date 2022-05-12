@@ -88,19 +88,23 @@ export class UserAPI {
   async searchUser(search: string): Promise<PrismaUser[]> {
     const users = await prisma.prismaUser.findMany({
       where: {
-        username: {
-          contains: search,
-        },
-        OR: {
-          firstName: {
-            contains: search,
+        OR: [
+          {
+            username: {
+              contains: search,
+            },
           },
-          OR: {
+          {
+            firstName: {
+              contains: search,
+            },
+          },
+          {
             lastName: {
               contains: search,
             },
           },
-        },
+        ],
       },
     });
 
@@ -323,12 +327,18 @@ export class UserAPI {
   }
 
   async deleteUser(username: string): Promise<boolean> {
+    const res1 = await prisma.prismaPasswordReset.deleteMany({
+      where: {
+        refUser: username,
+      },
+    });
+
     const res = await prisma.prismaUser.delete({
       where: {
         username,
       },
     });
 
-    return res != null;
+    return res != null && res1 != null;
   }
 }
