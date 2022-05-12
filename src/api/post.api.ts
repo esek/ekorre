@@ -47,6 +47,11 @@ const checkPostTypeAndSpots = (
  * Det här är apin för att hantera poster.
  */
 export class PostAPI {
+  async deletePost(postId: number) {
+    devGuard('Cannot remove post in production');
+
+    await prisma.prismaPost.delete({ where: { id: postId } });
+  }
   /**
    * Hämta alla poster.
    * @param limit Begränsning av antal poster
