@@ -1,6 +1,7 @@
 import { issueToken } from '@/auth';
 import { Article, ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
 import requestWithAuth from '@test/utils/requestWithAuth';
+import { genRandomUser } from '@test/utils/utils';
 
 const ARTICLE_FIELDS = `
 {
@@ -48,8 +49,11 @@ mutation($articleId: ID!) {
 }
 `;
 
-const TEST_USERNAME_0 = 'aa0000bb-s'; // From dev database
-const TEST_USERNAME_1 = 'bb1111cc-s';
+const [createUser1, deleteUser1] = genRandomUser();
+const [createUser2, deleteUser2] = genRandomUser();
+
+let TEST_USERNAME_0: string;
+let TEST_USERNAME_1: string;
 
 const mockNewArticle: NewArticle = {
   title: 'SUP NOLLAN YOYOYO',
@@ -64,6 +68,21 @@ const mockModifyArticle: ModifyArticle = {
   signature: 'En liten Redaktör',
   articleType: ArticleType.Information,
 };
+
+beforeAll(async () => {
+  // Initialize random usernames
+  [TEST_USERNAME_0, TEST_USERNAME_1] = (await Promise.all([
+    createUser1(),
+    createUser2(),
+  ])).map(u => u.username);
+});
+
+afterAll(async () => {
+  await Promise.all([
+    deleteUser1,
+    deleteUser2
+  ]);
+});
 
 beforeEach(() => {
   // För att vi ska återställa räkningen

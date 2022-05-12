@@ -45,7 +45,7 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
  * Generates a new user with random username, name etc.
  * Usernames are memoized so doubles are avoided
  */
-export const genRandomUser = (): [Promise<PrismaUser>, NOOP] => {
+export const genRandomUser = (): [() => Promise<PrismaUser>, NOOP] => {
   // Fill set with seeded usernames to begin with
   const usedUsernames = new Set(['aa0000bb-s', 'bb1111cc-s', 'no0000oh-s']);
   
@@ -68,7 +68,7 @@ export const genRandomUser = (): [Promise<PrismaUser>, NOOP] => {
     return attemptedUsername;
   };
   
-  return ((): [Promise<PrismaUser>, NOOP] => {
+  return ((): [() => Promise<PrismaUser>, NOOP] => {
     const ru: NewUser = {
       class: `${getRandString().substring(0, 1)}`,
       firstName: getRandString().substring(0, 7),
