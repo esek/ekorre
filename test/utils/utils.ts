@@ -1,8 +1,9 @@
 import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
-import { Feature, NewUser } from '@generated/graphql';
-import { PrismaUser } from '@prisma/client';
+import { postApi } from '@dataloader/post';
+import { Feature, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
+import { prisma, PrismaPost, PrismaUser } from '@prisma/client';
 
 /**
  * Extrahera en token ur en set-cookie-sträng, eller returnera
@@ -24,6 +25,7 @@ export const extractToken = (tokenName: string, s?: string): string | null => {
 };
 
 const usedUsernames = new Set(['aa0000bb-s', 'bb1111cc-s', 'no0000oh-s']);
+const usedPostnames = new Set(['Macapär', 'Teknokrat', 'Cophøs']);
 
 // Fult men eneklt att förstå
 const stringGenerator = (len: number) => {
@@ -40,7 +42,6 @@ const stringGenerator = (len: number) => {
  * Also reserves the username in the usedUsernames set
  */
 export const getRandomUsername = (): string => {
-
   const firstPart = stringGenerator(2);
   const numberPart = Math.floor(1000 + Math.random() * 9000);
   const lastPart = stringGenerator(2);
@@ -49,7 +50,7 @@ export const getRandomUsername = (): string => {
   if (usedUsernames.has(attemptedUsername)) {
     return getRandomUsername();
   }
-  
+
   usedUsernames.add(attemptedUsername);
   return attemptedUsername;
 };
@@ -75,43 +76,84 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
 /**
  * Generates a new user with random username, name etc.
  * Usernames are memoized so doubles are avoided
-  * 
-  * Jag ville göra detta till en klass men Blennow o Foobar klagade --Emil
+ *
+ * Jag ville göra detta till en klass men Blennow o Foobar klagade --Emil
  */
 export const genRandomUser = (access: Feature[]): [() => Promise<PrismaUser>, NOOP] => {
-  return ((): [() => Promise<PrismaUser>, NOOP] => {
-    const ru: NewUser = {
-      class: `${stringGenerator(1)}19`,
-      firstName: stringGenerator(4),
-      lastName: stringGenerator(11),
-      password: stringGenerator(11),
-      username: getRandomUsername(),
-    };
+  const ru: NewUser = {
+    class: `${stringGenerator(1)}19`,
+    firstName: stringGenerator(4),
+    lastName: stringGenerator(11),
+    password: stringGenerator(11),
+    username: getRandomUsername(),
+  };
 
-    /**
-     * Creates a random user, returning the API response
-     * @returns
-     */
-    const create = async (): Promise<PrismaUser> => {
-      let createdUser;
-      try {
-        createdUser = await userApi.createUser(ru);
-      } catch (err) {
-        // If we against all odds have a double
-        console.log('Attempt to create random user failed, trying again...');
-        return create();
-      }
-      await accessApi.setIndividualAccess(createdUser.username, { features: access, doors: [] });
-      return createdUser;
-    };
+  /**
+   * Creates a random user, returning the API response
+   * @returns
+   */
+  const create = async (): Promise<PrismaUser> => {
+    let createdUser;
+    try {
+      createdUser = await userApi.createUser(ru);
+    } catch (err) {
+      // If we against all odds have a double
+      console.log('Attempt to create random user failed, trying again...');
+      return create();
+    }
+    await accessApi.setIndividualAccess(createdUser.username, { features: access, doors: [] });
+    return createdUser;
+  };
 
-    const remove = async () => {
-      await userApi.deleteUser(ru.username);
-      usedUsernames.delete(ru.username);
-    };
+  const remove = async () => {
+    await userApi.deleteUser(ru.username);
+    usedUsernames.delete(ru.username);
+  };
 
-    return [create, remove];
-  })();
+  return [create, remove];
+};
+
+export const genRandomPost = (): [() => Promise<number>, NOOP] => {
+  const possiblePostTypes = [PostType.Ea, PostType.ExactN, PostType.N, PostType.U];
+  const possibleUtskott = [
+    Utskott.Cm,
+    Utskott.E6,
+    Utskott.Enu,
+    Utskott.Fvu,
+    Utskott.Infu,
+    Utskott.Km,
+    Utskott.Noju,
+    Utskott.Nollu,
+    Utskott.Other,
+    Utskott.Sre,
+    Utskott.Styrelsen,
+  ];
+
+  const rp: NewPost = {
+    name: stringGenerator(Math.floor(Math.random() * (20 - 5) - 5)),
+    postType: possiblePostTypes[Math.floor(Math.random() * possiblePostTypes.length)],
+    utskott: possibleUtskott[Math.floor(Math.random() * possibleUtskott.length)],
+  };
+
+  let createdPostId: number;
+
+  const create = async (): Promise<number> => {
+    try {
+      createdPostId = await postApi.createPost(rp);
+    } catch (err) {
+      // If we against all odds have a double
+      console.log('Attempt to create random post failed, trying again...');
+      return create();
+    }
+    return createdPostId;
+  };
+
+  const remove = async () => {
+    await postApi.deletePost(createdPostId ?? -1);
+    usedPostnames.delete(rp.name);
+  };
+
+  return [create, remove];
 };
 
 export const genApiKey = (
