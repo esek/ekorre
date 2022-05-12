@@ -55,6 +55,16 @@ export const getRandomUsername = (): string => {
   return attemptedUsername;
 };
 
+export const getRandomPostname = (): string => {
+  const attemptedPostname = stringGenerator(Math.floor(Math.random() * (20 - 1) + 1));
+  if (usedPostnames.has(attemptedPostname)) {
+    return getRandomPostname();
+  }
+  
+  usedPostnames.add(attemptedPostname);
+  return attemptedPostname;
+};
+
 type NOOP<T = void> = () => Promise<T>;
 const userApi = new UserAPI();
 const apiKeyApi = new ApiKeyAPI();
@@ -130,7 +140,7 @@ export const genRandomPost = (): [() => Promise<number>, NOOP] => {
   ];
 
   const rp: NewPost = {
-    name: stringGenerator(Math.floor(Math.random() * (20 - 5) - 5)),
+    name: getRandomPostname(),
     postType: possiblePostTypes[Math.floor(Math.random() * possiblePostTypes.length)],
     utskott: possibleUtskott[Math.floor(Math.random() * possibleUtskott.length)],
   };
