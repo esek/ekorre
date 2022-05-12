@@ -23,6 +23,35 @@ export const extractToken = (tokenName: string, s?: string): string | null => {
   return null;
 };
 
+const usedUsernames = new Set(['aa0000bb-s', 'bb1111cc-s', 'no0000oh-s']);
+
+/**
+ * Generates a random username on format ccNNNNcc-s, but checks so that it doesn't already exist
+ * Also reserves the username in the usedUsernames set
+ */
+export const getRandomUsername = (): string => {
+  // Fult men eneklt att förstå
+  const stringGenerator = (len: number) => {
+    const chars = 'abcdefghijklmnopqrstuvwxyz';
+    let result = '';
+    for (let i = 0; i < len; i += 1) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const firstPart = stringGenerator(2);
+  const numberPart = Math.floor(1000 + Math.random() * 9000);
+  const lastPart = stringGenerator(2);
+
+  const attemptedUsername = `${firstPart}${numberPart}${lastPart}-s`;
+  if (usedUsernames.has(attemptedUsername)) {
+    return getRandomUsername();
+  }
+  
+  return attemptedUsername;
+};
+
 type NOOP<T = void> = () => Promise<T>;
 const userApi = new UserAPI();
 const apiKeyApi = new ApiKeyAPI();
@@ -49,30 +78,8 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
  */
 export const genRandomUser = (access: Feature[]): [() => Promise<PrismaUser>, NOOP] => {
   // Fill set with seeded usernames to begin with
-  const usedUsernames = new Set(['aa0000bb-s', 'bb1111cc-s', 'no0000oh-s']);
 
   const getRandString = (): string => Math.random().toString(36);
-
-  /**
-   * Generates a random username on format ccNNNNcc-s, but checks so that it doesn't already exist
-   * Also reserves the username in the usedUsernames set
-   */
-  const getRandomUsername = (): string => {
-    const getRandNumberString = (): string =>
-      String(Math.floor(Math.random() * 9999 + 9999)).padStart(4, '0');
-
-    const attemptedUsername = `${getRandString().substring(
-      0,
-      2,
-    )}${getRandNumberString()}${getRandString().substring(0, 2)}-s`;
-
-    if (usedUsernames.has(attemptedUsername)) {
-      // We try again
-      return getRandomUsername();
-    }
-    usedUsernames.add(attemptedUsername);
-    return attemptedUsername;
-  };
 
   return ((): [() => Promise<PrismaUser>, NOOP] => {
     const rs = getRandString();
@@ -128,7 +135,7 @@ export const genApiKey = (
 
   const remove = async () => {
     await apiKeyApi.removeApiKey(apikey);
-    await userApi.clear();
+    await userApi.deleteUser(userInfo.username);
   };
 
   return [create, remove];

@@ -3,7 +3,7 @@ import config from '@/config';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { StrictObject } from '@/models/base';
-import { midnightTimestamp, stripObject } from '@/util';
+import { devGuard, midnightTimestamp, stripObject } from '@/util';
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '@generated/graphql';
 import { PrismaPost, Prisma, PrismaPostHistory } from '@prisma/client';
 
@@ -401,20 +401,38 @@ export class PostAPI {
     return history != null;
   }
 
-  async clear() {
-    if (config.DEV) {
-      await prisma.prismaPostHistory.deleteMany();
-      await prisma.prismaPost.deleteMany();
-    } else {
-      throw new ServerError('Cannot clear DB in production');
-    }
+  async clear(postId: number) {
+    devGuard('Cannot clear DB in production');
+
+    await prisma.prismaPostHistory.deleteMany({
+      where: {
+        refPost: postId,
+      },
+    });
+    await prisma.prismaPost.deleteMany({
+      where: {
+        id: postId,
+      },
+    });
   }
 
-  async clearHistory() {
-    if (config.DEV) {
-      await prisma.prismaPostHistory.deleteMany();
-    } else {
-      throw new ServerError('Cannot clear DB in production');
-    }
+  async clearHistoryForPost(postId: number) {
+    devGuard('Cannot clear DB in production');
+
+    await prisma.prismaPostHistory.deleteMany({
+      where: {
+        refPost: postId,
+      },
+    });
+  }
+
+  async clearHistoryForUser(username: string) {
+    devGuard('Cannot clear DB in production');
+
+    await prisma.prismaPostHistory.deleteMany({
+      where: {
+        refUser: username,
+      },
+    });
   }
 }

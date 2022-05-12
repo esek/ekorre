@@ -10,26 +10,25 @@ import {
   PostType,
   Utskott,
 } from '@generated/graphql';
-import { PrismaApiKeyAccess, PrismaIndividualAccess } from '@prisma/client';
+import { PrismaApiKeyAccess, PrismaIndividualAccess, PrismaPostAccess } from '@prisma/client';
+import { getRandomUsername } from '@test/utils/utils';
 
-type UnionPrismaAccess = PrismaIndividualAccess & PrismaApiKeyAccess;
+type UnionPrismaAccess = PrismaIndividualAccess & PrismaPostAccess & PrismaApiKeyAccess;
 
 const accessApi = new AccessAPI();
 const userApi = new UserAPI();
 const apiKeyApi = new ApiKeyAPI();
 const postApi = new PostAPI();
 
-const username0 = 'te0000st-s';
-const username1 = 'te1111st-s';
+const username0 = getRandomUsername();
+const username1 = getRandomUsername();
 
 let apiKey: string;
 let postId0: number;
 
 beforeAll(async () => {
-  await postApi.clear();
-  await accessApi.clear();
-  await apiKeyApi.clear();
-  await userApi.clear();
+  const clearUser0 = accessApi.clearAccessForUser(username0);
+  const clearUser1 = accessApi.clearAccessForUser(username1);
 
   const c1 = userApi.createUser({
     username: username0,
@@ -55,7 +54,7 @@ beforeAll(async () => {
     utskott: Utskott.Infu,
   });
 
-  const [, , postNumber1] = await Promise.all([c1, c2, p1]);
+  const [postNumber1] = await Promise.all([p1, clearUser0, clearUser1, c1, c2]);
 
   postId0 = postNumber1;
 
@@ -65,10 +64,14 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await accessApi.clear();
-  await postApi.clear();
-  await apiKeyApi.clear();
-  await userApi.clear();
+  const clearUser0 = accessApi.clearAccessForUser(username0);
+  const clearUser1 = accessApi.clearAccessForUser(username1);
+  await Promise.all([clearUser0, clearUser1]);
+
+  await postApi.clear(postId0);
+  await apiKeyApi.removeApiKey(apiKey);
+  await userApi.deleteUser(username0);
+  await userApi.deleteUser(username1);
 });
 
 const setGetTest = async (
@@ -86,6 +89,8 @@ const setGetTest = async (
     expect(accessGotten[i]).toMatchObject(expected[i]);
   }
 };
+
+// #region Expected values
 
 const accessSingleInput: AccessInput = {
   doors: [Door.Bd],
@@ -155,9 +160,16 @@ const accessWithUnkownDoor: AccessInput = {
   features: [],
 };
 
+// #endregion
+
+const mapUserAccess = (access: Partial<UnionPrismaAccess>[], refUser: string = username0) =>
+  access.map((a) => ({ ...a, refUser }));
+const mapPostAccess = (access: Partial<UnionPrismaAccess>[], refPost: number = postId0) =>
+  access.map((a) => ({ ...a, refPost }));
+const mapApiKeyAccess = (access: Partial<UnionPrismaAccess>[], refApiKey: string = apiKey) =>
+  access.map((a) => ({ ...a, refApiKey }));
+
 describe('setting/getting access for user', () => {
-  const mapAccess = (access: Partial<UnionPrismaAccess>[], refUser: string = username0) =>
-    access.map((a) => ({ ...a, refUser }));
   const setAccess =
     (input: AccessInput, username = username0) =>
     () =>
@@ -165,19 +177,19 @@ describe('setting/getting access for user', () => {
   const getAccess = (username = username0) => accessApi.getIndividualAccess(username);
 
   it('setting single access', async () => {
-    const expectedAccess = mapAccess(expectedAccessSingleInput);
+    const expectedAccess = mapUserAccess(expectedAccessSingleInput);
 
     await setGetTest(setAccess(accessSingleInput), getAccess, expectedAccess);
   });
 
   it('changing access', async () => {
-    const expectedAccess = mapAccess(expectedAccessOtherSingleInput);
+    const expectedAccess = mapUserAccess(expectedAccessOtherSingleInput);
 
     await setGetTest(setAccess(otherAccessSingleInput), getAccess, expectedAccess);
   });
 
   it('setting access with multiple features', async () => {
-    const expectedAccess = mapAccess(expectedAccessMultipleInput);
+    const expectedAccess = mapUserAccess(expectedAccessMultipleInput);
 
     await setGetTest(setAccess(accessMultipleInput), getAccess, expectedAccess);
   });
@@ -204,8 +216,6 @@ describe('setting/getting access for user', () => {
 });
 
 describe('setting/getting access for apikey', () => {
-  const mapAccess = (access: Partial<UnionPrismaAccess>[], refApiKey: string = apiKey) =>
-    access.map((a) => ({ ...a, refApiKey }));
   const setAccess =
     (input: AccessInput, apikey = apiKey) =>
     () =>
@@ -213,19 +223,19 @@ describe('setting/getting access for apikey', () => {
   const getAccess = (apikey = apiKey) => accessApi.getApiKeyAccess(apikey);
 
   it('setting single access', async () => {
-    const expectedAccess = mapAccess(expectedAccessSingleInput);
+    const expectedAccess = mapApiKeyAccess(expectedAccessSingleInput);
 
     await setGetTest(setAccess(accessSingleInput), getAccess, expectedAccess);
   });
 
   it('changing access', async () => {
-    const expectedAccess = mapAccess(expectedAccessOtherSingleInput);
+    const expectedAccess = mapApiKeyAccess(expectedAccessOtherSingleInput);
 
     await setGetTest(setAccess(otherAccessSingleInput), getAccess, expectedAccess);
   });
 
   it('setting access with multiple features', async () => {
-    const expectedAccess = mapAccess(expectedAccessMultipleInput);
+    const expectedAccess = mapApiKeyAccess(expectedAccessMultipleInput);
 
     await setGetTest(setAccess(accessMultipleInput), getAccess, expectedAccess);
   });
@@ -253,16 +263,14 @@ describe('setting/getting access for apikey', () => {
 
 describe('setting/getting access for post', () => {
   beforeAll(async () => {
-    await accessApi.clear();
+    await accessApi.clearAccessForUser(username0);
     await postApi.addUsersToPost([username0], postId0);
   });
 
   afterAll(async () => {
-    await postApi.clearHistory();
+    await postApi.clearHistoryForUser(username0);
   });
 
-  const mapAccess = (access: Partial<UnionPrismaAccess>[], refPost: number = postId0) =>
-    access.map((a) => ({ ...a, refPost }));
   const setAccess =
     (input: AccessInput, postId = postId0) =>
     () =>
@@ -270,19 +278,19 @@ describe('setting/getting access for post', () => {
   const getAccess = (postId = postId0) => accessApi.getPostAccess(postId);
 
   it('setting single access', async () => {
-    const expectedAccess = mapAccess(expectedAccessSingleInput);
+    const expectedAccess = mapPostAccess(expectedAccessSingleInput);
 
     await setGetTest(setAccess(accessSingleInput), getAccess, expectedAccess);
   });
 
   it('changing access', async () => {
-    const expectedAccess = mapAccess(expectedAccessOtherSingleInput);
+    const expectedAccess = mapPostAccess(expectedAccessOtherSingleInput);
 
     await setGetTest(setAccess(otherAccessSingleInput), getAccess, expectedAccess);
   });
 
   it('setting access with multiple features', async () => {
-    const expectedAccess = mapAccess(expectedAccessMultipleInput);
+    const expectedAccess = mapPostAccess(expectedAccessMultipleInput);
 
     await setGetTest(setAccess(accessMultipleInput), getAccess, expectedAccess);
   });
@@ -310,13 +318,11 @@ describe('setting/getting access for post', () => {
 
 describe('getting combined access', () => {
   beforeAll(async () => {
-    await postApi.clearHistory();
+    await postApi.clearHistoryForPost(postId0);
 
     await postApi.addUsersToPost([username0], postId0);
   });
 
-  const mapAccess = (access: Partial<UnionPrismaAccess>[], refUser: string = username0) =>
-    access.map((a) => ({ ...a, refUser }));
   const getAccess = (username = username0) => accessApi.getUserFullAccess(username);
 
   it('getting combined access for user', async () => {
@@ -329,8 +335,8 @@ describe('getting combined access', () => {
       return r1 && r2;
     };
 
-    const expectedAccess1 = mapAccess(expectedAccessSingleInput);
-    const expectedAccess2 = mapAccess(expectedAccessOtherSingleInput);
+    const expectedAccess1 = mapUserAccess(expectedAccessSingleInput);
+    const expectedAccess2 = mapPostAccess(expectedAccessOtherSingleInput);
 
     const expectedAccess = [...expectedAccess1, ...expectedAccess2].sort(
       (a, b) => a.resource?.localeCompare(b.resource ?? '') ?? 0,

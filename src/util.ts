@@ -1,4 +1,4 @@
-import { ForbiddenError } from '@/errors/request.errors';
+import { ForbiddenError, ServerError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { Feature } from '@generated/graphql';
 
@@ -104,4 +104,10 @@ export const hasAccess = async (ctx: Context, requirement: Feature | Feature[]):
  */
 export const hasAuthenticated = async (ctx: Context): Promise<void> => {
   await ctx.getAccess();
+};
+
+export const devGuard = (message = 'Cannot do that in production'): void => {
+  if (!config.DEV) {
+    throw new ServerError(message);
+  } 
 };

@@ -3,6 +3,7 @@ import config from '@/config';
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { AccessEntry } from '@/models/access';
+import { devGuard } from '@/util';
 import { AccessInput, Door, Feature } from '@generated/graphql';
 import {
   Prisma,
@@ -242,16 +243,43 @@ export class AccessAPI {
 
   /**
    * Used for testing
-   * Will clear every access!!!
+   * Will clear every access for this user!!
    */
-  async clear() {
-    if (!config.DEV) {
-      throw new Error('Tried to clear accesses in production!');
-    }
-    const individual = prisma.prismaIndividualAccess.deleteMany({});
-    const post = prisma.prismaPostAccess.deleteMany({});
-    const apiKey = prisma.prismaApiKeyAccess.deleteMany({});
+  async clearAccessForUser(username: string) {
+    devGuard('Tried to clear accesses in production!');
 
-    await Promise.all([individual, post, apiKey]);
+    await prisma.prismaIndividualAccess.deleteMany({
+      where: {
+        refUser: username,
+      }
+    });
+  }
+
+  /**
+   * Used for testing
+   * Will clear every access for this user and the posts inherited!!!
+   */
+  async clearAccessForPost(postId: number) {
+    devGuard('Tried to clear accesses in production!');
+
+    await prisma.prismaPostAccess.deleteMany({
+      where: {
+        refPost: postId,
+      }
+    });
+  }
+
+  /**
+   * Used for testing
+   * Will clear every access for this user and the posts inherited!!!
+   */
+  async clearAccessForKey(key: string) {
+    devGuard('Tried to clear accesses in production!');
+
+    await prisma.prismaApiKeyAccess.deleteMany({
+      where: {
+        refApiKey: key,
+      }
+    });
   }
 }

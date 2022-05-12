@@ -331,14 +331,4 @@ export class UserAPI {
 
     return res != null;
   }
-
-  async clear() {
-    if (!config.DEV) {
-      throw new Error('Tried to clear accesses in production!');
-    }
-    const users = prisma.prismaUser.deleteMany();
-    const resets = prisma.prismaPasswordReset.deleteMany();
-
-    await Promise.all([users, resets]);
-  }
 }
