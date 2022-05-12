@@ -12,6 +12,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `postgresql` är ny hard dependency, även för dev
 - Flertalet index i `schema.prisma` (dvs. databasen) för nycklar som ofta förekommer i queries men sällan i mutations.
 - Numera används docker compose (via `docker-compose.yml`) för att hantera databas i utveckling/testning och CI
+- Nya utilities för testning, specifikt att generera användare/slumpmässiga användare i `test/utils/`
 
 ### Borttaget
 - `knex` är inte längre dependency
