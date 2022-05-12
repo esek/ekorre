@@ -77,7 +77,13 @@ export const genRandomUser = (): [NOOP, NOOP] => {
     };
 
     const create = async () => {
-      await userApi.createUser(ru);
+      try {
+        await userApi.createUser(ru);
+      } catch (err) {
+        // If we against all odds have a double
+        console.log('Attempt to create random user failed, trying again...');
+        await create();
+      }
     };
 
     const remove = async () => {
