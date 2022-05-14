@@ -1,6 +1,7 @@
 import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
+import { devGuard } from '@/util';
 import { PrismaHehe } from '@prisma/client';
 
 import prisma from './prisma';
@@ -112,9 +113,8 @@ export class HeheAPI {
   }
 
   async clear() {
-    if (!config.DEV) {
-      throw new Error('Tried to clear accesses in production!');
-    }
+    devGuard('Tried to clear accesses in production!');
+
     await prisma.prismaHehe.deleteMany();
   }
 }

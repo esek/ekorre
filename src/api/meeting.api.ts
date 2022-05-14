@@ -3,7 +3,7 @@ import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.er
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { MeetingDocumentType, MeetingType } from '@generated/graphql';
-import { Prisma, PrismaClient, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
+import { Prisma, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
 
 import prisma from './prisma';
 

@@ -1,6 +1,7 @@
 import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
+import { devGuard } from '@/util';
 import { PrismaApiKey } from '@prisma/client';
 import { randomUUID } from 'crypto';
 
@@ -75,9 +76,7 @@ export class ApiKeyAPI {
   }
 
   async clear() {
-    if (!config.DEV) {
-      throw new ServerError('Kan inte ta bort API nycklar i produktion');
-    }
+    devGuard('Kan inte ta bort API nycklar i produktion');
 
     await prisma.prismaApiKey.deleteMany();
   }

@@ -3,6 +3,7 @@ import config from '@/config';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { post } from '@/resolvers';
+import { devGuard } from '@/util';
 import { NominationAnswer } from '@generated/graphql';
 import {
   Prisma,
@@ -637,13 +638,11 @@ export class ElectionAPI {
    * Clear all data related to elections from the database
    */
   async clear() {
-    if (config.DEV) {
-      await prisma.prismaElectable.deleteMany();
-      await prisma.prismaProposal.deleteMany();
-      await prisma.prismaNomination.deleteMany();
-      await prisma.prismaElection.deleteMany();
-    } else {
-      throw new ServerError('Cannot clear DB in production');
-    }
+    devGuard('Cannot clear DB in production');
+
+    await prisma.prismaElectable.deleteMany();
+    await prisma.prismaProposal.deleteMany();
+    await prisma.prismaNomination.deleteMany();
+    await prisma.prismaElection.deleteMany();
   }
 }

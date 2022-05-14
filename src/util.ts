@@ -106,6 +106,13 @@ export const hasAuthenticated = async (ctx: Context): Promise<void> => {
   await ctx.getAccess();
 };
 
+/**
+ * Raises a `ServerError` if called in production. To be used in dangerous
+ * dev utils.
+ * 
+ * @param message Message to use in `ServerError`
+ * @throws {ServerError} If used in production
+ */
 export const devGuard = (message = 'Cannot do that in production'): void => {
   if (!config.DEV) {
     throw new ServerError(message);
