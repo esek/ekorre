@@ -32,7 +32,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await api.clear();
-  await Promise.all([prisma.prismaFile.deleteMany(), deleteDummyUser()]);
+  await Promise.all([prisma.prismaFile.delete({ where: { id: DUMMY_FILE.id }}), deleteDummyUser()]);
 });
 
 test('creating valid VTM/HTM/VM specifying year but not number', async () => {

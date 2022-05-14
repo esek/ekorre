@@ -38,6 +38,8 @@ afterEach(async () => {
 
 afterAll(async () => {
   await api.deleteUser(mockNewUser0.username);
+  const allUsers = await api.searchUser('');
+  console.log(allUsers.length);
 });
 
 test('create new valid user without email', async () => {
@@ -161,8 +163,10 @@ test('search for users by username that exists', async () => {
   )}`;
   const mockUsr: NewUser = { ...mockNewUser1, username: sharedUsername };
   await api.createUser(mockUsr);
+
   expect((await api.searchUser('nouserhasthis')).length).toBe(0);
   expect((await api.searchUser(mockNewUser0.username)).length).toBe(1);
+
   expect((await api.searchUser(sharedUsername.substring(0, 2))).length).toBe(2);
   await api.deleteUser(sharedUsername);
 });

@@ -58,9 +58,6 @@ afterEach(async () => {
       postname: np.name
     }
   });
-});
-
-afterAll(async () => {
   await removeDummyUser();
 });
 
