@@ -26,7 +26,7 @@ class EmergencyContactAPI {
    * @param phone Phone number of the contact
    * @param type Type of emergency contact
    * @throws {ServerError} If the contact could not be added
-   * @returns 
+   * @returns ID of the newly created emergency contact
    */
   async addEmergencyContact(
     username: string,
