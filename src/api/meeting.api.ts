@@ -3,7 +3,7 @@ import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.er
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { MeetingDocumentType, MeetingType } from '@generated/graphql';
-import { Prisma, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
+import { Prisma, PrismaClient, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
 
 import prisma from './prisma';
 
@@ -172,24 +172,37 @@ export class MeetingAPI {
     fileType: MeetingDocumentType,
   ): Promise<boolean> {
     const d = this.createDataForMeetingType(fileType, fileId);
-    const w = this.createDataForMeetingType(fileType, undefined);
+    const w = this.createDataForMeetingType(fileType, { 'not': null });
 
-    try {
-      await prisma.prismaMeeting.update({
-        data: {
-          ...d,
-        },
+    // Vi kollar om detta dokumentet redan finns, och om det gör
+    // det så ger vi ett error (i en transaction för att undvika race conditions)
+    await prisma.$transaction(async (p) => {
+      const possibleDouble = await p.prismaMeeting.findFirst({
         where: {
           ...w,
           id: meetingId,
         },
       });
-      return true;
-    } catch {
-      throw new ServerError(
-        `Antingen finns detta möte inte, eller så finns dokument av typen ${fileType} redan på detta möte!`,
-      );
-    }
+
+      if (possibleDouble != null) {
+        throw new BadRequestError(`Detta möte har redan en fil av typen ${fileType}`);
+      }
+
+      try {
+        await p.prismaMeeting.update({
+          data: {
+            ...d,
+          },
+          where: {
+            id: meetingId,
+          },
+        });
+      } catch {
+        throw new ServerError('Detta möte verkar inte finnas!');
+      }
+    });
+
+    return true;
   }
 
   /**
@@ -225,13 +238,15 @@ export class MeetingAPI {
   }
 
   /**
-   * Creates a data object for updating using Prisma.
+   * Creates a data object for updating using Prisma, by binding a file type to
+   * the correct reference (i.e. `MeetingDocumentType.Summons` -> `{ refSummons: content }`)
+   *
    * @param fileType The type of file for the meeting
    * @param content Either `fileId` or null if the file is to be removed, or undefined if checking if document exists
    */
   private createDataForMeetingType(
     fileType: MeetingDocumentType,
-    content: string | null | undefined,
+    content: string | { not : string | null } | null | undefined,
   ) {
     let data = {};
     switch (fileType) {

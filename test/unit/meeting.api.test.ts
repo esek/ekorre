@@ -163,11 +163,10 @@ test('adding file to meeting', async () => {
 test('adding duplicate file to meeting', async () => {
   await api.createMeeting(MeetingType.Sm, 1, 2021);
   const { id } = (await api.getAllMeetings())[0];
-  // TODO: Detta failar p.g.a. nullcheck i databasen för dubbletter ej funkar
   await api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Protocol);
   await expect(
     api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Protocol),
-  ).rejects.toThrowError(ServerError);
+  ).rejects.toThrowError(BadRequestError);
 });
 
 test('removing document from meeting', async () => {
