@@ -70,8 +70,8 @@ export type ArticleTag = {
 
 /** News are the ones to be used by a website newsreel */
 export enum ArticleType {
-  News = 'NEWS',
-  Information = 'INFORMATION'
+  Information = 'INFORMATION',
+  News = 'NEWS'
 }
 
 export type CasLoginResponse = {
@@ -127,12 +127,12 @@ export type EmergencyContact = {
 };
 
 export enum EmergencyContactType {
+  Brother = 'BROTHER',
   Dad = 'DAD',
   Mom = 'MOM',
+  Other = 'OTHER',
   SignificantOther = 'SIGNIFICANT_OTHER',
-  Brother = 'BROTHER',
-  Sister = 'SISTER',
-  Other = 'OTHER'
+  Sister = 'SISTER'
 }
 
 /** Features are used for mapping access to a feature (ex article or election) for user or a post. This is not limited to efterphest */
@@ -193,10 +193,10 @@ export type GroupedPost = {
 };
 
 export type Hehe = {
-  number: Scalars['Int'];
-  year: Scalars['Int'];
-  uploader: User;
   file: File;
+  number: Scalars['Int'];
+  uploader: User;
+  year: Scalars['Int'];
 };
 
 export type HistoryEntry = {
@@ -234,27 +234,27 @@ export type Meeting = {
 };
 
 export enum MeetingDocumentType {
-  /** Kallelse */
-  Summons = 'summons',
+  /** Bilaga */
+  Appendix = 'appendix',
   /** Handlingar */
   Documents = 'documents',
   LateDocuments = 'lateDocuments',
   Protocol = 'protocol',
-  /** Bilaga */
-  Appendix = 'appendix'
+  /** Kallelse */
+  Summons = 'summons'
 }
 
 export enum MeetingType {
-  /** Styrelsemöte */
-  Sm = 'SM',
+  /** Extrainsatt Sektionsmöte */
+  Extra = 'Extra',
   /** Höstterminsmöte */
   Htm = 'HTM',
+  /** Styrelsemöte */
+  Sm = 'SM',
   /** Valmöte */
   Vm = 'VM',
   /** Vårterminsmöte */
-  Vtm = 'VTM',
-  /** Extrainsatt Sektionsmöte */
-  Extra = 'Extra'
+  Vtm = 'VTM'
 }
 
 /** We don't need every part; It should already exist */
@@ -358,7 +358,7 @@ export type MutationAddEmergencyContactArgs = {
 
 
 export type MutationAddFileToMeetingArgs = {
-  fileId: Scalars['Int'];
+  fileId: Scalars['String'];
   fileType: MeetingDocumentType;
   meetingId: Scalars['Int'];
 };
@@ -626,9 +626,9 @@ export type Nomination = {
 };
 
 export enum NominationAnswer {
-  Yes = 'YES',
   No = 'NO',
-  NotAnswered = 'NOT_ANSWERED'
+  NotAnswered = 'NOT_ANSWERED',
+  Yes = 'YES'
 }
 
 
@@ -1013,11 +1013,11 @@ export type QueryUtskottArgs = {
 };
 
 export type SendEmailOptions = {
-  to: Array<Scalars['String']>;
+  body?: Maybe<Scalars['String']>;
+  overrides?: Maybe<Scalars['Object']>;
   subject: Scalars['String'];
   template?: Maybe<Scalars['String']>;
-  overrides?: Maybe<Scalars['Object']>;
-  body?: Maybe<Scalars['String']>;
+  to: Array<Scalars['String']>;
 };
 
 export enum SortOrder {
@@ -1160,13 +1160,11 @@ export type ResolversTypes = ResolversObject<{
   AccessResourceType: AccessResourceType;
   AccessType: AccessType;
   ApiKey: ResolverTypeWrapper<ApiKeyResponse>;
-  String: ResolverTypeWrapper<Scalars['String']>;
   Article: ResolverTypeWrapper<ArticleResponse>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
   ArticleTag: ResolverTypeWrapper<ArticleTag>;
   ArticleType: ArticleType;
-  CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Door: Door;
@@ -1177,15 +1175,16 @@ export type ResolversTypes = ResolversObject<{
   Feature: Feature;
   FeatureInfo: ResolverTypeWrapper<FeatureInfo>;
   File: ResolverTypeWrapper<FileResponse>;
-  ID: ResolverTypeWrapper<Scalars['ID']>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   FileType: FileType;
+  Float: ResolverTypeWrapper<Scalars['Float']>;
   GroupedPost: ResolverTypeWrapper<GroupedPost>;
   Hehe: ResolverTypeWrapper<HeheResponse>;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
+  ID: ResolverTypeWrapper<Scalars['ID']>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   Me: ResolverTypeWrapper<Me>;
-  Float: ResolverTypeWrapper<Scalars['Float']>;
   Meeting: ResolverTypeWrapper<MeetingResponse>;
   MeetingDocumentType: MeetingDocumentType;
   MeetingType: MeetingType;
@@ -1204,6 +1203,7 @@ export type ResolversTypes = ResolversObject<{
   Query: ResolverTypeWrapper<{}>;
   SendEmailOptions: SendEmailOptions;
   SortOrder: SortOrder;
+  String: ResolverTypeWrapper<Scalars['String']>;
   UpdateUser: UpdateUser;
   User: ResolverTypeWrapper<User>;
   UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
@@ -1215,12 +1215,10 @@ export type ResolversParentTypes = ResolversObject<{
   Access: Access;
   AccessInput: AccessInput;
   ApiKey: ApiKeyResponse;
-  String: Scalars['String'];
   Article: ArticleResponse;
-  Int: Scalars['Int'];
   ArticleTag: ArticleTag;
-  CasLoginResponse: CasLoginResponse;
   Boolean: Scalars['Boolean'];
+  CasLoginResponse: CasLoginResponse;
   Date: Scalars['Date'];
   DateTime: Scalars['DateTime'];
   DoorInfo: DoorInfo;
@@ -1228,14 +1226,15 @@ export type ResolversParentTypes = ResolversObject<{
   EmergencyContact: EmergencyContact;
   FeatureInfo: FeatureInfo;
   File: FileResponse;
-  ID: Scalars['ID'];
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
+  Float: Scalars['Float'];
   GroupedPost: GroupedPost;
   Hehe: HeheResponse;
   HistoryEntry: HistoryEntry;
+  ID: Scalars['ID'];
+  Int: Scalars['Int'];
   Me: Me;
-  Float: Scalars['Float'];
   Meeting: MeetingResponse;
   ModifyArticle: ModifyArticle;
   ModifyPost: ModifyPost;
@@ -1249,6 +1248,7 @@ export type ResolversParentTypes = ResolversObject<{
   Proposal: ProposalResponse;
   Query: {};
   SendEmailOptions: SendEmailOptions;
+  String: Scalars['String'];
   UpdateUser: UpdateUser;
   User: User;
   UserPostHistoryEntry: UserPostHistoryEntry;
@@ -1371,10 +1371,10 @@ export type GroupedPostResolvers<ContextType = Context, ParentType extends Resol
 }>;
 
 export type HeheResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Hehe'] = ResolversParentTypes['Hehe']> = ResolversObject<{
-  number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  uploader?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType>;
+  number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  uploader?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

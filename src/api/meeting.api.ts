@@ -168,7 +168,7 @@ export class MeetingAPI {
    */
   async addFileToMeeting(
     meetingId: number,
-    fileId: number,
+    fileId: string,
     fileType: MeetingDocumentType,
   ): Promise<boolean> {
     const d = this.createDataForMeetingType(fileType, fileId);
@@ -246,7 +246,7 @@ export class MeetingAPI {
    */
   private createDataForMeetingType(
     fileType: MeetingDocumentType,
-    content: string | number | { not : string | null } | null | undefined,
+    content: string | { not : string | null } | null | undefined,
   ) {
     let data = {};
     switch (fileType) {
