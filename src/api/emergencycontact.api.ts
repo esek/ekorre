@@ -18,18 +18,28 @@ class EmergencyContactAPI {
     return contacts;
   }
 
+  /**
+   * Adds a new emergency contact for a user, returning
+   * the created contact ID if successfull
+   * @param username Username of user with this contact
+   * @param name Name of the contact
+   * @param phone Phone number of the contact
+   * @param type Type of emergency contact
+   * @throws {ServerError} If the contact could not be added
+   * @returns 
+   */
   async addEmergencyContact(
     username: string,
     name: string,
     phone: string,
     type: EmergencyContactType,
-  ): Promise<boolean> {
+  ): Promise<number> {
     try {
-      await prisma.prismaEmergencyContact.create({
+      const { id } = await prisma.prismaEmergencyContact.create({
         data: { name, phone, type, refUser: username },
       });
 
-      return true;
+      return id;
     } catch (err) {
       logger.error(`Emergency contact could not be created: ${JSON.stringify(err)}`);
       throw new ServerError('Kunde inte lägga till nödkontakt');

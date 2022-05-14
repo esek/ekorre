@@ -1,5 +1,5 @@
 type Mutation {
-	addEmergencyContact(name: String!, phone: String!, type: EmergencyContactType!): Boolean! 
+	addEmergencyContact(name: String!, phone: String!, type: EmergencyContactType!): Int! 
 	removeEmergencyContact(id: Int!): Boolean!
 }
 

@@ -168,11 +168,11 @@ export class MeetingAPI {
    */
   async addFileToMeeting(
     meetingId: number,
-    fileId: string,
+    fileId: number,
     fileType: MeetingDocumentType,
   ): Promise<boolean> {
     const d = this.createDataForMeetingType(fileType, fileId);
-    const w = this.createDataForMeetingType(fileType, { 'not': null });
+    const w = this.createDataForMeetingType(fileType, { not: null });
 
     // Vi kollar om detta dokumentet redan finns, och om det gör
     // det så ger vi ett error (i en transaction för att undvika race conditions)
@@ -246,7 +246,7 @@ export class MeetingAPI {
    */
   private createDataForMeetingType(
     fileType: MeetingDocumentType,
-    content: string | { not : string | null } | null | undefined,
+    content: string | number | { not : string | null } | null | undefined,
   ) {
     let data = {};
     switch (fileType) {
