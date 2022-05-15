@@ -279,38 +279,40 @@ export class ElectionAPI {
     electables: number[],
     nominationsHidden: boolean,
   ): Promise<number> {
-    // Vi försäkrar oss om att det senaste valet är stängt
-    const lastElection = (await this.getLatestElections(1))[0];
-    if (lastElection != null && (lastElection?.open || lastElection?.closedAt == null)) {
-      throw new BadRequestError(
-        'Det finns ett öppet val, eller ett val som väntar på att bli öppnat redan.',
-      );
-    }
+    return prisma.$transaction(async (p) => {
+      // Vi försäkrar oss om att det senaste valet är stängt
+      const lastElection = (await this.getLatestElections(1))[0];
+      if (lastElection != null && (lastElection?.open || lastElection?.closedAt == null)) {
+        throw new BadRequestError(
+          'Det finns ett öppet val, eller ett val som väntar på att bli öppnat redan.',
+        );
+      }
 
-    try {
-      const createdElection = await prisma.prismaElection.create({
-        data: {
-          refCreator: creatorUsername,
-          nominationsHidden,
+      try {
+        const createdElection = await p.prismaElection.create({
+          data: {
+            refCreator: creatorUsername,
+            nominationsHidden,
 
-          // Nested create
-          electables: {
-            createMany: {
-              data: electables.map((e) => {
-                return {
-                  refPost: e,
-                };
-              }),
+            // Nested create
+            electables: {
+              createMany: {
+                data: electables.map((e) => {
+                  return {
+                    refPost: e,
+                  };
+                }),
+              },
             },
           },
-        },
-      });
+        });
 
-      return createdElection.id;
-    } catch (err) {
-      logger.error(`Error when trying to create new election:\n\t${JSON.stringify(err)}`);
-      throw new ServerError('Kunde inte skapa elections eller electables');
-    }
+        return createdElection.id;
+      } catch (err) {
+        logger.error(`Error when trying to create new election:\n\t${JSON.stringify(err)}`);
+        throw new ServerError('Kunde inte skapa elections eller electables');
+      }
+      });
   }
 
   /**
