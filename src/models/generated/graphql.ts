@@ -285,7 +285,7 @@ export type Mutation = {
   activatePost: Scalars['Boolean'];
   addArticle: Article;
   addElectables: Scalars['Boolean'];
-  addEmergencyContact: Scalars['Int'];
+  addEmergencyContact: EmergencyContact;
   addFileToMeeting: Scalars['Boolean'];
   addHehe: Scalars['Boolean'];
   addMeeting: Meeting;
@@ -1411,7 +1411,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   activatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationActivatePostArgs, 'id'>>;
   addArticle?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddElectablesArgs, 'electionId'>>;
-  addEmergencyContact?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationAddEmergencyContactArgs, 'name' | 'phone' | 'type'>>;
+  addEmergencyContact?: Resolver<ResolversTypes['EmergencyContact'], ParentType, ContextType, RequireFields<MutationAddEmergencyContactArgs, 'name' | 'phone' | 'type'>>;
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'fileId' | 'fileType' | 'meetingId'>>;
   addHehe?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddHeheArgs, 'fileId' | 'number' | 'year'>>;
   addMeeting?: Resolver<ResolversTypes['Meeting'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
