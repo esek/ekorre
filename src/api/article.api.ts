@@ -2,9 +2,9 @@
 import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { PrismaExtendedArticle } from '@/models/prisma';
-import { stripObject, toUTC } from '@/util';
+import { parseSlug, stripObject, toUTC } from '@/util';
 import { ModifyArticle, NewArticle } from '@generated/graphql';
-import { Prisma, PrismaArticle, PrismaArticleType } from '@prisma/client';
+import { Prisma, PrismaArticleType } from '@prisma/client';
 
 import prisma from './prisma';
 
@@ -97,14 +97,7 @@ export class ArticleAPI {
     let dbId = id;
 
     if (slug) {
-      // Fetches the last number from a string, ex: `article-with-long-123-slug-7`, gives `7`
-      // (last part of slug is ID)
-      const regex = RegExp(/(\d+)[^-]*$/).exec(slug);
-
-      if (regex?.length) {
-        const [match] = regex;
-        dbId = Number.parseInt(match, 10);
-      }
+      dbId = parseSlug(slug);
     }
 
     if (dbId == null) {

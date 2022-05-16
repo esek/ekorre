@@ -1,8 +1,9 @@
 /* eslint-disable no-multi-str */
 import { ArticleResponse } from '@/models/mappers';
+import { PrismaExtendedArticle } from '@/models/prisma';
 import { ArticleType } from '@generated/graphql';
-import { PrismaArticle } from '@prisma/client';
 import { articleReducer } from '@reducer/article';
+import { parseSlug } from '@/util';
 
 const USERNAME = 'aa0000bb-s';
 const BODY = 'This is a test body';
@@ -25,9 +26,10 @@ const expected: ArticleResponse = {
   },
   body: BODY,
   slug: 'sju-sjosjuka-tester-testade-slugs-1337',
+  tags: ['tag1'],
 };
 
-const dummy: PrismaArticle = {
+const dummy: PrismaExtendedArticle = {
   body: BODY,
   signature: 'George Bush',
   articleType: ArticleType.News,
@@ -37,13 +39,23 @@ const dummy: PrismaArticle = {
   id: 1337,
   createdAt: CREATE_DATE,
   updatedAt: UPDATE_DATE,
+  tags: [
+    {
+      tag: 'tag1',
+      id: 0,
+      refArticle: 0,
+    },
+  ],
 };
 
-const expectedDaSlug = 'sju-sjosjuka-tester-testade-slugs-1337';
+
+test('slug parsing', () => {
+  expect(parseSlug(expected.slug!)).toBe(expected.id);
+});
 
 test('slug generation', () => {
   const reduced = articleReducer(dummy);
-  expect(reduced.slug).toBe(expectedDaSlug);
+  expect(reduced.slug).toBe(expected.slug);
 });
 
 test('slug generation with crazy title', () => {
