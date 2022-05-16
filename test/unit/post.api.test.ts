@@ -62,7 +62,7 @@ afterEach(async () => {
 });
 
 test('getting all posts', async () => {
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   const allPosts = await api.getPosts();
@@ -70,7 +70,7 @@ test('getting all posts', async () => {
 });
 
 test('getting all posts from utskott', async () => {
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   const allPosts = await api.getPostsFromUtskott(np.utskott);
@@ -79,7 +79,7 @@ test('getting all posts from utskott', async () => {
 
 test('getting history entries for user', async () => {
   // Vi skapar först en post och lägger till en user på den
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   const ok = await api.addUsersToPost([dummyUser.username], postId);
@@ -97,7 +97,7 @@ test('getting history entries for user', async () => {
 });
 
 test('adding post', async () => {
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   const res = await api.getPost(postId);
@@ -111,7 +111,7 @@ test('adding post', async () => {
 });
 
 test('adding duplicate post', async () => {
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   await expect(api.createPost(np)).rejects.toThrowError('Denna posten finns redan');
@@ -124,7 +124,7 @@ test('adding post with ea type and defined number', async () => {
     spots: 20, // Borde bli -1 (obegränsat) av API:n
   };
 
-  const postId = await api.createPost(localNp);
+  const { id: postId } = await api.createPost(localNp);
   expect(postId).toEqual(expect.any(Number));
 
   const res = await api.getPost(postId);
@@ -144,7 +144,7 @@ test('adding post with ea type and undefined number', async () => {
     spots: undefined, // Borde bli -1 (obegränsat) av API:n
   };
 
-  const postId = await api.createPost(localNp);
+  const { id: postId } = await api.createPost(localNp);
   expect(postId).toEqual(expect.any(Number));
 
   const res = await api.getPost(postId);
@@ -164,7 +164,7 @@ test('adding post with n type and defined number', async () => {
     spots: 20,
   };
 
-  const postId = await api.createPost(localNp);
+  const { id: postId } = await api.createPost(localNp);
   expect(postId).toEqual(expect.any(Number));
 
   const res = await api.getPost(postId);
@@ -196,7 +196,7 @@ test('adding post with n type, defined number, and undefined description and int
     interviewRequired: undefined, // Borde defaulta till false
   };
 
-  const postId = await api.createPost(localNp);
+  const { id: postId } = await api.createPost(localNp);
   expect(postId).toEqual(expect.any(Number));
 
   const res = await api.getPost(postId);
@@ -225,7 +225,7 @@ test('adding post with n type and undefined number', async () => {
 });
 
 test('adding user to post', async () => {
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   const ok = await api.addUsersToPost([dummyUser.username], postId);
@@ -242,7 +242,7 @@ test('adding user to post', async () => {
 });
 
 test('deleting user from post', async () => {
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   const start = new Date();
@@ -269,7 +269,7 @@ test('modifying post in allowed way', async () => {
     interviewRequired: true,
   };
 
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   const ok = await api.modifyPost({ id: postId, ...localMp });
@@ -292,7 +292,7 @@ test('modifying post in allowed way', async () => {
 });
 
 test('modyfing post without touching neither PostType nor spots', async () => {
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   const localMp: ModifyPost = {
@@ -318,7 +318,7 @@ test('modyfing post without touching neither PostType nor spots', async () => {
 });
 
 test('increasing spots with postType set to u', async () => {
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   const localMp: ModifyPost = {
@@ -342,7 +342,7 @@ test('increasing spots with postType set to u', async () => {
 });
 
 test('changing postType to e.a. from u without changing spots', async () => {
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
 
   const localMp: ModifyPost = {
@@ -366,7 +366,7 @@ test('changing postType to e.a. from u without changing spots', async () => {
 });
 
 test('get current number of volunteers', async () => {
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   await api.addUsersToPost([dummyUser.username], postId);
 
   // Vår dummy-db innehåller några också
@@ -377,7 +377,7 @@ test('get number of volunteers in year 1700', async () => {
   const start = new Date('1700-03-13');
   const end = new Date('1700-12-31');
   expect(await api.getNumberOfVolunteers(start)).toBe(0);
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   await api.addUsersToPost([dummyUser.username], postId, start, end);
 
   // Number of volunteers
@@ -391,7 +391,7 @@ test('get number of volunteers in year 1700', async () => {
 test('set end time of history entry', async () => {
   const start = new Date('1666-03-13');
   const end = new Date('1666-12-31');
-  const postId = await api.createPost(np);
+  const { id: postId } = await api.createPost(np);
   await api.addUsersToPost([dummyUser.username], postId, start);
 
   {
