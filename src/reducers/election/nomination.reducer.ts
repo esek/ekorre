@@ -1,8 +1,9 @@
 import type { NominationResponse } from '@/models/mappers';
+import { NominationAnswer } from '@generated/graphql';
 import type { PrismaNomination } from '@prisma/client';
 
 export function nominationReduce(dbNomination: PrismaNomination): NominationResponse {
-  const { refUser, refPost, ...reduced } = dbNomination;
+  const { refUser, refPost, answer, ...reduced } = dbNomination;
 
   const nr = {
     ...reduced,
@@ -12,6 +13,7 @@ export function nominationReduce(dbNomination: PrismaNomination): NominationResp
     post: {
       id: refPost,
     },
+    answer: answer as NominationAnswer, // Prisma enum to graphql enum
   };
 
   return nr;

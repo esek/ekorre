@@ -71,7 +71,7 @@ type Proposal {
 type Nomination {
   user: User!
   post: Post!
-  accepted: NominationAnswer!
+  answer: NominationAnswer!
 }
 
 enum NominationAnswer {

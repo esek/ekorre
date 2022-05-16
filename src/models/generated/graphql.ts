@@ -620,7 +620,7 @@ export type NewUser = {
 };
 
 export type Nomination = {
-  accepted: NominationAnswer;
+  answer: NominationAnswer;
   post: Post;
   user: User;
 };
@@ -1457,7 +1457,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
 }>;
 
 export type NominationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Nomination'] = ResolversParentTypes['Nomination']> = ResolversObject<{
-  accepted?: Resolver<ResolversTypes['NominationAnswer'], ParentType, ContextType>;
+  answer?: Resolver<ResolversTypes['NominationAnswer'], ParentType, ContextType>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
