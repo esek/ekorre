@@ -37,8 +37,8 @@ export const SET_USER_ACCESS_MUTATION = `
 `;
 
 export const SET_POST_ACCESS_MUTATION = `
-	mutation ($postname: String!, $access: AccessInput!) {
-		setPostAccess(postname: $postname, access: $access)
+	mutation ($postId: Int!, $access: AccessInput!) {
+		setPostAccess(postId: $postId, access: $access)
 	}
 `;
 
