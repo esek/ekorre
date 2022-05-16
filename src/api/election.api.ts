@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/indent */
-import config from '@/config';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { post } from '@/resolvers';
 import { devGuard } from '@/util';
 import { NominationAnswer } from '@generated/graphql';
 import {
-  Prisma,
   PrismaElection,
   PrismaNomination,
   PrismaNominationAnswer,
@@ -17,33 +14,7 @@ import prisma from './prisma';
 
 const logger = Logger.getLogger('ElectionAPI');
 
-type RawDbNomination = {
-  ref_election: number;
-  ref_post: number;
-  answer: PrismaNominationAnswer;
-  ref_user: string;
-};
-
 export class ElectionAPI {
-  /**
-   * Converts raw nomination rows to `PrismaNomination[]`
-   */
-  reduceRawDbNominations(rows: RawDbNomination[]): PrismaNomination[] {
-    const res: PrismaNomination[] = rows.map((r) => {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      const { ref_election, ref_post, ref_user, ...reduced } = r;
-
-      return {
-        ...reduced,
-        refElection: ref_election,
-        refPost: ref_post,
-        refUser: ref_user,
-      };
-    });
-
-    return res;
-  }
-
   /**
    * @param limit Gräns på antal möten. Om null ges alla möten
    * @returns Senaste mötet som skapades
@@ -153,7 +124,7 @@ export class ElectionAPI {
         where: {
           refElection: electionId,
           answer,
-        }
+        },
       }),
       prisma.prismaElectable.findMany({
         select: {
@@ -161,7 +132,7 @@ export class ElectionAPI {
         },
         where: {
           refElection: electionId,
-        }
+        },
       }),
     ]);
 
@@ -192,7 +163,7 @@ export class ElectionAPI {
           refElection: electionId,
           refUser: username,
           answer,
-        }
+        },
       }),
       prisma.prismaElectable.findMany({
         select: {
@@ -200,7 +171,7 @@ export class ElectionAPI {
         },
         where: {
           refElection: electionId,
-        }
+        },
       }),
     ]);
 
@@ -226,7 +197,7 @@ export class ElectionAPI {
         where: {
           refElection: electionId,
           refPost: postId,
-        }
+        },
       }),
       prisma.prismaElectable.findMany({
         select: {
@@ -234,7 +205,7 @@ export class ElectionAPI {
         },
         where: {
           refElection: electionId,
-        }
+        },
       }),
     ]);
 
