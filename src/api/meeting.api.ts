@@ -11,9 +11,9 @@ const logger = Logger.getLogger('MeetingAPI');
 
 export class MeetingAPI {
   /**
-   *
-   * @param limit
-   * @param sortOrder
+   * Hämtar alla möten efter en sortering.
+   * @param limit Begränsning på hur många möten som ska hämtas
+   * @param sortOrder Sorteringsordning för hämtningen
    */
   async getAllMeetings(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<PrismaMeeting[]> {
     const m = await prisma.prismaMeeting.findMany({
@@ -39,6 +39,11 @@ export class MeetingAPI {
     return m;
   }
 
+  /**
+   * Hämta flertalet möte ur databasen, genom en fördefinierad prisma-query
+   * @param params En `where`-baserad query för Prisma
+   * @returns 
+   */
   async getMultipleMeetings(params: Prisma.PrismaMeetingFindManyArgs): Promise<PrismaMeeting[]> {
     const m = await prisma.prismaMeeting.findMany(params);
 
@@ -103,42 +108,46 @@ export class MeetingAPI {
       safeNbr = number;
     }
 
-    // Kontrollera att vi inte har dubblettmöte
-    const possibleDouble = await prisma.prismaMeeting.findFirst({
-      where: {
-        type: type === undefined ? undefined : (type as PrismaMeetingType),
-        number: safeNbr,
-        year: safeYear,
-      },
-    });
-
-    if (possibleDouble != null) {
-      throw new BadRequestError('Mötet finns redan!');
-    }
-
-    try {
-      const meeting = await prisma.prismaMeeting.create({
-        data: {
-          type: type as PrismaMeetingType,
+    // Vi vill att dessa queries och checkar ska köras direkt
+    // efter varandra i databasen, så att inget smiter imellan
+    return prisma.$transaction(async (p) => {
+      // Kontrollera att vi inte har dubblettmöte
+      const possibleDouble = await p.prismaMeeting.findFirst({
+        where: {
+          type: type === undefined ? undefined : (type as PrismaMeetingType),
           number: safeNbr,
           year: safeYear,
         },
       });
 
-      if (meeting == null) {
-        throw new ServerError('Mötet kunde inte skapas!');
+      if (possibleDouble != null) {
+        throw new BadRequestError('Mötet finns redan!');
       }
 
-      return meeting;
-    } catch (err) {
-      const logStr = `Failed to create meeting with values: ${Logger.pretty({
-        type,
-        number,
-        year,
-      })} due to error: ${JSON.stringify(err)}`;
-      logger.error(logStr);
-      throw new ServerError('Attans! Mötet kunde inte skapas!');
-    }
+      try {
+        const meeting = await p.prismaMeeting.create({
+          data: {
+            type: type as PrismaMeetingType,
+            number: safeNbr,
+            year: safeYear,
+          },
+        });
+
+        if (meeting == null) {
+          throw new ServerError('Mötet kunde inte skapas!');
+        }
+
+        return meeting;
+      } catch (err) {
+        const logStr = `Failed to create meeting with values: ${Logger.pretty({
+          type,
+          number,
+          year,
+        })} due to error: ${JSON.stringify(err)}`;
+        logger.error(logStr);
+        throw new ServerError('Attans! Mötet kunde inte skapas!');
+      }
+    });
   }
 
   /**
