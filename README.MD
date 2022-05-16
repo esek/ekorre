@@ -3,13 +3,7 @@
 Ekorre är sektionens nya backend driven av Node och GraphQL och
 skriven i TypeScript.
 
-TODO: Uppdatera för docker compose, prisma och postgres
-
-+ Hur man installerar docker compose
-+ Hur man kör docker compose (`sudo docker compose up`)
-+ Hur man skapar schema i databasen (`npx prisma db push`)
-+ Hur man seedar databasen med prisma (`npx prisma db seed`)
-+ Att de två ovanstående ersatts med `npm run prisma:reset` som dessutom rensar databasen
+Förhoppningsvis har någon hållit denna README:n uppdaterad...
 
 ## Hur startar jag?
 
