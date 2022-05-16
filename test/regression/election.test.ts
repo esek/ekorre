@@ -43,12 +43,15 @@ afterEach(async () => {
 
 test('getting nominations when nominations are hidden', async () => {
   const electionId = await api.createElection('aa0000bb-s', ['macapar', 'teknokrat'], true);
+
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', ['macapar'])).resolves.toBeTruthy();
   await expect(api.nominate('bb1111cc-s', ['macapar', 'macapar'])).resolves.toBeTruthy();
+
   await expect(
     api.respondToNomination('aa0000bb-s', 'macapar', NominationAnswer.Yes),
   ).resolves.toBeTruthy();
+
   expect((await api.getAllNominations(electionId, NominationAnswer.Yes)).length).toBeGreaterThan(0);
 
   const electionData = {

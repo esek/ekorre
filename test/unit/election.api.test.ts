@@ -96,8 +96,10 @@ test('getting open election', async () => {
 
 test('getting multiple elections', async () => {
   await addDummyElections('aa0000bb-s', true, 3);
+
   const latestElections = await api.getLatestElections(3);
   const electionIds = latestElections.map((e) => e.id);
+
   const multipleElections = await api.getMultipleElections(electionIds);
   expect(latestElections.length).toEqual(multipleElections.length);
 
@@ -110,7 +112,7 @@ test('getting multiple meetings when none exists', async () => {
 });
 
 test('getting nominations for post', async () => {
-  const electionId = await api.createElection('bb1111cc-s', [1, 2, 3], false);
+  const { id: electionId } = await api.createElection('bb1111cc-s', [1, 2, 3], false);
   await api.openElection(electionId);
 
   await expect(api.nominate('aa0000bb-s', [1, 3])).resolves.toBeTruthy();
@@ -128,7 +130,7 @@ test('getting nominations for post', async () => {
 });
 
 test('nominations for non-electables are hidden', async () => {
-  const electionId = await api.createElection('bb1111cc-s', [], false);
+  const { id: electionId } = await api.createElection('bb1111cc-s', [], false);
   await prisma.prismaNomination.create({
     data: {
       refElection: electionId,
@@ -146,7 +148,7 @@ test('nominations for non-electables are hidden', async () => {
 });
 
 test('getting all nominations with specified answer', async () => {
-  const electionId = await api.createElection('bb1111cc-s', [1, 2, 3], false);
+  const { id: electionId } = await api.createElection('bb1111cc-s', [1, 2, 3], false);
   await api.openElection(electionId);
 
   // Nominera lite folk
@@ -184,7 +186,7 @@ test('getting all nominations with specified answer', async () => {
 });
 
 test('getting all nominations without specified answer', async () => {
-  const electionId = await api.createElection('bb1111cc-s', [1, 2, 3], false);
+  const { id: electionId } = await api.createElection('bb1111cc-s', [1, 2, 3], false);
   await api.openElection(electionId);
 
   // Nominera lite folk
@@ -225,7 +227,7 @@ test('getting all nominations without specified answer', async () => {
 });
 
 test('getting all nominations when none exists', async () => {
-  const electionId = await api.createElection('bb1111cc-s', [1, 2, 3], false);
+  const { id: electionId } = await api.createElection('bb1111cc-s', [1, 2, 3], false);
   await api.openElection(electionId);
 
   await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
@@ -235,7 +237,7 @@ test('getting all nominations when none exists', async () => {
 });
 
 test('getting all nominations for user with specified answer', async () => {
-  const electionId = await api.createElection('bb1111cc-s', [1, 2, 3], false);
+  const { id: electionId } = await api.createElection('bb1111cc-s', [1, 2, 3], false);
   await api.openElection(electionId);
 
   // Nominera lite folk
@@ -271,7 +273,7 @@ test('getting all nominations for user with specified answer', async () => {
 });
 
 test('getting all nominations for user without specified answer', async () => {
-  const electionId = await api.createElection('bb1111cc-s', [1, 2, 3], false);
+  const { id: electionId } = await api.createElection('bb1111cc-s', [1, 2, 3], false);
   await api.openElection(electionId);
 
   // Nominera lite folk
@@ -309,7 +311,7 @@ test('getting all nominations for user without specified answer', async () => {
 });
 
 test('getting all nominations for user when none exists', async () => {
-  const electionId = await api.createElection('bb1111cc-s', [1, 2, 3], false);
+  const { id: electionId } = await api.createElection('bb1111cc-s', [1, 2, 3], false);
   await api.openElection(electionId);
 
   await expect(api.getAllNominationsForUser(electionId, 'aa0000bb-s')).resolves.toHaveLength(0);
@@ -319,7 +321,7 @@ test('getting all nominations for user when none exists', async () => {
 });
 
 test('getting number of nominations', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2, 3], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2, 3], false);
   await api.openElection(electionId);
 
   // Nominera lite folk
@@ -331,7 +333,7 @@ test('getting number of nominations', async () => {
 });
 
 test('getting number of proposals', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await api.openElection(electionId);
 
   // Nominera lite folk
@@ -343,7 +345,7 @@ test('getting number of proposals', async () => {
 });
 
 test('getting all proposals', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await api.openElection(electionId);
 
   // Nominera lite folk
@@ -369,26 +371,26 @@ test('getting all proposals', async () => {
 });
 
 test('getting all proposals when none exists', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await api.openElection(electionId);
 
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
 
 test('getting all electables', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   const electables = await api.getAllElectables(electionId);
   expect(electables).toHaveLength(2);
   expect(electables).toEqual(expect.arrayContaining([1, 2]));
 });
 
 test('getting all electables when none exists', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
 });
 
 test('creating election returns its ID', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   const expectedElectionId = (await api.getLatestElections(1))[0].id;
   expect(electionId).toEqual(expectedElectionId);
 });
@@ -404,7 +406,7 @@ test('creating election with created, but never opened, previous election', asyn
 });
 
 test('creating election with previous created, opened, but not closed election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await api.openElection(electionId);
   await expect(api.createElection('bb1111cc-s', [], false)).rejects.toThrowError(BadRequestError);
 
@@ -415,7 +417,7 @@ test('creating election with previous created, opened, but not closed election',
 });
 
 test('creating election with previous created, opened and closed election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await api.openElection(electionId);
   await api.closeElection();
 
@@ -437,7 +439,7 @@ test('adding valid electables to non-existant election', async () => {
 });
 
 test('adding valid electables to election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
   await expect(api.addElectables(electionId, [1])).resolves.toBeTruthy();
   await expect(api.getAllElectables(electionId)).resolves.toEqual([1]);
@@ -450,19 +452,19 @@ test('adding valid electables to election', async () => {
 });
 
 test('adding mixed valid and non-valid electables to election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
   await expect(api.addElectables(electionId, [1, -1])).rejects.toThrowError(ServerError);
   await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
 });
 
 test('adding empty list of electables to election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.addElectables(electionId, [])).rejects.toThrowError(BadRequestError);
 });
 
 test('adding duplicate electables', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
 
   // I samma anrop
   await expect(api.addElectables(electionId, [1, 1])).rejects.toThrowError(ServerError);
@@ -479,14 +481,14 @@ test('removing valid electables from non-existant election', async () => {
 });
 
 test('removing valid electables from election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.getAllElectables(electionId)).resolves.toEqual(expect.arrayContaining([1, 2]));
   await expect(api.removeElectables(electionId, [1])).resolves.toBeTruthy();
   await expect(api.getAllElectables(electionId)).resolves.toEqual([2]);
 });
 
 test('removing mixed valid and non-valid electables from election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2, 3], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2, 3], false);
 
   await expect(api.getAllElectables(electionId)).resolves.toEqual(
     expect.arrayContaining([1, 2, 3]),
@@ -501,33 +503,33 @@ test('removing mixed valid and non-valid electables from election', async () => 
 });
 
 test('removing empty list of electables from election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
   await expect(api.removeElectables(electionId, [])).rejects.toThrowError(BadRequestError);
   await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
 });
 
 test('removing valid electable not in election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
   await expect(api.removeElectables(electionId, [1])).rejects.toThrowError(ServerError);
 });
 
 test('setting an empty array of electables in an existing election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.setElectables(electionId, [])).resolves.toBeTruthy();
   await expect(api.getAllElectables(electionId)).resolves.toHaveLength(0);
 });
 
 test('overriding existing electables', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.addElectables(electionId, [1, 2])).resolves.toBeTruthy();
   await expect(api.setElectables(electionId, [3])).resolves.toBeTruthy();
   await expect(api.getAllElectables(electionId)).resolves.toEqual([3]);
 });
 
 test('setting hidden nominations', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   expect((await api.getLatestElections(1))[0].nominationsHidden).toBeFalsy();
 
   // Faktiskt byte
@@ -548,7 +550,7 @@ test('opening non-existant election', async () => {
 });
 
 test('opening election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   let [election] = await api.getMultipleElections([electionId]);
   expect(election.openedAt).toBeNull();
   expect(election.open).toBeFalsy();
@@ -562,7 +564,7 @@ test('opening election', async () => {
 });
 
 test('opening already closed election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   let [election] = await api.getMultipleElections([electionId]);
   expect(election.open).toBeTruthy();
@@ -580,7 +582,7 @@ test('opening already closed election', async () => {
 });
 
 test('opening already opened election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   const [election] = await api.getMultipleElections([electionId]);
   expect(election).not.toBeNull();
@@ -616,7 +618,7 @@ test('closing multiple elections', async () => {
 });
 
 test('nominating already done nomination does not overwrite answer', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', [1, 2])).resolves.toBeTruthy();
 
@@ -664,28 +666,28 @@ test('nominating already done nomination does not overwrite answer', async () =>
 });
 
 test('nominating non-electable post', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', [-1])).rejects.toThrowError(BadRequestError);
   await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
 });
 
 test('nominating non-existant user', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('Not an user', [1])).rejects.toThrowError(ServerError);
   await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
 });
 
 test('nominating without postnames', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', [])).rejects.toThrowError(BadRequestError);
   await expect(api.getAllNominations(electionId)).resolves.toHaveLength(0);
 });
 
 test('nominating mixed valid and invalid postnames', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', [1, -1])).resolves.toBeTruthy();
   await expect(api.getAllNominations(electionId)).resolves.toEqual([
@@ -704,7 +706,7 @@ test('nominating with no open elections', async () => {
 });
 
 test('respond to nomination', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', [1, 2])).resolves.toBeTruthy();
   await expect(api.nominate('bb1111cc-s', [1])).resolves.toBeTruthy();
@@ -762,7 +764,7 @@ test('respond to nomination', async () => {
 });
 
 test('respond to non-existant nomination', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', [1])).resolves.toBeTruthy();
   await expect(api.respondToNomination('aa0000bb-s', 2, NominationAnswer.Yes)).rejects.toThrowError(
@@ -771,7 +773,7 @@ test('respond to non-existant nomination', async () => {
 });
 
 test('respond to valid nomination after election close', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
   await expect(api.nominate('aa0000bb-s', [1])).resolves.toBeTruthy();
   await expect(api.getAllNominations(electionId)).resolves.toEqual([
@@ -799,7 +801,7 @@ test('respond to valid nomination after election close', async () => {
 });
 
 test('proposing', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.propose(electionId, 'bb1111cc-s', 1)).resolves.toBeTruthy();
   await expect(api.getAllProposals(electionId)).resolves.toEqual([
@@ -812,28 +814,28 @@ test('proposing', async () => {
 });
 
 test('proposing non-existant user', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.propose(electionId, 'Not an user', 1)).rejects.toThrowError(ServerError);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
 
 test('proposing non-existant post', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.propose(electionId, 'bb1111cc-s', -1)).rejects.toThrowError(ServerError);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
 
 test('proposing non-existant election', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.propose(-1, 'bb1111cc-s', 1)).rejects.toThrowError(ServerError);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
 
 test('removing proposal', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.propose(electionId, 'bb1111cc-s', 1)).resolves.toBeTruthy();
   await expect(api.getAllProposals(electionId)).resolves.toEqual([
@@ -850,7 +852,7 @@ test('removing proposal', async () => {
 });
 
 test('removing non-existant proposal', async () => {
-  const electionId = await api.createElection('aa0000bb-s', [1, 2], false);
+  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
   await expect(api.removeProposal(electionId, 'aa0000bb-s', 1)).rejects.toThrowError(ServerError);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
