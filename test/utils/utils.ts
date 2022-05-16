@@ -1,3 +1,4 @@
+import { NOOP } from '@/models/base';
 import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
@@ -65,7 +66,6 @@ export const getRandomPostname = (): string => {
   return attemptedPostname;
 };
 
-type NOOP<T = void> = () => Promise<T>;
 const userApi = new UserAPI();
 const apiKeyApi = new ApiKeyAPI();
 const accessApi = new AccessAPI();
@@ -89,7 +89,7 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
  *
  * Jag ville göra detta till en klass men Blennow o Foobar klagade --Emil
  */
-export const genRandomUser = (access: Feature[]): [() => Promise<PrismaUser>, NOOP] => {
+export const genRandomUser = (access: Feature[] = []): [() => Promise<PrismaUser>, NOOP] => {
   let triesLeft = 10; // Recursion protection
 
   const ru: NewUser = {

@@ -11,3 +11,5 @@
  */
 
 export type StrictObject<TKey = string, TValue = unkonwn> = Record<TKey, TValue>;
+
+export type NOOP<T = void> = () => Promise<T>;
