@@ -296,7 +296,7 @@ export type Mutation = {
   closeElection: Scalars['Boolean'];
   createApiKey: Scalars['String'];
   createElection: Scalars['Int'];
-  createFolder: Scalars['Boolean'];
+  createFolder: File;
   createUser: Scalars['Boolean'];
   deactivatePost: Scalars['Boolean'];
   deleteApiKey: Scalars['Boolean'];
@@ -1422,7 +1422,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createApiKey?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateApiKeyArgs, 'description'>>;
   createElection?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
-  createFolder?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
+  createFolder?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
   createUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'id'>>;
   deleteApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteApiKeyArgs, 'key'>>;
