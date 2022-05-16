@@ -13,6 +13,9 @@ import {
 import { PrismaApiKeyAccess, PrismaIndividualAccess, PrismaPostAccess } from '@prisma/client';
 import { getRandomUsername } from '@test/utils/utils';
 
+// This test is in integrations because it dependes on many other units and is hard
+// to unit test.
+
 type UnionPrismaAccess = PrismaIndividualAccess & PrismaPostAccess & PrismaApiKeyAccess;
 
 const accessApi = new AccessAPI();
