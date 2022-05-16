@@ -154,7 +154,7 @@ export const genRandomPost = (): [() => Promise<number>, NOOP] => {
     }
 
     try {
-      createdPostId = (await postApi.createPost(rp)).id
+      createdPostId = (await postApi.createPost(rp)).id;
     } catch (err) {
       // If we against all odds have a double
       console.log('Attempt to create random post failed, trying again...');
