@@ -145,20 +145,31 @@ export class ElectionAPI {
     electionId: number,
     answer?: NominationAnswer,
   ): Promise<PrismaNomination[]> {
-    // TODO: Finns det ett sätt att göra detta på en query
-    // utan raw?
-    const aq = Prisma.sql`AND nominations.answer = ${answer}`;
+    // We want to make sure that we join these queries together as if they were one
+    // This is possible to do with a simple join in SQL, but I haven't found
+    // a way to do it in prisma, and this is nicer than $queryRaw for reliability
+    const [nominations, electables] = await prisma.$transaction([
+      prisma.prismaNomination.findMany({
+        where: {
+          refElection: electionId,
+          answer,
+        }
+      }),
+      prisma.prismaElectable.findMany({
+        select: {
+          refPost: true,
+        },
+        where: {
+          refElection: electionId,
+        }
+      }),
+    ]);
 
-    const n = await prisma.$queryRaw<RawDbNomination[]>`
-      SELECT *
-      FROM nominations
-      JOIN electables
-      USING (ref_election, ref_post)
-      WHERE nominations.ref_election = ${electionId}
-      ${answer != null ? aq : Prisma.empty}
-    `;
+    // Use set in hope that it is faster than O(n^2)
+    const electablePostIds = new Set(electables.map((e) => e.refPost));
 
-    return this.reduceRawDbNominations(n);
+    // We only want to return nominations that are electable
+    return nominations.filter((n) => electablePostIds.has(n.refPost));
   }
 
   /**
@@ -174,21 +185,30 @@ export class ElectionAPI {
     username: string,
     answer?: NominationAnswer,
   ): Promise<PrismaNomination[]> {
-    // TODO: Finns det ett sätt att göra detta på en query
-    // utan raw?
-    const aq = Prisma.sql`AND nominations.answer = ${answer}`;
+    // Explanatory comments in `getAllNominations`
+    const [nominations, electables] = await prisma.$transaction([
+      prisma.prismaNomination.findMany({
+        where: {
+          refElection: electionId,
+          refUser: username,
+          answer,
+        }
+      }),
+      prisma.prismaElectable.findMany({
+        select: {
+          refPost: true,
+        },
+        where: {
+          refElection: electionId,
+        }
+      }),
+    ]);
 
-    const n = await prisma.$queryRaw<RawDbNomination[]>`
-      SELECT *
-      FROM nominations
-      JOIN electables
-      USING (ref_election, ref_post)
-      WHERE nominations.ref_election = ${electionId}
-      AND nominations.ref_user = ${username}
-      ${answer != null ? aq : Prisma.empty}
-    `;
+    // Use set in hope that it is faster than O(n^2)
+    const electablePostIds = new Set(electables.map((e) => e.refPost));
 
-    return this.reduceRawDbNominations(n);
+    // We only want to return nominations that are electable
+    return nominations.filter((n) => electablePostIds.has(n.refPost));
   }
 
   /**
@@ -200,18 +220,31 @@ export class ElectionAPI {
    * @returns Ett heltal (`number`)
    */
   async getNumberOfNominations(electionId: number, postId?: number): Promise<number> {
-    const aq = Prisma.sql`AND nominations.ref_post = ${postId}`;
+    // Explanatory comments in `getAllNominations`
+    const [nominations, electables] = await prisma.$transaction([
+      prisma.prismaNomination.findMany({
+        where: {
+          refElection: electionId,
+          refPost: postId,
+        }
+      }),
+      prisma.prismaElectable.findMany({
+        select: {
+          refPost: true,
+        },
+        where: {
+          refElection: electionId,
+        }
+      }),
+    ]);
 
-    const c = await prisma.$queryRaw<Record<string, number>[]>`
-      SELECT count(*)
-      FROM nominations
-      JOIN electables
-      USING (ref_election, ref_post)
-      WHERE nominations.ref_election = ${electionId}
-      ${postId != null ? aq : Prisma.empty}
-    `;
+    // Use set in hope that it is faster than O(n^2)
+    const electablePostIds = new Set(electables.map((e) => e.refPost));
 
-    return c.length === 0 ? 0 : c[0].count;
+    // We only want to count nominations that are electable
+    const filteredNominations = nominations.filter((n) => electablePostIds.has(n.refPost));
+
+    return filteredNominations.length;
   }
 
   /**
