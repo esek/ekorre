@@ -289,7 +289,7 @@ export type Mutation = {
   addFileToMeeting: Scalars['Boolean'];
   addHehe: Scalars['Boolean'];
   addMeeting: Meeting;
-  addPost: Scalars['Int'];
+  addPost: Post;
   addUsersToPost: Scalars['Boolean'];
   casCreateUser: Scalars['Boolean'];
   casLogin: CasLoginResponse;
@@ -1415,7 +1415,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'fileId' | 'fileType' | 'meetingId'>>;
   addHehe?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddHeheArgs, 'fileId' | 'number' | 'year'>>;
   addMeeting?: Resolver<ResolversTypes['Meeting'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
-  addPost?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
+  addPost?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'id' | 'usernames'>>;
   casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;

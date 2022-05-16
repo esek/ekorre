@@ -205,7 +205,7 @@ export class PostAPI {
     spots,
     description,
     interviewRequired,
-  }: NewPost): Promise<number> {
+  }: NewPost): Promise<PrismaPost> {
     const s = checkPostTypeAndSpots(postType, spots);
 
     if (s === null) {
@@ -224,7 +224,7 @@ export class PostAPI {
       throw new BadRequestError('Denna posten finns redan');
     }
 
-    const { id } = await prisma.prismaPost.create({
+    const created = await prisma.prismaPost.create({
       data: {
         postname: name,
         utskott,
@@ -236,7 +236,7 @@ export class PostAPI {
       },
     });
 
-    return id;
+    return created;
   }
 
   /**

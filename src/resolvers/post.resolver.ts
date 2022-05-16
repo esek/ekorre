@@ -55,7 +55,9 @@ const postresolver: Resolvers = {
   Mutation: {
     addPost: async (_, { info }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
-      return api.createPost(info);
+      const post = await api.createPost(info);
+
+      return reduce(post, postReduce);
     },
     modifyPost: async (_, { info }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
