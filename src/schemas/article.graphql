@@ -11,7 +11,7 @@ type Query {
 }
 
 type Mutation {
-  addArticle(entry: NewArticle!): Article
+  addArticle(entry: NewArticle!): Article!
   modifyArticle(articleId: Int!, entry: ModifyArticle!): Boolean!
   removeArticle(articleId: Int!): Boolean!
 }

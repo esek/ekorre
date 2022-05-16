@@ -278,7 +278,7 @@ export class ElectionAPI {
     creatorUsername: string,
     electables: number[],
     nominationsHidden: boolean,
-  ): Promise<number> {
+  ): Promise<PrismaElection> {
     return prisma.$transaction(async (p) => {
       // Vi försäkrar oss om att det senaste valet är stängt
       const lastElection = (await this.getLatestElections(1))[0];
@@ -307,12 +307,12 @@ export class ElectionAPI {
           },
         });
 
-        return createdElection.id;
+        return createdElection;
       } catch (err) {
         logger.error(`Error when trying to create new election:\n\t${JSON.stringify(err)}`);
         throw new ServerError('Kunde inte skapa elections eller electables');
       }
-      });
+    });
   }
 
   /**
