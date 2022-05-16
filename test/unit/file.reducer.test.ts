@@ -29,13 +29,17 @@ const expectedFileResponse: FileResponse = {
   size: 11, // Bytes
 };
 
-test('fileReducer with mocked DatabaseFile', () => {
-  const filePath = `${FILES.ROOT}${testDbFile.folderLocation}`;
+const filePath = `${FILES.ROOT}${testDbFile.folderLocation}`;
 
+beforeAll(() => {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, 'Hello World');
+});
 
-  expect(fileReduce(testDbFile)).toStrictEqual(expectedFileResponse);
-
+afterAll(() => {
   fs.rmSync(path.dirname(filePath), { recursive: true });
+});
+
+test('fileReducer with mocked DatabaseFile', () => {
+  expect(fileReduce(testDbFile)).toStrictEqual(expectedFileResponse);
 });
