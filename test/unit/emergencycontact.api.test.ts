@@ -91,7 +91,7 @@ test('remove emergency contact that does not exist', async () => {
 test('remove emergency contact that does exist', async () => {
   const dummyUser = await createDummyUser();
 
-  const contactId = await emergencyContactApi.addEmergencyContact(
+  const { id: contactId } = await emergencyContactApi.addEmergencyContact(
     dummyUser.username,
     DUMMMY_DAD.name,
     DUMMMY_DAD.phone,
