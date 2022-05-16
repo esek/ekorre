@@ -4,7 +4,7 @@ scalar Date
 scalar DateTime
 
 type Query {
-  newsentries(creator: String, after: DateTime, before: DateTime): [Article!]!
+  newsentries(author: String, after: DateTime, before: DateTime): [Article!]!
   latestnews(limit: Int): [Article!]!
   article(id: Int, slug: String): Article!
   articles(id: Int, author: String, tags: [String!]): [Article!]!
@@ -12,7 +12,7 @@ type Query {
 
 type Mutation {
   addArticle(entry: NewArticle!): Article!
-  modifyArticle(articleId: Int!, entry: ModifyArticle!): Boolean!
+  modifyArticle(articleId: Int!, entry: ModifyArticle!): Article!
   removeArticle(articleId: Int!): Boolean!
 }
 
@@ -29,14 +29,8 @@ type Article {
   createdAt: DateTime!
   lastUpdatedAt: DateTime!
   signature: String!
-  tags: [ArticleTag!]!
+  tags: [String!]!
   articleType: ArticleType!
-}
-
-type ArticleTag {
-  id: Int!
-  tag: String!
-  createdAt: DateTime!
 }
 
 "News are the ones to be used by a website newsreel"

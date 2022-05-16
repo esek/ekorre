@@ -53,7 +53,7 @@ const ARTICLE_FIELDS = `
   lastUpdatedAt
   articleType
   tags
-  creator {
+  author {
     username
   }
   lastUpdatedBy {
@@ -63,8 +63,8 @@ const ARTICLE_FIELDS = `
 `;
 
 export const ARTICLE_QUERY = `
-  query article($id: ID, $markdown: Boolean) {
-    article(id: $id, markdown: $markdown) ${ARTICLE_FIELDS}
+  query article($id: Int!) {
+    article(id: $id) ${ARTICLE_FIELDS}
   }
 `;
 
@@ -75,13 +75,13 @@ mutation ($entry: NewArticle!) {
 `;
 
 export const MODIFY_ARTICLE_MUTATION = `
-mutation ($articleId: ID!, $entry: ModifyArticle!) {
-  modifyArticle(articleId: $articleId, entry: $entry)
+mutation ($articleId: Int!, $entry: ModifyArticle!) {
+  modifyArticle(articleId: $articleId, entry: $entry) ${ARTICLE_FIELDS}
 }
 `;
 
 export const REMOVE_ARTICLE_MUTATION = `
-mutation($articleId: ID!) {
+mutation($articleId: Int!) {
   removeArticle(articleId: $articleId)
 }
 `;

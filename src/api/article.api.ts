@@ -1,6 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
+import { PrismaExtendedArticle } from '@/models/prisma';
 import { stripObject, toUTC } from '@/util';
 import { ModifyArticle, NewArticle } from '@generated/graphql';
 import { Prisma, PrismaArticle, PrismaArticleType } from '@prisma/client';
@@ -14,8 +15,12 @@ export class ArticleAPI {
   /**
    * Hämta alla artiklar
    */
-  async getAllArticles(): Promise<PrismaArticle[]> {
-    const a = await prisma.prismaArticle.findMany();
+  async getAllArticles(): Promise<PrismaExtendedArticle[]> {
+    const a = await prisma.prismaArticle.findMany({
+      include: {
+        tags: true,
+      },
+    });
 
     return a;
   }
@@ -23,7 +28,7 @@ export class ArticleAPI {
   /**
    * Hämtar alla nyhetsartiklar, sorterade på skapande
    */
-  async getAllNewsArticles(): Promise<PrismaArticle[]> {
+  async getAllNewsArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
         articleType: PrismaArticleType.NEWS,
@@ -31,18 +36,24 @@ export class ArticleAPI {
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        tags: true,
+      },
     });
 
     return a;
   }
 
-  async getAllInformationArticles(): Promise<PrismaArticle[]> {
+  async getAllInformationArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
         articleType: PrismaArticleType.INFORMATION,
       },
       orderBy: {
         createdAt: 'desc',
+      },
+      include: {
+        tags: true,
       },
     });
 
@@ -60,7 +71,7 @@ export class ArticleAPI {
     after: Date,
     before: Date,
     author?: string,
-  ): Promise<PrismaArticle[]> {
+  ): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
         articleType: PrismaArticleType.NEWS,
@@ -69,6 +80,9 @@ export class ArticleAPI {
           gte: before,
         },
         refAuthor: author,
+      },
+      include: {
+        tags: true,
       },
     });
 
@@ -79,7 +93,7 @@ export class ArticleAPI {
    * Returns the article with the specified id
    * @param id article id
    */
-  async getArticle(id?: number, slug?: string): Promise<PrismaArticle> {
+  async getArticle(id?: number, slug?: string): Promise<PrismaExtendedArticle> {
     let dbId = id;
 
     if (slug) {
@@ -101,6 +115,9 @@ export class ArticleAPI {
       where: {
         id: dbId,
       },
+      include: {
+        tags: true,
+      },
     });
 
     if (a == null) {
@@ -114,10 +131,13 @@ export class ArticleAPI {
    * Returns a list of PrismaArticles from database WHERE params match.
    * @param params possible params are ArticleModel parts.
    */
-  async getArticles(params: Prisma.PrismaArticleWhereInput): Promise<PrismaArticle[]> {
+  async getArticles(params: Prisma.PrismaArticleWhereInput): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
         ...params,
+      },
+      include: {
+        tags: true,
       },
     });
 
@@ -128,7 +148,7 @@ export class ArticleAPI {
    * Hämtar de senaste nyhetsartiklarna
    * @param nbr antal artiklar
    */
-  async getLatestNews(limit: number): Promise<PrismaArticle[]> {
+  async getLatestNews(limit: number): Promise<PrismaExtendedArticle[]> {
     const lastestNews = await prisma.prismaArticle.findMany({
       where: {
         articleType: PrismaArticleType.NEWS,
@@ -137,6 +157,9 @@ export class ArticleAPI {
         createdAt: 'desc',
       },
       take: limit,
+      include: {
+        tags: true,
+      },
     });
 
     return lastestNews;
@@ -147,7 +170,7 @@ export class ArticleAPI {
    * @param authorUsername Användarnamn på skaparen
    * @param entry artikel som ska läggas till
    */
-  async newArticle(authorUsername: string, entry: NewArticle): Promise<PrismaArticle> {
+  async newArticle(authorUsername: string, entry: NewArticle): Promise<PrismaExtendedArticle> {
     // todo: update so tags are set as well
     const { tags, ...reduced } = entry;
 
@@ -163,6 +186,9 @@ export class ArticleAPI {
           create: tags.map((tag) => ({ tag })),
         },
       },
+      include: {
+        tags: true,
+      },
     });
 
     return res;
@@ -175,7 +201,11 @@ export class ArticleAPI {
    * @param updaterUsername Användarnamn hos den som ändrat artikeln
    * @param entry Modifiering av existerande artikel
    */
-  async modifyArticle(id: number, updaterUsername: string, entry: ModifyArticle): Promise<boolean> {
+  async modifyArticle(
+    id: number,
+    updaterUsername: string,
+    entry: ModifyArticle,
+  ): Promise<PrismaExtendedArticle> {
     if (updaterUsername === '' || updaterUsername == null) {
       throw new BadRequestError('Artiklar måste modifieras av inloggade användare');
     }
@@ -184,9 +214,9 @@ export class ArticleAPI {
 
     const update: StrictObject = stripObject(rest);
 
-    update.reflastupdateby = updaterUsername;
+    update.refLastUpdateBy = updaterUsername;
 
-    update.lastUpdatedAt = toUTC(new Date());
+    update.updatedAt = toUTC(new Date());
 
     const safeTags = tags ?? [];
 
@@ -201,9 +231,12 @@ export class ArticleAPI {
       where: {
         id,
       },
+      include: {
+        tags: true,
+      },
     });
 
-    return res != null;
+    return res;
   }
 
   async removeArticle(id: number): Promise<boolean> {

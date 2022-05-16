@@ -24,12 +24,12 @@ const checkEditAccess = async (ctx: Context, articleType: PrismaArticleType) => 
 /**
  * Maps an `DatabaseArticle` i.e. a partial of `Article` to an ArticleResponse object
  * @param partial DatabaseArticle to be mapped
- * @returns ArticleResponse object with references to `creator` and
+ * @returns ArticleResponse object with references to `author` and
  * `lastUpdatedBy`
  */
 const articleResolver: Resolvers = {
   Article: {
-    // Load creator & lastUpdateBy using dataloader for performace reasons
+    // Load author & lastUpdateBy using dataloader for performace reasons
     author: useDataLoader((model, ctx) => ({
       key: model.author.username,
       dataLoader: ctx.userDataLoader,
@@ -42,11 +42,11 @@ const articleResolver: Resolvers = {
     createdAt: (model) => new Date(model.createdAt),
   },
   Query: {
-    newsentries: async (_, { creator, after, before }, ctx) => {
+    newsentries: async (_, { author, after, before }, ctx) => {
       await hasAuthenticated(ctx);
       let articleResponse: ArticleResponse[];
 
-      if (!creator && !after && !before) {
+      if (!author && !after && !before) {
         const apiResponse = await articleApi.getAllNewsArticles();
         if (apiResponse === null) return [];
         articleResponse = reduce(apiResponse, articleReducer);
@@ -57,7 +57,7 @@ const articleResolver: Resolvers = {
         const apiResponse = await articleApi.getNewsArticlesFromInterval(
           afterDate,
           beforeDate,
-          creator ?? undefined,
+          author ?? undefined,
         );
 
         articleResponse = reduce(apiResponse, articleReducer);
@@ -132,7 +132,9 @@ const articleResolver: Resolvers = {
        *  */
       await checkEditAccess(ctx, entry?.articleType ?? article.articleType);
 
-      return articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
+      const apiResponse = await articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
+
+      return reduce(apiResponse, articleReducer);
     },
     removeArticle: async (_, { articleId }, ctx) => {
       const article = await articleApi.getArticle(articleId);
