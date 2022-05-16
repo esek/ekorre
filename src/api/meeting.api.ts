@@ -77,7 +77,7 @@ export class MeetingAPI {
    * @param year
    * @returns ID på skapat möte
    */
-  async createMeeting(type: MeetingType, number?: number, year?: number): Promise<number> {
+  async createMeeting(type: MeetingType, number?: number, year?: number): Promise<PrismaMeeting> {
     // Vi tar i år om inget år ges
     const safeYear = (Number.isSafeInteger(year) ? year : new Date().getFullYear()) as number;
 
@@ -117,22 +117,19 @@ export class MeetingAPI {
     }
 
     try {
-      const meetingId = await prisma.prismaMeeting.create({
+      const meeting = await prisma.prismaMeeting.create({
         data: {
           type: type as PrismaMeetingType,
           number: safeNbr,
           year: safeYear,
         },
-        select: {
-          number: true,
-        },
       });
 
-      if (meetingId == null) {
+      if (meeting == null) {
         throw new ServerError('Mötet kunde inte skapas!');
       }
 
-      return meetingId.number;
+      return meeting;
     } catch (err) {
       const logStr = `Failed to create meeting with values: ${Logger.pretty({
         type,
@@ -246,7 +243,7 @@ export class MeetingAPI {
    */
   private createDataForMeetingType(
     fileType: MeetingDocumentType,
-    content: string | { not : string | null } | null | undefined,
+    content: string | { not: string | null } | null | undefined,
   ) {
     let data = {};
     switch (fileType) {

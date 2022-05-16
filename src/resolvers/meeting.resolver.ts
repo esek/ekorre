@@ -62,7 +62,9 @@ const meetingResolver: Resolvers = {
   Mutation: {
     addMeeting: async (_, { type, number, year }, ctx) => {
       await hasAccess(ctx, Feature.MeetingsAdmin);
-      return api.createMeeting(type, number ?? undefined, year ?? undefined);
+      const meeting = await api.createMeeting(type, number ?? undefined, year ?? undefined);
+
+      return reduce(meeting, meetingReduce);
     },
     removeMeeting: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.MeetingsAdmin);
