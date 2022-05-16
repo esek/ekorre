@@ -13,51 +13,36 @@ TODO: Uppdatera för docker compose, prisma och postgres
 
 ## Hur startar jag?
 
-Kort och gott:
+Börja med att installera alla node modules med
+
 ```bash
-# för linux och troligen mac
-sh tools/init.sh
-
-# för windows
-cmd tools/init.bat
+npm install .
 ```
 
-### Avanacerad start/förklaringar
+Kopiera `.env.example.dev` till `.env` och fyll i miljövariablerna.
+`.env`-filen innehåller konfigurationsvariabler till servern
 
-Det behövs en databas och konfiguration för att starta servern.
-För att generera databasen med exempeldata så skriv:
+`ekorre` använder `docker compose` för att få upp en fungerande en databas, dvs.
 
-```
-sqlite3 -init src/sql/init.sql <databasnamn> .exit
-```
-
-(du behöver installera [sqlite3](https://www.sqlite.org/download.html). Det är även
-rekommenderat att ha en databashanterare t.ex. [dbeaver](https://dbeaver.io/). För få merga sin funktion måste `init.sql` vara uppdaterad med din SQL-kod.)
-
-Därefter kopiera `.env.example.dev` till `.env` och ange
-filnamnet på databasen vid `DB_FILE` fältet.
-`.env` filen innehåller konfigurationsvariabler till servern
-
-Du kan alternativt bara köra
-
-```
-./tools/initenv.sh
+```bash
+docker compose up
 ```
 
-förutsatt att du kör något UNIX-liknande (Linux/MacOS).
+(förutsatt att du installerat docker).
 
-Därefter behöver du installera alla npm-paket med hjälp av
-```
-npm install
-```
+För att generera en `PrismaClient` (som används för att kommunicera med databasen) och
+fylla databasen med rätt schemas används
 
-och för att starta utvecklingservern så skriver du:
-
-```
-npm run dev # Kompilera kontiuerligt och öppna för debugger
+```bash
+npm run prisma:reset
 ```
 
-PS: För att stänga av servern trycker du CTRL+c
+vilket även brukar lösa dryga problem. Detta seedar även databasen med lite testdata.
+Sedan körs projektet med
+
+```bash
+npm run dev
+```
 
 ## Hur utvecklar jag?
 
