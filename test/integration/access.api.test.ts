@@ -54,9 +54,9 @@ beforeAll(async () => {
     utskott: Utskott.Infu,
   });
 
-  const [postNumber1] = await Promise.all([p1, clearUser0, clearUser1, c1, c2]);
+  const [post1] = await Promise.all([p1, clearUser0, clearUser1, c1, c2]);
 
-  postId0 = postNumber1;
+  postId0 = post1.id;
 
   const key = await apiKeyApi.createApiKey('Test API key', username0);
 
