@@ -25,6 +25,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Poster har nu ID och inte slugs, för att tillåta namn att ändras ordentligt. `addPost` returnerar numera en integer med det nya post-ID:t
 - `npm run generate` genererar nu både GQL och Prisma
 - `addEmergencyContact` returnerar nu ID vid lyckad skapad kontakt, vilket matchar beteende för andra API:er
+- Flertalet GraphQL-mutations returnerar nu de skapade objekten, t.ex. `addPost` och `createElection`
 
 ## [0.13.0] - 2022-03-25
 
