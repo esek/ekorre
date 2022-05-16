@@ -2,7 +2,7 @@ import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
 import { postApi } from '@dataloader/post';
-import { Feature, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
+import { Feature, NewPost, NewUser, Post, PostType, Utskott } from '@generated/graphql';
 import { PrismaUser } from '@prisma/client';
 
 /**
@@ -134,20 +134,8 @@ export const genRandomUser = (access: Feature[]): [() => Promise<PrismaUser>, NO
 export const genRandomPost = (): [() => Promise<number>, NOOP] => {
   let triesLeft = 10; // Recursion protection
 
-  const possiblePostTypes = [PostType.Ea, PostType.ExactN, PostType.N, PostType.U];
-  const possibleUtskott = [
-    Utskott.Cm,
-    Utskott.E6,
-    Utskott.Enu,
-    Utskott.Fvu,
-    Utskott.Infu,
-    Utskott.Km,
-    Utskott.Noju,
-    Utskott.Nollu,
-    Utskott.Other,
-    Utskott.Sre,
-    Utskott.Styrelsen,
-  ];
+  const possiblePostTypes = Object.keys(PostType) as PostType[];
+  const possibleUtskott = Object.keys(Utskott) as Utskott[];
 
   const rp: NewPost = {
     name: getRandomPostname(),
