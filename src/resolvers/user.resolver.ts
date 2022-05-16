@@ -93,9 +93,9 @@ const userResolver: Resolvers = {
     },
     createUser: async (_, { input }, ctx) => {
       await hasAccess(ctx, Feature.UserAdmin);
-      await api.createUser(input);
+      const user = await api.createUser(input);
 
-      return true;
+      return reduce(user, userReduce);
     },
     requestPasswordReset: async (_, { username }) => {
       const user = await api.getSingleUser(username);

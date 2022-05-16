@@ -65,7 +65,13 @@ const electionResolver: Resolvers = {
     createElection: async (_, { electables, nominationsHidden }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
       const safeElectables = electables.filter(notEmpty);
-      return api.createElection(ctx.getUsername(), safeElectables, nominationsHidden);
+      const election = await api.createElection(
+        ctx.getUsername(),
+        safeElectables,
+        nominationsHidden,
+      );
+
+      return reduce(election, electionReduce);
     },
     addElectables: async (_, { electionId, postIds }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);

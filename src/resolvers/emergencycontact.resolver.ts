@@ -13,7 +13,7 @@ const emergencycontactresolver: Resolvers = {
       const username = getUsername();
 
       const added = await ecApi.addEmergencyContact(username, name, phone, type);
-      return added;
+      return reduce(added, emergencyContactReducer);
     },
     removeEmergencyContact: async (_, { id }, { getUsername }) => {
       const username = getUsername();

@@ -81,7 +81,7 @@ class FileAPI {
     name: string,
     creator: string,
     customHash?: string,
-  ): Promise<string> {
+  ): Promise<PrismaFile> {
     const folderTrimmed = this.trimFolder(folder);
     const hash = customHash ?? this.createHashedName(name);
     const fullPath = `${ROOT}/${folderTrimmed}${hash}`;
@@ -92,7 +92,7 @@ class FileAPI {
 
       const location = `${folderTrimmed}${hash}`;
 
-      await prisma.prismaFile.create({
+      const created = await prisma.prismaFile.create({
         data: {
           id: hash,
           name,
@@ -105,7 +105,7 @@ class FileAPI {
 
       logger.info(`Created folder ${name} with hash ${hash}`);
 
-      return location;
+      return created;
     } catch {
       throw new ServerError('Mappen kunde inte skapas');
     }
@@ -204,8 +204,8 @@ class FileAPI {
             id: {
               search,
             },
-          }
-        ]
+          },
+        ],
       },
     });
 

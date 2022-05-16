@@ -33,13 +33,13 @@ class EmergencyContactAPI {
     name: string,
     phone: string,
     type: EmergencyContactType,
-  ): Promise<number> {
+  ): Promise<PrismaEmergencyContact> {
     try {
-      const { id } = await prisma.prismaEmergencyContact.create({
+      const contact = await prisma.prismaEmergencyContact.create({
         data: { name, phone, type, refUser: username },
       });
 
-      return id;
+      return contact;
     } catch (err) {
       logger.error(`Emergency contact could not be created: ${JSON.stringify(err)}`);
       throw new ServerError('Kunde inte lägga till nödkontakt');

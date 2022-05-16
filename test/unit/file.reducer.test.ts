@@ -1,7 +1,12 @@
+import config from '@/config';
 import { FileResponse } from '@/models/mappers';
 import { fileReduce } from '@/reducers/file.reducer';
 import { AccessType, FileType } from '@generated/graphql';
 import { PrismaFile } from '@prisma/client';
+import fs from 'fs';
+import path from 'path';
+
+const { FILES } = config;
 
 const testDbFile: PrismaFile = {
   id: '098f6bcd4621d373cade4e832627b4f6.txt',
@@ -21,9 +26,16 @@ const expectedFileResponse: FileResponse = {
   createdBy: {
     username: 'aa0000bb-s',
   },
-  size: 37, // Bytes
+  size: 11, // Bytes
 };
 
 test('fileReducer with mocked DatabaseFile', () => {
+  const filePath = `${FILES.ROOT}${testDbFile.folderLocation}`;
+
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, 'Hello World');
+
   expect(fileReduce(testDbFile)).toStrictEqual(expectedFileResponse);
+
+  fs.rmSync(path.dirname(filePath), { recursive: true });
 });

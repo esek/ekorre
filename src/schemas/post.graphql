@@ -12,7 +12,7 @@ type Query {
 }
 
 type Mutation {
-    addPost(info: NewPost!): Int!
+    addPost(info: NewPost!): Post!
     modifyPost(info: ModifyPost!): Boolean!
     addUsersToPost(usernames: [String!]!, id: Int!, start: Date, end: Date): Boolean!
     activatePost(id: Int!): Boolean!
