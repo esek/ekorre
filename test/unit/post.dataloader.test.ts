@@ -21,11 +21,11 @@ beforeEach(() => {
 
 beforeAll(async () => {
   // Insert fake users
-  mockPostIds = await Promise.all([
+  mockPostIds = (await Promise.all([
     createPost0(),
     createPost1(),
     createPost2(),
-  ]);
+  ])).map((p) => p.id);
 });
 
 afterAll(async () => {
