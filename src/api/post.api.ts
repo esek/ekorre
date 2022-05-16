@@ -48,6 +48,7 @@ export class PostAPI {
   async deletePost(postId: number) {
     devGuard('Cannot remove post in production');
 
+    await prisma.prismaPostHistory.deleteMany({ where: { refPost: postId } });
     await prisma.prismaPost.delete({ where: { id: postId } });
   }
   /**
