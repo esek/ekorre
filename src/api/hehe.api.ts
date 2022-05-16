@@ -1,4 +1,3 @@
-import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
@@ -43,6 +42,11 @@ export class HeheAPI {
     return h;
   }
 
+  /**
+   * Returns all numbers of HeHE for a given year
+   * @param year
+   * @returns A list of database representations of HeHEs
+   */
   async getHehesByYear(year: number): Promise<PrismaHehe[]> {
     const h = await prisma.prismaHehe.findMany({
       where: {
@@ -112,6 +116,11 @@ export class HeheAPI {
     }
   }
 
+  /**
+   * Removes all HeHEs from the database.
+   * 
+   * Not callable in a production environment
+   */
   async clear() {
     devGuard('Tried to clear accesses in production!');
 
