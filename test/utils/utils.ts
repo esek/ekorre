@@ -3,8 +3,8 @@ import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
 import { postApi } from '@dataloader/post';
-import { Feature, NewPost, NewUser, Post, PostType, Utskott } from '@generated/graphql';
-import { PrismaUser } from '@prisma/client';
+import { Feature, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
+import { PrismaUser, PrismaPost } from '@prisma/client';
 
 /**
  * Extrahera en token ur en set-cookie-sträng, eller returnera
@@ -131,11 +131,11 @@ export const genRandomUser = (access: Feature[] = []): [() => Promise<PrismaUser
   return [create, remove];
 };
 
-export const genRandomPost = (): [() => Promise<number>, NOOP] => {
+export const genRandomPost = (): [() => Promise<PrismaPost>, NOOP] => {
   let triesLeft = 10; // Recursion protection
 
-  const possiblePostTypes = Object.keys(PostType) as PostType[];
-  const possibleUtskott = Object.keys(Utskott) as Utskott[];
+  const possiblePostTypes = Object.values(PostType) as PostType[];
+  const possibleUtskott = Object.values(Utskott) as Utskott[];
 
   const rp: NewPost = {
     name: getRandomPostname(),
@@ -144,9 +144,9 @@ export const genRandomPost = (): [() => Promise<number>, NOOP] => {
     spots: 1,
   };
 
-  let createdPostId: number;
+  let createdPost: PrismaPost;
 
-  const create = async (): Promise<number> => {
+  const create = async (): Promise<PrismaPost> => {
     if (triesLeft === 0) {
       throw new Error('Could not create random user');
     } else {
@@ -154,18 +154,18 @@ export const genRandomPost = (): [() => Promise<number>, NOOP] => {
     }
 
     try {
-      createdPostId = (await postApi.createPost(rp)).id
+      createdPost = await postApi.createPost(rp);
     } catch (err) {
       // If we against all odds have a double
       console.log('Attempt to create random post failed, trying again...');
       console.log(err);
       return create();
     }
-    return createdPostId;
+    return createdPost;
   };
 
   const remove = async () => {
-    await postApi.deletePost(createdPostId ?? -1);
+    await postApi.deletePost(createdPost.id ?? -1);
     usedPostnames.delete(rp.name);
   };
 
