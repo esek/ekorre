@@ -422,7 +422,8 @@ test('creating election with previous created, opened and closed election', asyn
   await api.closeElection();
 
   // Vårt nya val borde ha förra ID:t + 1
-  await expect(api.createElection('bb1111cc-s', [], false)).resolves.toEqual(electionId + 1);
+  const { id: newId } = await api.createElection('bb1111cc-s', [], false);
+  expect(newId).toEqual(electionId + 1);
 
   // Vi vill se till att ett nytt val faktiskt inte skapades
   expect((await api.getLatestElections(1))[0]).toMatchObject({
