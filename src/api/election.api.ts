@@ -194,6 +194,9 @@ export class ElectionAPI {
     // Explanatory comments in `getAllNominations`
     const [nominations, electables] = await prisma.$transaction([
       prisma.prismaNomination.findMany({
+        select: {
+          refPost: true,
+        },
         where: {
           refElection: electionId,
           refPost: postId,
