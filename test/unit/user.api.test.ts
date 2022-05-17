@@ -102,6 +102,12 @@ test('login with other users password', async () => {
   );
 });
 
+test('login with invalid username', async () => {
+  await expect(api.loginUser('blennstersmamma', mockNewUser0.password)).rejects.toThrowError(
+    NotFoundError,
+  );
+});
+
 test('get one user', async () => {
   const { password, ...expectedResult } = mockNewUser0;
   expect(await api.getSingleUser(mockNewUser0.username)).toMatchObject(expectedResult);
