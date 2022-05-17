@@ -18,6 +18,22 @@ export const CREATE_USER_MUTATION = `
   }
 `;
 
+export const LOGIN_MUTATION = `
+  mutation login($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
+      username
+      firstName
+      lastName
+    }
+  }
+`;
+
+export const LOGOUT_MUTATION = `
+  mutation {
+    logout
+  }
+`;
+
 export const ADD_POST_MUTATION = `
   mutation ($info: NewPost!) {
     addPost(info: $info)

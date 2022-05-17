@@ -89,7 +89,7 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
  *
  * Jag ville göra detta till en klass men Blennow o Foobar klagade --Emil
  */
-export const genRandomUser = (access: Feature[] = []): [() => Promise<PrismaUser>, NOOP] => {
+export const genRandomUser = (access: Feature[] = []): [() => Promise<PrismaUser>, NOOP, string] => {
   let triesLeft = 10; // Recursion protection
 
   const ru: NewUser = {
@@ -128,7 +128,7 @@ export const genRandomUser = (access: Feature[] = []): [() => Promise<PrismaUser
     usedUsernames.delete(ru.username);
   };
 
-  return [create, remove];
+  return [create, remove, ru.password];
 };
 
 export const genRandomPost = (): [() => Promise<PrismaPost>, NOOP] => {
