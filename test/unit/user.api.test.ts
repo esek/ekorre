@@ -282,9 +282,8 @@ test('reset password properly', async () => {
 
 test('getting number of members', async () => {
   const numberOfMembers = await api.getNumberOfMembers();
-  expect(numberOfMembers).toEqual(1);
 
   await api.createUser(mockNewUser1);
   const numberOfMembers2 = await api.getNumberOfMembers();
-  expect(numberOfMembers2).toEqual(2);
+  expect(numberOfMembers2).toEqual(numberOfMembers + 1);
 });
