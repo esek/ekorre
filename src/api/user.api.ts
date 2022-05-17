@@ -223,7 +223,7 @@ export class UserAPI {
     return createdUser;
   }
 
-  async updateUser(username: string, partial: Partial<PrismaUser>): Promise<boolean> {
+  async updateUser(username: string, partial: Partial<PrismaUser>): Promise<PrismaUser> {
     if (partial.username) {
       throw new BadRequestError('Användarnamn kan inte uppdateras');
     }
@@ -235,7 +235,7 @@ export class UserAPI {
       data: partial,
     });
 
-    return res != null;
+    return res;
   }
 
   async requestPasswordReset(username: string): Promise<string> {

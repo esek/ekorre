@@ -87,9 +87,9 @@ const userResolver: Resolvers = {
   Mutation: {
     updateUser: async (_, { input }, { getUsername }) => {
       const username = getUsername();
-      await api.updateUser(username, stripObject(input));
+      const updatedUser = await api.updateUser(username, stripObject(input));
 
-      return true;
+      return reduce(updatedUser, userReduce);
     },
     createUser: async (_, { input }, ctx) => {
       await hasAccess(ctx, Feature.UserAdmin);
@@ -128,12 +128,12 @@ const userResolver: Resolvers = {
     casCreateUser: async (_, { input, hash }) => {
       // Check that hash is ok
       if (hashWithSecret(input.username) !== hash) {
-        return false;
+        throw new BadRequestError('Kunde inte skapa användare');
       }
 
       const created = await api.createUser(input);
 
-      return created != null;
+      return reduce(created, userReduce);
     },
   },
 };

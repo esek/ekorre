@@ -285,7 +285,7 @@ export type Mutation = {
   addMeeting: Meeting;
   addPost: Post;
   addUsersToPost: Scalars['Boolean'];
-  casCreateUser: Scalars['Boolean'];
+  casCreateUser: User;
   casLogin: CasLoginResponse;
   closeElection: Scalars['Boolean'];
   createApiKey: Scalars['String'];
@@ -323,7 +323,7 @@ export type Mutation = {
   setIndividualAccess: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
   setUserPostEnd: Scalars['Boolean'];
-  updateUser: Scalars['Boolean'];
+  updateUser: User;
   validatePasswordResetToken: Scalars['Boolean'];
 };
 
@@ -1402,7 +1402,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addMeeting?: Resolver<ResolversTypes['Meeting'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
   addPost?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addUsersToPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'id' | 'usernames'>>;
-  casCreateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
+  casCreateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createApiKey?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateApiKeyArgs, 'description'>>;
@@ -1437,7 +1437,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'access' | 'username'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postId'>>;
   setUserPostEnd?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetUserPostEndArgs, 'end' | 'id'>>;
-  updateUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
+  updateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
 }>;
 
