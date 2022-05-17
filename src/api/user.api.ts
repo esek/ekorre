@@ -193,7 +193,7 @@ export class UserAPI {
 
     const { passwordSalt, passwordHash } = this.generateSaltAndHash(password);
 
-    const { username = '' } = input;
+    const { username } = input;
 
     // Inga tomma användarnamn
     if (username === '') {
