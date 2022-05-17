@@ -78,6 +78,13 @@ test('create new user with empty username', async () => {
   await expect(api.getSingleUser(localMu.username)).rejects.toThrowError(NotFoundError);
 });
 
+test('create a new user with invalid password', async () => {
+  const localMu: NewUser = { ...mockNewUser1, password: '' };
+
+  await expect(api.createUser(localMu)).rejects.toThrowError(BadRequestError);
+  await expect(api.getSingleUser(localMu.username)).rejects.toThrowError(NotFoundError);
+});
+
 test('creating duplicate user fails', async () => {
   await expect(api.createUser(mockNewUser0)).rejects.toThrowError();
 });
@@ -265,4 +272,13 @@ test('reset password properly', async () => {
 
   // Försäkra oss om att lösen ändras
   await expect(api.loginUser(mockNewUser1.username, newPassword)).resolves.toBeTruthy();
+});
+
+test('getting number of members', async () => {
+  const numberOfMembers = await api.getNumberOfMembers();
+  expect(numberOfMembers).toEqual(1);
+
+  await api.createUser(mockNewUser1);
+  const numberOfMembers2 = await api.getNumberOfMembers();
+  expect(numberOfMembers2).toEqual(2);
 });
