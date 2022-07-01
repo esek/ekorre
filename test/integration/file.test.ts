@@ -39,6 +39,10 @@ beforeAll(async () => {
   await createUser();
 });
 
+afterEach(async () => {
+  await removeCreatedFiles();
+});
+
 afterAll(async () => {
   await Promise.all([removeCreatedFiles(), teardown()]);
 });
@@ -191,8 +195,6 @@ describe('fetching files', () => {
   const accessToken = issueToken({ username: testUser.username }, 'accessToken');
 
   beforeAll(async () => {
-    await removeCreatedFiles();
-
     await Promise.all([
       baseUploadFile(accessToken, 'upload', testFiles[0], {})
         .field('accessType', AccessType.Public)
@@ -352,8 +354,6 @@ describe('reading files', () => {
   const accessToken = issueToken({ username: testUser.username }, 'accessToken');
 
   beforeAll(async () => {
-    await removeCreatedFiles();
-
     await Promise.all([
       baseUploadFile(accessToken, 'upload', testFiles[0], {})
         .field('accessType', AccessType.Public)
