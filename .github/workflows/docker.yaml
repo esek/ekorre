@@ -71,8 +71,6 @@ jobs:
         run: npm run prisma:reset
       - name: run test
         run: npm run test:prebuild
-
-    
   build:
     runs-on: self-hosted
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
@@ -114,10 +112,10 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
-      - name: build and push web image
+      - name: build and push image
         uses: docker/build-push-action@v3
         with:
-          context: ./web
+          context: .
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.TAG }}
 
@@ -226,12 +224,20 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
       - name: pull image
+        run: docker pull $IMAGE_NAME
+      - name: Stop old container
         run: |
-          docker pull $CI_REGISTRY_IMAGE/web:$TAG
-          docker pull $CI_REGISTRY_IMAGE/strapi:$TAG
+          docker stop $CONTAINER_NAME 2> /dev/null || true
+          docker rm --force $CONTAINER_NAME 2> /dev/null || true
       - name: deploy to host
         run: >
-          docker-compose -f docker-compose.production.yml ${{ env.DEPLOY_ARGS }} up -d --force-recreate
+          docker run
+          --name $CONTAINER_NAME
+          --label "traefik.http.routers.$CONTAINER_NAME.rule=Host(\`$DEPLOY_URL\`)"
+          --network=traefik
+          --env-file .env
+          ${{ env.DEPLOY_ARGS }}
+          -d $IMAGE_NAME
       - name: prune system
         run: docker system prune -f 2> /dev/null || true
       - name: update deployment status
@@ -253,7 +259,7 @@ jobs:
 
   teardown:
     runs-on: self-hosted
-    if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && !always() }}
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' }}
     steps:
       - name: self hosted runner post job cleanup action
         uses: TooMuch4U/actions-clean@v2.1
