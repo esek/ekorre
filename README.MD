@@ -65,10 +65,8 @@ src
 │   └── <modul>.resolver.ts
 ├── reducers
 │   └── <modul>.reducer.ts
-├── schemas
-│   └── <modul>.graphql
-└── sql
-    └── <modul>.sql
+└── schema
+    └── <modul>.graphql
 ```
 
 där `schemas` och `resolvers` är viktigast. För
