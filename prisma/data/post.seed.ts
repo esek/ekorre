@@ -1,9 +1,7 @@
 import { PrismaUtskott, PrismaPostType } from '@prisma/client'
 
 export const posts = [
-  // IDs hardcoded for testing purposes
   {
-    id: 1,
     postname: 'Macapär',
     utskott: PrismaUtskott.INFU,
     postType: PrismaPostType.N,
@@ -13,7 +11,6 @@ export const posts = [
     interviewRequired: false,
   },
   {
-    id: 2,
     postname: 'Teknokrat',
     utskott: PrismaUtskott.INFU,
     postType: PrismaPostType.N,
@@ -23,7 +20,6 @@ export const posts = [
     interviewRequired: false,
   },
   {
-    id: 3,
     postname: 'Cophös',
     utskott: PrismaUtskott.NOLLU,
     postType: PrismaPostType.N,

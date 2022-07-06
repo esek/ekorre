@@ -8,7 +8,7 @@ Förhoppningsvis har någon hållit denna README:n uppdaterad...
 ## Hur startar jag?
 
 Börja med att installera alla node modules med
-
+¨
 ```bash
 npm install .
 ```
@@ -144,7 +144,7 @@ hålla reda på vad som förändrats, och för att ha en lättläst historik öv
 När du utvecklar en modul ser det troligen ut på följande sätt.
 
 1. Du har en idé om vad man ska kunna göra och ungefär hur det ska fungera
-2. ~~Du skapar en eller flera `SQL`-tabeller och lägger till i `src/sql/`. Du ser till att tabellen
+2. Du skapar en eller flera `SQL`-tabeller och lägger till i `src/sql/`. Du ser till att tabellen
 finns i både `init.sql` och en separat fil, för att andra enkelt ska kunna lägga till tabell(erna).~~ Du skapar en ny typ i `prisma/schema.prisma` och lägger till testdata i `prisma/data/`. Prisma sköter själv att skapa databasen när man kör `npm run prisma:push`, så du behöver inte skapa SQL-schemas själv!
 3. Du skapar ett nytt GraphQL-schema i `src/schemas`
 4. Du skapar en ny API i `src/api/`, som bara har i uppgift att prata med din nya SQL
