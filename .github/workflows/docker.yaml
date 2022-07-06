@@ -1,0 +1,294 @@
+name: Docker Image CI
+
+# To run this locally use act (https://github.com/nektos/act)
+
+# To use act:
+# Create a .secrets file and set all the needed variables
+# Multiline variables need to be set using adding -s KEY="$(<value.txt)""
+# And run the following command
+# sudo act
+# or
+# sudo act -s KEY="$(<value.txt)"
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  release:
+    types: [released, prereleased]
+
+env:
+  REGISTRY: registry.esek.se
+  PROD_URL: esek.se # Optional
+  # STAGING_URL: blabla.esek.se # Optional
+  DEFAULT_BRANCH: main
+  # Settting args for the deploy applies to all environments.
+  # You can also set the following secret values:
+  # PROD_DEPLOY_ARGS, STAGING_DEPLOY_ARGS, TESTING_DEPLOY_ARGS, PR_DEPLOY_ARGS
+  DEPLOY_ARGS: ''
+  # Setting env vars can be done by setting
+  # PROD_ENV_VARS, STAGING_ENV_VARS, TESTING_ENV_VARS, PR_ENV_VARS
+  ONLY_PROD: true
+  SLUGIFY_FUNCTION: |
+    function slugify() {
+      iconv -t ascii//TRANSLIT \
+      | tr -d "'" \
+      | sed -E 's/[^a-zA-Z0-9]+/-/g' \
+      | sed -E 's/^-+|-+$//g' \
+      | tr "[:upper:]" "[:lower:]"
+    }
+
+jobs:
+  test:
+    runs-on: self-hosted
+    if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
+    services:
+      postgres:
+        image: postgres:alpine
+        env:
+         POSTGRES_USER: postgres
+         POSTGRES_PASSWORD: password
+         POSTGRES_DB: ekorre_foot
+        ports:
+          - 5432:5432
+    steps:
+      - name: setup buildx
+        uses: docker/setup-buildx-action@v2
+        id: buildx
+        with:
+          install: true
+      - name: self hosted runner post job cleanup action
+        uses: TooMuch4U/actions-clean@v2.1
+      - name: checkout repo
+        uses: actions/checkout@v3
+      - name: install deps
+        run: npm ci
+      - name: setup env
+        run: mv .env.example.dev .env
+      - name: debug
+        run: cat .env
+      - name: reset db
+        run: npm run prisma:reset
+      - name: run test
+        run: npm run test:prebuild
+
+    
+  build:
+    runs-on: self-hosted
+    if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
+    steps:
+      - name: setup buildx
+        uses: docker/setup-buildx-action@v2
+        id: buildx
+        with:
+          install: true
+      - name: self hosted runner post job cleanup action
+        uses: TooMuch4U/actions-clean@v2.1
+      - name: checkout repo
+        uses: actions/checkout@v3
+      - name: set variables
+        run: |
+          eval "$SLUGIFY_FUNCTION"
+
+          if [ -z $GITHUB_HEAD_REF ]; then
+            BRANCH=$(basename $GITHUB_REF)
+          else
+            BRANCH=$GITHUB_HEAD_REF
+          fi
+          echo "Running on $BRANCH"
+          TAG=$BRANCH
+          if [ "$BRANCH" = "${{ env.DEFAULT_BRANCH }}" ]; then
+            TAG=latest
+          fi
+
+          if ${{ github.ref_type == 'tag' }}; then
+            BRANCH=${{ env.DEFAULT_BRANCH }}
+            TAG=latest
+          fi
+
+          TAG=$(echo "$TAG" | slugify)
+          echo "TAG=$TAG" >> $GITHUB_ENV
+      - name: login to registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: build and push web image
+        uses: docker/build-push-action@v3
+        with:
+          context: ./web
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.TAG }}
+
+  deploy:
+    # To run this locally using act set act to false in event.json
+    if: ${{ !github.event.act || !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: self hosted runner post job cleanup action
+        uses: TooMuch4U/actions-clean@v2.1
+      - name: checkout repo
+        uses: actions/checkout@v3
+      - name: set variables
+        run: |
+          eval "$SLUGIFY_FUNCTION"
+
+          if [ -z $GITHUB_HEAD_REF ]; then
+            BRANCH=$(basename $GITHUB_REF)
+          else
+            BRANCH=$GITHUB_HEAD_REF
+          fi
+          echo "Running on $BRANCH"
+          TAG=$BRANCH
+          if [ "$BRANCH" = "${{ env.DEFAULT_BRANCH }}" ]; then
+            TAG=latest
+          fi
+
+          if ${{ github.ref_type == 'tag' }}; then
+            BRANCH=${{ env.DEFAULT_BRANCH }}
+            TAG=latest
+          fi
+
+          REPO_NAME=$(basename ${{ github.repository }})
+          CONTAINER_NAME=$REPO_NAME-${BRANCH/${{ env.DEFAULT_BRANCH }}/testing}
+
+          TAG=$(echo "$TAG" | slugify)
+          BRANCH_SLUG=$(echo "$BRANCH" | slugify)
+          REPO_NAME_SLUG=$(echo "$REPO_NAME" | slugify)
+          CONTAINER_NAME=$(echo "$CONTAINER_NAME" | slugify)
+
+          DEPLOY_URL=$REPO_NAME_SLUG.testing.esek.se
+          DEPLOY_ENV=${BRANCH_SLUG/${{ env.DEFAULT_BRANCH }}/testing}
+          DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.TESTING_DEPLOY_ARGS) }}"
+          echo '${{ secrets.TESTING_ENV_VARS }}' > .env
+
+          if ${{ (github.event_name == 'release' && github.event.action == 'released') || env.ONLY_PROD == 'true' }}; then
+            DEPLOY_ENV=production
+            CONTAINER_NAME=$REPO_NAME_SLUG
+            DEPLOY_URL=$REPO_NAME_SLUG.esek.se
+            if [ -n '${{ env.PROD_URL }}' ]; then
+              DEPLOY_URL=${{ env.PROD_URL }}
+            fi
+            DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.PROD_DEPLOY_ARGS) }}"
+            echo '${{ secrets.PROD_ENV_VARS }}' > .env
+          fi
+
+          if ${{ github.event_name == 'release' && github.event.action == 'prereleased' }}; then
+            DEPLOY_ENV=staging
+            CONTAINER_NAME=$REPO_NAME_SLUG-staging
+            DEPLOY_URL=$REPO_NAME_SLUG.staging.esek.se
+            if [ -n '${{ env.STAGING_URL }}' ]; then
+              DEPLOY_URL=${{ env.STAGING_URL }}
+            fi
+            DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.STAGING_DEPLOY_ARGS) }}"
+            echo '${{ secrets.STAGING_ENV_VARS }}' > .env
+          fi
+
+          if ${{ github.event_name == 'pull_request' }}; then
+            DEPLOY_ENV=review
+            CONTAINER_NAME=$CONTAINER_NAME-review
+            DEPLOY_URL=$REPO_NAME_SLUG-$BRANCH_SLUG.review.esek.se
+            DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.PR_DEPLOY_ARGS) }}"
+            echo '${{ secrets.PR_ENV_VARS }}' > .env
+          fi
+
+          echo 'CI_REGISTRY_IMAGE=${{ env.REGISTRY }}/${{ github.repository }}' >> .env >> $GITHUB_ENV
+
+          echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ github.repository }}:$TAG" >> $GITHUB_ENV
+          echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
+          echo "DEPLOY_ENV=$DEPLOY_ENV" >> $GITHUB_ENV
+          echo "DEPLOY_ARGS=${DEPLOY_ARGS//$'\n'/ }" >> $GITHUB_ENV
+      - name: start deployment
+        uses: bobheadxi/deployments@v1
+        id: deployment
+        if: ${{ !env.ACT && github.event_name != 'pull_request' }}
+        with:
+          step: start
+          token: ${{ secrets.GITHUB_TOKEN }}
+          override: true
+          env: ${{ env.DEPLOY_ENV }}
+      - name: login to host
+        uses: nightstory/setup-docker-remote@v1
+        with:
+          ssh_key: ${{ secrets.SSH_KEY }}
+          ssh_host_user: ${{ secrets.SSH_USER }}
+          ssh_host: ${{ secrets.SSH_HOST }}
+      - name: check connection
+        run: docker info
+      - name: login to registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: pull image
+        run: |
+          docker pull $CI_REGISTRY_IMAGE/web:$TAG
+          docker pull $CI_REGISTRY_IMAGE/strapi:$TAG
+      - name: deploy to host
+        run: >
+          docker-compose -f docker-compose.production.yml ${{ env.DEPLOY_ARGS }} up -d --force-recreate
+      - name: prune system
+        run: docker system prune -f 2> /dev/null || true
+      - name: update deployment status
+        uses: bobheadxi/deployments@v1
+        if: ${{ always() && !env.ACT && github.event_name != 'pull_request' }}
+        with:
+          step: finish
+          token: ${{ secrets.GITHUB_TOKEN }}
+          status: ${{ job.status }}
+          env: ${{ steps.deployment.outputs.env }}
+          env_url: https://${{ env.DEPLOY_URL }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+      - if: ${{ github.event.pull_request && github.event.action == 'opened' && !env.ACT }}
+        name: comment deployment url to pr
+        uses: mshick/add-pr-comment@v1
+        with:
+          message: I have deployed this PR to [${{ env.DEPLOY_URL }}](https://${{ env.DEPLOY_URL }}) 🚀
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  teardown:
+    runs-on: self-hosted
+    if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' && !always() }}
+    steps:
+      - name: self hosted runner post job cleanup action
+        uses: TooMuch4U/actions-clean@v2.1
+      - name: setup variables
+        run: |
+          eval "$SLUGIFY_FUNCTION"
+
+          if [ -z $GITHUB_HEAD_REF ]; then
+            BRANCH=$(basename ${GITHUB_REF})
+          else
+            BRANCH=$GITHUB_HEAD_REF
+          fi
+
+          echo "Running on $BRANCH"
+          REPO_NAME=$(basename ${{ github.repository }})
+
+          CONTAINER_NAME=$( echo "$REPO_NAME-$BRANCH-review" | slugify )
+          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
+      - name: login to host
+        uses: nightstory/setup-docker-remote@v1
+        with:
+          ssh_key: ${{ secrets.SSH_KEY }}
+          ssh_host_user: ${{ secrets.SSH_USER }}
+          ssh_host: ${{ secrets.SSH_HOST }}
+      - name: check connection
+        run: docker info
+      - name: stop container
+        run: |
+          docker stop $CONTAINER_NAME 2> /dev/null || true
+          docker rm --force $CONTAINER_NAME 2> /dev/null || true
+      - name: prune system
+        run: docker image prune -f 2> /dev/null || true
+      - if: ${{ !env.ACT }}
+        name: comment deployment url to pr
+        uses: mshick/add-pr-comment@v1
+        with:
+          message: I have removed this deploy now 😇
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
