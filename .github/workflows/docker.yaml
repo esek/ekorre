@@ -68,7 +68,7 @@ jobs:
       - name: debug
         run: cat .env
       - name: reset db
-        run: npm run prisma:reset
+        run: npm run prisma:ci
       - name: run test
         run: npm run test:prebuild
   build:
