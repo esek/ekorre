@@ -365,7 +365,7 @@ describe('reading files', () => {
         .field('accessType', AccessType.Admin)
         .expect(200),
     ]);
-  });
+  }, 10000);
 
   /**
    * Gets the content type from the response headers
