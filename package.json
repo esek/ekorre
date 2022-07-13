@@ -18,7 +18,7 @@
     "test:integration": "jest test/integration",
     "test:regression": "jest test/regression --coverage=false",
     "benchmark": "ts-node tools/benchmark/index.ts",
-    "prisma:ci": "prisma generate && prisma db push --force && prisma db seed --force",
+    "prisma:ci": "prisma generate && prisma db push --accept-data-loss && prisma db seed",
     "prisma:reset": "prisma migrate reset && prisma db push && prisma db seed",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
