@@ -17,7 +17,7 @@ type UploadFileOptions = {
 const fileApi = new FileAPI();
 const userApi = new UserAPI();
 
-const testFiles = ['test-image.jpeg', 'test-textfile.txt'];
+const testFiles = ['test-image.jpeg', 'test-textfile.txt', 'test-textfile2.txt'];
 const testUser: NewUser = {
   username: 'emilbajs',
   firstName: 'Blennow',
@@ -200,17 +200,13 @@ describe('fetching files', () => {
       baseUploadFile(accessToken, 'upload', testFiles[0], {})
         .field('accessType', AccessType.Public)
         .expect(200),
-      baseUploadFile(accessToken, 'upload', testFiles[0], {})
+      baseUploadFile(accessToken, 'upload', testFiles[1], {})
         .field('accessType', AccessType.Authenticated)
         .expect(200),
-      baseUploadFile(accessToken, 'upload', testFiles[1], {})
+      baseUploadFile(accessToken, 'upload', testFiles[2], {})
         .field('accessType', AccessType.Admin)
         .expect(200),
     ]);
-  });
-
-  afterAll(async () => {
-    await removeCreatedFiles();
   });
 
   const GET_FILES_QUERY = `
@@ -364,17 +360,13 @@ describe('reading files', () => {
       baseUploadFile(accessToken, 'upload', testFiles[0], {})
         .field('accessType', AccessType.Public)
         .expect(200),
-      baseUploadFile(accessToken, 'upload', testFiles[0], {})
+      baseUploadFile(accessToken, 'upload', testFiles[1], {})
         .field('accessType', AccessType.Authenticated)
         .expect(200),
-      baseUploadFile(accessToken, 'upload', testFiles[1], {})
+      baseUploadFile(accessToken, 'upload', testFiles[2], {})
         .field('accessType', AccessType.Admin)
         .expect(200),
     ]);
-  });
-
-  afterAll(async () => {
-    await removeCreatedFiles();
   });
 
   /**
