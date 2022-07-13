@@ -206,7 +206,7 @@ describe('fetching files', () => {
         .field('accessType', AccessType.Admin)
         .expect(200),
     ]);
-  }, 100000);
+  });
 
   const GET_FILES_QUERY = `
 	query($type: FileType) {
@@ -365,7 +365,7 @@ describe('reading files', () => {
         .field('accessType', AccessType.Admin)
         .expect(200),
     ]);
-  }, 100000);
+  });
 
   /**
    * Gets the content type from the response headers
