@@ -65,7 +65,6 @@ class FileAPI {
       return res;
     } catch (err) {
       logger.error(err);
-      throw err;
       throw new ServerError('Kunde inte spara filen');
     }
   }

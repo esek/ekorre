@@ -208,6 +208,10 @@ describe('fetching files', () => {
     ]);
   });
 
+  afterAll(async () => {
+    await removeCreatedFiles();
+  });
+
   const GET_FILES_QUERY = `
 	query($type: FileType) {
 		files(type: $type) {
@@ -365,6 +369,10 @@ describe('reading files', () => {
         .field('accessType', AccessType.Admin)
         .expect(200),
     ]);
+  });
+
+  afterAll(async () => {
+    await removeCreatedFiles();
   });
 
   /**
