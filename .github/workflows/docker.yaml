@@ -64,7 +64,9 @@ jobs:
       - name: install deps
         run: npm ci
       - name: setup env
-        run: mv .env.example.dev .env
+        run: |
+         mv .env.example.dev .env
+         mkdir public.local
       - name: debug
         run: cat .env
       - name: reset db
