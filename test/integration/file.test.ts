@@ -196,6 +196,7 @@ describe('fetching files', () => {
 
   beforeAll(async () => {
     await Promise.all([
+      removeCreatedFiles(),
       baseUploadFile(accessToken, 'upload', testFiles[0], {})
         .field('accessType', AccessType.Public)
         .expect(200),
@@ -359,6 +360,7 @@ describe('reading files', () => {
 
   beforeAll(async () => {
     await Promise.all([
+      removeCreatedFiles(),
       baseUploadFile(accessToken, 'upload', testFiles[0], {})
         .field('accessType', AccessType.Public)
         .expect(200),
