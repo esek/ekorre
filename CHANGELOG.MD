@@ -4,7 +4,7 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.14.0] - 2022-02-16
+## [0.14.0] - 2022-07-13
 
 ### Tillagt
 - `prisma` är nytt sätt att hantera databasen
