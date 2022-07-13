@@ -13,10 +13,9 @@ export type Context = {
   getUsername: () => string;
   getAccess: () => Promise<Access>;
   userDataLoader: DataLoader<string, User>;
-  postDataLoader: DataLoader<string, Post>;
+  postDataLoader: DataLoader<number, Post>;
   fileDataLoader: DataLoader<string, FileResponse>;
-  electionDataLoader: DataLoader<string, ElectionResponse>;
-  articleTagsDataLoader: DataLoader<string, string[]>;
+  electionDataLoader: DataLoader<number, ElectionResponse>;
 };
 
 export type ContextParams = Omit<ExpressContext, 'req'> & { req: CustomReq };

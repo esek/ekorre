@@ -3,53 +3,40 @@
 Ekorre är sektionens nya backend driven av Node och GraphQL och
 skriven i TypeScript.
 
+Förhoppningsvis har någon hållit denna README:n uppdaterad...
+
 ## Hur startar jag?
 
-Kort och gott:
+Börja med att installera alla node modules med
+¨
 ```bash
-# för linux och troligen mac
-sh tools/init.sh
-
-# för windows
-cmd tools/init.bat
+npm install .
 ```
 
-### Avanacerad start/förklaringar
+Kopiera `.env.example.dev` till `.env` och fyll i miljövariablerna.
+`.env`-filen innehåller konfigurationsvariabler till servern
 
-Det behövs en databas och konfiguration för att starta servern.
-För att generera databasen med exempeldata så skriv:
+`ekorre` använder `docker compose` för att få upp en fungerande en databas, dvs.
 
-```
-sqlite3 -init src/sql/init.sql <databasnamn> .exit
-```
-
-(du behöver installera [sqlite3](https://www.sqlite.org/download.html). Det är även
-rekommenderat att ha en databashanterare t.ex. [dbeaver](https://dbeaver.io/). För få merga sin funktion måste `init.sql` vara uppdaterad med din SQL-kod.)
-
-Därefter kopiera `.env.example.dev` till `.env` och ange
-filnamnet på databasen vid `DB_FILE` fältet.
-`.env` filen innehåller konfigurationsvariabler till servern
-
-Du kan alternativt bara köra
-
-```
-./tools/initenv.sh
+```bash
+docker compose up
 ```
 
-förutsatt att du kör något UNIX-liknande (Linux/MacOS).
+(förutsatt att du installerat docker).
 
-Därefter behöver du installera alla npm-paket med hjälp av
-```
-npm install
-```
+För att generera en `PrismaClient` (som används för att kommunicera med databasen) och
+fylla databasen med rätt schemas används
 
-och för att starta utvecklingservern så skriver du:
-
-```
-npm run dev # Kompilera kontiuerligt och öppna för debugger
+```bash
+npm run prisma:reset
 ```
 
-PS: För att stänga av servern trycker du CTRL+c
+vilket även brukar lösa dryga problem. Detta seedar även databasen med lite testdata.
+Sedan körs projektet med
+
+```bash
+npm run dev
+```
 
 ## Hur utvecklar jag?
 
@@ -57,7 +44,7 @@ Läs [semver](#SEMVER)
 
 TL;DR
 ```c
-npm run generate # Generera typescript från gql
+npm run generate # Generera typescript från gql och en Prisma client
 npm run dev # Kompilera kontiuerligt och öppna för debugger
 npm run prettier-format # Formatera kod, finns IDE intergration oftast
 ```
@@ -78,10 +65,8 @@ src
 │   └── <modul>.resolver.ts
 ├── reducers
 │   └── <modul>.reducer.ts
-├── schemas
-│   └── <modul>.graphql
-└── sql
-    └── <modul>.sql
+└── schema
+    └── <modul>.graphql
 ```
 
 där `schemas` och `resolvers` är viktigast. För
@@ -91,13 +76,17 @@ och `sql` är dedikerad till att skapa de tabeller
 som behövs för din funktion. Det finns mer djupgående
 README:s i undermapparna.
 
+Förutom dessa finns även `prisma/`, som är vår `ORM` (isch). Detta
+är delen som sköter databasstruktur och våra queries till databasen
+(Postgres).
+
 ### Verktyg
 
 Det är rekomenderat att du bekantar dig lite med de verktyg som används:
 
 * [Typescript](https://www.typescriptlang.org/)
 * [GraphQL](https://graphql.org/)
-* [Knex.js](http://knexjs.org) (vilket egentligen är SQL)
+* [Prisma](http://prisma.io) (vilket egentligen är SQL)
 * [graphql-codegen](https://graphql-code-generator.com/)
 * [apollo-server](https://www.apollographql.com/docs/apollo-server/)*
 * [graphql-tools](https://www.graphql-tools.com/docs/introduction/)*
@@ -115,10 +104,11 @@ Använd denna!
 För att generera:
 
 ```
-npm run generate
+npm run graphql:generate
 ```
 
 Det kan hända att VScode eller annan IDE gnäller på dina typer även om du genererat nya. Då bör du i VScode köra `Ctrl+Shift+P` följt av `Reload Window`.
+
 #### Kodstil
 
 Eslint och prettier är konfigurerat och det
@@ -155,19 +145,20 @@ När du utvecklar en modul ser det troligen ut på följande sätt.
 
 1. Du har en idé om vad man ska kunna göra och ungefär hur det ska fungera
 2. Du skapar en eller flera `SQL`-tabeller och lägger till i `src/sql/`. Du ser till att tabellen
-finns i både `init.sql` och en separat fil, för att andra enkelt ska kunna lägga till tabell(erna).
+finns i både `init.sql` och en separat fil, för att andra enkelt ska kunna lägga till tabell(erna).~~ Du skapar en ny typ i `prisma/schema.prisma` och lägger till testdata i `prisma/data/`. Prisma sköter själv att skapa databasen när man kör `npm run prisma:push`, så du behöver inte skapa SQL-schemas själv!
 3. Du skapar ett nytt GraphQL-schema i `src/schemas`
-4. Du skapar databastyper, t.ex. `DatabaseAmazingFeature` som representerar hur datan lagras i databasen
-5. Du skapar en ny API i `src/api/`, som bara har i uppgift att prata med din nya SQL
-6. Du inser att du inte kan få all information ur SQL och skapar en mapper-typ i `src/models/mappers.d.ts`, t.ex. `AmazingFeatureResponse`
-7. Du skapar en reducer som omvandlar `DatabaseAmazingFeature` till `AmazingFeatureResponse`
-8. Du skapar en resolver i `src/resolvers/`. Funktionerna där använder din API och returnerar t.ex. `AmazingFeatureResponse`
-9. Du lägger till resolver-metoder för att omvandla `AmazingFeatureResponse` till `AmazingFeature`, t.ex. om `AmazingFeature` innehåller `User`-objekt. `AmazingFeatureAPI` kan inte själv lösa dessa, så resolvern använder `ctx.userDataLoader` för att omvandla
+4. Du skapar en ny API i `src/api/`, som bara har i uppgift att prata med din nya SQL
+5. Du inser att du inte kan få all information ur SQL och skapar en mapper-typ i `src/models/mappers.d.ts`, t.ex. `AmazingFeatureResponse`
+6. Du skapar en reducer som omvandlar `DatabaseAmazingFeature` till `AmazingFeatureResponse`
+7. Du skapar en resolver i `src/resolvers/`. Funktionerna där använder din API och returnerar t.ex. `AmazingFeatureResponse`
+8. Du lägger till resolver-metoder för att omvandla `AmazingFeatureResponse` till `AmazingFeature`, t.ex. om `AmazingFeature` innehåller `User`-objekt. `AmazingFeatureAPI` kan inte själv lösa dessa, så resolvern använder `ctx.userDataLoader` för att omvandla
 `AmazingFeatureResponse`s halvfärdiga `User`-objekt till fullvärdiga (detta görs automatiskt om resolvern har rätt fält/metoder!)
-10. Du kan behöva skapa en ny `DataLoader` för att undvika *n + 1*-problemet.
-11. Du skriver enhetstester i `src/test/unit/` för din nya API och reducer, och integrationstester i `test/integration` för din resolver
-12. Du uppdaterar `CHANGELOG.MD` med din nya uppdatering, och ändrar samtidigt versionsnummret i `package.json`!
-13. Du ber om code review i GitLab på din nya MR!
+9. Du kan behöva skapa en ny `DataLoader` för att undvika *n + 1*-problemet.
+10. Du skriver enhetstester i `src/test/unit/` för din nya API och reducer, och integrationstester i `test/integration` för din resolver
+11. Du uppdaterar `CHANGELOG.MD` med din nya uppdatering, och ändrar samtidigt versionsnummret i `package.json`!
+12. Du ber om code review i GitLab på din nya MR!
+
+Glöm inte att köra `npm run generate` när du pillat med GraphQL eller Prisma!
 
 Detta kan tyckas vara många steg, men det finns gott om färdiga exempel. Dessutom finns det gott om hjälpfunktioner, och många problem man kan tänkas finns lösta nånstans! Försök att följa de konventioner som finns, i design, namngiving och förväntade
 returvärden. API:n är mycket enklare att använda om man är konsekvent!
@@ -179,19 +170,6 @@ automatisk testning. Testerna hittas i `test/` och baseras på testningsramverke
 trackas code coverage (alltså hur stor del av koden som körs i tester) på GitLab. Högt coverage garanterar inte att saker
 fungerar som de ska, men utan något coverage famlar man helt i blinda. Det är nästan krav att ny kod även kommer med tester.
 Hur ska du annars kunna bevisa att din kod gör det du säger?
-
-# Att använda ekorre i andra projekt (funktionella användare)
-
-`ekorre` är sättet att komma åt sektionens databas, och är med det sättet även fler projekt än
-`efterphest` (eee.esek.se) kommer åt viktiga funktioner. För att ett annat projekt ska komma åt data
-utan en inloggad användare (t.ex. i en backend) behöver de en _funktionell användare_. En funktionell 
-är en `User` där `funcUser` är satt till `true`. En funktionell användares `Username` ska alltid börja med `funcUser_` följt av vilket projekt den är kopplad till.
-
-Eftersom funktionella användare ofta behöver många rättigheter ska lösenord till dessa vara så långa
-som möjligt, och helst helt slumpmässiga.
-
-Självklart får funktionella användare endast existera på backenden, långt ifrån användaren. Det är alltså __totalförbjudet__ att skicka användaruppgifter till funktionella användare till frontend. Istället ska i de fallen
-användarens egen inlogg användas.
 
 # Docker
 

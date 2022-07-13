@@ -20,9 +20,10 @@ import {
   Proposal,
   User,
 } from '@generated/graphql';
+import { PrismaAccessResource } from '@prisma/client';
 
-export type ArticleResponse = Partial<Omit<Article, 'creator' | 'lastUpdatedBy'>> & {
-  creator: Partial<User>;
+export type ArticleResponse = Partial<Omit<Article, 'author' | 'lastUpdatedBy'>> & {
+  author: Partial<User>;
   lastUpdatedBy: Partial<User>;
 };
 

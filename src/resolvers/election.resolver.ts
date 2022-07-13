@@ -14,7 +14,9 @@ const electionResolver: Resolvers = {
     openElection: async (_, __, ctx) => {
       await hasAuthenticated(ctx);
       const e = reduce(await api.getOpenElection(), electionReduce);
-      ctx.electionDataLoader.prime(e.id ?? '', e);
+      if (e.id) {
+        ctx.electionDataLoader.prime(e.id, e);
+      }
       return e;
     },
     latestElections: async (_, { limit, includeUnopened, includeHiddenNominations }, ctx) => {
@@ -52,30 +54,36 @@ const electionResolver: Resolvers = {
       );
       return reduce(n, nominationReduce);
     },
-    numberOfNominations: async (_, { electionId, postname }) => {
-      return api.getNumberOfNominations(electionId, postname ?? undefined);
+    numberOfNominations: async (_, { electionId, postId }) => {
+      return api.getNumberOfNominations(electionId, postId ?? undefined);
     },
-    numberOfProposals: async (_, { electionId, postname }) => {
-      return api.getNumberOfProposals(electionId, postname ?? undefined);
+    numberOfProposals: async (_, { electionId, postId }) => {
+      return api.getNumberOfProposals(electionId, postId ?? undefined);
     },
   },
   Mutation: {
     createElection: async (_, { electables, nominationsHidden }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
       const safeElectables = electables.filter(notEmpty);
-      return api.createElection(ctx.getUsername(), safeElectables, nominationsHidden);
+      const election = await api.createElection(
+        ctx.getUsername(),
+        safeElectables,
+        nominationsHidden,
+      );
+
+      return reduce(election, electionReduce);
     },
-    addElectables: async (_, { electionId, postnames }, ctx) => {
+    addElectables: async (_, { electionId, postIds }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.addElectables(electionId, postnames ?? []);
+      return api.addElectables(electionId, postIds ?? []);
     },
-    removeElectables: async (_, { electionId, postnames }, ctx) => {
+    removeElectables: async (_, { electionId, postIds }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.removeElectables(electionId, postnames ?? []);
+      return api.removeElectables(electionId, postIds ?? []);
     },
-    setElectables: async (_, { electionId, postnames }, ctx) => {
+    setElectables: async (_, { electionId, postIds }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.setElectables(electionId, postnames);
+      return api.setElectables(electionId, postIds);
     },
     setHiddenNominations: async (_, { electionId, hidden }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
@@ -89,20 +97,20 @@ const electionResolver: Resolvers = {
       await hasAccess(ctx, Feature.ElectionAdmin);
       return api.closeElection();
     },
-    nominate: async (_, { username, postnames }, ctx) => {
+    nominate: async (_, { username, postIds }, ctx) => {
       await hasAuthenticated(ctx);
-      return api.nominate(username, postnames);
+      return api.nominate(username, postIds);
     },
-    respondToNomination: async (_, { postname, accepts }, ctx) => {
-      return api.respondToNomination(ctx.getUsername(), postname, accepts);
+    respondToNomination: async (_, { postId, accepts }, ctx) => {
+      return api.respondToNomination(ctx.getUsername(), postId, accepts);
     },
-    propose: async (_, { electionId, username, postname }, ctx) => {
+    propose: async (_, { electionId, username, postId }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.propose(electionId, username, postname);
+      return api.propose(electionId, username, postId);
     },
-    removeProposal: async (_, { electionId, username, postname }, ctx) => {
+    removeProposal: async (_, { electionId, username, postId }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.removeProposal(electionId, username, postname);
+      return api.removeProposal(electionId, username, postId);
     },
   },
   Election: {
@@ -126,15 +134,16 @@ const electionResolver: Resolvers = {
       return null;
     },
     electables: async (model, _, ctx) => {
-      const refposts = await api.getAllElectables(model.id ?? '');
+      // To prevent 0 from giving -1, thx JS very cool
+      const refPosts = await api.getAllElectables(model.id === 0 ? 0 : model.id ?? -1);
       return Promise.all(
-        refposts.map(async (e) => {
+        refPosts.map(async (e) => {
           return ctx.postDataLoader.load(e);
         }),
       );
     },
     proposals: async (model) => {
-      const p = await api.getAllProposals(model.id ?? '');
+      const p = await api.getAllProposals(model.id ?? -1);
       return reduce(p, proposalReduce);
     },
     acceptedNominations: async (model) => {
@@ -146,7 +155,7 @@ const electionResolver: Resolvers = {
       }
 
       // Vi vill bara visa de nomineringar där folk tackat ja
-      const n = await api.getAllNominations(model.id ?? '', NominationAnswer.Yes);
+      const n = await api.getAllNominations(model.id ?? -1, NominationAnswer.Yes);
 
       return reduce(n, nominationReduce);
     },
@@ -158,7 +167,7 @@ const electionResolver: Resolvers = {
     })),
     post: useDataLoader((model, context) => ({
       dataLoader: context.postDataLoader,
-      key: model.post.postname,
+      key: model.post.id,
     })),
   },
   Nomination: {
@@ -168,7 +177,7 @@ const electionResolver: Resolvers = {
     })),
     post: useDataLoader((model, context) => ({
       dataLoader: context.postDataLoader,
-      key: model.post.postname,
+      key: model.post.id,
     })),
   },
 };

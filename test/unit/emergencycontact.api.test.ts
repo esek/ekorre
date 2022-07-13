@@ -1,22 +1,12 @@
-import { EMERGENCY_CONTACTS_TABLE, USER_TABLE } from '@/api/constants';
 import EmergencyContactAPI from '@/api/emergencycontact.api';
-import db from '@/api/knex';
-import { UserAPI } from '@/api/user.api';
+import prisma from '@/api/prisma';
 import { ServerError } from '@/errors/request.errors';
-import { DatabaseEmergencyContact } from '@/models/db/emergencycontact';
-import { DatabaseUser } from '@/models/db/user';
 import { EmergencyContact, EmergencyContactType, NewUser } from '@generated/graphql';
+import { genRandomUser } from '@test/utils/utils';
+
+const [createDummyUser, deleteDummyUser] = genRandomUser([]);
 
 const emergencyContactApi = new EmergencyContactAPI();
-const userApi = new UserAPI();
-
-const DUMMY_USER: NewUser = {
-  username: 'testECApiTestUser',
-  firstName: 'Adde',
-  lastName: 'Heinrichson',
-  class: 'E18',
-  password: 'hunter2',
-};
 
 const DUMMMY_DAD: Omit<EmergencyContact, 'id'> = {
   name: 'John Doe',
@@ -24,32 +14,45 @@ const DUMMMY_DAD: Omit<EmergencyContact, 'id'> = {
   type: EmergencyContactType.Dad,
 };
 
-beforeAll(async () => {
-  await userApi.createUser(DUMMY_USER);
-});
+const clearDb = async () => {
+  try {
+    await prisma.prismaEmergencyContact.deleteMany({
+      where: {
+        ...DUMMMY_DAD,
+      },
+    });
+  } catch {
+    // NOOP
+  }
 
-afterAll(async () => {
-  await db<DatabaseEmergencyContact>(EMERGENCY_CONTACTS_TABLE)
-    .delete()
-    .where('refuser', DUMMY_USER.username);
-  await db<DatabaseUser>(USER_TABLE).delete().where('username', DUMMY_USER.username);
+  try {
+    await deleteDummyUser();
+  } catch {
+    // NOOP
+  }
+};
+
+afterEach(async () => {
+  await clearDb();
 });
 
 test('get empty emergency contacts for user', async () => {
-  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(
+  const dummyUser = await createDummyUser();
+  await expect(emergencyContactApi.getEmergencyContacts(dummyUser.username)).resolves.toHaveLength(
     0,
   );
 });
 
 test('add emergency contact to user that exists', async () => {
+  const dummyUser = await createDummyUser();
   await expect(
     emergencyContactApi.addEmergencyContact(
-      DUMMY_USER.username,
+      dummyUser.username,
       DUMMMY_DAD.name,
       DUMMMY_DAD.phone,
       DUMMMY_DAD.type,
     ),
-  ).resolves.toBe(true);
+  ).resolves.toBeTruthy();
 });
 
 test('add emergency contact to user that does not exist', async () => {
@@ -64,33 +67,42 @@ test('add emergency contact to user that does not exist', async () => {
 });
 
 test('get all emergency contacts', async () => {
-  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(
+  const dummyUser = await createDummyUser();
+
+  await emergencyContactApi.addEmergencyContact(
+    dummyUser.username,
+    DUMMMY_DAD.name,
+    DUMMMY_DAD.phone,
+    DUMMMY_DAD.type,
+  );
+
+  await expect(emergencyContactApi.getEmergencyContacts(dummyUser.username)).resolves.toHaveLength(
     1,
   );
 });
 
 test('remove emergency contact that does not exist', async () => {
+  const dummyUser = await createDummyUser();
   await expect(
-    emergencyContactApi.removeEmergencyContact(DUMMY_USER.username, 99999),
+    emergencyContactApi.removeEmergencyContact(dummyUser.username, 99999),
   ).rejects.toThrow(ServerError);
 });
 
 test('remove emergency contact that does exist', async () => {
-  // Get the ID of the user contact created
-  const contacts = await emergencyContactApi.getEmergencyContacts(DUMMY_USER.username);
-  const contact = contacts.find(
-    (c) => c.refuser === DUMMY_USER.username && c.name === DUMMMY_DAD.name,
+  const dummyUser = await createDummyUser();
+
+  const { id: contactId } = await emergencyContactApi.addEmergencyContact(
+    dummyUser.username,
+    DUMMMY_DAD.name,
+    DUMMMY_DAD.phone,
+    DUMMMY_DAD.type,
   );
 
-  if (!contact) {
-    throw new Error();
-  }
-
   await expect(
-    emergencyContactApi.removeEmergencyContact(DUMMY_USER.username, contact.id),
-  ).resolves.toBe(true);
+    emergencyContactApi.removeEmergencyContact(dummyUser.username, contactId),
+  ).resolves.toBeTruthy();
 
-  await expect(emergencyContactApi.getEmergencyContacts(DUMMY_USER.username)).resolves.toHaveLength(
+  await expect(emergencyContactApi.getEmergencyContacts(dummyUser.username)).resolves.toHaveLength(
     0,
   );
 });

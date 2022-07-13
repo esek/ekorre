@@ -3,12 +3,12 @@ import type { StrictObject } from '@/models/base';
 import { Context } from '@/models/context';
 import DataLoader from 'dataloader';
 
-type DataLoaderCallback<T, E> = (
+type DataLoaderCallback<T, K, E> = (
   model: T,
   context: Context,
 ) => {
-  key?: string;
-  dataLoader: DataLoader<string, E>;
+  key?: K;
+  dataLoader: DataLoader<K, E>;
 };
 
 /**
@@ -39,7 +39,7 @@ export const createDataLoader = <T, K = string>(
  */
 // prettier-ignore
 export const useDataLoader =
-  <T, E>(cb: DataLoaderCallback<T, E>) =>
+  <T, K, E>(cb: DataLoaderCallback<T, K, E>) =>
     (model: T, _: StrictObject, ctx: Context) => {
       const { key, dataLoader } = cb(model, ctx);
       if (!key) {

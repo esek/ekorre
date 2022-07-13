@@ -1,44 +1,17 @@
-import { POSTS_TABLE } from '@/api/constants';
-import db from '@/api/knex';
 import { createDataLoader, useDataLoader } from '@/dataloaders';
 import { batchPostsFunction, postApi } from '@/dataloaders/post.dataloader';
 import { NotFoundError } from '@/errors/request.errors';
-import { DatabasePost } from '@/models/db/post';
 import { reduce } from '@/reducers';
 import { postReduce } from '@/reducers/post.reducer';
-import { Post, PostType, Utskott } from '@generated/graphql';
+import { genRandomPost } from '@test/utils/utils';
+
+const [createPost0, deletePost0] = genRandomPost();
+const [createPost1, deletePost1] = genRandomPost();
+const [createPost2, deletePost2] = genRandomPost();
 
 // Vi kontrollerar antal anrop till API:n
 const apiSpy = jest.spyOn(postApi, 'getMultiplePosts');
-const mockPosts: DatabasePost[] = [
-  {
-    active: true,
-    description: 'Minskar InfUs budget',
-    interviewRequired: true,
-    postType: PostType.Ea,
-    postname: 'Budgetman',
-    spots: -1,
-    utskott: Utskott.Fvu,
-  },
-  {
-    active: false,
-    description: 'Går på Sensation Red',
-    interviewRequired: true,
-    postType: PostType.ExactN,
-    postname: 'Tinderchef',
-    spots: 69,
-    utskott: Utskott.Styrelsen,
-  },
-  {
-    active: true,
-    description: 'Är med i automatiska tester',
-    interviewRequired: false,
-    postType: PostType.N,
-    postname: 'Testmästare',
-    spots: 2,
-    utskott: Utskott.Infu,
-  },
-];
+let mockPostIds: number[] = [];
 
 beforeEach(() => {
   // För att vi ska återställa räkningen
@@ -48,27 +21,30 @@ beforeEach(() => {
 
 beforeAll(async () => {
   // Insert fake users
-  await db<DatabasePost>(POSTS_TABLE).insert(mockPosts);
+  mockPostIds = (await Promise.all([
+    createPost0(),
+    createPost1(),
+    createPost2(),
+  ])).map((p) => p.id);
 });
 
 afterAll(async () => {
-  await db<DatabasePost>(POSTS_TABLE)
-    .delete()
-    .whereIn(
-      'postname',
-      mockPosts.map((p) => p.postname),
-    );
+  await Promise.all([
+    deletePost0(),
+    deletePost1(),
+    deletePost2(),
+  ]);
 });
 
 test('load single post', async () => {
   const pl = createDataLoader(batchPostsFunction);
-  const post = await pl.load('Testmästare');
+  const post = await pl.load(mockPostIds[0]);
 
   // SQLite makes these conversions neccessary
   post.active = !!post.active;
   post.interviewRequired = !!post.interviewRequired;
 
-  const mockUser = reduce(mockPosts.filter((p) => p.postname === 'Testmästare')[0], postReduce);
+  const mockUser = reduce(await postApi.getPost(mockPostIds[0]), postReduce);
   expect(post).toMatchObject(mockUser);
   expect(apiSpy).toHaveBeenCalledTimes(1);
 });
@@ -76,12 +52,12 @@ test('load single post', async () => {
 test('load multiple posts', async () => {
   const dl = createDataLoader(batchPostsFunction);
   await Promise.all(
-    mockPosts.map(async (p) => {
-      const post = await dl.load(p.postname);
+    mockPostIds.map(async (id) => {
+      const post = await dl.load(id);
       post.active = !!post.active;
       post.interviewRequired = !!post.interviewRequired;
 
-      const mockPost = reduce(p, postReduce);
+      const mockPost = reduce(await postApi.getPost(id), postReduce);
       expect(post).toMatchObject(mockPost);
     }),
   );
@@ -89,40 +65,41 @@ test('load multiple posts', async () => {
 });
 
 test('loading multiple existant and non-existant posts', async () => {
-  const postnames = ['Obv. fake postname lol', ...mockPosts.map((p) => p.postname)];
+  const postIds = [-69, ...mockPostIds];
   const pl = createDataLoader(batchPostsFunction);
   await Promise.all(
-    postnames.map(async (name) => {
+    postIds.map(async (id) => {
       // If mockUsers contain a user with this username,
       // expect the load of that name to be that user
-      if (mockPosts.map((p) => p.postname).includes(name)) {
-        const post = await pl.load(name);
+      if (mockPostIds.includes(id)) {
+        const post = await pl.load(id);
 
         post.active = !!post.active;
         post.interviewRequired = !!post.interviewRequired;
 
-        const mockPost = reduce(mockPosts.filter((p) => p.postname === name)[0], postReduce);
+        const mockPost = reduce(await postApi.getPost(id), postReduce);
 
         // We don't care about date and such, but the result should contain mockPost
         expect(post).toMatchObject(mockPost);
       } else {
         // We expect an error for the fake one
-        await expect(pl.load(name)).rejects.toThrowError(NotFoundError);
+        await expect(pl.load(id)).rejects.toThrowError(NotFoundError);
       }
     }),
   );
 });
 
 test('loading non-existant post', async () => {
-  const fakePostname = 'This is not a valid username.com!';
+  const fakeId = -1997;
   const pl = createDataLoader(batchPostsFunction);
-  await expect(pl.load(fakePostname)).rejects.toThrowError();
+  await expect(pl.load(fakeId)).rejects.toThrowError();
   expect(apiSpy).toHaveBeenCalledTimes(1);
 });
 
 test('load post using useDataloader', async () => {
+  const id = mockPostIds[0];
   const postDataLoader = createDataLoader(batchPostsFunction);
-  const pl = useDataLoader<string, Post>((key, ctx) => ({
+  const pl = useDataLoader((key, ctx) => ({
     key,
     dataLoader: ctx.postDataLoader,
   }));
@@ -130,13 +107,13 @@ test('load post using useDataloader', async () => {
   // To ignore context error
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const post = await pl('Testmästare', {}, { postDataLoader });
+  const loadedPost = await pl(id, {}, { postDataLoader });
 
-  post.active = !!post.active;
-  post.interviewRequired = !!post.interviewRequired;
+  loadedPost.active = !!loadedPost.active;
+  loadedPost.interviewRequired = !!loadedPost.interviewRequired;
 
-  const mockPost = reduce(mockPosts.filter((p) => p.postname === 'Testmästare')[0], postReduce);
+  const mockPost = reduce(await postApi.getPost(id), postReduce);
 
   // We don't care about date and such, but the result should contain mockPost
-  expect(post).toMatchObject(mockPost);
+  expect(loadedPost).toMatchObject(mockPost);
 });

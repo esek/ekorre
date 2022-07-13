@@ -5,32 +5,33 @@
 import { useDataLoader } from '@/dataloaders';
 import { Context } from '@/models/context';
 import { ArticleResponse } from '@/models/mappers';
+import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { ArticleAPI } from '@api/article';
-import { DatabaseArticle } from '@db/article';
-import { ArticleType, Feature, Resolvers } from '@generated/graphql';
+import { Feature, Resolvers } from '@generated/graphql';
+import { PrismaArticleType } from '@prisma/client';
 import { articleReducer } from '@reducer/article';
 
 const articleApi = new ArticleAPI();
 
-const checkEditAccess = async (ctx: Context, articleType: ArticleType) => {
+const checkEditAccess = async (ctx: Context, articleType: PrismaArticleType) => {
   await hasAccess(
     ctx,
-    articleType === ArticleType.Information ? Feature.ArticleEditor : Feature.NewsEditor,
+    articleType === PrismaArticleType.INFORMATION ? Feature.ArticleEditor : Feature.NewsEditor,
   );
 };
 
 /**
  * Maps an `DatabaseArticle` i.e. a partial of `Article` to an ArticleResponse object
  * @param partial DatabaseArticle to be mapped
- * @returns ArticleResponse object with references to `creator` and
+ * @returns ArticleResponse object with references to `author` and
  * `lastUpdatedBy`
  */
 const articleResolver: Resolvers = {
   Article: {
-    // Load creator & lastUpdateBy using dataloader for performace reasons
-    creator: useDataLoader((model, ctx) => ({
-      key: model.creator.username,
+    // Load author & lastUpdateBy using dataloader for performace reasons
+    author: useDataLoader((model, ctx) => ({
+      key: model.author.username,
       dataLoader: ctx.userDataLoader,
     })),
     lastUpdatedBy: useDataLoader((model, ctx) => ({
@@ -39,21 +40,16 @@ const articleResolver: Resolvers = {
     })),
     lastUpdatedAt: (model) => new Date(model.lastUpdatedAt),
     createdAt: (model) => new Date(model.createdAt),
-    tags: useDataLoader((model, ctx) => ({
-      key: model?.id ?? '',
-      dataLoader: ctx.articleTagsDataLoader,
-    })),
   },
   Query: {
-    newsentries: async (_, { creator, after, before, markdown }, ctx) => {
+    newsentries: async (_, { author, after, before }, ctx) => {
       await hasAuthenticated(ctx);
-      const safeMarkdown = markdown ?? false;
       let articleResponse: ArticleResponse[];
 
-      if (!creator && !after && !before) {
+      if (!author && !after && !before) {
         const apiResponse = await articleApi.getAllNewsArticles();
         if (apiResponse === null) return [];
-        articleResponse = await articleReducer(apiResponse, safeMarkdown);
+        articleResponse = reduce(apiResponse, articleReducer);
       } else {
         const beforeDate = new Date(before ?? Number.MAX_VALUE); // Set really high date if nothing is provided
         const afterDate = new Date(after ?? Number.MIN_VALUE); // Set really low date if nothing is provided
@@ -61,26 +57,25 @@ const articleResolver: Resolvers = {
         const apiResponse = await articleApi.getNewsArticlesFromInterval(
           afterDate,
           beforeDate,
-          creator ?? undefined,
+          author ?? undefined,
         );
 
-        articleResponse = await articleReducer(apiResponse, safeMarkdown);
+        articleResponse = reduce(apiResponse, articleReducer);
       }
 
       return articleResponse;
     },
-    latestnews: async (_, { limit, markdown }, ctx) => {
+    latestnews: async (_, { limit }, ctx) => {
       await hasAuthenticated(ctx);
-      const safeMarkdown = markdown ?? false;
       let articleResponse: ArticleResponse[];
 
       // Om vi inte gett en limit returnerar vi bara alla artiklar
       if (limit) {
         const apiResponse = await articleApi.getLatestNews(limit);
         if (apiResponse === null) return [];
-        articleResponse = await articleReducer(apiResponse, safeMarkdown);
+        articleResponse = reduce(apiResponse, articleReducer);
       } else {
-        articleResponse = await articleReducer(await articleApi.getAllNewsArticles(), safeMarkdown);
+        articleResponse = reduce(await articleApi.getAllNewsArticles(), articleReducer);
       }
 
       // If we get no articles, we should just return null directly.
@@ -91,54 +86,35 @@ const articleResolver: Resolvers = {
       // Vi vill returnera en tom array, inte null
       return articleResponse;
     },
-    article: async (_, { id, slug, markdown }) => {
-      const safeMarkdown = markdown ?? false; // If markdown not passed, returns default (false)
-
+    article: async (_, { id, slug }) => {
       // Vi får tillbaka en DatabaseArticle som inte har en hel användare, bara unikt användarnamn.
       // Vi måste använda UserAPI:n för att få fram denna användare.
-      const apiResponse = await articleApi.getArticle({ id, slug });
+      const apiResponse = await articleApi.getArticle(id ?? undefined, slug ?? undefined);
 
-      // Om API::n returnerar null finns inte artikeln; returnera null
-      if (apiResponse == null) {
-        return null;
-      }
-
-      const articleResponse = await articleReducer(apiResponse, safeMarkdown);
-
-      return articleResponse;
+      return reduce(apiResponse, articleReducer);
     },
-    articles: async (_, { ...parameters }) => {
-      const { creator, lastUpdateBy, markdown, ...reduced } = parameters;
+    articles: async (_, { author, id, tags }) => {
+      const articles = await articleApi.getArticles({
+        AND: [
+          {
+            refAuthor: author ?? undefined,
+          },
+          {
+            id: id ?? undefined,
+          },
+          {
+            tags: {
+              some: {
+                tag: {
+                  in: tags ?? [],
+                },
+              },
+            },
+          },
+        ],
+      });
 
-      const safeMarkdown = markdown ?? false;
-      let articleResponse: ArticleResponse[] | null;
-
-      // If all parameters are empty, we should just return all articles
-      // We need to rebind creator and reflastupdater
-      // (string, not user) to refcreator and reflastupdater for DatabaseArticle
-
-      const params = {
-        ...reduced,
-        refcreator: creator,
-        reflastupdateby: lastUpdateBy,
-      };
-
-      if (Object.values(params).filter((v) => v).length === 0) {
-        // We have no entered paramters
-        articleResponse = await articleReducer(await articleApi.getAllArticles(), safeMarkdown);
-      } else {
-        const apiResponse = await articleApi.getArticles(params as Partial<DatabaseArticle>);
-        if (apiResponse === null) return [];
-        articleResponse = await articleReducer(apiResponse, safeMarkdown);
-      }
-
-      // If we get no articles, we should just return null directly.
-      if (articleResponse.length === 0) {
-        return [];
-      }
-
-      // Return raw data here, article-resolver will handle mapping of creator and lastupdatedby
-      return articleResponse;
+      return reduce(articles, articleReducer);
     },
   },
   Mutation: {
@@ -146,20 +122,22 @@ const articleResolver: Resolvers = {
       await checkEditAccess(ctx, entry.articleType);
       // Special type of reduce
       const apiResponse = await articleApi.newArticle(ctx.getUsername(), entry);
-      return articleReducer(apiResponse, true);
+      return reduce(apiResponse, articleReducer);
     },
     modifyArticle: async (_, { articleId, entry }, ctx) => {
-      const article = await articleApi.getArticle({ id: articleId, slug: null });
+      const article = await articleApi.getArticle(articleId);
 
       /**
        * If trying to set a new articleType, make sure we check that the user is allowed to do so.
        *  */
       await checkEditAccess(ctx, entry?.articleType ?? article.articleType);
 
-      return articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
+      const apiResponse = await articleApi.modifyArticle(articleId, ctx.getUsername(), entry);
+
+      return reduce(apiResponse, articleReducer);
     },
     removeArticle: async (_, { articleId }, ctx) => {
-      const article = await articleApi.getArticle({ id: articleId, slug: null });
+      const article = await articleApi.getArticle(articleId);
       await checkEditAccess(ctx, article.articleType);
       return articleApi.removeArticle(articleId);
     },

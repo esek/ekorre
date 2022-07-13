@@ -19,8 +19,8 @@ on:
 
 env:
   REGISTRY: registry.esek.se
-  PROD_URL: ekorre.esek.se
-  # STAGING_URL: staging.esek.se
+  PROD_URL: esek.se # Optional
+  # STAGING_URL: blabla.esek.se # Optional
   DEFAULT_BRANCH: main
   # Settting args for the deploy applies to all environments.
   # You can also set the following secret values:
@@ -28,7 +28,7 @@ env:
   DEPLOY_ARGS: ''
   # Setting env vars can be done by setting
   # PROD_ENV_VARS, STAGING_ENV_VARS, TESTING_ENV_VARS, PR_ENV_VARS
-  ONLY_PROD: false
+  ONLY_PROD: true
   SLUGIFY_FUNCTION: |
     function slugify() {
       iconv -t ascii//TRANSLIT \
@@ -39,10 +39,49 @@ env:
     }
 
 jobs:
+  test:
+    runs-on: self-hosted
+    if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
+    services:
+      postgres:
+        image: postgres:alpine
+        env:
+         POSTGRES_USER: postgres
+         POSTGRES_PASSWORD: password
+         POSTGRES_DB: ekorre_foot
+        ports:
+          - 5432:5432
+    steps:
+      - name: setup buildx
+        uses: docker/setup-buildx-action@v2
+        id: buildx
+        with:
+          install: true
+      - name: self hosted runner post job cleanup action
+        uses: TooMuch4U/actions-clean@v2.1
+      - name: checkout repo
+        uses: actions/checkout@v3
+      - name: install deps
+        run: npm ci
+      - name: setup env
+        run: |
+         mv .env.example.dev .env
+         mkdir public.local
+      - name: debug
+        run: cat .env
+      - name: reset db
+        run: npm run prisma:ci
+      - name: run test
+        run: npm run test:prebuild
   build:
     runs-on: self-hosted
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
     steps:
+      - name: setup buildx
+        uses: docker/setup-buildx-action@v2
+        id: buildx
+        with:
+          install: true
       - name: self hosted runner post job cleanup action
         uses: TooMuch4U/actions-clean@v2.1
       - name: checkout repo
@@ -69,11 +108,6 @@ jobs:
 
           TAG=$(echo "$TAG" | slugify)
           echo "TAG=$TAG" >> $GITHUB_ENV
-      - name: setup buildx
-        uses: docker/setup-buildx-action@v2
-        id: buildx
-        with:
-          install: true
       - name: login to registry
         uses: docker/login-action@v2
         with:
@@ -95,6 +129,8 @@ jobs:
     steps:
       - name: self hosted runner post job cleanup action
         uses: TooMuch4U/actions-clean@v2.1
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: set variables
         run: |
           eval "$SLUGIFY_FUNCTION"
@@ -126,7 +162,7 @@ jobs:
           DEPLOY_URL=$REPO_NAME_SLUG.testing.esek.se
           DEPLOY_ENV=${BRANCH_SLUG/${{ env.DEFAULT_BRANCH }}/testing}
           DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.TESTING_DEPLOY_ARGS) }}"
-          echo "${{ secrets.TESTING_ENV_VARS }}" > .env
+          echo '${{ secrets.TESTING_ENV_VARS }}' > .env
 
           if ${{ (github.event_name == 'release' && github.event.action == 'released') || env.ONLY_PROD == 'true' }}; then
             DEPLOY_ENV=production
@@ -136,7 +172,7 @@ jobs:
               DEPLOY_URL=${{ env.PROD_URL }}
             fi
             DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.PROD_DEPLOY_ARGS) }}"
-            echo "${{ secrets.PROD_ENV_VARS }}" > .env
+            echo '${{ secrets.PROD_ENV_VARS }}' > .env
           fi
 
           if ${{ github.event_name == 'release' && github.event.action == 'prereleased' }}; then
@@ -147,7 +183,7 @@ jobs:
               DEPLOY_URL=${{ env.STAGING_URL }}
             fi
             DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.STAGING_DEPLOY_ARGS) }}"
-            echo "${{ secrets.STAGING_ENV_VARS }}" > .env
+            echo '${{ secrets.STAGING_ENV_VARS }}' > .env
           fi
 
           if ${{ github.event_name == 'pull_request' }}; then
@@ -155,8 +191,10 @@ jobs:
             CONTAINER_NAME=$CONTAINER_NAME-review
             DEPLOY_URL=$REPO_NAME_SLUG-$BRANCH_SLUG.review.esek.se
             DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.PR_DEPLOY_ARGS) }}"
-            echo "${{ secrets.PR_ENV_VARS }}" > .env
+            echo '${{ secrets.PR_ENV_VARS }}' > .env
           fi
+
+          echo 'CI_REGISTRY_IMAGE=${{ env.REGISTRY }}/${{ github.repository }}' >> .env >> $GITHUB_ENV
 
           echo "TAG=$TAG" >> $GITHUB_ENV
           echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV

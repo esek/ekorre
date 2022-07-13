@@ -21,6 +21,8 @@ RUN npm ci
 # Bundle app source
 COPY . .
 
+RUN npm run prisma:generate
+
 RUN npm run build
 
 RUN npm prune --production

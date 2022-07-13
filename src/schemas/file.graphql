@@ -13,7 +13,7 @@ type Query {
 
 type Mutation {
   deleteFile(id: ID!): Boolean!
-  createFolder(path: String!, name: String!): Boolean!
+  createFolder(path: String!, name: String!): File!
 }
 
 type File {
@@ -39,18 +39,18 @@ type FileSystemResponsePath {
 }
 
 enum FileType {
-  image,
-  pdf,
-  text,
-  code,
-  powerpoint,
-  spreadsheet,
-  folder,
-  other,
+  IMAGE,
+  PDF,
+  TEXT,
+  CODE,
+  POWERPOINT,
+  SPREADSHEET,
+  FOLDER,
+  OTHER,
 }
 
 enum AccessType {
-  public,
-  authenticated,
-  admin
+  PUBLIC,
+  AUTHENTICATED,
+  ADMIN
 }

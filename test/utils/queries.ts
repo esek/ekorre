@@ -18,6 +18,22 @@ export const CREATE_USER_MUTATION = `
   }
 `;
 
+export const LOGIN_MUTATION = `
+  mutation login($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
+      username
+      firstName
+      lastName
+    }
+  }
+`;
+
+export const LOGOUT_MUTATION = `
+  mutation {
+    logout
+  }
+`;
+
 export const ADD_POST_MUTATION = `
   mutation ($info: NewPost!) {
     addPost(info: $info)
@@ -37,8 +53,8 @@ export const SET_USER_ACCESS_MUTATION = `
 `;
 
 export const SET_POST_ACCESS_MUTATION = `
-	mutation ($postname: String!, $access: AccessInput!) {
-		setPostAccess(postname: $postname, access: $access)
+	mutation ($postId: Int!, $access: AccessInput!) {
+		setPostAccess(postId: $postId, access: $access)
 	}
 `;
 
@@ -53,7 +69,7 @@ const ARTICLE_FIELDS = `
   lastUpdatedAt
   articleType
   tags
-  creator {
+  author {
     username
   }
   lastUpdatedBy {
@@ -63,8 +79,8 @@ const ARTICLE_FIELDS = `
 `;
 
 export const ARTICLE_QUERY = `
-  query article($id: ID, $markdown: Boolean) {
-    article(id: $id, markdown: $markdown) ${ARTICLE_FIELDS}
+  query article($id: Int!) {
+    article(id: $id) ${ARTICLE_FIELDS}
   }
 `;
 
@@ -75,13 +91,13 @@ mutation ($entry: NewArticle!) {
 `;
 
 export const MODIFY_ARTICLE_MUTATION = `
-mutation ($articleId: ID!, $entry: ModifyArticle!) {
-  modifyArticle(articleId: $articleId, entry: $entry)
+mutation ($articleId: Int!, $entry: ModifyArticle!) {
+  modifyArticle(articleId: $articleId, entry: $entry) ${ARTICLE_FIELDS}
 }
 `;
 
 export const REMOVE_ARTICLE_MUTATION = `
-mutation($articleId: ID!) {
+mutation($articleId: Int!) {
   removeArticle(articleId: $articleId)
 }
 `;

@@ -1,4 +1,4 @@
-import { ForbiddenError } from '@/errors/request.errors';
+import { ForbiddenError, ServerError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { Feature } from '@generated/graphql';
 
@@ -63,6 +63,33 @@ export const notEmpty = <ValueType>(value: ValueType | null | undefined): value 
   return true;
 };
 
+// TODO: Remove if unused (was used by PostAPI)
+export const slugify = (str: string) =>
+  str
+    .toLowerCase()
+    .replace(/[åä]/g, 'a')
+    .replace(/[ö]/g, 'o')
+    .replace(/[^a-z0-9 -]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+
+/**
+ * Fetches the last number from a string, ex: `article-with-long-123-slug-7`, gives `7`
+ * (last part of slug is ID) 
+ */
+export const parseSlug = (slug: string): number | undefined => {
+  let dbId: number;
+  const regex = RegExp(/(\d+)[^-]*$/).exec(slug);
+
+  if (regex?.length) {
+    const [match] = regex;
+    dbId = Number.parseInt(match, 10);
+    return dbId;
+  }
+
+  return undefined;
+};
+
 /**
  * Checks if user has access to a feature
  * @param ctx Resolver context
@@ -94,4 +121,17 @@ export const hasAccess = async (ctx: Context, requirement: Feature | Feature[]):
  */
 export const hasAuthenticated = async (ctx: Context): Promise<void> => {
   await ctx.getAccess();
+};
+
+/**
+ * Raises a `ServerError` if called in production. To be used in dangerous
+ * dev utils.
+ *
+ * @param message Message to use in `ServerError`
+ * @throws {ServerError} If used in production
+ */
+export const devGuard = (message = 'Cannot do that in production'): void => {
+  if (!config.DEV) {
+    throw new ServerError(message);
+  }
 };

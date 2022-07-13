@@ -1,21 +1,19 @@
-import { ELECTABLE_TABLE, ELECTION_TABLE, NOMINATION_TABLE, PROPOSAL_TABLE } from '@/api/constants';
-import db from '@/api/knex';
 import { ElectionAPI } from '@api/election';
-import {
-  DatabaseElectable,
-  DatabaseElection,
-  DatabaseNomination,
-  DatabaseProposal,
-} from '@db/election';
 import { Election, NominationAnswer } from '@generated/graphql';
-import { ApiRequest, GraphqlResponse } from '@test/models/test';
-import { AXIOS_CONFIG } from '@test/utils/axiosConfig';
-import axios from 'axios';
+import { PrismaClient } from '@prisma/client';
+import { genRandomPost } from '@test/utils/utils';
+import requestWithAuth from '@test/utils/requestWithAuth';
+import { issueToken } from '@/auth';
+
+const [createPost0, deletePost0] = genRandomPost();
+const [createPost1, deletePost1] = genRandomPost();
+
+const prisma = new PrismaClient();
 
 const api = new ElectionAPI();
-interface ElectionResponse {
-  openElection: Partial<Election>;
-}
+
+type ElectionResponse = Pick<Election, 'id' | 'acceptedNominations'>;
+
 
 const ELECTION_QUERY = `
 {
@@ -28,31 +26,28 @@ const ELECTION_QUERY = `
       post {
         postname
       }
-      accepted
+      answer
     }
   }
 }
 `;
 
-let preTestElectionTable: DatabaseElection[];
-let preTestElectableTable: DatabaseElectable[];
-let preTestProposalTable: DatabaseProposal[];
-let preTestNominationTable: DatabaseNomination[];
+let postId0: number;
+let postId1: number;
 
 const clearDatabase = async () => {
   // Vi sätter `where` till något som alltid är sant
-  await db<DatabaseElectable>(ELECTABLE_TABLE).delete().whereNotNull('refelection');
-  await db<DatabaseProposal>(PROPOSAL_TABLE).delete().whereNotNull('refelection');
-  await db<DatabaseNomination>(NOMINATION_TABLE).delete().whereNotNull('refelection');
-  await db<DatabaseElection>(ELECTION_TABLE).delete().whereNotNull('id');
+  await prisma.prismaElectable.deleteMany();
+  await prisma.prismaProposal.deleteMany();
+  await prisma.prismaNomination.deleteMany();
+  await prisma.prismaElection.deleteMany();
 };
 
 beforeAll(async () => {
-  preTestElectionTable = await db<DatabaseElection>(ELECTION_TABLE).select('*');
-  preTestElectableTable = await db<DatabaseElectable>(ELECTABLE_TABLE).select('*');
-  preTestProposalTable = await db<DatabaseProposal>(PROPOSAL_TABLE).select('*');
-  preTestNominationTable = await db<DatabaseNomination>(NOMINATION_TABLE).select('*');
-  await clearDatabase();
+  [postId0, postId1] = (await Promise.all([
+    createPost0(),
+    createPost1(),
+  ])).map((p) => p.id);
 });
 
 afterEach(async () => {
@@ -60,55 +55,54 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
-  // Sätt in cachade värden igen
-  await db<DatabaseElection>(ELECTION_TABLE).insert(preTestElectionTable);
-  await db<DatabaseElectable>(ELECTABLE_TABLE).insert(preTestElectableTable);
-  await db<DatabaseProposal>(PROPOSAL_TABLE).insert(preTestProposalTable);
-  await db<DatabaseNomination>(NOMINATION_TABLE).insert(preTestNominationTable);
+  await Promise.all([
+    deletePost0(),
+    deletePost1(),
+  ]);
 });
 
 test('getting nominations when nominations are hidden', async () => {
-  const electionId = await api.createElection('aa0000bb-s', ['Macapär', 'Teknokrat'], true);
+  const  { id: electionId } = await api.createElection('aa0000bb-s', [postId0, postId1], true);
+
   await expect(api.openElection(electionId)).resolves.toBeTruthy();
-  await expect(api.nominate('aa0000bb-s', ['Macapär'])).resolves.toBeTruthy();
-  await expect(api.nominate('bb1111cc-s', ['Macapär', 'Teknokrat'])).resolves.toBeTruthy();
+  await expect(api.nominate('aa0000bb-s', [postId0])).resolves.toBeTruthy();
+  await expect(api.nominate('bb1111cc-s', [postId0, postId0])).resolves.toBeTruthy();
+
   await expect(
-    api.respondToNomination('aa0000bb-s', 'Macapär', NominationAnswer.Yes),
+    api.respondToNomination('aa0000bb-s', postId0, NominationAnswer.Yes),
   ).resolves.toBeTruthy();
+
   expect((await api.getAllNominations(electionId, NominationAnswer.Yes)).length).toBeGreaterThan(0);
+  
+  // Use more seeded users
+  const token = issueToken({ username: 'nn0000oh-s'}, 'accessToken');
+  let data = await requestWithAuth(ELECTION_QUERY, {}, token);
 
-  const electionData = {
-    query: ELECTION_QUERY,
-  };
-
-  // Nu kollar vi om vi kan se dessa nomineringar
-  const axiosInstance = axios.create(AXIOS_CONFIG);
-  await axiosInstance
-    .post<ApiRequest, GraphqlResponse<ElectionResponse>>('/', electionData)
-    .then((res) => {
-      expect(res.data.data.openElection.id).toEqual(electionId.toString());
-
-      // Nomineringar är dolda, så man ska inte kunna
-      // få ut accepterade nomineringar om man inte
-      // är valadmin och använder `hiddenNominations`-querien
-      expect(res.data.data.openElection.acceptedNominations).toBeNull();
-    });
+  // Nomineringar är dolda, så man ska inte kunna
+  // få ut accepterade nomineringar om man inte
+  // är valadmin och använder `hiddenNominations`-querien
+  expect(data?.data?.openElection).toMatchObject(
+    {
+      id: electionId,
+      acceptedNominations: null,
+    }
+  );
 
   // Om nomineringar görs öppna kan man hitta dem!
   await expect(api.setHiddenNominations(electionId, false)).resolves.toBeTruthy();
-  await axiosInstance
-    .post<ApiRequest, GraphqlResponse<ElectionResponse>>('/', electionData)
-    .then((res) => {
-      expect(res.data.data.openElection.id).toEqual(electionId.toString());
+  
+  data = await requestWithAuth(ELECTION_QUERY, {}, token);
+  expect(data?.data?.openElection).toMatchObject({
+    id: electionId
+  });
 
-      const { acceptedNominations } = res.data.data.openElection;
+  const { acceptedNominations } = data?.data.openElection as ElectionResponse;
+  
+  // För att göra typescript glad
+  if (acceptedNominations == null) throw new Error('Should no longer be null');
+  if (acceptedNominations[0] == null) throw new Error('Should no longer be null');
 
-      // För att göra typescript glad
-      if (acceptedNominations == null) throw new Error('Should no longer be null');
-      if (acceptedNominations[0] == null) throw new Error('Should no longer be null');
-
-      // Borde bara se accepterade nomineringen
-      expect(acceptedNominations).toHaveLength(1);
-      expect(acceptedNominations[0].accepted).toEqual(NominationAnswer.Yes);
-    });
+  // Borde bara se accepterade nomineringen
+  expect(acceptedNominations).toHaveLength(1);
+  expect(acceptedNominations[0].answer).toEqual(NominationAnswer.Yes);
 });

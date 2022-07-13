@@ -1,20 +1,20 @@
 # import File from 'file.graphql'
 
 type Query {
-  meeting(id: ID!): Meeting
+  meeting(id: Int!): Meeting
   meetings(type: MeetingType, number: Int, year: Int): [Meeting]!
   latestBoardMeetings(limit: Int): [Meeting]!
 }
 
 type Mutation {
-  addMeeting(type: MeetingType!, number: Int, year: Int): ID!
-  removeMeeting(id: ID!): Boolean!
-  addFileToMeeting(meetingId: ID!, fileId: ID!, fileType: MeetingDocumentType!): Boolean!
-  removeFileFromMeeting(meetingId: ID!, fileType: MeetingDocumentType!): Boolean!
+  addMeeting(type: MeetingType!, number: Int, year: Int): Meeting!
+  removeMeeting(id: Int!): Boolean!
+  addFileToMeeting(meetingId: Int!, fileId: String!, fileType: MeetingDocumentType!): Boolean!
+  removeFileFromMeeting(meetingId: Int!, fileType: MeetingDocumentType!): Boolean!
 }
 
 type Meeting {
-  id: ID!
+  id: Int!
   name: String!
   type: MeetingType!
 

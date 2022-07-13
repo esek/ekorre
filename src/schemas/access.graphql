@@ -3,14 +3,14 @@
 
 type Query {
     individualAccess(username: String!): Access
-    postAccess(postname: String!): Access
+    postAccess(postId: Int!): Access
     features: [FeatureInfo!]!
     doors: [DoorInfo!]!
 }
 
 type Mutation {
     setIndividualAccess(username: String!, access: AccessInput!): Boolean!
-    setPostAccess(postname: String!, access: AccessInput!): Boolean!
+    setPostAccess(postId: Int!, access: AccessInput!): Boolean!
     setApiKeyAccess(key: String!, access: AccessInput!): Boolean!
 }
 

@@ -1,7 +1,0 @@
-CREATE TABLE "ApiKeys" (
-	"key"	TEXT PRIMARY KEY NOT NULL UNIQUE,
-	"description" TEXT NOT NULL,
-	"createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	"refcreator" TEXT NOT NULL,
-	FOREIGN KEY("refcreator") REFERENCES "Users"("username")
-);

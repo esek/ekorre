@@ -50,3 +50,9 @@ Exempelvis om du vill kolla statusen på ditt api:
 `requestWithAuth` använder `supertest` internt, vilket förenklar requests.
 
 Notera dock att `DataLoader` och falska timers *inte* fungerar bra ihop, då Dataloadern bara sitter och tickar för evigt. Därför kan användning av `supertest` leda till timeouts om man använder `jest.useFakeTimers()`. Då är det bättre att lägga till det som ett regressionstest, där jest och servern inte kör i samma Node-process.
+
+## test/utils
+
+I directoriet [`test/utils`](./utils) finns en del filer med bra utility-funktioner som används i
+testerna. Speciellt viktiga är [`test/utils/utils.ts`](./utils/utils.ts) som innehåller
+funktioner för att generera och ta bort dummy-användare i databasen. _Man skapar alltså aldrig egna användare, och använder ej dem i den seedade databasen_.

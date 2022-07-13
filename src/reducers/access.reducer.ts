@@ -1,4 +1,4 @@
-import type { DatabaseAccess } from '@db/access';
+import { AccessEntry } from '@/models/access';
 import {
   Access,
   AccessResourceType,
@@ -13,7 +13,7 @@ import {
  * @param dbAccess database access
  * @returns access object
  */
-export const accessReducer = (dbAccess: DatabaseAccess[]): Access => {
+export const accessReducer = (dbAccess: AccessEntry[]): Access => {
   const initial: Access = {
     doors: [],
     features: [],
@@ -21,9 +21,9 @@ export const accessReducer = (dbAccess: DatabaseAccess[]): Access => {
 
   const access = dbAccess.reduce((acc, curr) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { resourcetype, resource } = curr;
+    const { resourceType, resource } = curr;
 
-    switch (resourcetype) {
+    switch (resourceType) {
       case AccessResourceType.Feature: {
         if (acc.features.includes(resource as Feature)) {
           break;

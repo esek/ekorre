@@ -6,8 +6,8 @@ import { TokenValue } from '@/models/auth';
 import { AccessAPI } from '@api/access';
 import FileAPI from '@api/file';
 import { UserAPI } from '@api/user';
-import { DatabaseUser } from '@db/user';
 import { AccessType, Feature } from '@generated/graphql';
+import { PrismaUser as User } from '@prisma/client';
 import { accessReducer } from '@reducer/access';
 import { RequestHandler } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
@@ -28,7 +28,7 @@ export type RequestHandlerWithLocals = RequestHandler<
   unknown,
   unknown,
   { token?: string },
-  { user: DatabaseUser; getUser: () => Promise<DatabaseUser> }
+  { user: User; getUser: () => Promise<User> }
 >;
 
 export const setUser: RequestHandlerWithLocals = (req, res, next) => {

@@ -1,4 +1,4 @@
-import { midnightTimestamp, stripObject, toUTC } from '@/util';
+import { devGuard, midnightTimestamp, stripObject, toUTC } from '@/util';
 
 test('Check time conversion Malmö to UTC', () => {
   const greatDay = new Date('March 13, 1999 17:48 UTC+1');
@@ -32,7 +32,7 @@ test('stripObject double extention stripping', () => {
   expect(j).toStrictEqual(b);
 });
 
-test('test getting before midnight timestamp', () => {
+test('getting before midnight timestamp', () => {
   // January is month 0
   const d0 = new Date(2021, 10, 30, 22, 36, 53, 7);
   const d1 = new Date(1928, 3, 1, 0, 22, 22, 0);
@@ -42,7 +42,7 @@ test('test getting before midnight timestamp', () => {
   expect(beforeDate1).toEqual(new Date(1928, 3, 1, 23, 59, 59, 999));
 });
 
-test('test getting after midnight timestamp', () => {
+test('getting after midnight timestamp', () => {
   // January is month 0
   const d0 = new Date(2021, 10, 30, 22, 36, 53, 7);
   const d1 = new Date(1928, 4, 1, 3, 22, 22, 0);
@@ -50,4 +50,8 @@ test('test getting after midnight timestamp', () => {
   const afterDate1 = new Date(midnightTimestamp(d1, 'after'));
   expect(afterDate0).toEqual(new Date(2021, 10, 30, 0, 0, 0, 0));
   expect(afterDate1).toEqual(new Date(1928, 4, 1, 0, 0, 0, 0));
+});
+
+test('running devGuard in development environment', () => {
+  expect(devGuard('Test')).toBeUndefined();
 });

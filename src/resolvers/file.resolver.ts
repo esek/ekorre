@@ -58,7 +58,7 @@ const filesResolver: Resolvers = {
       const username = ctx.getUsername();
 
       const created = await fileApi.createFolder(path, name, username);
-      return !!created;
+      return reduce(created, fileReduce);
     },
   },
 };

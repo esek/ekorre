@@ -1,180 +1,190 @@
 /* eslint-disable class-methods-use-this */
 import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
-import { stripObject, toUTC } from '@/util';
-import type { DatabaseArticle, DatabaseArticleTag } from '@db/article';
-import { ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
-import { convertMarkdownToHtml } from '@reducer/article';
-import { Maybe } from 'graphql/jsutils/Maybe';
+import { PrismaExtendedArticle } from '@/models/prisma';
+import { parseSlug, stripObject, toUTC } from '@/util';
+import { ModifyArticle, NewArticle } from '@generated/graphql';
+import { Prisma, PrismaArticleType } from '@prisma/client';
 
-import { ARTICLE_TABLE, ARTICLE_TAGS_TABLE } from './constants';
-import db from './knex';
-
-// Refs används när en annan databas innehåller informationen,
-// så denna innehåller bara en referens för att kunna hitta
-// rätt i den
-
-type GetArticleParams = {
-  id: Maybe<string>;
-  slug: Maybe<string>;
-};
+import prisma from './prisma';
 
 /**
  * Det här är API:n för att hantera artiklar
  */
-// TODO: Fixa vad som ska kräva auth och inte
 export class ArticleAPI {
   /**
    * Hämta alla artiklar
    */
-  async getAllArticles(): Promise<DatabaseArticle[]> {
-    const allArticles = await db<DatabaseArticle>(ARTICLE_TABLE);
+  async getAllArticles(): Promise<PrismaExtendedArticle[]> {
+    const a = await prisma.prismaArticle.findMany({
+      include: {
+        tags: true,
+      },
+    });
 
-    return allArticles;
+    return a;
   }
 
   /**
-   * Hämtar alla nyhetsartiklar
+   * Hämtar alla nyhetsartiklar, sorterade på skapande
    */
-  async getAllNewsArticles(): Promise<DatabaseArticle[]> {
-    const allNewsArticles = await db<DatabaseArticle>(ARTICLE_TABLE)
-      .where('articletype', 'news')
-      .orderBy('createdat', 'desc');
+  async getAllNewsArticles(): Promise<PrismaExtendedArticle[]> {
+    const a = await prisma.prismaArticle.findMany({
+      where: {
+        articleType: PrismaArticleType.NEWS,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        tags: true,
+      },
+    });
 
-    return allNewsArticles;
+    return a;
   }
 
-  async getAllInformationArticles(): Promise<DatabaseArticle[]> {
-    const allInformationArticles = await db<DatabaseArticle>(ARTICLE_TABLE).where(
-      'articletype',
-      'information',
-    );
+  async getAllInformationArticles(): Promise<PrismaExtendedArticle[]> {
+    const a = await prisma.prismaArticle.findMany({
+      where: {
+        articleType: PrismaArticleType.INFORMATION,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        tags: true,
+      },
+    });
 
-    return allInformationArticles;
+    return a;
   }
 
   /**
    * Hämtar alla nyhetsartiklar i ett intervall. Utelämnas
    * parametrar finns ingen begränsning.
-   * @param creator
    * @param after
    * @param before
+   * @param author Username of original author of the article
    */
   async getNewsArticlesFromInterval(
     after: Date,
     before: Date,
-    creator?: string,
-  ): Promise<DatabaseArticle[]> {
-    const search: Record<string, string> = {
-      articleType: ArticleType.News,
-    };
+    author?: string,
+  ): Promise<PrismaExtendedArticle[]> {
+    const a = await prisma.prismaArticle.findMany({
+      where: {
+        articleType: PrismaArticleType.NEWS,
+        createdAt: {
+          lte: after,
+          gte: before,
+        },
+        refAuthor: author,
+      },
+      include: {
+        tags: true,
+      },
+    });
 
-    if (creator) {
-      search.refcreator = creator;
-    }
-
-    const newsArticleModels = await db<DatabaseArticle>(ARTICLE_TABLE)
-      .where(search)
-      .andWhere('createdAt', '<', before)
-      .andWhere('createdAt', '>', after);
-
-    return newsArticleModels?.length ? newsArticleModels : [];
+    return a;
   }
 
   /**
    * Returns the article with the specified id
    * @param id article id
    */
-  async getArticle({ id, slug }: GetArticleParams): Promise<DatabaseArticle> {
+  async getArticle(id?: number, slug?: string): Promise<PrismaExtendedArticle> {
     let dbId = id;
 
     if (slug) {
-      // Fetches the last number from a string, ex: `article-with-long-123-slug-7`, gives `7`
-      const regex = RegExp(/(\d+)[^-]*$/).exec(slug);
-
-      if (regex?.length) {
-        const [match] = regex;
-        dbId = match;
-      }
+      dbId = parseSlug(slug);
     }
 
     if (dbId == null) {
       throw new BadRequestError('Inte en valid slug');
     }
 
-    const article = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', dbId).first();
+    const a = await prisma.prismaArticle.findFirst({
+      where: {
+        id: dbId,
+      },
+      include: {
+        tags: true,
+      },
+    });
 
-    if (article == null) {
+    if (a == null) {
       throw new NotFoundError('Artikeln kunde inte hittas');
     }
 
-    return article;
+    return a;
   }
 
   /**
-   * Returns a list of AticleModels from database WHERE params match.
+   * Returns a list of PrismaArticles from database WHERE params match.
    * @param params possible params are ArticleModel parts.
    */
-  async getArticles(params: Partial<DatabaseArticle & { tags: string[] }>): Promise<DatabaseArticle[]> {
-    const safeParams = stripObject(params);
-    const { tags, ...rest } = safeParams;
+  async getArticles(params: Prisma.PrismaArticleWhereInput): Promise<PrismaExtendedArticle[]> {
+    const a = await prisma.prismaArticle.findMany({
+      where: {
+        ...params,
+      },
+      include: {
+        tags: true,
+      },
+    });
 
-    const query = db<DatabaseArticle>(ARTICLE_TABLE).where(rest);
-
-    if (tags?.length) {
-      const ids = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('tag', tags);
-      query.whereIn('id', ids.map((t) => t.refarticle));
-    }
-
-    const response = await query;
-
-    return response;
+    return a;
   }
 
   /**
    * Hämtar de senaste nyhetsartiklarna
    * @param nbr antal artiklar
    */
-  async getLatestNews(limit: number): Promise<DatabaseArticle[]> {
-    const lastestNews = await db<DatabaseArticle>(ARTICLE_TABLE)
-      .where('articleType', 'news')
-      .orderBy('createdat', 'desc')
-      .limit(limit);
+  async getLatestNews(limit: number): Promise<PrismaExtendedArticle[]> {
+    const lastestNews = await prisma.prismaArticle.findMany({
+      where: {
+        articleType: PrismaArticleType.NEWS,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+      include: {
+        tags: true,
+      },
+    });
 
     return lastestNews;
   }
 
   /**
    * Lägger till en ny artikel
-   * @param creatorUsername Användarnamn på skaparen
+   * @param authorUsername Användarnamn på skaparen
    * @param entry artikel som ska läggas till
    */
-  async newArticle(creatorUsername: string, entry: NewArticle): Promise<DatabaseArticle> {
+  async newArticle(authorUsername: string, entry: NewArticle): Promise<PrismaExtendedArticle> {
+    // todo: update so tags are set as well
+    const { tags, ...reduced } = entry;
 
-    const { tags, ...rest } = entry;
+    const res = await prisma.prismaArticle.create({
+      data: {
+        body: reduced.body,
+        signature: reduced.signature,
+        title: reduced.title,
+        articleType: reduced.articleType,
+        refAuthor: authorUsername,
+        refLastUpdateBy: authorUsername,
+        tags: {
+          create: tags.map((tag) => ({ tag })),
+        },
+      },
+      include: {
+        tags: true,
+      },
+    });
 
-    // Lägger till dagens datum som createdAt och lastUpdatedAt
-    // samt sätter creator som lastUpdateBy
-    const article: DatabaseArticle = {
-      ...rest,
-      createdAt: toUTC(new Date()),
-      lastUpdatedAt: toUTC(new Date()),
-      refcreator: creatorUsername,
-      reflastupdateby: creatorUsername,
-    };
-
-    const [id]: string | undefined [] = await db<DatabaseArticle>(ARTICLE_TABLE).insert(article).returning('id');
-
-    if (id == null) {
-      throw new Error('Kunde inte lägga till artikel');
-    }
-
-    await this.addTags(id, tags);
-
-    return {
-      ...article,
-      id: id ?? -1,
-    };
+    return res;
   }
 
   /**
@@ -184,7 +194,11 @@ export class ArticleAPI {
    * @param updaterUsername Användarnamn hos den som ändrat artikeln
    * @param entry Modifiering av existerande artikel
    */
-  async modifyArticle(id: string, updaterUsername: string, entry: ModifyArticle): Promise<boolean> {
+  async modifyArticle(
+    id: number,
+    updaterUsername: string,
+    entry: ModifyArticle,
+  ): Promise<PrismaExtendedArticle> {
     if (updaterUsername === '' || updaterUsername == null) {
       throw new BadRequestError('Artiklar måste modifieras av inloggade användare');
     }
@@ -193,58 +207,38 @@ export class ArticleAPI {
 
     const update: StrictObject = stripObject(rest);
 
-    // We only want to update the body if it is passed
-    if (update.body != null) {
-      update.body = convertMarkdownToHtml(update.body ?? '');
-    }
+    update.refLastUpdateBy = updaterUsername;
 
-    update.reflastupdateby = updaterUsername;
+    update.updatedAt = toUTC(new Date());
 
-    update.lastUpdatedAt = toUTC(new Date());
+    const safeTags = tags ?? [];
 
-    const res = await db<DatabaseArticle>(ARTICLE_TABLE).where('id', id).update(update);
-
-    if (tags?.length) {
-      await this.removeTags(id);
-      await this.addTags(id, tags);
-    }
-
-    return res > 0;
-  }
-
-  async removeArticle(id: string): Promise<boolean> {
-    const res = await db<DatabaseArticle>(ARTICLE_TABLE).delete().where('id', id);
-    return res > 0;
-  }
-
-  async getTagsForArticle(id: string): Promise<DatabaseArticleTag[]> {
-    const tags = await this.getTagsForArticles([id]);
-
-    return tags?.length !== 0 && tags[0]?.length > 0 ? tags[0] : [];
-  }
-
-  async getTagsForArticles(ids: string[]): Promise<DatabaseArticleTag[][]> {
-    const tags = await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).whereIn('refarticle', ids);
-
-    // Går att optimera
-    const mapped = ids.map((id) => {
-      return tags.filter((tag) => tag.refarticle === id);
+    const res = await prisma.prismaArticle.update({
+      data: {
+        ...update,
+        tags: {
+          deleteMany: {},
+          create: safeTags.map((tag) => ({ tag })),
+        },
+      },
+      where: {
+        id,
+      },
+      include: {
+        tags: true,
+      },
     });
 
-    return mapped;
+    return res;
   }
 
-  async addTags(articleId: string, tags: string[]): Promise<boolean> {
-    const tagentries: DatabaseArticleTag[] = tags.map((tag) => ({ tag, refarticle: articleId }));
+  async removeArticle(id: number): Promise<boolean> {
+    const res = await prisma.prismaArticle.delete({
+      where: {
+        id,
+      },
+    });
 
-    // Should error here if anything goes wrong
-    await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).insert(tagentries);
-
-    return true;
-  }
-
-  async removeTags(articleId: string): Promise<boolean> {
-    await db<DatabaseArticleTag>(ARTICLE_TAGS_TABLE).where('refarticle', articleId).delete();
-    return true;
+    return res != null;
   }
 }
