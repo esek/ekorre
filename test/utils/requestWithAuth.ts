@@ -1,6 +1,6 @@
 import { app } from '@/app/app';
-import { COOKIES } from '@/auth';
 import { StrictObject } from '@/models/base';
+import { Cookies } from '@esek/auth-server';
 import { GraphqlResponseData } from '@test/models/test';
 import request from 'supertest';
 
@@ -22,7 +22,7 @@ const requestWithAuth = async (
   const res = await r
     .post('/')
     .set('Accept', 'application/json')
-    .set('Cookie', [`${COOKIES.accessToken}=${accessToken}`])
+    .set('Cookie', [`${Cookies.access_token}=${accessToken}`])
     .send({ query, variables });
 
   return res?.body as GraphqlResponseData;

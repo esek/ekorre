@@ -1,8 +1,9 @@
 import { app } from '@/app/app';
-import { COOKIES, issueToken } from '@/auth';
+import { tokenProvider } from '@/auth';
 import config from '@/config';
 import FileAPI from '@api/file';
 import { UserAPI } from '@api/user';
+import { Cookies } from '@esek/auth-server';
 import { AccessType, Feature, File, FileType, NewUser } from '@generated/graphql';
 import requestWithAuth from '@test/utils/requestWithAuth';
 import { genUserWithAccess } from '@test/utils/utils';
@@ -63,14 +64,14 @@ const baseUploadFile = (
   }
 
   if (withAuth) {
-    req.set('Cookie', [`${COOKIES.accessToken}=${accessToken}`]);
+    req.set('Cookie', [`${Cookies.access_token}=${accessToken}`]);
   }
 
   return req;
 };
 
 describe('uploading files', () => {
-  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
+  const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');
 
   const uploadFile = (filename: string, opts: UploadFileOptions = {}) => {
     return baseUploadFile(accessToken, 'upload', filename, opts);
@@ -147,7 +148,7 @@ describe('uploading files', () => {
 });
 
 describe('avatars', () => {
-  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
+  const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');
 
   const uploadFile = (filename: string, opts: UploadFileOptions = {}) => {
     return baseUploadFile(accessToken, 'upload/avatar', filename, opts);
@@ -192,7 +193,7 @@ describe('avatars', () => {
 });
 
 describe('fetching files', () => {
-  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
+  const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');
 
   beforeAll(async () => {
     await Promise.all([
@@ -352,7 +353,7 @@ describe('fetching files', () => {
 });
 
 describe('reading files', () => {
-  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
+  const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');
 
   beforeAll(async () => {
     await Promise.all([

@@ -1,4 +1,4 @@
-import { issueToken } from '@/auth';
+import { tokenProvider } from '@/auth';
 import { NOOP } from '@/models/base';
 import { PostAPI } from '@api/post';
 import { Door, Feature } from '@generated/graphql';
@@ -9,7 +9,7 @@ import {
   USER_WITH_ACCESS_QUERY,
 } from '@test/utils/queries';
 import requestWithAuth from '@test/utils/requestWithAuth';
-import { genRandomUser, genRandomPost } from '@test/utils/utils';
+import { genRandomPost, genRandomUser } from '@test/utils/utils';
 
 const postApi = new PostAPI();
 
@@ -46,12 +46,7 @@ afterAll(async () => {
 });
 
 test('setting and getting full access of user', async () => {
-  const superadminToken = issueToken(
-    {
-      username: editUser.username,
-    },
-    'accessToken',
-  );
+  const superadminToken = tokenProvider.issueToken(editUser.username, 'access_token');
 
   // Set individual access and post access
   const [setIndividualAccessRes, setPostAccessRes] = await Promise.all([

@@ -1,5 +1,5 @@
-import { COOKIES } from '@/auth';
 import { RequestErrorResponse } from '@/errors/request.errors';
+import { Cookies } from '@esek/auth-server';
 import { User } from '@generated/graphql';
 import { ApiRequest } from '@test/models/test';
 import { AXIOS_CONFIG } from '@test/utils/axiosConfig';
@@ -34,9 +34,13 @@ interface RefreshResponse {
 const LOGIN_MUTATION = `
   mutation login($username: String!, $password: String!) {
     login(username: $username, password: $password) {
-      username
-      firstName
-      lastName
+      accessToken
+      refreshToken
+      user {
+        username
+        firstName
+        lastName
+      }
     }
   }
 `;
@@ -55,10 +59,9 @@ test('login with correct credentials', async () => {
   return axiosInstance.post<ApiRequest, LoginResponse>('/', data).then((res) => {
     if (res.data !== null && res.headers !== null) {
       expect(res.data.data.login).toBeTruthy();
-      if (res.headers['set-cookie'] === undefined) {
-        fail('Response cookies undefined');
-      }
-      expect(extractToken(COOKIES.refreshToken, res.headers['set-cookie'][0])).not.toBe(null);
+      expect(res.data.data.accessToken).toBeDefined();
+      expect(res.data.data.refreshToken).toBeDefined();
+      expect(res.data.data.user.username).toBe('aa0000bb-s');
     } else {
       fail('Did not get proper response from the server');
     }
@@ -70,7 +73,7 @@ test('login with correct credentials', async () => {
  * i vanliga fall kan man bara returnera en promise (testet är klart när
  * promise är klart)
  */
-test('authorization with COOKIES.refreshToken', (done) => {
+test('authorization with Cookies.refresh_token', (done) => {
   const loginData = {
     query: LOGIN_MUTATION,
     variables: {
@@ -87,13 +90,13 @@ test('authorization with COOKIES.refreshToken', (done) => {
         fail('Response cookies undefined');
       }
 
-      const refreshToken = extractToken(COOKIES.refreshToken, res.headers['set-cookie'][0]);
+      const refreshToken = extractToken(Cookies.refresh_token, res.headers['set-cookie'][0]);
       expect(refreshToken).not.toBeNull();
 
       // Add refresh token to headers
       const authHeader: AxiosRequestConfig = {
         headers: {
-          Cookie: `${COOKIES.refreshToken}=${refreshToken ?? ''}`,
+          Cookie: `${Cookies.refresh_token}=${refreshToken ?? ''}`,
         },
       };
 
@@ -102,11 +105,11 @@ test('authorization with COOKIES.refreshToken', (done) => {
         .then((res2) => {
           if (res2.headers !== null) {
             const accessToken = extractToken(
-              COOKIES.accessToken,
+              Cookies.access_token,
               (res2.headers['set-cookie'] ?? [])[0],
             );
 
-            const rt = extractToken(COOKIES.refreshToken, (res2.headers['set-cookie'] ?? [])[1]);
+            const rt = extractToken(Cookies.refresh_token, (res2.headers['set-cookie'] ?? [])[1]);
 
             expect(accessToken).not.toBeNull();
             expect(rt).not.toBeNull();
@@ -125,7 +128,7 @@ test('refresh with incorrect refreshToken', async () => {
   // Add refresh token to headers
   const authHeader: AxiosRequestConfig = {
     headers: {
-      Cookie: `${COOKIES.refreshToken}=bedragare@esek.se`,
+      Cookie: `${Cookies.refresh_token}=bedragare@esek.se`,
     },
   };
 

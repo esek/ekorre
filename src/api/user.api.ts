@@ -1,5 +1,4 @@
 /* eslint-disable class-methods-use-this */
-import config from '@/config';
 import { Logger } from '@/logger';
 import type { NewUser, ProviderOptions } from '@generated/graphql';
 import { PrismaLoginProvider, PrismaPasswordReset, PrismaUser } from '@prisma/client';
@@ -314,7 +313,10 @@ export class UserAPI {
    * @param options the options for the link
    * @returns a boolean indicating if the link was successful
    */
-  async linkLoginProvider(username: string, options: ProviderOptions): Promise<boolean> {
+  async linkLoginProvider(
+    username: string,
+    options: ProviderOptions,
+  ): Promise<PrismaLoginProvider> {
     // check if there is an existing linked provider
     const exists = await this.loginWithProvider(options).catch(() => false);
 
@@ -330,7 +332,7 @@ export class UserAPI {
       },
     });
 
-    return response != null;
+    return response;
   }
 
   async unlinkLoginProvider(linkId: number): Promise<boolean> {

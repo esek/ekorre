@@ -1,6 +1,5 @@
 // import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import config from '@/config';
-import authRoute from '@route/auth';
 import fileRoute from '@route/file';
 import healthRoute from '@route/health';
 import { ApolloServer } from 'apollo-server-express';
@@ -31,8 +30,6 @@ export const app = express();
   app.use(FILES.ENDPOINT, fileRoute);
 
   app.use('/health', healthRoute);
-
-  app.use('/auth', authRoute);
 
   const server = new ApolloServer(apolloServerConfig);
 

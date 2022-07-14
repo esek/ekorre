@@ -1,6 +1,11 @@
-import { issueToken } from '@/auth';
+import { tokenProvider } from '@/auth';
 import { Article, ArticleType, Feature, ModifyArticle, NewArticle } from '@generated/graphql';
-import { ADD_ARTICLE_MUTATION, ARTICLE_QUERY, MODIFY_ARTICLE_MUTATION, REMOVE_ARTICLE_MUTATION } from '@test/utils/queries';
+import {
+  ADD_ARTICLE_MUTATION,
+  ARTICLE_QUERY,
+  MODIFY_ARTICLE_MUTATION,
+  REMOVE_ARTICLE_MUTATION,
+} from '@test/utils/queries';
 import requestWithAuth from '@test/utils/requestWithAuth';
 import { genRandomUser } from '@test/utils/utils';
 
@@ -28,19 +33,13 @@ const mockModifyArticle: ModifyArticle = {
 
 beforeAll(async () => {
   // Initialize random usernames
-  [TEST_USERNAME_0, TEST_USERNAME_1, TEST_USER_WITHOUT_ACCESS] = (await Promise.all([
-    createUser1(),
-    createUser2(),
-    createUser3(),
-  ])).map(u => u.username);
+  [TEST_USERNAME_0, TEST_USERNAME_1, TEST_USER_WITHOUT_ACCESS] = (
+    await Promise.all([createUser1(), createUser2(), createUser3()])
+  ).map((u) => u.username);
 });
 
 afterAll(async () => {
-  await Promise.all([
-    deleteUser1(),
-    deleteUser2(),
-    deleteUser3(),
-  ]);
+  await Promise.all([deleteUser1(), deleteUser2(), deleteUser3()]);
 });
 
 beforeEach(() => {
@@ -51,7 +50,7 @@ beforeEach(() => {
 });
 
 test('access control', async () => {
-  const accessToken = issueToken({ username: TEST_USER_WITHOUT_ACCESS }, 'accessToken');
+  const accessToken = tokenProvider.issueToken(TEST_USER_WITHOUT_ACCESS, 'access_token');
 
   const addArticleRes = await requestWithAuth(
     ADD_ARTICLE_MUTATION,
@@ -80,8 +79,8 @@ test('access control', async () => {
 });
 
 test('creating, modyfying and deleting article', async () => {
-  const accessToken0 = issueToken({ username: TEST_USERNAME_0 }, 'accessToken');
-  const accessToken1 = issueToken({ username: TEST_USERNAME_1 }, 'accessToken');
+  const accessToken0 = tokenProvider.issueToken(TEST_USERNAME_0, 'access_token');
+  const accessToken1 = tokenProvider.issueToken(TEST_USERNAME_1, 'access_token');
 
   const addArticleRes = await requestWithAuth(
     ADD_ARTICLE_MUTATION,
@@ -128,7 +127,7 @@ test('creating, modyfying and deleting article', async () => {
     },
     accessToken1, // This user should be allowed
   );
-  
+
   expect(modifyArticleRes?.errors).toBeUndefined();
 
   // Now we check that the Article actually was updated properly

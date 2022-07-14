@@ -1,4 +1,5 @@
 import type { FileResponse } from '@/models/mappers';
+import type { ETokenProvider } from '@esek/auth-server';
 import type { Access, Post, User } from '@generated/graphql';
 import type { ExpressContext } from 'apollo-server-express';
 import type DataLoader from 'dataloader';
@@ -12,6 +13,7 @@ export type Context = {
   request: CustomReq;
   getUsername: () => string;
   getAccess: () => Promise<Access>;
+  tokenProvider: ETokenProvider;
   userDataLoader: DataLoader<string, User>;
   postDataLoader: DataLoader<number, Post>;
   fileDataLoader: DataLoader<string, FileResponse>;

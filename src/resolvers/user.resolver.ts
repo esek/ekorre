@@ -1,6 +1,5 @@
-import { hashWithSecret, verifyToken } from '@/auth';
-import { BadRequestError } from '@/errors/request.errors';
-import { TokenValue } from '@/models/auth';
+import { hashWithSecret } from '@/auth';
+import { BadRequestError, UnauthenticatedError } from '@/errors/request.errors';
 import { Context } from '@/models/context';
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated, stripObject } from '@/util';
@@ -43,29 +42,16 @@ const userResolver: Resolvers = {
     },
   },
   Query: {
-    me: async (_, __, { accessToken, refreshToken }) => {
-      const access = verifyToken<TokenValue>(accessToken, 'accessToken');
-      const refresh = verifyToken<TokenValue>(refreshToken, 'refreshToken');
+    me: async (_, __, { getUsername }) => {
+      const username = getUsername();
 
-      const accessExpiry = access.exp * 1000;
-      const refreshExpiry = refresh.exp * 1000;
-
-      const user = await api.getSingleUser(access.username);
+      const user = await api.getSingleUser(username);
 
       if (!user) {
-        return {
-          accessExpiry,
-          refreshExpiry,
-        };
+        throw new UnauthenticatedError('Du måste logga in för att se din profil!');
       }
 
-      const reduced = reduce(user, userReduce);
-
-      return {
-        user: reduced,
-        accessExpiry: access.exp * 1000,
-        refreshExpiry: refresh.exp * 1000,
-      };
+      return reduce(user, userReduce);
     },
     user: async (_, { username }, ctx) => {
       await hasAuthenticated(ctx);

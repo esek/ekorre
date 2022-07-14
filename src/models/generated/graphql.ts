@@ -68,6 +68,12 @@ export enum ArticleType {
   News = 'NEWS'
 }
 
+export type AuthResponse = {
+  accessToken: Scalars['String'];
+  refreshToken: Scalars['String'];
+  user: User;
+};
+
 export type CasLoginResponse = {
   exists: Scalars['Boolean'];
   hash?: Maybe<Scalars['String']>;
@@ -207,12 +213,6 @@ export type LoginProvider = {
   token: Scalars['String'];
 };
 
-export type Me = {
-  accessExpiry: Scalars['Float'];
-  refreshExpiry: Scalars['Float'];
-  user?: Maybe<User>;
-};
-
 export type Meeting = {
   /** Bilaga */
   appendix?: Maybe<File>;
@@ -304,9 +304,9 @@ export type Mutation = {
   deleteApiKey: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
   /** Link a new oauth provider to the user */
-  linkProvider: Scalars['Boolean'];
+  linkProvider: LoginProvider;
   /** Test user credentials and if valid get a jwt token */
-  login?: Maybe<User>;
+  login: AuthResponse;
   /** Log out the user and invalidate the tokens */
   logout?: Maybe<Scalars['Boolean']>;
   modifyArticle: Article;
@@ -730,7 +730,7 @@ export type Query = {
   latestHehe: Array<Maybe<Hehe>>;
   latestnews: Array<Article>;
   loginProviders: Array<LoginProvider>;
-  me?: Maybe<Me>;
+  me: User;
   meeting?: Maybe<Meeting>;
   meetings: Array<Maybe<Meeting>>;
   /** A users own nominations should always be available to them */
@@ -1195,6 +1195,7 @@ export type ResolversTypes = ResolversObject<{
   ApiKey: ResolverTypeWrapper<ApiKeyResponse>;
   Article: ResolverTypeWrapper<ArticleResponse>;
   ArticleType: ArticleType;
+  AuthResponse: ResolverTypeWrapper<AuthResponse>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
@@ -1210,14 +1211,12 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   FileType: FileType;
-  Float: ResolverTypeWrapper<Scalars['Float']>;
   GroupedPost: ResolverTypeWrapper<GroupedPost>;
   Hehe: ResolverTypeWrapper<HeheResponse>;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   LoginProvider: ResolverTypeWrapper<LoginProvider>;
-  Me: ResolverTypeWrapper<Me>;
   Meeting: ResolverTypeWrapper<MeetingResponse>;
   MeetingDocumentType: MeetingDocumentType;
   MeetingType: MeetingType;
@@ -1250,6 +1249,7 @@ export type ResolversParentTypes = ResolversObject<{
   AccessInput: AccessInput;
   ApiKey: ApiKeyResponse;
   Article: ArticleResponse;
+  AuthResponse: AuthResponse;
   Boolean: Scalars['Boolean'];
   CasLoginResponse: CasLoginResponse;
   Date: Scalars['Date'];
@@ -1261,14 +1261,12 @@ export type ResolversParentTypes = ResolversObject<{
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
-  Float: Scalars['Float'];
   GroupedPost: GroupedPost;
   Hehe: HeheResponse;
   HistoryEntry: HistoryEntry;
   ID: Scalars['ID'];
   Int: Scalars['Int'];
   LoginProvider: LoginProvider;
-  Me: Me;
   Meeting: MeetingResponse;
   ModifyArticle: ModifyArticle;
   ModifyPost: ModifyPost;
@@ -1315,6 +1313,13 @@ export type ArticleResolvers<ContextType = Context, ParentType extends Resolvers
   slug?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   tags?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type AuthResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AuthResponse'] = ResolversParentTypes['AuthResponse']> = ResolversObject<{
+  accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  refreshToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1422,13 +1427,6 @@ export type LoginProviderResolvers<ContextType = Context, ParentType extends Res
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type MeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Me'] = ResolversParentTypes['Me']> = ResolversObject<{
-  accessExpiry?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  refreshExpiry?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
 export type MeetingResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Meeting'] = ResolversParentTypes['Meeting']> = ResolversObject<{
   appendix?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   documents?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
@@ -1463,8 +1461,8 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'id'>>;
   deleteApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteApiKeyArgs, 'key'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
-  linkProvider?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationLinkProviderArgs, 'options' | 'password' | 'username'>>;
-  login?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
+  linkProvider?: Resolver<ResolversTypes['LoginProvider'], ParentType, ContextType, RequireFields<MutationLinkProviderArgs, 'options' | 'password' | 'username'>>;
+  login?: Resolver<ResolversTypes['AuthResponse'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   modifyArticle?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
@@ -1548,7 +1546,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   latestHehe?: Resolver<Array<Maybe<ResolversTypes['Hehe']>>, ParentType, ContextType, RequireFields<QueryLatestHeheArgs, never>>;
   latestnews?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
   loginProviders?: Resolver<Array<ResolversTypes['LoginProvider']>, ParentType, ContextType>;
-  me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
+  me?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryMeetingsArgs, never>>;
   myNominations?: Resolver<Array<Maybe<ResolversTypes['Nomination']>>, ParentType, ContextType, RequireFields<QueryMyNominationsArgs, 'electionId'>>;
@@ -1597,6 +1595,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Access?: AccessResolvers<ContextType>;
   ApiKey?: ApiKeyResolvers<ContextType>;
   Article?: ArticleResolvers<ContextType>;
+  AuthResponse?: AuthResponseResolvers<ContextType>;
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
@@ -1611,7 +1610,6 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Hehe?: HeheResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
   LoginProvider?: LoginProviderResolvers<ContextType>;
-  Me?: MeResolvers<ContextType>;
   Meeting?: MeetingResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Nomination?: NominationResolvers<ContextType>;

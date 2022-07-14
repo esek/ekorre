@@ -6,7 +6,7 @@ scalar Date
 type Query {
   user(username: String!): User
   searchUser(search: String!): [User!]!
-  me: Me
+  me: User!
   numberOfMembers: Int!
 }
 
@@ -64,10 +64,4 @@ input UpdateUser {
   address: String
   zipCode: String
   website: String
-}
-
-type Me {
-  user: User
-  accessExpiry: Float!
-  refreshExpiry: Float!
 }

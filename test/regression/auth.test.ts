@@ -1,10 +1,10 @@
-import { COOKIES } from '@/auth';
 import { NOOP } from '@/models/base';
 import { AccessAPI } from '@api/access';
+import { Cookies } from '@esek/auth-server';
 import { PrismaUser } from '@prisma/client';
 import { ApiRequest, GraphqlResponse } from '@test/models/test';
 import { AXIOS_CONFIG } from '@test/utils/axiosConfig';
-import { USER_WITH_ACCESS_QUERY, LOGIN_MUTATION, LOGOUT_MUTATION } from '@test/utils/queries';
+import { LOGIN_MUTATION, LOGOUT_MUTATION, USER_WITH_ACCESS_QUERY } from '@test/utils/queries';
 import { extractToken, genRandomUser } from '@test/utils/utils';
 import axios, { AxiosRequestConfig } from 'axios';
 
@@ -51,7 +51,7 @@ describe('logging in and out', () => {
     };
 
     await axiosInstance.post<ApiRequest, GraphqlResponse>('/', loginData).then((res) => {
-      accessToken = extractToken(COOKIES.accessToken, res.headers['set-cookie']?.[1]);
+      accessToken = extractToken(Cookies.access_token, res.headers['set-cookie']?.[1]);
       expect(accessToken).not.toBeNull();
     });
   });
@@ -59,7 +59,7 @@ describe('logging in and out', () => {
   it('setup variables', () => {
     authHeader = {
       headers: {
-        Cookie: `${COOKIES.accessToken}=${accessToken ?? ''}`,
+        Cookie: `${Cookies.access_token}=${accessToken ?? ''}`,
       },
     };
 
@@ -89,7 +89,7 @@ describe('logging in and out', () => {
       .post<ApiRequest, GraphqlResponse<LogoutResponse>>('/', logoutData, authHeader)
       .then((res) => {
         expect(res.data.data.logout).toBe(true);
-        const accessToken1 = extractToken(COOKIES.accessToken, res.headers['set-cookie']?.[1]);
+        const accessToken1 = extractToken(Cookies.access_token, res.headers['set-cookie']?.[1]);
         expect(accessToken1).toBeNull();
       });
   });

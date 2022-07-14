@@ -1,8 +1,7 @@
-import { COOKIES, verifyToken } from '@/auth';
+import { tokenProvider } from '@/auth';
 import { createDataLoader } from '@/dataloaders';
 import { UnauthenticatedError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { TokenValue } from '@/models/auth';
 import type { Context, ContextParams } from '@/models/context';
 import * as Resolvers from '@/resolvers';
 import { AccessAPI } from '@api/access';
@@ -11,6 +10,7 @@ import { batchElectionsFunction } from '@dataloader/election';
 import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
 import { batchUsersFunction } from '@dataloader/user';
+import { Cookies } from '@esek/auth-server';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -49,8 +49,8 @@ const apiKeyApi = new ApiKeyAPI();
 const apolloServerConfig: Config<ExpressContext> = {
   schema,
   context: ({ req, res }: ContextParams): Context => {
-    const accessToken = req?.cookies[COOKIES.accessToken] ?? '';
-    const refreshToken = req?.cookies[COOKIES.refreshToken] ?? '';
+    const accessToken = req?.cookies[Cookies.access_token] ?? '';
+    const refreshToken = req?.cookies[Cookies.refresh_token] ?? '';
     const bearerToken = (req?.headers?.authorization ?? '').replace('Bearer ', '').toLowerCase();
 
     /**
@@ -64,7 +64,7 @@ const apolloServerConfig: Config<ExpressContext> = {
       }
 
       try {
-        const { username } = verifyToken<TokenValue>(accessToken, 'accessToken');
+        const { username } = tokenProvider.verifyToken(accessToken, 'access_token');
         return username;
       } catch {
         throw new UnauthenticatedError('Denna token är inte längre giltig!');
@@ -106,6 +106,7 @@ const apolloServerConfig: Config<ExpressContext> = {
       postDataLoader: createDataLoader(batchPostsFunction),
       fileDataLoader: createDataLoader(batchFilesFunction),
       electionDataLoader: createDataLoader(batchElectionsFunction),
+      tokenProvider: tokenProvider,
     };
   },
   debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
