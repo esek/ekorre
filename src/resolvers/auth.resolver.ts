@@ -1,11 +1,12 @@
 import TokenProvider, { hashWithSecret } from '@/auth';
 import { useDataLoader } from '@/dataloaders';
-import { ServerError, UnauthenticatedError } from '@/errors/request.errors';
+import { BadRequestError, ServerError, UnauthenticatedError } from '@/errors/request.errors';
 import { ApiKeyResponse } from '@/models/mappers';
 import { reduce } from '@/reducers';
 import { hasAccess } from '@/util';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
+import { userApi } from '@dataloader/user';
 import { Feature, Resolvers, User } from '@generated/graphql';
 import { apiKeyReducer } from '@reducer/apikey';
 import { userReduce } from '@reducer/user';
@@ -65,6 +66,41 @@ const authResolver: Resolvers = {
       TokenProvider.invalidateTokens(bearerToken);
 
       return true;
+    },
+    refresh: async (_, { username }, ctx) => {
+      const validateUsername = async () => {
+        // if it's an api-key request
+        if (ctx.apiKey) {
+          if (!username) {
+            throw new BadRequestError('Username is required when refreshing using api key');
+          }
+
+          await hasAccess(ctx, [Feature.UserAdmin]);
+          return username;
+        }
+
+        const jwtUsername = ctx.getUsername();
+
+        // only useradmins can refresh another users token
+        if (jwtUsername !== username) {
+          await hasAccess(ctx, [Feature.UserAdmin]);
+        }
+
+        return jwtUsername;
+      };
+
+      const validatedUsername = await validateUsername();
+
+      const user = await userApi.getSingleUser(validatedUsername);
+
+      const accessToken = TokenProvider.issueToken(validatedUsername, 'access_token');
+      const refreshToken = TokenProvider.issueToken(validatedUsername, 'refresh_token');
+
+      return {
+        user: reduce(user, userReduce),
+        accessToken,
+        refreshToken,
+      };
     },
     casLogin: async (_, { token }, { request, response }) => {
       const { referer } = request.headers;

@@ -304,6 +304,7 @@ export type Mutation = {
   nominate: Scalars['Boolean'];
   openElection: Scalars['Boolean'];
   propose: Scalars['Boolean'];
+  refresh: RefreshResponse;
   removeArticle: Scalars['Boolean'];
   removeElectables: Scalars['Boolean'];
   removeEmergencyContact: Scalars['Boolean'];
@@ -465,6 +466,11 @@ export type MutationProposeArgs = {
   electionId: Scalars['Int'];
   postId: Scalars['Int'];
   username: Scalars['String'];
+};
+
+
+export type MutationRefreshArgs = {
+  username?: Maybe<Scalars['String']>;
 };
 
 
@@ -1006,6 +1012,11 @@ export type QueryUtskottArgs = {
   name?: Maybe<Scalars['String']>;
 };
 
+export type RefreshResponse = {
+  accessToken: Scalars['String'];
+  refreshToken: Scalars['String'];
+};
+
 export type SendEmailOptions = {
   body?: Maybe<Scalars['String']>;
   overrides?: Maybe<Scalars['Object']>;
@@ -1193,6 +1204,7 @@ export type ResolversTypes = ResolversObject<{
   PostType: PostType;
   Proposal: ResolverTypeWrapper<ProposalResponse>;
   Query: ResolverTypeWrapper<{}>;
+  RefreshResponse: ResolverTypeWrapper<RefreshResponse>;
   SendEmailOptions: SendEmailOptions;
   SortOrder: SortOrder;
   String: ResolverTypeWrapper<Scalars['String']>;
@@ -1237,6 +1249,7 @@ export type ResolversParentTypes = ResolversObject<{
   Post: Post;
   Proposal: ProposalResponse;
   Query: {};
+  RefreshResponse: RefreshResponse;
   SendEmailOptions: SendEmailOptions;
   String: Scalars['String'];
   UpdateUser: UpdateUser;
@@ -1417,6 +1430,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   nominate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationNominateArgs, 'postIds' | 'username'>>;
   openElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenElectionArgs, 'electionId'>>;
   propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postId' | 'username'>>;
+  refresh?: Resolver<ResolversTypes['RefreshResponse'], ParentType, ContextType, RequireFields<MutationRefreshArgs, never>>;
   removeArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveArticleArgs, 'articleId'>>;
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId'>>;
   removeEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveEmergencyContactArgs, 'id'>>;
@@ -1510,6 +1524,12 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
 
+export type RefreshResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['RefreshResponse'] = ResolversParentTypes['RefreshResponse']> = ResolversObject<{
+  accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  refreshToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type UserResolvers<ContextType = Context, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
   address?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1561,6 +1581,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Post?: PostResolvers<ContextType>;
   Proposal?: ProposalResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  RefreshResponse?: RefreshResponseResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserPostHistoryEntry?: UserPostHistoryEntryResolvers<ContextType>;
 }>;

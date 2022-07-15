@@ -9,6 +9,7 @@ type Query {
 type Mutation {
   "Test user credentials and if valid get a jwt token"
   login(username: String!, password: String!): LoginResponse!
+  refresh(username: String): RefreshResponse!
   logout: Boolean
   casLogin(token: String!): CasLoginResponse!
   createApiKey(description: String!): String!
@@ -20,6 +21,12 @@ type LoginResponse {
   accessToken: String!
   refreshToken: String!
 }
+
+type RefreshResponse {
+  accessToken: String!
+  refreshToken: String!
+}
+
 
 type CasLoginResponse {
   username: String!
