@@ -84,6 +84,12 @@ export const ARTICLE_QUERY = `
   }
 `;
 
+export const ARTICLES_QUERY = `
+  query article($id: Int, $author: String, $tags: [String!]) {
+    articles(id: $id, author: $author, tags: $tags) ${ARTICLE_FIELDS}
+  }
+`;
+
 export const ADD_ARTICLE_MUTATION = `
 mutation ($entry: NewArticle!) {
   addArticle(entry: $entry) ${ARTICLE_FIELDS}
