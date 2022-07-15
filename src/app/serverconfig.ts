@@ -93,7 +93,8 @@ const apolloServerConfig: Config<ExpressContext> = {
     };
 
     return {
-      apiKey: bearerToken,
+      bearerToken,
+      apiKey,
       getUsername,
       getAccess,
       response: res,

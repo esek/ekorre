@@ -5,6 +5,7 @@ import type DataLoader from 'dataloader';
 import type { Request, Response } from 'express';
 
 export type Context = {
+  bearerToken: string;
   apiKey: string;
   response: Response;
   request: CustomReq;

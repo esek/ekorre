@@ -60,9 +60,9 @@ const authResolver: Resolvers = {
         throw new UnauthenticatedError('Inloggningen misslyckades');
       }
     },
-    logout: (_, __, { refreshToken, accessToken }) => {
+    logout: (_, __, { bearerToken }) => {
       // Invalidate both access- and refreshtoken
-      TokenProvider.invalidateTokens(accessToken, refreshToken);
+      TokenProvider.invalidateTokens(bearerToken);
 
       return true;
     },
