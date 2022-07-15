@@ -200,10 +200,10 @@ export type HistoryEntry = {
   start: Scalars['Date'];
 };
 
-export type Me = {
-  accessExpiry: Scalars['Float'];
-  refreshExpiry: Scalars['Float'];
-  user?: Maybe<User>;
+export type LoginResponse = {
+  accessToken: Scalars['String'];
+  refreshToken: Scalars['String'];
+  user: User;
 };
 
 export type Meeting = {
@@ -296,7 +296,7 @@ export type Mutation = {
   deleteApiKey: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
   /** Test user credentials and if valid get a jwt token */
-  login?: Maybe<User>;
+  login: LoginResponse;
   logout?: Maybe<Scalars['Boolean']>;
   modifyArticle: Article;
   modifyPost: Scalars['Boolean'];
@@ -691,7 +691,7 @@ export type Query = {
   latestElections: Array<Maybe<Election>>;
   latestHehe: Array<Maybe<Hehe>>;
   latestnews: Array<Article>;
-  me?: Maybe<Me>;
+  me: User;
   meeting?: Maybe<Meeting>;
   meetings: Array<Maybe<Meeting>>;
   /** A users own nominations should always be available to them */
@@ -707,7 +707,7 @@ export type Query = {
   posts?: Maybe<Array<Maybe<Post>>>;
   searchFiles: Array<File>;
   searchUser: Array<User>;
-  user?: Maybe<User>;
+  user: User;
   utskott?: Maybe<Utskott>;
 };
 
@@ -1171,13 +1171,12 @@ export type ResolversTypes = ResolversObject<{
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
   FileSystemResponsePath: ResolverTypeWrapper<FileSystemResponsePath>;
   FileType: FileType;
-  Float: ResolverTypeWrapper<Scalars['Float']>;
   GroupedPost: ResolverTypeWrapper<GroupedPost>;
   Hehe: ResolverTypeWrapper<HeheResponse>;
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
-  Me: ResolverTypeWrapper<Me>;
+  LoginResponse: ResolverTypeWrapper<LoginResponse>;
   Meeting: ResolverTypeWrapper<MeetingResponse>;
   MeetingDocumentType: MeetingDocumentType;
   MeetingType: MeetingType;
@@ -1220,13 +1219,12 @@ export type ResolversParentTypes = ResolversObject<{
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
   FileSystemResponsePath: FileSystemResponsePath;
-  Float: Scalars['Float'];
   GroupedPost: GroupedPost;
   Hehe: HeheResponse;
   HistoryEntry: HistoryEntry;
   ID: Scalars['ID'];
   Int: Scalars['Int'];
-  Me: Me;
+  LoginResponse: LoginResponse;
   Meeting: MeetingResponse;
   ModifyArticle: ModifyArticle;
   ModifyPost: ModifyPost;
@@ -1371,10 +1369,10 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type MeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Me'] = ResolversParentTypes['Me']> = ResolversObject<{
-  accessExpiry?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  refreshExpiry?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+export type LoginResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['LoginResponse'] = ResolversParentTypes['LoginResponse']> = ResolversObject<{
+  accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  refreshToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1412,7 +1410,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'id'>>;
   deleteApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteApiKeyArgs, 'key'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
-  login?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
+  login?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   modifyArticle?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
@@ -1493,7 +1491,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   latestElections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryLatestElectionsArgs, never>>;
   latestHehe?: Resolver<Array<Maybe<ResolversTypes['Hehe']>>, ParentType, ContextType, RequireFields<QueryLatestHeheArgs, never>>;
   latestnews?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryLatestnewsArgs, never>>;
-  me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
+  me?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   meeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<Maybe<ResolversTypes['Meeting']>>, ParentType, ContextType, RequireFields<QueryMeetingsArgs, never>>;
   myNominations?: Resolver<Array<Maybe<ResolversTypes['Nomination']>>, ParentType, ContextType, RequireFields<QueryMyNominationsArgs, 'electionId'>>;
@@ -1508,7 +1506,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, 'includeInactive'>>;
   searchFiles?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QuerySearchFilesArgs, 'search'>>;
   searchUser?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySearchUserArgs, 'search'>>;
-  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
 
@@ -1555,7 +1553,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   GroupedPost?: GroupedPostResolvers<ContextType>;
   Hehe?: HeheResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
-  Me?: MeResolvers<ContextType>;
+  LoginResponse?: LoginResponseResolvers<ContextType>;
   Meeting?: MeetingResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Nomination?: NominationResolvers<ContextType>;

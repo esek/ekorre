@@ -52,17 +52,14 @@ const LU = {
   CAS: (process.env.LU_CAS as string) ?? 'https://idpv4.lu.se',
 };
 
-/** Cookie auth
- * @param {string} domain - The base domain for your app
- */
-const COOKIE = {
-  DOMAIN: (process.env.COOKIE_DOMAIN as string) ?? '',
-};
-
 const WIKI = {
   URL: process.env.WIKI_BASE_URL ?? '',
   USERNAME: process.env.WIKI_USERNAME ?? '',
   PASSWORD: process.env.WIKI_PASSWORD ?? '',
+};
+
+const JWT = {
+  SECRET: (process.env.JWT_SECRET as string) ?? '',
 };
 
 const config = {
@@ -75,8 +72,8 @@ const config = {
   EBREV,
   CORS,
   LU,
-  COOKIE,
   WIKI,
+  JWT,
 };
 
 export default config;
