@@ -124,10 +124,28 @@ export class ArticleAPI {
    * Returns a list of PrismaArticles from database WHERE params match.
    * @param params possible params are ArticleModel parts.
    */
-  async getArticles(params: Prisma.PrismaArticleWhereInput): Promise<PrismaExtendedArticle[]> {
+  async getArticles(
+    author?: string | null,
+    id?: number | null,
+    tags?: string[] | null,
+  ): Promise<PrismaExtendedArticle[]> {
+    const whereAnd: Prisma.PrismaArticleWhereInput[] = [];
+
+    if (author != null) {
+      whereAnd.push({ refAuthor: author });
+    }
+    if (id != null) {
+      whereAnd.push({ id });
+    }
+    if (tags != null && tags.length > 0) {
+      whereAnd.push({
+        tags: { some: { tag: { in: tags } } },
+      });
+    }
+
     const a = await prisma.prismaArticle.findMany({
       where: {
-        ...params,
+        AND: whereAnd,
       },
       include: {
         tags: true,
