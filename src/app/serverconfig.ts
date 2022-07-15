@@ -48,7 +48,7 @@ const apiKeyApi = new ApiKeyAPI();
 const apolloServerConfig: Config<ExpressContext> = {
   schema,
   context: ({ req, res }: ContextParams): Context => {
-    const bearerToken = (req?.headers?.authorization ?? '').replace('Bearer ', '').toLowerCase();
+    const bearerToken = (req?.headers?.authorization ?? '').replace('Bearer ', '');
     const apiKey = req.headers['X-E-Api-Key']?.toString() ?? '';
 
     /**
