@@ -22,6 +22,7 @@ export function userReduce(user: PrismaUser): User {
     userPostHistory: [],
     wikiEdits: 0,
     emergencyContacts: [],
+    loginProviders: [],
   };
   return u;
 }

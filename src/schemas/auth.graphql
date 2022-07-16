@@ -9,11 +9,14 @@ type Query {
 type Mutation {
   "Test user credentials and if valid get a jwt token"
   login(username: String!, password: String!): LoginResponse!
-  logout: Boolean
+  logout: Boolean!
   issueTokens(username: String!): TokenResponse!
   refresh(refreshToken: String!): TokenResponse!
-  validateToken(token: String!): Boolean
+  validateToken(token: String!): Boolean!
 
+  linkLoginProvider(input: ProviderOptions!): LoginProvider!
+  unlinkLoginProvider(id: Int!): Boolean!
+  providerLogin(input: ProviderOptions!): LoginResponse!
 
   casLogin(token: String!): CasLoginResponse!
 
@@ -44,4 +47,18 @@ type ApiKey {
     description: String!
     access: Access!
     creator: User!
+}
+
+
+input ProviderOptions {
+  token: String!
+  email: String
+  provider: String!
+}
+
+type LoginProvider {
+  id: Int!
+  token: String!
+  email: String
+  provider: String!
 }

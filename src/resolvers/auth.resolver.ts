@@ -1,11 +1,13 @@
 import TokenProvider, { hashWithSecret } from '@/auth';
 import { useDataLoader } from '@/dataloaders';
-import { ServerError, UnauthenticatedError } from '@/errors/request.errors';
+import { BadRequestError, ServerError, UnauthenticatedError } from '@/errors/request.errors';
 import { ApiKeyResponse } from '@/models/mappers';
 import { reduce } from '@/reducers';
-import { hasAccess } from '@/util';
+import { hasAccess, hasAuthenticated } from '@/util';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
+import { userApi } from '@dataloader/user';
+import { LoginProvider } from '@esek/auth-server';
 import { Feature, Resolvers, User } from '@generated/graphql';
 import { apiKeyReducer } from '@reducer/apikey';
 import { userReduce } from '@reducer/user';
@@ -90,6 +92,36 @@ const authResolver: Resolvers = {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
       };
+    },
+    providerLogin: async (_, { input }) => {
+      const { provider, token, email } = input;
+
+      const user = await userApi.getUserFromProvider(token, provider, email ?? undefined);
+      const accessToken = TokenProvider.issueToken(user.username, 'access_token');
+      const refreshToken = TokenProvider.issueToken(user.username, 'refresh_token');
+
+      return {
+        user: reduce(user, userReduce),
+        accessToken,
+        refreshToken,
+      };
+    },
+    linkLoginProvider: async (_, { input }, ctx) => {
+      await hasAuthenticated(ctx);
+      const username = ctx.getUsername();
+
+      if (!Object.values(LoginProvider).includes(input.provider as LoginProvider)) {
+        throw new BadRequestError('Denna providern finns inte');
+      }
+
+      const provider = userApi.linkLoginProvider(
+        username,
+        input.provider as LoginProvider,
+        input.token,
+        input.email ?? undefined,
+      );
+
+      return provider;
     },
     casLogin: async (_, { token }, { request }) => {
       const { referer } = request.headers;
