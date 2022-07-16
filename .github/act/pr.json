@@ -1,0 +1,14 @@
+{
+    "pull_request": {
+      "head": {
+        "ref": "pr-branch"
+      },
+      "base": {
+        "ref": "main"
+      },
+      "repository": {
+          "default_branch": "main"
+      },
+      "action": "close"
+    }
+  }

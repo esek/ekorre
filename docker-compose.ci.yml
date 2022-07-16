@@ -1,0 +1,26 @@
+version: '3.8'
+
+networks:
+  traefik:
+    external: true
+
+services:
+  ekorre:
+    image: $IMAGE_NAME
+    environment:
+      - COMPOSE_PROJECT_NAME
+      - DB_HOST
+    networks:
+      - traefik
+      - default
+    labels:
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_ekorre.rule=Host(`$DEPLOY_URL`)"
+    
+  postgres:
+    image: postgres:alpine
+    ports: [ 5432:5432 ]
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+  

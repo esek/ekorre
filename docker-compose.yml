@@ -6,7 +6,7 @@ networks:
 
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:alpine
     env_file:
       - .env
     environment:
@@ -15,22 +15,6 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - ./srv/pgdata/:/data/postgres
-    ports:
-      - 5432:5432
+    ports: [ 5432:5432 ]
     restart: unless-stopped
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    env_file:
-      - .env
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-macapar@esek.se}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    volumes:
-      - ./srv/pgadmin/:/var/lib/pgadmin
-    ports:
-      - "${PGADMIN_PORT:-5050}:80"
-    restart: unless-stopped
-
     

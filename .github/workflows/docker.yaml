@@ -19,13 +19,9 @@ on:
 
 env:
   REGISTRY: registry.esek.se
-  PROD_URL: esek.se # Optional
+  PROD_URL: api.esek.se # Optional
   # STAGING_URL: blabla.esek.se # Optional
   DEFAULT_BRANCH: main
-  # Settting args for the deploy applies to all environments.
-  # You can also set the following secret values:
-  # PROD_DEPLOY_ARGS, STAGING_DEPLOY_ARGS, TESTING_DEPLOY_ARGS, PR_DEPLOY_ARGS
-  DEPLOY_ARGS: ''
   # Setting env vars can be done by setting
   # PROD_ENV_VARS, STAGING_ENV_VARS, TESTING_ENV_VARS, PR_ENV_VARS
   ONLY_PROD: true
@@ -41,7 +37,9 @@ env:
 jobs:
   test:
     runs-on: self-hosted
-    if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
+    # To run this locally using act set act to false in event.json
+    # Note act does not support services...
+    if: ${{ !github.event.act || !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
     services:
       postgres:
         image: postgres:alpine
@@ -67,12 +65,12 @@ jobs:
         run: |
          mv .env.example.dev .env
          mkdir public.local
-      - name: debug
-        run: cat .env
       - name: reset db
         run: npm run prisma:ci
       - name: run test
-        run: npm run test:prebuild
+        uses: ArtiomTr/jest-coverage-report-action@v2.0.9
+        with:
+          test-script: npm run test:prebuild 
   build:
     runs-on: self-hosted
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
@@ -152,56 +150,53 @@ jobs:
           fi
 
           REPO_NAME=$(basename ${{ github.repository }})
-          CONTAINER_NAME=$REPO_NAME-${BRANCH/${{ env.DEFAULT_BRANCH }}/testing}
+          PROJECT_NAME=$REPO_NAME-${BRANCH/${{ env.DEFAULT_BRANCH }}/testing}
 
           TAG=$(echo "$TAG" | slugify)
           BRANCH_SLUG=$(echo "$BRANCH" | slugify)
           REPO_NAME_SLUG=$(echo "$REPO_NAME" | slugify)
-          CONTAINER_NAME=$(echo "$CONTAINER_NAME" | slugify)
+          PROJECT_NAME=$(echo "$PROJECT_NAME" | slugify)
 
           DEPLOY_URL=$REPO_NAME_SLUG.testing.esek.se
           DEPLOY_ENV=${BRANCH_SLUG/${{ env.DEFAULT_BRANCH }}/testing}
-          DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.TESTING_DEPLOY_ARGS) }}"
           echo '${{ secrets.TESTING_ENV_VARS }}' > .env
 
           if ${{ (github.event_name == 'release' && github.event.action == 'released') || env.ONLY_PROD == 'true' }}; then
             DEPLOY_ENV=production
-            CONTAINER_NAME=$REPO_NAME_SLUG
+            PROJECT_NAME=production
             DEPLOY_URL=$REPO_NAME_SLUG.esek.se
             if [ -n '${{ env.PROD_URL }}' ]; then
               DEPLOY_URL=${{ env.PROD_URL }}
             fi
-            DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.PROD_DEPLOY_ARGS) }}"
             echo '${{ secrets.PROD_ENV_VARS }}' > .env
           fi
 
           if ${{ github.event_name == 'release' && github.event.action == 'prereleased' }}; then
             DEPLOY_ENV=staging
-            CONTAINER_NAME=$REPO_NAME_SLUG-staging
+            PROJECT_NAME=staging
             DEPLOY_URL=$REPO_NAME_SLUG.staging.esek.se
             if [ -n '${{ env.STAGING_URL }}' ]; then
               DEPLOY_URL=${{ env.STAGING_URL }}
             fi
-            DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.STAGING_DEPLOY_ARGS) }}"
             echo '${{ secrets.STAGING_ENV_VARS }}' > .env
           fi
 
           if ${{ github.event_name == 'pull_request' }}; then
             DEPLOY_ENV=review
-            CONTAINER_NAME=$CONTAINER_NAME-review
-            DEPLOY_URL=$REPO_NAME_SLUG-$BRANCH_SLUG.review.esek.se
-            DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.PR_DEPLOY_ARGS) }}"
+            BASE=$REPO_NAME_SLUG-$BRANCH_SLUG
+            PROJECT_NAME=$BRANCH_SLUG-review
+            DEPLOY_URL=$BASE.review.esek.se
             echo '${{ secrets.PR_ENV_VARS }}' > .env
+            echo NODE_ENV=development >> .env
           fi
 
           echo 'CI_REGISTRY_IMAGE=${{ env.REGISTRY }}/${{ github.repository }}' >> .env >> $GITHUB_ENV
 
           echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
+          echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV
           echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ github.repository }}:$TAG" >> $GITHUB_ENV
           echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
           echo "DEPLOY_ENV=$DEPLOY_ENV" >> $GITHUB_ENV
-          echo "DEPLOY_ARGS=${DEPLOY_ARGS//$'\n'/ }" >> $GITHUB_ENV
       - name: start deployment
         uses: bobheadxi/deployments@v1
         id: deployment
@@ -218,7 +213,9 @@ jobs:
           ssh_host_user: ${{ secrets.SSH_USER }}
           ssh_host: ${{ secrets.SSH_HOST }}
       - name: check connection
-        run: docker info
+        run: |
+          docker info
+          docker-compose version
       - name: login to registry
         uses: docker/login-action@v2
         with:
@@ -229,17 +226,14 @@ jobs:
         run: docker pull $IMAGE_NAME
       - name: Stop old container
         run: |
-          docker stop $CONTAINER_NAME 2> /dev/null || true
-          docker rm --force $CONTAINER_NAME 2> /dev/null || true
+          docker-compose -f docker-compose.ci.yml -p $PROJECT_NAME down 2> /dev/null || true
       - name: deploy to host
-        run: >
-          docker run
-          --name $CONTAINER_NAME
-          --label "traefik.http.routers.$CONTAINER_NAME.rule=Host(\`$DEPLOY_URL\`)"
-          --network=traefik
-          --env-file .env
-          ${{ env.DEPLOY_ARGS }}
-          -d $IMAGE_NAME
+        run: |
+          docker-compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up ekorre -d --force-recreate
+          if [ $DEPLOY_ENV = 'review' ] || [ $DEPLOY_ENV = 'testing' ]; then
+            docker-compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up postgres -d --force-recreate
+            docker-compse -f docker-compose.ci.yml -p $PROJECT_NAME ekorre sh -c 'npm run prisma:ci' 
+          fi
       - name: prune system
         run: docker system prune -f 2> /dev/null || true
       - name: update deployment status
@@ -278,8 +272,8 @@ jobs:
           echo "Running on $BRANCH"
           REPO_NAME=$(basename ${{ github.repository }})
 
-          CONTAINER_NAME=$( echo "$REPO_NAME-$BRANCH-review" | slugify )
-          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
+          PROJECT_NAME=$( echo "$REPO_NAME-$BRANCH-review" | slugify )
+          echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV
       - name: login to host
         uses: nightstory/setup-docker-remote@v1
         with:
@@ -287,11 +281,12 @@ jobs:
           ssh_host_user: ${{ secrets.SSH_USER }}
           ssh_host: ${{ secrets.SSH_HOST }}
       - name: check connection
-        run: docker info
+        run: |
+          docker info
+          docker-compose version
       - name: stop container
         run: |
-          docker stop $CONTAINER_NAME 2> /dev/null || true
-          docker rm --force $CONTAINER_NAME 2> /dev/null || true
+          docker-compose -f docker-compose.ci.yml -p $PROJECT_NAME down 2> /dev/null || true
       - name: prune system
         run: docker image prune -f 2> /dev/null || true
       - if: ${{ !env.ACT }}
