@@ -1,12 +1,11 @@
 import TokenProvider, { hashWithSecret } from '@/auth';
 import { useDataLoader } from '@/dataloaders';
-import { BadRequestError, ServerError, UnauthenticatedError } from '@/errors/request.errors';
+import { ServerError, UnauthenticatedError } from '@/errors/request.errors';
 import { ApiKeyResponse } from '@/models/mappers';
 import { reduce } from '@/reducers';
 import { hasAccess } from '@/util';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
-import { userApi } from '@dataloader/user';
 import { Feature, Resolvers, User } from '@generated/graphql';
 import { apiKeyReducer } from '@reducer/apikey';
 import { userReduce } from '@reducer/user';
@@ -67,39 +66,29 @@ const authResolver: Resolvers = {
 
       return true;
     },
-    refresh: async (_, { username }, ctx) => {
-      const validateUsername = async () => {
-        // if it's an api-key request
-        if (ctx.apiKey) {
-          if (!username) {
-            throw new BadRequestError('Username is required when refreshing using api key');
-          }
+    issueTokens: async (_, { username }, ctx) => {
+      await hasAccess(ctx, [Feature.UserAdmin]);
 
-          await hasAccess(ctx, [Feature.UserAdmin]);
-          return username;
-        }
+      // just try to get the user so that it throws if the username does not exist
+      await api.getSingleUser(username);
 
-        const jwtUsername = ctx.getUsername();
-
-        // only useradmins can refresh another users token
-        if (jwtUsername !== username) {
-          await hasAccess(ctx, [Feature.UserAdmin]);
-        }
-
-        return jwtUsername;
-      };
-
-      const validatedUsername = await validateUsername();
-
-      const user = await userApi.getSingleUser(validatedUsername);
-
-      const accessToken = TokenProvider.issueToken(validatedUsername, 'access_token');
-      const refreshToken = TokenProvider.issueToken(validatedUsername, 'refresh_token');
+      const accessToken = TokenProvider.issueToken(username, 'access_token');
+      const refreshToken = TokenProvider.issueToken(username, 'refresh_token');
 
       return {
-        user: reduce(user, userReduce),
         accessToken,
         refreshToken,
+      };
+    },
+    refresh: async (_, { refreshToken }) => {
+      const { username } = TokenProvider.verifyToken(refreshToken, 'refresh_token');
+
+      const newAccessToken = TokenProvider.issueToken(username, 'access_token');
+      const newRefreshToken = TokenProvider.issueToken(username, 'refresh_token');
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
       };
     },
     casLogin: async (_, { token }, { request, response }) => {

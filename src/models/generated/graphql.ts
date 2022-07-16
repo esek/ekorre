@@ -295,6 +295,7 @@ export type Mutation = {
   deactivatePost: Scalars['Boolean'];
   deleteApiKey: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
+  issueTokens: TokenResponse;
   /** Test user credentials and if valid get a jwt token */
   login: LoginResponse;
   logout?: Maybe<Scalars['Boolean']>;
@@ -304,7 +305,7 @@ export type Mutation = {
   nominate: Scalars['Boolean'];
   openElection: Scalars['Boolean'];
   propose: Scalars['Boolean'];
-  refresh: RefreshResponse;
+  refresh: TokenResponse;
   removeArticle: Scalars['Boolean'];
   removeElectables: Scalars['Boolean'];
   removeEmergencyContact: Scalars['Boolean'];
@@ -326,6 +327,7 @@ export type Mutation = {
   setUserPostEnd: Scalars['Boolean'];
   updateUser: User;
   validatePasswordResetToken: Scalars['Boolean'];
+  validateToken?: Maybe<Scalars['Boolean']>;
 };
 
 
@@ -434,6 +436,11 @@ export type MutationDeleteFileArgs = {
 };
 
 
+export type MutationIssueTokensArgs = {
+  username: Scalars['String'];
+};
+
+
 export type MutationLoginArgs = {
   password: Scalars['String'];
   username: Scalars['String'];
@@ -470,7 +477,7 @@ export type MutationProposeArgs = {
 
 
 export type MutationRefreshArgs = {
-  username?: Maybe<Scalars['String']>;
+  refreshToken: Scalars['String'];
 };
 
 
@@ -586,6 +593,11 @@ export type MutationUpdateUserArgs = {
 export type MutationValidatePasswordResetTokenArgs = {
   token: Scalars['String'];
   username: Scalars['String'];
+};
+
+
+export type MutationValidateTokenArgs = {
+  token: Scalars['String'];
 };
 
 export type NewArticle = {
@@ -1012,11 +1024,6 @@ export type QueryUtskottArgs = {
   name?: Maybe<Scalars['String']>;
 };
 
-export type RefreshResponse = {
-  accessToken: Scalars['String'];
-  refreshToken: Scalars['String'];
-};
-
 export type SendEmailOptions = {
   body?: Maybe<Scalars['String']>;
   overrides?: Maybe<Scalars['Object']>;
@@ -1029,6 +1036,11 @@ export enum SortOrder {
   Asc = 'asc',
   Desc = 'desc'
 }
+
+export type TokenResponse = {
+  accessToken: Scalars['String'];
+  refreshToken: Scalars['String'];
+};
 
 export type UpdateUser = {
   address?: Maybe<Scalars['String']>;
@@ -1204,10 +1216,10 @@ export type ResolversTypes = ResolversObject<{
   PostType: PostType;
   Proposal: ResolverTypeWrapper<ProposalResponse>;
   Query: ResolverTypeWrapper<{}>;
-  RefreshResponse: ResolverTypeWrapper<RefreshResponse>;
   SendEmailOptions: SendEmailOptions;
   SortOrder: SortOrder;
   String: ResolverTypeWrapper<Scalars['String']>;
+  TokenResponse: ResolverTypeWrapper<TokenResponse>;
   UpdateUser: UpdateUser;
   User: ResolverTypeWrapper<User>;
   UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
@@ -1249,9 +1261,9 @@ export type ResolversParentTypes = ResolversObject<{
   Post: Post;
   Proposal: ProposalResponse;
   Query: {};
-  RefreshResponse: RefreshResponse;
   SendEmailOptions: SendEmailOptions;
   String: Scalars['String'];
+  TokenResponse: TokenResponse;
   UpdateUser: UpdateUser;
   User: User;
   UserPostHistoryEntry: UserPostHistoryEntry;
@@ -1423,6 +1435,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'id'>>;
   deleteApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteApiKeyArgs, 'key'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
+  issueTokens?: Resolver<ResolversTypes['TokenResponse'], ParentType, ContextType, RequireFields<MutationIssueTokensArgs, 'username'>>;
   login?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
   logout?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   modifyArticle?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
@@ -1430,7 +1443,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   nominate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationNominateArgs, 'postIds' | 'username'>>;
   openElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenElectionArgs, 'electionId'>>;
   propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postId' | 'username'>>;
-  refresh?: Resolver<ResolversTypes['RefreshResponse'], ParentType, ContextType, RequireFields<MutationRefreshArgs, never>>;
+  refresh?: Resolver<ResolversTypes['TokenResponse'], ParentType, ContextType, RequireFields<MutationRefreshArgs, 'refreshToken'>>;
   removeArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveArticleArgs, 'articleId'>>;
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId'>>;
   removeEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveEmergencyContactArgs, 'id'>>;
@@ -1451,6 +1464,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   setUserPostEnd?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetUserPostEndArgs, 'end' | 'id'>>;
   updateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
+  validateToken?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationValidateTokenArgs, 'token'>>;
 }>;
 
 export type NominationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Nomination'] = ResolversParentTypes['Nomination']> = ResolversObject<{
@@ -1524,7 +1538,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType, RequireFields<QueryUtskottArgs, never>>;
 }>;
 
-export type RefreshResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['RefreshResponse'] = ResolversParentTypes['RefreshResponse']> = ResolversObject<{
+export type TokenResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TokenResponse'] = ResolversParentTypes['TokenResponse']> = ResolversObject<{
   accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   refreshToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -1581,7 +1595,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Post?: PostResolvers<ContextType>;
   Proposal?: ProposalResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  RefreshResponse?: RefreshResponseResolvers<ContextType>;
+  TokenResponse?: TokenResponseResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserPostHistoryEntry?: UserPostHistoryEntryResolvers<ContextType>;
 }>;
