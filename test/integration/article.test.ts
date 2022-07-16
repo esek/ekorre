@@ -1,6 +1,12 @@
 import { issueToken } from '@/auth';
 import { Article, ArticleType, Feature, ModifyArticle, NewArticle } from '@generated/graphql';
-import { ADD_ARTICLE_MUTATION, ARTICLE_QUERY, MODIFY_ARTICLE_MUTATION, REMOVE_ARTICLE_MUTATION } from '@test/utils/queries';
+import {
+  ADD_ARTICLE_MUTATION,
+  ARTICLES_QUERY,
+  ARTICLE_QUERY,
+  MODIFY_ARTICLE_MUTATION,
+  REMOVE_ARTICLE_MUTATION,
+} from '@test/utils/queries';
 import requestWithAuth from '@test/utils/requestWithAuth';
 import { genRandomUser } from '@test/utils/utils';
 
@@ -28,19 +34,13 @@ const mockModifyArticle: ModifyArticle = {
 
 beforeAll(async () => {
   // Initialize random usernames
-  [TEST_USERNAME_0, TEST_USERNAME_1, TEST_USER_WITHOUT_ACCESS] = (await Promise.all([
-    createUser1(),
-    createUser2(),
-    createUser3(),
-  ])).map(u => u.username);
+  [TEST_USERNAME_0, TEST_USERNAME_1, TEST_USER_WITHOUT_ACCESS] = (
+    await Promise.all([createUser1(), createUser2(), createUser3()])
+  ).map((u) => u.username);
 });
 
 afterAll(async () => {
-  await Promise.all([
-    deleteUser1(),
-    deleteUser2(),
-    deleteUser3(),
-  ]);
+  await Promise.all([deleteUser1(), deleteUser2(), deleteUser3()]);
 });
 
 beforeEach(() => {
@@ -50,7 +50,7 @@ beforeEach(() => {
   jest.useRealTimers();
 });
 
-test('access control', async () => {
+test('basic and access control', async () => {
   const accessToken = issueToken({ username: TEST_USER_WITHOUT_ACCESS }, 'accessToken');
 
   const addArticleRes = await requestWithAuth(
@@ -58,6 +58,8 @@ test('access control', async () => {
     { entry: mockNewArticle },
     accessToken,
   );
+
+  const getArticle = await requestWithAuth(ARTICLES_QUERY, {}, accessToken);
 
   const modifyArticleRes = await requestWithAuth(
     MODIFY_ARTICLE_MUTATION,
@@ -75,6 +77,7 @@ test('access control', async () => {
   );
 
   expect(addArticleRes.errors).toBeDefined();
+  expect(getArticle.data).toBeDefined();
   expect(modifyArticleRes.errors).toBeDefined();
   expect(removeArticleRes.errors).toBeDefined();
 });
@@ -128,7 +131,7 @@ test('creating, modyfying and deleting article', async () => {
     },
     accessToken1, // This user should be allowed
   );
-  
+
   expect(modifyArticleRes?.errors).toBeUndefined();
 
   // Now we check that the Article actually was updated properly

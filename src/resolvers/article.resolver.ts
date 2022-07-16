@@ -94,25 +94,7 @@ const articleResolver: Resolvers = {
       return reduce(apiResponse, articleReducer);
     },
     articles: async (_, { author, id, tags }) => {
-      const articles = await articleApi.getArticles({
-        AND: [
-          {
-            refAuthor: author ?? undefined,
-          },
-          {
-            id: id ?? undefined,
-          },
-          {
-            tags: {
-              some: {
-                tag: {
-                  in: tags ?? [],
-                },
-              },
-            },
-          },
-        ],
-      });
+      const articles = await articleApi.getArticles(author, id, tags);
 
       return reduce(articles, articleReducer);
     },
