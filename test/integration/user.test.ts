@@ -1,5 +1,5 @@
 import apolloServerConfig from '@/app/serverconfig';
-import { issueToken } from '@/auth';
+import tokenProvider from '@/auth';
 import { NOOP } from '@/models/base';
 import { PrismaUser } from '@prisma/client';
 import requestWithAuth from '@test/utils/requestWithAuth';
@@ -50,11 +50,15 @@ test('getting user when not logged in', async () => {
 });
 
 test('getting user', async () => {
-  const token = issueToken({ username: mockUser.username }, 'accessToken');
+  const token = tokenProvider.issueToken(mockUser.username, 'access_token');
 
-  const userResponse = await requestWithAuth(USER_QUERY, {
-    username: mockUser.username,
-  }, token);
+  const userResponse = await requestWithAuth(
+    USER_QUERY,
+    {
+      username: mockUser.username,
+    },
+    token,
+  );
 
   expect(userResponse.errors).toBeUndefined();
 

@@ -51,14 +51,12 @@ const apolloServerConfig: Config<ExpressContext> = {
   schema,
   context: ({ req, res }: ContextParams): Context => {
     const getXHeader = () => {
-      const value = req.headers[X_HEADER] ?? req.headers[X_HEADER.toLocaleLowerCase()];
+      const value = req?.headers?.[X_HEADER] ?? req?.headers?.[X_HEADER.toLocaleLowerCase()];
       return value?.toString().toLowerCase() ?? '';
     };
 
     const bearerToken = (req?.headers?.authorization ?? '').replace('Bearer ', '');
     const apiKey = getXHeader();
-
-    console.log({ apiKey, bearerToken });
 
     /**
      * Tries to verify the users access token
