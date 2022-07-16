@@ -3,7 +3,7 @@ import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { PrismaExtendedArticle } from '@/models/prisma';
 import { parseSlug, stripObject, toUTC } from '@/util';
-import { ModifyArticle, NewArticle } from '@generated/graphql';
+import { ArticleType, ModifyArticle, NewArticle } from '@generated/graphql';
 import { Prisma, PrismaArticleType } from '@prisma/client';
 
 import prisma from './prisma';
@@ -122,11 +122,15 @@ export class ArticleAPI {
 
   /**
    * Returns a list of PrismaArticles from database WHERE params match.
-   * @param params possible params are ArticleModel parts.
+   * @param author Username of user that created the article
+   * @param id ID of the article
+   * @param type Type of the article, e.g. news
+   * @param tags Tags attached to the article
    */
   async getArticles(
     author?: string | null,
     id?: number | null,
+    type?: ArticleType | null,
     tags?: string[] | null,
   ): Promise<PrismaExtendedArticle[]> {
     const whereAnd: Prisma.PrismaArticleWhereInput[] = [];
@@ -134,9 +138,15 @@ export class ArticleAPI {
     if (author != null) {
       whereAnd.push({ refAuthor: author });
     }
+    
     if (id != null) {
       whereAnd.push({ id });
     }
+    
+    if (type != null) {
+      whereAnd.push({ articleType: type });
+    }
+    
     if (tags != null && tags.length > 0) {
       whereAnd.push({
         tags: { some: { tag: { in: tags } } },
