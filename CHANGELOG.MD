@@ -4,6 +4,14 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.2] - 2022-07-16
+
+### Tillagt
+- Lägger till `type` i `articles`-query
+
+### Ändrat
+- Fixar att tomma queries inte crashar `articles`-queries
+
 ## [0.14.1] - 2022-07-14
 
 ### Borttaget

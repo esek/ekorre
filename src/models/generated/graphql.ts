@@ -739,6 +739,7 @@ export type QueryArticlesArgs = {
   author?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['Int']>;
   tags?: Maybe<Array<Scalars['String']>>;
+  type?: Maybe<ArticleType>;
 };
 
 
