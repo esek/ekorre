@@ -72,6 +72,7 @@ jobs:
       - name: run test
         uses: ArtiomTr/jest-coverage-report-action@v2.0.9
         with:
+          skip-step: install
           test-script: npm run test:prebuild 
   build:
     runs-on: self-hosted
@@ -233,10 +234,11 @@ jobs:
           docker compose -f docker-compose.ci.yml -p $PROJECT_NAME down 2> /dev/null || true
       - name: deploy to host
         run: |
+          cat .env
           docker compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate ekorre
           if [ $DEPLOY_ENV = 'review' ] || [ $DEPLOY_ENV = 'testing' ]; then
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate postgres
-            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME ekorre sh -c 'npm run prisma:ci' 
+            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c 'npm run prisma:ci' 
           fi
       - name: prune system
         run: docker system prune -f 2> /dev/null || true
