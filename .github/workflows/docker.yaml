@@ -63,11 +63,13 @@ jobs:
       - name: reset db
         run: npm run prisma:ci
       - name: run test
-        uses: mattallty/jest-github-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
+      - name: publish coverage
+        uses: ArtiomTr/jest-coverage-report-action@v2
         with:
-          test-command: npm run test:prebuild -- --testLocationInResults --json --coverage --outputFile="jest.results.json"
+          skip-step: all
+          coverage-file: report.json
+          base-coverage-file: report.json
   build:
     runs-on: self-hosted
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
