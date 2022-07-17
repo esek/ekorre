@@ -49,6 +49,8 @@ jobs:
          POSTGRES_DB: ekorre_foot
         ports:
           - 5432:5432
+    container:
+      image: node:16-alpine
     steps:
       - name: self hosted runner post job cleanup action
         uses: TooMuch4U/actions-clean@v2.1
@@ -61,7 +63,7 @@ jobs:
          mv .env.example.dev .env
          mkdir public.local
       - name: lint
-        run: npm run lint -- --output-file eslint_report.json --format json
+        run: npm run lint -- --output-file eslint_report.json --format json; exit 0
       - name: publish lint
         uses: ataylorme/eslint-annotate-action@v2
         with:
@@ -239,7 +241,7 @@ jobs:
           if [ $DEPLOY_ENV = 'review' ] || [ $DEPLOY_ENV = 'testing' ]; then
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate postgres
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c 'wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh; chmod +x wait-for-it.sh' 
-            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c 'wait-for-it.sh postgres' 
+            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c './wait-for-it.sh postgres' 
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c 'npm run prisma:ci' 
           fi
       - name: prune system
