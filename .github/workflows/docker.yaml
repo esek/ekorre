@@ -125,7 +125,7 @@ jobs:
          POSTGRES_PASSWORD: password
          POSTGRES_DB: ekorre_foot
     container:
-      image: ${{ needs.secrets.outputs.registry_url }}/${{ needs.build.outputs.image_name }}
+      image: ${{ needs.build.outputs.image_name }}
       credentials:
         username: ${{ needs.secrets.outputs.registry_username }}
         password: ${{ needs.secrets.outputs.registry_password }}
