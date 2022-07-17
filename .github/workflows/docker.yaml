@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v3
       - name: set variables
         run: |
-          eval "$SLUGIFY_FUNCTION"
+          eval "{{ env.SLUGIFY_FUNCTION }}"
 
           if [ -z $GITHUB_HEAD_REF ]; then
             BRANCH=$(basename $GITHUB_REF)
