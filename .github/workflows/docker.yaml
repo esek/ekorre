@@ -40,8 +40,6 @@ jobs:
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
-      env:
-
       volumes:
         - "/run/docker.sock:/run/docker.sock"
     steps:
