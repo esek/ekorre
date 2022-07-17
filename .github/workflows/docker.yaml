@@ -49,10 +49,10 @@ jobs:
           install: true
       - name: checkout repo
         uses: actions/checkout@v3
-      - name: load slugify
-        run: eval "$SLUGIFY_FUNCTION"
       - name: set variables
         run: |
+          eval "$SLUGIFY_FUNCTION"
+
           if [ -z $GITHUB_HEAD_REF ]; then
             BRANCH=$(basename $GITHUB_REF)
           else
