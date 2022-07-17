@@ -35,6 +35,24 @@ env:
     }
 
 jobs:
+  secrets:
+    runs-on: self-hosted
+    steps:
+      - name: Import Secrets
+        id: s
+        uses: hashicorp/vault-action
+        with:
+          url: ${{ secrets.VAULT_URL }}
+          method: token
+          token: ${{ secrets.VAULT_TOKEN }}
+          secrets: |
+            kv/common registry_url;
+            kv/common registry_username;
+            kv/common registry_password;
+    outputs:
+      registry_url: ${{ steps.s.outputs.registry_url }}
+      registry_username: ${{ steps.s.outputs.registry_username }}
+      registry_password: ${{ steps.s.outputs.registry_password }}
   build:
     runs-on: self-hosted
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
@@ -91,7 +109,9 @@ jobs:
       tag: ${{ steps.vars.outputs.tag }}
   test:
     runs-on: self-hosted
-    needs: build
+    needs: 
+      - build
+      - secrets
     # To run this locally using act set act to false in event.json
     # Note act does not support services...
     if: ${{ !github.event.act || !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
@@ -103,7 +123,10 @@ jobs:
          POSTGRES_PASSWORD: password
          POSTGRES_DB: ekorre_foot
     container:
-      image: ${{ needs.build.outputs.image_name }}
+      image: ${{ needs.secrets.outputs.registry_url }}/${{ needs.build.outputs.image_name }}
+      credentials:
+        username: ${{ needs.secrets.outputs.registry_username }}
+        password: ${{ needs.secrets.outputs.registry_password }}
     steps:
       - name: install deps
         run: npm ci
