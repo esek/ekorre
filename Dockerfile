@@ -45,6 +45,8 @@ WORKDIR $WORKING_DIR
 RUN apk add --no-cache tini bash
 ENTRYPOINT [ "/sbin/tini", "--" ]
 
+RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh; chmod +x wait-for-it.sh
+
 COPY --from=BUILD_IMAGE $WORKING_DIR/. .
 
 EXPOSE 3001
