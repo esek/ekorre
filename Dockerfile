@@ -42,7 +42,7 @@ WORKDIR $WORKING_DIR
 
 # Best practices
 # https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md
-RUN apk add --no-cache tini
+RUN apk add --no-cache tini bash
 ENTRYPOINT [ "/sbin/tini", "--" ]
 
 COPY --from=BUILD_IMAGE $WORKING_DIR/. .
