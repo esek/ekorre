@@ -26,7 +26,7 @@ env:
   # PROD_ENV_VARS, STAGING_ENV_VARS, TESTING_ENV_VARS, PR_ENV_VARS
   ONLY_PROD: true
   SLUGIFY_FUNCTION: |
-    function slugify() {
+    slugify () {
       iconv -t ascii//TRANSLIT \
       | tr -d "'" \
       | sed -E 's/[^a-zA-Z0-9]+/-/g' \
@@ -49,10 +49,10 @@ jobs:
           install: true
       - name: checkout repo
         uses: actions/checkout@v3
+      - name: load slugify
+        run: eval "$SLUGIFY_FUNCTION"
       - name: set variables
         run: |
-          eval "{{ env.SLUGIFY_FUNCTION }}"
-
           if [ -z $GITHUB_HEAD_REF ]; then
             BRANCH=$(basename $GITHUB_REF)
           else
@@ -71,6 +71,7 @@ jobs:
 
           TAG=$(echo "$TAG" | slugify)
           echo "TAG=$TAG" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ github.repository }}:$TAG" >> $GITHUB_ENV
       - name: login to registry
         uses: docker/login-action@v2
         with:
@@ -82,9 +83,10 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.TAG }}
+          tags: ${{ env.IMAGE_NAME }}
     outputs:
-      image_name: ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.TAG }} 
+      image_name: ${{ env.IMAGE_NAME }}
+      tag: ${{ env.TAG }}
   test:
     runs-on: self-hosted
     needs: build
