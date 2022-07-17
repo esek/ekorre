@@ -35,51 +35,13 @@ env:
     }
 
 jobs:
-  test:
-    runs-on: self-hosted
-    # To run this locally using act set act to false in event.json
-    # Note act does not support services...
-    if: ${{ !github.event.act || !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
-    services:
-      postgres:
-        image: postgres:alpine
-        env:
-         POSTGRES_USER: postgres
-         POSTGRES_PASSWORD: password
-         POSTGRES_DB: ekorre_foot
-    container:
-      image: node:16-alpine
-    steps:
-      - name: checkout repo
-        uses: actions/checkout@v3
-      - name: install deps
-        run: npm ci
-      - name: setup env
-        run: |
-         mv .env.example.dev .env
-         sed -i 's/localhost/postgres/' .env
-         mkdir public.local
-      - name: lint
-        run: npm run lint:ci
-      - name: publish lint
-        uses: ataylorme/eslint-annotate-action@v2
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
-      - name: reset db
-        run: npm run prisma:ci
-      - name: run test
-        run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
-      - name: publish coverage
-        uses: ArtiomTr/jest-coverage-report-action@v2
-        with:
-          skip-step: all
-          coverage-file: report.json
-          base-coverage-file: report.json
   build:
     runs-on: self-hosted
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
+      env:
+
       volumes:
         - "/run/docker.sock:/run/docker.sock"
     steps:
@@ -123,6 +85,51 @@ jobs:
           context: .
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.TAG }}
+    outputs:
+      image_name: ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.TAG }} 
+  test:
+    runs-on: self-hosted
+    needs: build
+    # To run this locally using act set act to false in event.json
+    # Note act does not support services...
+    if: ${{ !github.event.act || !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
+    services:
+      postgres:
+        image: postgres:alpine
+        env:
+         POSTGRES_USER: postgres
+         POSTGRES_PASSWORD: password
+         POSTGRES_DB: ekorre_foot
+    container:
+      image: ${{ needs.build.image_name }}
+    steps:
+      - name: install deps
+        run: npm ci
+      - name: setup env
+        run: |
+         mv .env.example.dev .env
+         sed -i 's/localhost/postgres/' .env
+         mkdir public.local
+      - name: lint
+        run: npm run lint:ci
+      - name: publish lint
+        uses: ataylorme/eslint-annotate-action@v2
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: reset db
+        run: npm run prisma:ci
+      - name: run test
+        run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
+      - name: find pr
+        uses: jwalton/gh-find-current-pr@v1
+        id: findPr
+      - name: publish coverage
+        uses: ArtiomTr/jest-coverage-report-action@v2
+        with:
+          skip-step: all
+          coverage-file: report.json
+          base-coverage-file: report.json
+          prnumber: ${{ steps.findPr.outputs.number }}
 
   deploy:
     # To run this locally using act set act to false in event.json

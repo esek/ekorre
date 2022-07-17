@@ -15,6 +15,7 @@
     "lint:ci": "eslint src test --output-file eslint_report.json --format json; exit 0",
     "test": "jest",
     "test:prebuild": "jest test/unit test/integration",
+    "test:ci": "npm run test:prebuild; exit 0",
     "test:unit": "jest test/unit",
     "test:integration": "jest test/integration",
     "test:regression": "jest test/regression --coverage=false",
