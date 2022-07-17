@@ -59,8 +59,8 @@ jobs:
         uses: TooMuch4U/actions-clean@v2.1
       - name: checkout repo
         uses: actions/checkout@v3
-      - name: setup npm cache
-      - uses: bahmutov/npm-install@v1
+      - name: install deps
+        uses: bahmutov/npm-install@v1
       - name: setup env
         run: |
          mv .env.example.dev .env
