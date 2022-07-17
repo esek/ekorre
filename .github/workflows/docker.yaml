@@ -46,9 +46,9 @@ jobs:
           method: token
           token: ${{ secrets.VAULT_TOKEN }}
           secrets: |
-            kv/common registry_url;
-            kv/common registry_username;
-            kv/common registry_password;
+            /kv/common registry_url;
+            /kv/common registry_username;
+            /kv/common registry_password;
     outputs:
       registry_url: ${{ steps.s.outputs.registry_url }}
       registry_username: ${{ steps.s.outputs.registry_username }}
