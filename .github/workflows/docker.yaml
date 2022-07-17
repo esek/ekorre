@@ -50,6 +50,7 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v3
       - name: set variables
+        id: vars
         run: |
           eval "$SLUGIFY_FUNCTION"
 
@@ -70,8 +71,9 @@ jobs:
           fi
 
           TAG=$(echo "$TAG" | slugify)
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ github.repository }}:$TAG" >> $GITHUB_ENV
+          IMAGE_NAME="${{ env.REGISTRY }}/${{ github.repository }}:$TAG"
+          echo "::set-output name=image_name::$IMAGE_NAME"
+          echo "::set-output name=tag::$TAG"
       - name: login to registry
         uses: docker/login-action@v2
         with:
@@ -83,10 +85,10 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ env.IMAGE_NAME }}
+          tags: ${{ steps.vars.outputs.image_name }}
     outputs:
-      image_name: ${{ env.IMAGE_NAME }}
-      tag: ${{ env.TAG }}
+      image_name: ${{ steps.vars.outputs.image_name }}
+      tag: ${{ steps.vars.outputs.tag }}
   test:
     runs-on: self-hosted
     needs: build
