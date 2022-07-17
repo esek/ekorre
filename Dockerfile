@@ -29,9 +29,6 @@ RUN npm run build
 
 RUN npm prune --omit=dev
 
-# Keep a somewhat workable default env
-RUN cp .env.example.dev .env
-
 ##
 ## Create runtime image
 ##

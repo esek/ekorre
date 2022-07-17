@@ -10,7 +10,6 @@ services:
     image: $IMAGE_NAME
     environment:
       DB_HOST: "postgres://$DB_USER:$DB_PASSWORD@$DB_HOST/$DB_NAME"
-    command: sh -s "echo $DB_HOST >> .env"
     networks:
       - traefik
       - default
