@@ -3,22 +3,37 @@
         "airbnb-typescript/base",
         "plugin:@typescript-eslint/recommended",
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:import/typescript",
         "prettier"
     ],
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "project": "./tsconfig.json"
     },
+    "settings": {
+        "import/resolver": {
+            "typescript": {
+                "alwaysTryTypes": true // always try to resolve types under `<root>@types` directory even it doesn't contain any source code, like `@types/unist`
+                // Choose from one of the "project" configs below or omit to use <root>/tsconfig.json by default
+            }
+        }
+    },
     "rules": {
         "@typescript-eslint/explicit-module-boundary-types": "off",
         "@typescript-eslint/no-floating-promises": "off",
-        "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_"}],
+        "@typescript-eslint/no-unused-vars": [
+            "warn",
+            {
+                "argsIgnorePattern": "^_"
+            }
+        ],
         "import/prefer-default-export": "off",
         "import/extensions": "off",
         "class-methods-use-this": "off",
         "max-classes-per-file": "off",
         "@typescript-eslint/lines-between-class-members": "off",
-        "import/order": "off"
+        "import/order": "off",
+        "import/no-extraneous-dependencies": "off"
     },
     "ignorePatterns": "src/models/generated/*"
 }
