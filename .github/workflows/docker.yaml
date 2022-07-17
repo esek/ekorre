@@ -101,7 +101,7 @@ jobs:
          POSTGRES_PASSWORD: password
          POSTGRES_DB: ekorre_foot
     container:
-      image: ${{ needs.build.image_name }}
+      image: ${{ needs.build.output.image_name }}
     steps:
       - name: install deps
         run: npm ci
