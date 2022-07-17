@@ -12,6 +12,7 @@
     "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" \"test/**/*.ts\" --write",
     "lint": "eslint src",
     "lint:test": "eslint test",
+    "lint:ci": "eslint src test --output-file eslint_report.json --format json; exit 0",
     "test": "jest",
     "test:prebuild": "jest test/unit test/integration",
     "test:unit": "jest test/unit",
