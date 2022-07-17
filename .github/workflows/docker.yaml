@@ -35,87 +35,128 @@ env:
     }
 
 jobs:
-  secrets:
+  # This can only contain env vars and not secrets since actions is a fussy about it
+  env-vars:
     runs-on: self-hosted
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
-      - name: Import Secrets
-        id: s
-        uses: hashicorp/vault-action@v2.4.1
-        with:
-          url: ${{ secrets.VAULT_URL }}
-          method: token
-          token: ${{ secrets.VAULT_TOKEN }}
-          secrets: |
-            kv/data/common registry_url;
-            kv/data/common registry_username;
-            kv/data/common registry_password;
-    outputs:
-      registry_url: ${{ steps.s.outputs.registry_url }}
-      registry_username: ${{ steps.s.outputs.registry_username }}
-      registry_password: ${{ steps.s.outputs.registry_password }}
-  build:
-    runs-on: self-hosted
-    needs: secrets
-    if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
-    container:
-      image: ghcr.io/catthehacker/ubuntu:act-latest
-      volumes:
-        - "/run/docker.sock:/run/docker.sock"
-    steps:
-      - name: setup buildx
-        uses: docker/setup-buildx-action@v2
-        with:
-          install: true
-      - name: checkout repo
-        uses: actions/checkout@v3
       - name: set variables
         id: vars
         run: |
-          eval "$SLUGIFY_FUNCTION"
+          slugify () {
+            iconv -t ascii//TRANSLIT \
+            | tr -d "'" \
+            | sed -E 's/[^a-zA-Z0-9]+/-/g' \
+            | sed -E 's/^-+|-+$//g' \
+            | tr "[:upper:]" "[:lower:]"
+          }
 
+          export BRANCH=
           if [ -z $GITHUB_HEAD_REF ]; then
             BRANCH=$(basename $GITHUB_REF)
           else
             BRANCH=$GITHUB_HEAD_REF
           fi
           echo "Running on $BRANCH"
-          TAG=$BRANCH
+
+          export TAG=${{ github.repository }}-ephermal
+
           if [ "$BRANCH" = "${{ env.DEFAULT_BRANCH }}" ]; then
             TAG=latest
           fi
 
           if ${{ github.ref_type == 'tag' }}; then
             BRANCH=${{ env.DEFAULT_BRANCH }}
-            TAG=latest
+            TAG=$BRANCH
           fi
 
           TAG=$(echo "$TAG" | slugify)
-          IMAGE_NAME="${{ needs.secrets.outputs.registry_url }}/${{ github.repository }}:$TAG"
+          export IMAGE_NAME="${{ env.REGISTRY }}/${{ github.repository }}:$TAG"
+
+          echo "::echo::on"
           echo "::set-output name=image_name::$IMAGE_NAME"
           echo "::set-output name=tag::$TAG"
-          echo $IMAGE_NAME
+          echo "::set-output name=basename::$(basename ${{ github.repository }} | slugify)"
+          echo "::echo::off"
+      - name: select environment
+        id: env
+        run: |
+          export ENV=testing
+          export DEPLOY_ENV=testing
+          export PROJ_BASE=${{ steps.vars.outputs.basename }}
+          export TAG=${{ steps.vars.outputs.tag }}
+          export PROJECT_NAME=$PROJ_BASE-testing
+
+          if ${{ (github.event_name == 'release' && github.event.action == 'released') || env.ONLY_PROD == 'true' }}; then
+            ENV=production
+            DEPLOY_ENV=$ENV
+            PROJECT_NAME=$PROJ_BASE-prod
+          fi
+          if ${{ github.event_name == 'release' && github.event.action == 'prereleased' }}; then
+            ENV=staging
+            DEPLOY_ENV=$ENV
+            PROJECT_NAME=$PROJ_BASE-staging
+          fi
+          if ${{ github.event_name == 'pull_request' }}; then
+            ENV=review
+            DEPLOY_ENV=$TAG-review
+            PROJECT_NAME=$PROJ_BASE-$TAG
+          fi
+
+          echo "::echo::on"
+          echo "::set-output name=env::$ENV"
+          echo "::set-output name=project_name::$PROJECT_NAME"
+          echo "::set-output name=deploy_env::$DEPLOY_ENV"
+          echo "::echo::off"
+    outputs:
+      image_name: ${{ steps.vars.outputs.image_name }}
+      tag: ${{ steps.vars.outputs.tag }}
+      basename: ${{ steps.vars.outputs.basename }}
+      env: ${{ steps.env.outputs.env }}
+      project_name: ${{ steps.env.outputs.project_name }}
+      deploy_env: ${{ steps.env.outputs.deploy_env }}
+  build:
+    runs-on: self-hosted
+    needs: env-vars
+    if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
+    container:
+      image: ghcr.io/catthehacker/ubuntu:act-latest
+      volumes:
+        - "/run/docker.sock:/run/docker.sock"
+    steps:
+      - name: import secrets
+        id: s
+        uses: hashicorp/vault-action@v2.4.1
+        with:
+          url: ${{ secrets.VAULT_URL }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          method: token
+          secrets: |
+            kv/data/common registry_username;
+            kv/data/common registry_password;
+      - name: setup buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: login to registry
         uses: docker/login-action@v2
         with:
-          registry: ${{ needs.secrets.outputs.registry_url }}
-          username: ${{ needs.secrets.outputs.registry_username }}
-          password: ${{ needs.secrets.outputs.registry_password }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ steps.s.outputs.registry_username }}
+          password: ${{ steps.s.outputs.registry_password }}
       - name: build and push image
         uses: docker/build-push-action@v3
         with:
           context: .
           push: true
-          tags: ${{ steps.vars.outputs.image_name }}
-    outputs:
-      image_name: ${{ steps.vars.outputs.image_name }}
-      tag: ${{ steps.vars.outputs.tag }}
+          tags: ${{ needs.env-vars.outputs.image_name }}
   test:
     runs-on: self-hosted
     needs: 
       - build
-      - secrets
     # To run this locally using act set act to false in event.json
     # Note act does not support services...
     if: ${{ !github.event.act || !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
@@ -127,11 +168,10 @@ jobs:
          POSTGRES_PASSWORD: password
          POSTGRES_DB: ekorre_foot
     container:
-      image: ${{ needs.build.outputs.image_name }}
-      credentials:
-        username: ${{ needs.secrets.outputs.registry_username }}
-        password: ${{ needs.secrets.outputs.registry_password }}
+      image: node:16-alpine
     steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: install deps
         run: npm ci
       - name: setup env
@@ -150,7 +190,7 @@ jobs:
       - name: run test
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
-        uses: jwalton/gh-find-current-pr@v1
+        uses: jwalton/gh-find-env-pr@v1
         id: findPr
       - name: publish coverage
         uses: ArtiomTr/jest-coverage-report-action@v2
@@ -164,84 +204,47 @@ jobs:
     # To run this locally using act set act to false in event.json
     if: ${{ !github.event.act || !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
     runs-on: self-hosted
-    needs: build
+    needs: 
+      - env-vars
+      - build
     container:
-      image: docker/compose
+      image: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
-      - name: checkout repo
-        uses: actions/checkout@v3
+      - name: import secrets
+        id: s
+        uses: hashicorp/vault-action@v2.4.1
+        with:
+          url: ${{ secrets.VAULT_URL }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          method: token
+          exportEnv: true
+          secrets: |
+            kv/data/common registry_username;
+            kv/data/common registry_password;
+            kv/data/common ssh_key;
+            kv/data/common ssh_user;
+            kv/data/common ssh_host;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_USER;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_PASSWORD;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_NAME;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_HOST;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DEPLOY_URL;
       - name: set variables
         run: |
-          eval "$SLUGIFY_FUNCTION"
+          echo "IMAGE_NAME=${{ needs.env-vars.outputs.image_name }}" >> $GITHUB_ENV
+          echo "TAG=${{ needs.env-vars.outputs.tag }}" >> $GITHUB_ENV
+          echo "DEPLOY_ENV=${{ needs.env-vars.outputs.deploy_env }}" >> $GITHUB_ENV
+          echo "PROJECT_NAME=${{ needs.env-vars.outputs.project_name }}" >> $GITHUB_ENV
 
-          if [ -z $GITHUB_HEAD_REF ]; then
-            BRANCH=$(basename $GITHUB_REF)
-          else
-            BRANCH=$GITHUB_HEAD_REF
+          if [ ${{ needs.env-vars.outputs.env }} = 'review' ]; then
+            echo "DEPLOY_URL=$TAG.review.esek.se" >> $GITHUB_ENV
           fi
-          echo "Running on $BRANCH"
-          TAG=$BRANCH
-          if [ "$BRANCH" = "${{ env.DEFAULT_BRANCH }}" ]; then
-            TAG=latest
-          fi
-
-          if ${{ github.ref_type == 'tag' }}; then
-            BRANCH=${{ env.DEFAULT_BRANCH }}
-            TAG=latest
-          fi
-
-          REPO_NAME=$(basename ${{ github.repository }})
-          PROJECT_NAME=$REPO_NAME-${BRANCH/${{ env.DEFAULT_BRANCH }}/testing}
-
-          TAG=$(echo "$TAG" | slugify)
-          BRANCH_SLUG=$(echo "$BRANCH" | slugify)
-          REPO_NAME_SLUG=$(echo "$REPO_NAME" | slugify)
-          PROJECT_NAME=$(echo "$PROJECT_NAME" | slugify)
-
-          DEPLOY_URL=$REPO_NAME_SLUG.testing.esek.se
-          DEPLOY_ENV=${BRANCH_SLUG/${{ env.DEFAULT_BRANCH }}/testing}
-          echo '${{ secrets.TESTING_ENV_VARS }}' > .env
-
-          if ${{ (github.event_name == 'release' && github.event.action == 'released') || env.ONLY_PROD == 'true' }}; then
-            DEPLOY_ENV=production
-            PROJECT_NAME=production
-            DEPLOY_URL=$REPO_NAME_SLUG.esek.se
-            if [ -n '${{ env.PROD_URL }}' ]; then
-              DEPLOY_URL=${{ env.PROD_URL }}
-            fi
-            echo '${{ secrets.PROD_ENV_VARS }}' > .env
-          fi
-
-          if ${{ github.event_name == 'release' && github.event.action == 'prereleased' }}; then
-            DEPLOY_ENV=staging
-            PROJECT_NAME=staging
-            DEPLOY_URL=$REPO_NAME_SLUG.staging.esek.se
-            if [ -n '${{ env.STAGING_URL }}' ]; then
-              DEPLOY_URL=${{ env.STAGING_URL }}
-            fi
-            echo '${{ secrets.STAGING_ENV_VARS }}' > .env
-          fi
-
-          if ${{ github.event_name == 'pull_request' }}; then
-            DEPLOY_ENV=review
-            BASE=$REPO_NAME_SLUG-$BRANCH_SLUG
-            PROJECT_NAME=$BRANCH_SLUG-review
-            DEPLOY_URL=$BASE.review.esek.se
-            echo '${{ secrets.PR_ENV_VARS }}' > .env
-            echo NODE_ENV=development >> .env
-          fi
-
-          echo 'CI_REGISTRY_IMAGE=${{ env.REGISTRY }}/${{ github.repository }}' >> .env >> $GITHUB_ENV
-
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV
-          echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ github.repository }}:$TAG" >> $GITHUB_ENV
-          echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
-          echo "DEPLOY_ENV=$DEPLOY_ENV" >> $GITHUB_ENV
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: start deployment
         uses: bobheadxi/deployments@v1
         id: deployment
-        if: ${{ !env.ACT && github.event_name != 'pull_request' }}
+        if: ${{ !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env == 'review' }}
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -250,9 +253,9 @@ jobs:
       - name: login to host
         uses: nightstory/setup-docker-remote@v1
         with:
-          ssh_key: ${{ secrets.SSH_KEY }}
-          ssh_host_user: ${{ secrets.SSH_USER }}
-          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_key: ${{ steps.s.outputs.ssh_key }}
+          ssh_host_user: ${{ steps.s.outputs.ssh_user }}
+          ssh_host: ${{ steps.s.outputs.ssh_host }}
       - name: check connection
         run: |
           docker info
@@ -261,18 +264,18 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          username: ${{ steps.s.outputs.registry_username }}
+          password: ${{ steps.s.outputs.registry_password }}
       - name: pull image
-        run: docker pull $IMAGE_NAME
+        run: echo $IMAGE_NAME; docker pull $IMAGE_NAME
       - name: Stop old container
         run: |
           docker compose -f docker-compose.ci.yml -p $PROJECT_NAME down 2> /dev/null || true
       - name: deploy to host
         run: |
-          docker compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate ekorre
-          if [ $DEPLOY_ENV = 'review' ] || [ $DEPLOY_ENV = 'testing' ]; then
-            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate postgres
+          docker compose -f docker-compose.ci.yml -p $PROJECT_NAME up -d --force-recreate ekorre
+          if [ $ENV = 'review' ] || [ $ENV = 'testing' ]; then
+            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME up -d --force-recreate postgres
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c './wait-for-it.sh postgres:5432' 
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c 'npm run prisma:ci' 
           fi
@@ -298,37 +301,35 @@ jobs:
   teardown:
     runs-on: self-hosted
     if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' }}
+    needs: env-vars
+    container:
+      image: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
-      - name: self hosted runner post job cleanup action
-        uses: TooMuch4U/actions-clean@v2.1
-      - name: setup variables
-        run: |
-          eval "$SLUGIFY_FUNCTION"
-
-          if [ -z $GITHUB_HEAD_REF ]; then
-            BRANCH=$(basename ${GITHUB_REF})
-          else
-            BRANCH=$GITHUB_HEAD_REF
-          fi
-
-          echo "Running on $BRANCH"
-          REPO_NAME=$(basename ${{ github.repository }})
-
-          PROJECT_NAME=$( echo "$REPO_NAME-$BRANCH-review" | slugify )
-          echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV
+      - name: import secrets
+        id: s
+        uses: hashicorp/vault-action@v2.4.1
+        with:
+          url: ${{ secrets.VAULT_URL }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          method: token
+          exportEnv: true
+          secrets: |
+            kv/data/common ssh_key;
+            kv/data/common ssh_user;
+            kv/data/common ssh_host;
       - name: login to host
         uses: nightstory/setup-docker-remote@v1
         with:
-          ssh_key: ${{ secrets.SSH_KEY }}
-          ssh_host_user: ${{ secrets.SSH_USER }}
-          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_key: ${{ steps.s.outputs.ssh_key }}
+          ssh_host_user: ${{ steps.s.outputs.ssh_user }}
+          ssh_host: ${{ steps.s.outputs.ssh_host }}
       - name: check connection
         run: |
           docker info
-          docker-compose version
+          docker compose version
       - name: stop container
         run: |
-          docker-compose -f docker-compose.ci.yml -p $PROJECT_NAME down 2> /dev/null || true
+          docker compose -f docker-compose.ci.yml -p ${{ needs.env-vars.outputs.project_name }} down 2> /dev/null || true
       - name: prune system
         run: docker image prune -f 2> /dev/null || true
       - if: ${{ !env.ACT }}
