@@ -204,12 +204,11 @@ jobs:
           override: true
           env: ${{ env.DEPLOY_ENV }}
       - name: login to host
-        uses: amirmarmul/docker-context-ssh-action@v1
+        uses: nightstory/setup-docker-remote@v1
         with:
-          ssh-host: ${{ secrets.SSH_HOST }}
-          ssh-username: ${{ secrets.SSH_USER }}
-          ssh-private-key: ${{ secrets.SSH_KEY }}
-          context-use: true
+          ssh_key: ${{ secrets.SSH_KEY }}
+          ssh_host_user: ${{ secrets.SSH_USER }}
+          ssh_host: ${{ secrets.SSH_HOST }}
       - name: check connection
         run: |
           docker info

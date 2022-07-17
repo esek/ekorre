@@ -1,4 +1,5 @@
-version: '3.6'
+# Needs docker v2 since COMPOSE_PROJECT_NAME is not available in v1
+version: '3.9'
 
 networks:
   traefik:
@@ -8,8 +9,8 @@ services:
   ekorre:
     image: $IMAGE_NAME
     environment:
-      - COMPOSE_PROJECT_NAME
-      - DB_HOST
+      DB_HOST: "postgres://$DB_USER:$DB_PASSWORD@$DB_HOST/$DB_NAME"
+    command: sh -s "echo $DB_HOST >> .env"
     networks:
       - traefik
       - default
@@ -18,8 +19,10 @@ services:
     
   postgres:
     image: postgres:alpine
-    ports: [ 5432:5432 ]
+    #ports: [ 5432:5432 ]
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+    labels:
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_ekorre.rule=Host(`$DEPLOY_URL`)"
