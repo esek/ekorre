@@ -1,4 +1,5 @@
 import TokenProvider from '@/auth';
+import config from '@/config';
 import { createDataLoader } from '@/dataloaders';
 import { BadRequestError, UnauthenticatedError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
@@ -45,13 +46,12 @@ const apolloLogger = Logger.getLogger('Apollo');
 const accessApi = new AccessAPI();
 const apiKeyApi = new ApiKeyAPI();
 
-const X_HEADER = 'X-E-Api-Key';
-
 const apolloServerConfig: Config<ExpressContext> = {
   schema,
   context: ({ req, res }: ContextParams): Context => {
     const getXHeader = () => {
-      const value = req?.headers?.[X_HEADER] ?? req?.headers?.[X_HEADER.toLocaleLowerCase()];
+      const header = config.X_API_KEY_HEADER;
+      const value = req?.headers?.[header] ?? req?.headers?.[header.toLocaleLowerCase()];
       return value?.toString().toLowerCase() ?? '';
     };
 

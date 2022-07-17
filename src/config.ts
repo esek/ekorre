@@ -66,6 +66,7 @@ const config = {
   PORT: parseInt(process.env.PORT ?? '5000', 10),
   HOST: process.env.HOST ?? '0.0.0.0',
   DEV: process.env.NODE_ENV !== 'production',
+  X_API_KEY_HEADER: 'X-E-Api-Key',
   DB,
   SKIP_ACCESS_CHECKS: process.env.SKIP_ACCESS_CHECKS?.toLowerCase() === 'true',
   FILES,
