@@ -40,7 +40,7 @@ jobs:
     steps:
       - name: Import Secrets
         id: s
-        uses: hashicorp/vault-action
+        uses: hashicorp/vault-action@v2.4.1
         with:
           url: ${{ secrets.VAULT_URL }}
           method: token
