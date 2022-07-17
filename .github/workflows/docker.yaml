@@ -59,6 +59,8 @@ jobs:
         uses: TooMuch4U/actions-clean@v2.1
       - name: checkout repo
         uses: actions/checkout@v3
+      - name: setup npm cache
+        uses: c-hive/gha-npm-cache@v1
       - name: install deps
         run: npm ci
       - name: setup env
@@ -118,6 +120,8 @@ jobs:
           context: .
           push: true
           tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     # To run this locally using act set act to false in event.json
@@ -215,7 +219,7 @@ jobs:
       - name: check connection
         run: |
           docker info
-          docker-compose version
+          docker compose version
       - name: login to registry
         uses: docker/login-action@v2
         with:
@@ -226,13 +230,13 @@ jobs:
         run: docker pull $IMAGE_NAME
       - name: Stop old container
         run: |
-          docker-compose -f docker-compose.ci.yml -p $PROJECT_NAME down 2> /dev/null || true
+          docker compose -f docker-compose.ci.yml -p $PROJECT_NAME down 2> /dev/null || true
       - name: deploy to host
         run: |
-          docker-compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate ekorre
+          docker compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate ekorre
           if [ $DEPLOY_ENV = 'review' ] || [ $DEPLOY_ENV = 'testing' ]; then
-            docker-compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate postgres
-            docker-compose -f docker-compose.ci.yml -p $PROJECT_NAME ekorre sh -c 'npm run prisma:ci' 
+            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate postgres
+            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME ekorre sh -c 'npm run prisma:ci' 
           fi
       - name: prune system
         run: docker system prune -f 2> /dev/null || true

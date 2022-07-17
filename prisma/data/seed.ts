@@ -10,6 +10,8 @@ const run = async () => {
   await Promise.all([
     prisma.prismaUser.createMany({ data: users, skipDuplicates: true }),
     prisma.prismaPost.createMany({ data: posts, skipDuplicates: true }),
+  ]);
+  await Promise.all([
     prisma.prismaIndividualAccess.createMany({ data: individualAccess, skipDuplicates: true }),
     prisma.prismaPostAccess.createMany({ data: postAccess, skipDuplicates: true }),
   ]);
