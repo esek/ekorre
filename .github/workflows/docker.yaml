@@ -60,9 +60,7 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v3
       - name: setup npm cache
-        uses: c-hive/gha-npm-cache@v1
-      - name: install deps
-        run: npm ci
+      - uses: bahmutov/npm-install@v1
       - name: setup env
         run: |
          mv .env.example.dev .env
@@ -74,6 +72,8 @@ jobs:
         with:
           skip-step: install
           test-script: npm run test:prebuild 
+          coverage-file: report.json
+          base-coverage-file: report.json
   build:
     runs-on: self-hosted
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
@@ -212,11 +212,12 @@ jobs:
           override: true
           env: ${{ env.DEPLOY_ENV }}
       - name: login to host
-        uses: nightstory/setup-docker-remote@v1
+        uses: amirmarmul/docker-context-ssh-action@v1
         with:
-          ssh_key: ${{ secrets.SSH_KEY }}
-          ssh_host_user: ${{ secrets.SSH_USER }}
-          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh-host: ${{ secrets.SSH_HOST }}
+          ssh-user: ${{ secrets.SSH_USER }}
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+          context-use: true
       - name: check connection
         run: |
           docker info
