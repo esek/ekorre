@@ -47,20 +47,17 @@ jobs:
          POSTGRES_USER: postgres
          POSTGRES_PASSWORD: password
          POSTGRES_DB: ekorre_foot
-        ports:
-          - 5432:5432
     container:
       image: node:16-alpine
     steps:
-      - name: self hosted runner post job cleanup action
-        uses: TooMuch4U/actions-clean@v2.1
       - name: checkout repo
         uses: actions/checkout@v3
       - name: install deps
-        uses: bahmutov/npm-install@v1
+        run: npm ci
       - name: setup env
         run: |
          mv .env.example.dev .env
+         sed -i '/localhost/postgres/' env
          mkdir public.local
       - name: lint
         run: npm run lint:ci
@@ -240,7 +237,6 @@ jobs:
           docker compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate ekorre
           if [ $DEPLOY_ENV = 'review' ] || [ $DEPLOY_ENV = 'testing' ]; then
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME --env-file .env up -d --force-recreate postgres
-            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c 'wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh; chmod +x wait-for-it.sh' 
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c './wait-for-it.sh postgres:5432' 
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c 'npm run prisma:ci' 
           fi
