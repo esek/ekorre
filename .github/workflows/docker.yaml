@@ -57,6 +57,7 @@ jobs:
       registry_password: ${{ steps.s.outputs.registry_password }}
   build:
     runs-on: self-hosted
+    needs: secrets
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
@@ -91,15 +92,16 @@ jobs:
           fi
 
           TAG=$(echo "$TAG" | slugify)
-          IMAGE_NAME="${{ env.REGISTRY }}/${{ github.repository }}:$TAG"
+          IMAGE_NAME="${{ needs.secrets.outputs.registry_url }}/${{ github.repository }}:$TAG"
           echo "::set-output name=image_name::$IMAGE_NAME"
           echo "::set-output name=tag::$TAG"
+          echo $IMAGE_NAME
       - name: login to registry
         uses: docker/login-action@v2
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          registry: ${{ needs.secrets.outputs.registry_url }}
+          username: ${{ needs.secrets.outputs.registry_username }}
+          password: ${{ needs.secrets.outputs.registry_password }}
       - name: build and push image
         uses: docker/build-push-action@v3
         with:
