@@ -213,6 +213,7 @@ jobs:
     needs: 
       - env-vars
       - build
+    container: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
