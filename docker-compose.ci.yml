@@ -9,7 +9,7 @@ services:
   ekorre:
     image: $IMAGE_NAME
     environment:
-      DB_HOST: posgres://postgres:example@postgres:5432/ekorre_ci
+      DB_HOST: postgres://postgres:example@postgres:5432/ekorre_ci
     networks:
       - traefik
       - default # to join compose network
