@@ -115,6 +115,8 @@ jobs:
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
+      - name: ready cleanup
+        uses: TooMuch4U/actions-clean@v2.1
       - name: import secrets
         id: s
         uses: hashicorp/vault-action@v2.4.1
@@ -143,8 +145,7 @@ jobs:
           context: .
           push: true
           tags: ${{ needs.env-vars.outputs.image_name }}
-      - uses: colpal/actions-clean@v1
-        if: ${{ always() }} # To ensure this step runs even when earlier steps fail
+
   # This should need build and use the image to test
   test:
     runs-on: self-hosted
@@ -160,6 +161,8 @@ jobs:
          POSTGRES_DB: ekorre_foot
     container: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
+      - name: ready cleanup
+        uses: TooMuch4U/actions-clean@v2.1
       - name: checkout repo
         uses: actions/checkout@v3
       - name: setup node
@@ -204,8 +207,6 @@ jobs:
           fileName: CHANGELOG.MD
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: colpal/actions-clean@v1
-        if: ${{ always() }} # To ensure this step runs even when earlier steps fail
 
   deploy:
     # To run this locally using act set act to false in event.json
@@ -216,6 +217,8 @@ jobs:
       - build
     container: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
+      - name: ready cleanup
+        uses: TooMuch4U/actions-clean@v2.1
       - name: import secrets
         id: s
         uses: hashicorp/vault-action@v2.4.1
@@ -303,14 +306,14 @@ jobs:
         with:
           message: I have deployed this PR to [${{ env.DEPLOY_URL }}](https://${{ env.DEPLOY_URL }}) 🚀
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: colpal/actions-clean@v1
-        if: ${{ always() }} # To ensure this step runs even when earlier steps fail
 
   teardown:
     runs-on: self-hosted
     if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' }}
     needs: env-vars
     steps:
+      - name: ready cleanup
+        uses: TooMuch4U/actions-clean@v2.1
       - name: import secrets
         id: s
         uses: hashicorp/vault-action@v2.4.1
@@ -346,5 +349,3 @@ jobs:
         with:
           message: I have removed this deploy now 😇
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: colpal/actions-clean@v1
-        if: ${{ always() }} # To ensure this step runs even when earlier steps fail
