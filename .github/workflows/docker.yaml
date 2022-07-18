@@ -174,7 +174,6 @@ jobs:
       - name: lint
         run: npm run lint:ci
       - name: publish lint
-        if: ${{ secrets.GITHUB_TOKEN  != "" }}
         uses: ataylorme/eslint-annotate-action@v2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
@@ -183,11 +182,9 @@ jobs:
       - name: run test
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
-        if: ${{ secrets.GITHUB_TOKEN != "" }}
         uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
-        if: ${{ secrets.GITHUB_TOKEN }}
         uses: ArtiomTr/jest-coverage-report-action@v2
         with:
           skip-step: all
