@@ -4,16 +4,15 @@ name: Docker Image CI
 
 # To use act:
 # Create a .secrets file and set all the needed variables
-# Multiline variables need to be set using adding -s KEY="$(<value.txt)""
-# And run the following command
-# sudo act
-# or
-# sudo act -s KEY="$(<value.txt)"
+# act -j <job>
+# act <event_name>
+# act -e .github/act/<event>.json // For additinal event params
 
 on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, closed, reopened, synchronize]
   release:
     types: [released, prereleased]
 
@@ -38,6 +37,8 @@ jobs:
             | sed -E 's/^-+|-+$//g' \
             | tr "[:upper:]" "[:lower:]"
           }
+
+          echo ${{ github.event }}
 
           export BRANCH=
           if [ -z $GITHUB_HEAD_REF ]; then
