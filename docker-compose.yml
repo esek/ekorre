@@ -14,7 +14,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - ./srv/pgdata/:/data/postgres
+      - ekorre_postgres:/data/postgres
     ports: [ 5432:5432 ]
     restart: unless-stopped
     
