@@ -252,6 +252,8 @@ jobs:
           ssh_host: ${{ steps.s.outputs.ssh_host }}
       - name: check connection
         run: |
+          ls ~/.ssh
+          cat ~/.ssh/config
           docker info
           docker compose version
       - name: login to registry
