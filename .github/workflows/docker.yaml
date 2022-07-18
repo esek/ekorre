@@ -49,7 +49,7 @@ jobs:
           fi
           echo "Running on $BRANCH"
 
-          export TAG=${{ github.repository }}-ephermal
+          export TAG=ephermal
 
           if [ "$BRANCH" = "${{ env.DEFAULT_BRANCH }}" ]; then
             TAG=latest
@@ -168,7 +168,6 @@ jobs:
         run: |
          mv .env.example.dev .env
          sed -i 's/localhost/postgres/' .env
-         mkdir public.local
       - name: install deps
         run: npm ci
       - name: lint
@@ -242,11 +241,12 @@ jobs:
           override: true
           env: ${{ env.DEPLOY_ENV }}
       - name: login to host
-        uses: nightstory/setup-docker-remote@v1
+        uses: amirmarmul/docker-context-ssh-action@v1
         with:
-          ssh_key: ${{ steps.s.outputs.ssh_key }}
-          ssh_host_user: ${{ steps.s.outputs.ssh_user }}
-          ssh_host: ${{ steps.s.outputs.ssh_host }}
+          ssh-host: ${{ steps.s.outputs.ssh_host }}
+          ssh-private-key: ${{ steps.s.outputs.ssh_key }}
+          ssh-username: ${{ steps.s.outputs.ssh_user }}
+          context-use: true
       - name: debug
         run: |
           ls ~ -a
@@ -254,6 +254,7 @@ jobs:
           cat ~/.ssh/config
           pwd
           ls -a
+          docker context ls -q
       - name: check connection
         run: |
           docker info
