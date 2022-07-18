@@ -22,17 +22,7 @@ env:
   PROD_URL: api.esek.se # Optional
   # STAGING_URL: blabla.esek.se # Optional
   DEFAULT_BRANCH: main
-  # Setting env vars can be done by setting
-  # PROD_ENV_VARS, STAGING_ENV_VARS, TESTING_ENV_VARS, PR_ENV_VARS
   ONLY_PROD: true
-  SLUGIFY_FUNCTION: |
-    slugify () {
-      iconv -t ascii//TRANSLIT \
-      | tr -d "'" \
-      | sed -E 's/[^a-zA-Z0-9]+/-/g' \
-      | sed -E 's/^-+|-+$//g' \
-      | tr "[:upper:]" "[:lower:]"
-    }
 
 jobs:
   # This can only contain env vars and not secrets since actions is a fussy about it
