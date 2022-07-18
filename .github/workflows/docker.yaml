@@ -143,10 +143,9 @@ jobs:
           context: .
           push: true
           tags: ${{ needs.env-vars.outputs.image_name }}
+  # This should need build and use the image to test
   test:
     runs-on: self-hosted
-    needs: 
-      - build
     # To run this locally using act set act to false in event.json
     # Note act does not support services...
     if: ${{ !github.event.act || !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
@@ -158,20 +157,24 @@ jobs:
          POSTGRES_PASSWORD: password
          POSTGRES_DB: ekorre_foot
     container:
-      image: node:16-alpine
+      image: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
-      - name: install deps
-        run: npm ci
       - name: setup env
         run: |
          mv .env.example.dev .env
-         sed -i 's/localhost/postgres/' .env
+         sed -i 's/localhost/localhost/' .env
          mkdir public.local
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16  
+      - name: install deps
+        run: npm ci
       - name: lint
         run: npm run lint:ci
       - name: publish lint
+        if: ${{ secrets.GITHUB_TOKEN }}
         uses: ataylorme/eslint-annotate-action@v2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
@@ -180,9 +183,11 @@ jobs:
       - name: run test
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
+        if: ${{ secrets.GITHUB_TOKEN }}
         uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
+        if: ${{ secrets.GITHUB_TOKEN }}
         uses: ArtiomTr/jest-coverage-report-action@v2
         with:
           skip-step: all
