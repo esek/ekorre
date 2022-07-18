@@ -1,7 +1,7 @@
 import EmergencyContactAPI from '@/api/emergencycontact.api';
 import prisma from '@/api/prisma';
 import { ServerError } from '@/errors/request.errors';
-import { EmergencyContact, EmergencyContactType, NewUser } from '@generated/graphql';
+import { EmergencyContact, EmergencyContactType } from '@generated/graphql';
 import { genRandomUser } from '@test/utils/utils';
 
 const [createDummyUser, deleteDummyUser] = genRandomUser([]);

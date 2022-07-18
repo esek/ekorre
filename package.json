@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "0.14.2",
+  "version": "0.14.4",
   "description": "E-Sektionens backend",
   "main": "src/index.ts",
   "scripts": {
@@ -10,8 +10,7 @@
     "start": "npm run run",
     "dev": "nodemon -e ts,graphql --watch src --exec \"node --nolazy --inspect -r tsconfig-paths/register -r ts-node/register src/index.ts\"",
     "prettier-format": "prettier --config .prettierrc \"src/**/*.ts\" \"test/**/*.ts\" --write",
-    "lint": "eslint src",
-    "lint:test": "eslint test",
+    "lint": "eslint src test",
     "lint:ci": "eslint src test --output-file eslint_report.json --format json; exit 0",
     "test": "jest",
     "test:prebuild": "jest test/unit test/integration",

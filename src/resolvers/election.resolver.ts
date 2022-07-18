@@ -120,7 +120,6 @@ const electionResolver: Resolvers = {
       dataLoader: context.userDataLoader,
       key: model.creator.username,
     })),
-    createdAt: (model) => new Date(model.createdAt),
     openedAt: (model) => {
       if (model.openedAt != null) {
         return new Date(model.openedAt);

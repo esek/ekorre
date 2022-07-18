@@ -8,8 +8,9 @@ generates:
       contextType: ../context#Context
       skipTypename: true
       scalars:
-        Date: Date
         Object: Record<string, string>
+        Date: string
+        DateTime: string
       mappers:
         Article: ../mappers#ArticleResponse
         File: ../mappers#FileResponse
