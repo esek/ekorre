@@ -193,13 +193,13 @@ jobs:
         id: findPr
       - name: publish coverage
         continue-on-error: true
-        uses: ArtiomTr/jest-coverage-report-action@v2
+        uses: ArtiomTr/jest-coverage-report-action@v2.0.9
         with:
           skip-step: all
           coverage-file: report.json
           base-coverage-file: report.json
           prnumber: ${{ steps.findPr.outputs.number }}
-          annotations: failed
+          annotations: failed-tests
       - name: check changelog
         uses: Zomzog/changelog-checker@v1.2.0
         continue-on-error: true
@@ -215,7 +215,6 @@ jobs:
     needs: 
       - env-vars
       - build
-    container: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
       - name: ready cleanup
         uses: TooMuch4U/actions-clean@v2.1
