@@ -25,7 +25,7 @@ env:
   ONLY_PROD: true
 
 jobs:
-  test:
+  t:
     runs-on: self-hosted
     steps:
       - run: ls
