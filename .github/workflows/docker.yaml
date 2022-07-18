@@ -206,7 +206,6 @@ jobs:
         continue-on-error: true
         with:
           fileName: CHANGELOG.MD
-          checkNotification: Simple 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: check package.json
@@ -214,7 +213,6 @@ jobs:
         continue-on-error: true
         with:
           fileName: package.json
-          checkNotification: Simple 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
