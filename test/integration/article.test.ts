@@ -1,4 +1,4 @@
-import { issueToken } from '@/auth';
+import tokenProvider from '@/auth';
 import { Article, ArticleType, Feature, ModifyArticle, NewArticle } from '@generated/graphql';
 import {
   ADD_ARTICLE_MUTATION,
@@ -50,8 +50,8 @@ beforeEach(() => {
   jest.useRealTimers();
 });
 
-test('basic and access control', async () => {
-  const accessToken = issueToken({ username: TEST_USER_WITHOUT_ACCESS }, 'accessToken');
+test('access control', async () => {
+  const accessToken = tokenProvider.issueToken(TEST_USER_WITHOUT_ACCESS, 'access_token');
 
   const addArticleRes = await requestWithAuth(
     ADD_ARTICLE_MUTATION,
@@ -83,8 +83,8 @@ test('basic and access control', async () => {
 });
 
 test('creating, modyfying and deleting article', async () => {
-  const accessToken0 = issueToken({ username: TEST_USERNAME_0 }, 'accessToken');
-  const accessToken1 = issueToken({ username: TEST_USERNAME_1 }, 'accessToken');
+  const accessToken0 = tokenProvider.issueToken(TEST_USERNAME_0, 'access_token');
+  const accessToken1 = tokenProvider.issueToken(TEST_USERNAME_1, 'access_token');
 
   const addArticleRes = await requestWithAuth(
     ADD_ARTICLE_MUTATION,
