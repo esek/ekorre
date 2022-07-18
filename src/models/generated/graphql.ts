@@ -13,7 +13,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   Date: Date;
-  DateTime: any;
+  DateTime: Date;
   Object: Record<string, string>;
 };
 

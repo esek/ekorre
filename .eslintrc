@@ -33,7 +33,8 @@
         "max-classes-per-file": "off",
         "@typescript-eslint/lines-between-class-members": "off",
         "import/order": "off",
-        "import/no-extraneous-dependencies": "off"
+        "import/no-extraneous-dependencies": "off",
+        "@typescript-eslint/no-misused-promises": "off"
     },
     "ignorePatterns": "src/models/generated/*"
 }
