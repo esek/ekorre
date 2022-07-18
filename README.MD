@@ -13,7 +13,7 @@ Börja med att installera alla node modules med
 npm install .
 ```
 
-Kopiera `.env.example.dev` till `.env` och fyll i miljövariablerna.
+Kopiera `.env.example` till `.env` och fyll i miljövariablerna.
 `.env`-filen innehåller konfigurationsvariabler till servern
 
 `ekorre` använder `docker compose` för att få upp en fungerande en databas, dvs.
@@ -144,8 +144,7 @@ hålla reda på vad som förändrats, och för att ha en lättläst historik öv
 När du utvecklar en modul ser det troligen ut på följande sätt.
 
 1. Du har en idé om vad man ska kunna göra och ungefär hur det ska fungera
-2. Du skapar en eller flera `SQL`-tabeller och lägger till i `src/sql/`. Du ser till att tabellen
-finns i både `init.sql` och en separat fil, för att andra enkelt ska kunna lägga till tabell(erna).~~ Du skapar en ny typ i `prisma/schema.prisma` och lägger till testdata i `prisma/data/`. Prisma sköter själv att skapa databasen när man kör `npm run prisma:push`, så du behöver inte skapa SQL-schemas själv!
+2. Du skapar en ny typ i `prisma/schema.prisma` och lägger till testdata i `prisma/data/`. Prisma sköter själv att skapa databasen när man kör `npm run prisma:push`, så du behöver inte skapa SQL-schemas själv!
 3. Du skapar ett nytt GraphQL-schema i `src/schemas`
 4. Du skapar en ny API i `src/api/`, som bara har i uppgift att prata med din nya SQL
 5. Du inser att du inte kan få all information ur SQL och skapar en mapper-typ i `src/models/mappers.d.ts`, t.ex. `AmazingFeatureResponse`
@@ -156,7 +155,7 @@ finns i både `init.sql` och en separat fil, för att andra enkelt ska kunna lä
 9. Du kan behöva skapa en ny `DataLoader` för att undvika *n + 1*-problemet.
 10. Du skriver enhetstester i `src/test/unit/` för din nya API och reducer, och integrationstester i `test/integration` för din resolver
 11. Du uppdaterar `CHANGELOG.MD` med din nya uppdatering, och ändrar samtidigt versionsnummret i `package.json`!
-12. Du ber om code review i GitLab på din nya MR!
+12. Du ber om code review i GitHub på din nya PR!
 
 Glöm inte att köra `npm run generate` när du pillat med GraphQL eller Prisma!
 
@@ -173,16 +172,8 @@ Hur ska du annars kunna bevisa att din kod gör det du säger?
 
 # Docker
 
-Det finns en gitlab-ci pipeline som kommer bygga docker bilder med hjälp av Dockerfile.
+Det finns en pipeline som kommer bygga docker bilder med hjälp av Dockerfile.
 Dessa publiceras sedan till en *registry* som tillhör detta projekt. Dessa bilder är i huvudsak
 designade för servern (som i skrivande stund är extrovert).
-
-För att starta en docker container med ekorre så används kommandot:
-
-```bash
-docker run -p 5000:5000 --env-file .env registry.gitlab.com/esektionen/projekt/ekorre:latest
-```
-där taggen `latest` också kan vara `release-X.X.X`.
-
 
 Referera till [ddgwiki](https://ddgwiki.esek.se/index.php?title=CI/CD) för mer information.

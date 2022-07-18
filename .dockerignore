@@ -1,2 +1,14 @@
+# Generic ignores
 node_modules
+docker*
+Docker*
+.dockerignore
+*.MD
 *.db
+.github
+.vscode
+
+# Specific ignores
+coverage
+public.local
+srv

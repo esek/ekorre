@@ -1,0 +1,26 @@
+# Needs docker v2 since COMPOSE_PROJECT_NAME is not available in v1
+version: '3.9'
+
+networks:
+  traefik:
+    external: true
+
+services:
+  ekorre:
+    image: $IMAGE_NAME
+    environment:
+      DB_HOST: posgres://postgres:example@postgres:5432/ekorre_ci
+    networks:
+      - traefik
+      - default # to join compose network
+    labels:
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_ekorre.rule=Host(`$DEPLOY_URL`)"
+    
+  postgres:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: ekorre_ci
+    labels:
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_ekorre.rule=Host(`$DEPLOY_URL`)"

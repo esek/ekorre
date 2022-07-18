@@ -1,4 +1,4 @@
-import { PrismaUtskott, PrismaPostType } from '@prisma/client'
+import { PrismaUtskott, PrismaPostType } from '@prisma/client';
 
 export const posts = [
   {
@@ -27,5 +27,5 @@ export const posts = [
     description: 'Stressad',
     active: true,
     interviewRequired: true,
-  }
-]
+  },
+];
