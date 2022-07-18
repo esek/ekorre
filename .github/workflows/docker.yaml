@@ -25,12 +25,6 @@ env:
   ONLY_PROD: true
 
 jobs:
-  t:
-    runs-on: self-hosted
-    container: ghcr.io/catthehacker/ubuntu:act-latest
-    steps:
-      - run: ls
-      - run: ls /
   # This can only contain env vars and not secrets since actions is a fussy about it
   env-vars:
     runs-on: self-hosted
