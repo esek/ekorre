@@ -1,6 +1,7 @@
 import { app } from '@/app/app';
 import tokenProvider from '@/auth';
 import config from '@/config';
+import { StrictObject } from '@/models/base';
 import FileAPI from '@api/file';
 import { UserAPI } from '@api/user';
 import { AccessType, Feature, File, FileType, NewUser } from '@generated/graphql';
@@ -119,7 +120,7 @@ describe('uploading files', () => {
 
   it('can upload a file in a subfolder', async () => {
     const [file] = testFiles;
-    const res = await uploadFile(file).field('path', 'test-folder').expect(200);
+    const res: { body: File } = await uploadFile(file).field('path', 'test-folder').expect(200);
 
     expect(res.body).toMatchObject({
       accessType: AccessType.Public,
@@ -129,7 +130,7 @@ describe('uploading files', () => {
       name: file,
     });
 
-    expect((res.body as File).folderLocation).toMatch(/test-folder/);
+    expect(res.body.folderLocation).toMatch(/test-folder/);
   });
 
   it('can handle multiple files', async () => {
@@ -181,11 +182,11 @@ describe('avatars', () => {
   });
 
   it('overrides existing avatar', async () => {
-    const res1 = await uploadFile(testFiles[0]).expect(200);
-    const user = userApi.getSingleUser(testUser.username);
-    expect((await user).photoUrl).toBe(res1.body.folderLocation);
+    const res1: { body: File } = await uploadFile(testFiles[0]).expect(200);
+    const user = await userApi.getSingleUser(testUser.username);
+    expect(user.photoUrl).toBe(res1.body.folderLocation);
 
-    const res2 = await uploadFile(testFiles[0]).expect(200);
+    const res2: { body: File } = await uploadFile(testFiles[0]).expect(200);
     const updatedUser = await userApi.getSingleUser(testUser.username);
     expect(updatedUser.photoUrl).not.toBe(res1.body.folderLocation);
     expect(updatedUser.photoUrl).toBe(res2.body.folderLocation);
@@ -258,18 +259,6 @@ describe('fetching files', () => {
 			name
 			id
 		}
-	}
-`;
-
-  const CREATE_FOLDER_MUTATION = `
-	mutation($path: String!, $name: String!) {
-		createFolder(path: $path, name: $name)
-	}
-`;
-
-  const DELETE_FILE_MUTATION = `
-	mutation($id: ID!) {
-		deleteFile(id: $id)
 	}
 `;
 
@@ -391,7 +380,9 @@ describe('reading files', () => {
 
   it('can read a public file', async () => {
     const file = await getFile(AccessType.Public);
-    const res = await r.get(baseURL(file.folderLocation)).expect(200);
+    const res: { headers: StrictObject<string, string> } = await r
+      .get(baseURL(file.folderLocation))
+      .expect(200);
     expect(getContentType(res.headers)).toBe('image/jpeg');
   });
 
@@ -402,9 +393,9 @@ describe('reading files', () => {
 
   it('can read an authenticated file', async () => {
     const file = await getFile(AccessType.Authenticated);
-    const res = await r
+    const res: { headers: StrictObject<string, string> } = await r
       .get(baseURL(file.folderLocation))
-      .set({ Authorization: `Bearer ${accessToken}` })
+      .set('authorization', `Bearer ${accessToken}`)
       .expect(200);
 
     expect(getContentType(res.headers)).toBe('image/jpeg');
@@ -412,9 +403,9 @@ describe('reading files', () => {
 
   it('can get the token is in cookie', async () => {
     const file = await getFile(AccessType.Authenticated);
-    const res = await r
+    const res: { headers: StrictObject<string, string> } = await r
       .get(baseURL(file.folderLocation))
-      .set({ Authorization: `Bearer ${accessToken}` })
+      .set('authorization', `Bearer ${accessToken}`)
       .expect(200);
 
     expect(getContentType(res.headers)).toBe('image/jpeg');
@@ -422,14 +413,17 @@ describe('reading files', () => {
 
   it('can get the token is in query', async () => {
     const file = await getFile(AccessType.Authenticated);
-    const res = await r.get(baseURL(file.folderLocation)).query({ token: accessToken }).expect(200);
+    const res: { headers: StrictObject<string, string> } = await r
+      .get(baseURL(file.folderLocation))
+      .query({ token: accessToken })
+      .expect(200);
 
     expect(getContentType(res.headers)).toBe('image/jpeg');
   });
 
   it('can get the bearer token is in header', async () => {
     const file = await getFile(AccessType.Authenticated);
-    const res = await r
+    const res: { headers: StrictObject<string, string> } = await r
       .get(baseURL(file.folderLocation))
       .set('authorization', `Bearer ${accessToken}`)
       .expect(200);
@@ -438,7 +432,7 @@ describe('reading files', () => {
 
   it('can get the token is in header', async () => {
     const file = await getFile(AccessType.Authenticated);
-    const res = await r
+    const res: { headers: StrictObject<string, string> } = await r
       .get(baseURL(file.folderLocation))
       .set('authorization', accessToken)
       .expect(200);
