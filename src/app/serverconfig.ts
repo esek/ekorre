@@ -1,8 +1,8 @@
-import { COOKIES, verifyToken } from '@/auth';
+import TokenProvider from '@/auth';
+import config from '@/config';
 import { createDataLoader } from '@/dataloaders';
-import { UnauthenticatedError } from '@/errors/request.errors';
+import { BadRequestError, UnauthenticatedError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { TokenValue } from '@/models/auth';
 import type { Context, ContextParams } from '@/models/context';
 import * as Resolvers from '@/resolvers';
 import { AccessAPI } from '@api/access';
@@ -49,9 +49,14 @@ const apiKeyApi = new ApiKeyAPI();
 const apolloServerConfig: Config<ExpressContext> = {
   schema,
   context: ({ req, res }: ContextParams): Context => {
-    const accessToken = req?.cookies[COOKIES.accessToken] ?? '';
-    const refreshToken = req?.cookies[COOKIES.refreshToken] ?? '';
-    const bearerToken = (req?.headers?.authorization ?? '').replace('Bearer ', '').toLowerCase();
+    const getXHeader = () => {
+      const header = config.X_API_KEY_HEADER;
+      const value = req?.headers?.[header] ?? req?.headers?.[header.toLocaleLowerCase()];
+      return value?.toString().toLowerCase() ?? '';
+    };
+
+    const bearerToken = (req?.headers?.authorization ?? '').replace('Bearer ', '');
+    const apiKey = getXHeader();
 
     /**
      * Tries to verify the users access token
@@ -59,12 +64,16 @@ const apolloServerConfig: Config<ExpressContext> = {
      * @throws UnauthenticatedError if the access token is invalid
      */
     const getUsername = () => {
-      if (!accessToken) {
+      if (!bearerToken) {
+        if (apiKey) {
+          throw new BadRequestError('Detta går inte att göra med en API-nyckel');
+        }
+
         throw new UnauthenticatedError('Du behöver logga in för att göra detta!');
       }
 
       try {
-        const { username } = verifyToken<TokenValue>(accessToken, 'accessToken');
+        const { username } = TokenProvider.verifyToken(bearerToken, 'access_token');
         return username;
       } catch {
         throw new UnauthenticatedError('Denna token är inte längre giltig!');
@@ -76,14 +85,14 @@ const apolloServerConfig: Config<ExpressContext> = {
      * @returns A list of the users access
      */
     const getAccess = async () => {
-      if (bearerToken) {
-        const validKey = await apiKeyApi.checkApiKey(bearerToken);
+      if (apiKey) {
+        const validKey = await apiKeyApi.checkApiKey(apiKey);
 
         if (!validKey) {
           throw new UnauthenticatedError('Denna API nyckel är inte giltig!');
         }
 
-        const access = await accessApi.getApiKeyAccess(bearerToken);
+        const access = await accessApi.getApiKeyAccess(apiKey);
 
         return accessReducer(access);
       }
@@ -95,9 +104,8 @@ const apolloServerConfig: Config<ExpressContext> = {
     };
 
     return {
-      accessToken,
-      refreshToken,
-      apiKey: bearerToken,
+      bearerToken,
+      apiKey,
       getUsername,
       getAccess,
       response: res,

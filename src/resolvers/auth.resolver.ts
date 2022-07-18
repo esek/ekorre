@@ -1,8 +1,6 @@
-import { COOKIES, EXPIRE_MINUTES, hashWithSecret, invalidateTokens, issueToken } from '@/auth';
-import config from '@/config';
+import TokenProvider, { hashWithSecret } from '@/auth';
 import { useDataLoader } from '@/dataloaders';
 import { ServerError, UnauthenticatedError } from '@/errors/request.errors';
-import type { TokenType } from '@/models/auth';
 import { ApiKeyResponse } from '@/models/mappers';
 import { reduce } from '@/reducers';
 import { hasAccess } from '@/util';
@@ -12,33 +10,9 @@ import { Feature, Resolvers, User } from '@generated/graphql';
 import { apiKeyReducer } from '@reducer/apikey';
 import { userReduce } from '@reducer/user';
 import { validateCasTicket } from '@service/cas';
-import { Response } from 'express';
 
 const api = new UserAPI();
 const apiKeyApi = new ApiKeyAPI();
-
-const { COOKIE } = config;
-
-/**
- * Helper to attach refresh token to the response object
- * @param {string} username The username to issue the token with
- * @param {string} cookieName Name of cookie to set
- * @param {Response} response Express response object to attach cookies to
- */
-const attachCookie = (
-  cookieName: string,
-  value: unknown,
-  tokenType: TokenType,
-  response: Response,
-) => {
-  response.cookie(cookieName, value, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    domain: COOKIE.DOMAIN,
-    maxAge: EXPIRE_MINUTES[tokenType] * 1000 * 60,
-  });
-};
 
 const authResolver: Resolvers = {
   ApiKey: {
@@ -74,27 +48,48 @@ const authResolver: Resolvers = {
       try {
         const user = await api.loginUser(username, password);
 
-        const refresh = issueToken({ username }, 'refreshToken');
-        const access = issueToken({ username }, 'accessToken');
+        const accessToken = TokenProvider.issueToken(username, 'access_token');
+        const refreshToken = TokenProvider.issueToken(username, 'refresh_token');
 
-        // Attach a refresh token to the response object
-        attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
-        attachCookie(COOKIES.accessToken, access, 'accessToken', response);
-
-        return reduce(user, userReduce);
+        return {
+          accessToken,
+          refreshToken,
+          user: reduce(user, userReduce),
+        };
       } catch {
         throw new UnauthenticatedError('Inloggningen misslyckades');
       }
     },
-    logout: (_, __, { response, refreshToken, accessToken }) => {
+    logout: (_, __, { bearerToken }) => {
       // Invalidate both access- and refreshtoken
-      invalidateTokens(accessToken, refreshToken);
-
-      // Send back empty tokens
-      attachCookie(COOKIES.accessToken, '', 'accessToken', response);
-      attachCookie(COOKIES.refreshToken, '', 'refreshToken', response);
+      TokenProvider.invalidateTokens(bearerToken);
 
       return true;
+    },
+    issueTokens: async (_, { username }, ctx) => {
+      await hasAccess(ctx, [Feature.UserAdmin]);
+
+      // just try to get the user so that it throws if the username does not exist
+      await api.getSingleUser(username);
+
+      const accessToken = TokenProvider.issueToken(username, 'access_token');
+      const refreshToken = TokenProvider.issueToken(username, 'refresh_token');
+
+      return {
+        accessToken,
+        refreshToken,
+      };
+    },
+    refresh: async (_, { refreshToken }) => {
+      const { username } = TokenProvider.verifyToken(refreshToken, 'refresh_token');
+
+      const newAccessToken = TokenProvider.issueToken(username, 'access_token');
+      const newRefreshToken = TokenProvider.issueToken(username, 'refresh_token');
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      };
     },
     casLogin: async (_, { token }, { request, response }) => {
       const { referer } = request.headers;
@@ -109,12 +104,6 @@ const authResolver: Resolvers = {
       const user = await api.getSingleUser(username).catch(() => null);
 
       const exists = user != null;
-
-      if (exists) {
-        const refresh = issueToken({ username }, 'refreshToken');
-        // Attach a refresh token to the response object
-        attachCookie(COOKIES.refreshToken, refresh, 'refreshToken', response);
-      }
 
       // Create a hash so that the request can be validated later
       const hash = hashWithSecret(username);

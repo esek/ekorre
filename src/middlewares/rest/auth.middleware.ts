@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { COOKIES, verifyToken } from '@/auth';
+import TokenProvider from '@/auth';
 import { UnauthenticatedError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { TokenValue } from '@/models/auth';
 import { AccessAPI } from '@api/access';
 import FileAPI from '@api/file';
 import { UserAPI } from '@api/user';
@@ -32,11 +31,7 @@ export type RequestHandlerWithLocals = RequestHandler<
 >;
 
 export const setUser: RequestHandlerWithLocals = (req, res, next) => {
-  let token =
-    (req.cookies[COOKIES.accessToken] as string) ??
-    req.headers.authorization ??
-    req.query?.token?.toString() ??
-    '';
+  let token = req.headers.authorization ?? req.query?.token?.toString() ?? '';
 
   // Remove `Bearer ` from token string
   if (token.includes('Bearer')) {
@@ -44,7 +39,7 @@ export const setUser: RequestHandlerWithLocals = (req, res, next) => {
   }
 
   res.locals.getUser = async () => {
-    const { username } = verifyToken<TokenValue>(token, 'accessToken');
+    const { username } = TokenProvider.verifyToken(token, 'access_token');
     return userApi.getSingleUser(username);
   };
 

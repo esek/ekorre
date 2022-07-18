@@ -1,6 +1,5 @@
-import { hashWithSecret, verifyToken } from '@/auth';
+import { hashWithSecret } from '@/auth';
 import { BadRequestError } from '@/errors/request.errors';
-import { TokenValue } from '@/models/auth';
 import { Context } from '@/models/context';
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated, stripObject } from '@/util';
@@ -43,29 +42,9 @@ const userResolver: Resolvers = {
     },
   },
   Query: {
-    me: async (_, __, { accessToken, refreshToken }) => {
-      const access = verifyToken<TokenValue>(accessToken, 'accessToken');
-      const refresh = verifyToken<TokenValue>(refreshToken, 'refreshToken');
-
-      const accessExpiry = access.exp * 1000;
-      const refreshExpiry = refresh.exp * 1000;
-
-      const user = await api.getSingleUser(access.username);
-
-      if (!user) {
-        return {
-          accessExpiry,
-          refreshExpiry,
-        };
-      }
-
-      const reduced = reduce(user, userReduce);
-
-      return {
-        user: reduced,
-        accessExpiry: access.exp * 1000,
-        refreshExpiry: refresh.exp * 1000,
-      };
+    me: async (_, __, { getUsername }) => {
+      const user = await api.getSingleUser(getUsername());
+      return reduce(user, userReduce);
     },
     user: async (_, { username }, ctx) => {
       await hasAuthenticated(ctx);

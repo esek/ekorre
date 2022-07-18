@@ -1,5 +1,5 @@
 import { app } from '@/app/app';
-import { COOKIES, issueToken } from '@/auth';
+import tokenProvider from '@/auth';
 import config from '@/config';
 import FileAPI from '@api/file';
 import { UserAPI } from '@api/user';
@@ -57,20 +57,21 @@ const baseUploadFile = (
 ) => {
   const req = r.post(baseURL(endpoint)).field('name', filename);
   const { withFile = true, withAuth = true } = opts;
+  const token = tokenProvider.issueToken(testUser.username, 'access_token');
 
   if (withFile) {
     req.attach('file', path(filename));
   }
 
   if (withAuth) {
-    req.set('Cookie', [`${COOKIES.accessToken}=${accessToken}`]);
+    req.set({ Authorization: `Bearer ${token}` });
   }
 
   return req;
 };
 
 describe('uploading files', () => {
-  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
+  const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');
 
   const uploadFile = (filename: string, opts: UploadFileOptions = {}) => {
     return baseUploadFile(accessToken, 'upload', filename, opts);
@@ -147,7 +148,7 @@ describe('uploading files', () => {
 });
 
 describe('avatars', () => {
-  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
+  const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');
 
   const uploadFile = (filename: string, opts: UploadFileOptions = {}) => {
     return baseUploadFile(accessToken, 'upload/avatar', filename, opts);
@@ -192,7 +193,7 @@ describe('avatars', () => {
 });
 
 describe('fetching files', () => {
-  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
+  const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');
 
   beforeAll(async () => {
     await Promise.all([
@@ -352,7 +353,7 @@ describe('fetching files', () => {
 });
 
 describe('reading files', () => {
-  const accessToken = issueToken({ username: testUser.username }, 'accessToken');
+  const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');
 
   beforeAll(async () => {
     await Promise.all([
@@ -403,7 +404,7 @@ describe('reading files', () => {
     const file = await getFile(AccessType.Authenticated);
     const res = await r
       .get(baseURL(file.folderLocation))
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set({ Authorization: `Bearer ${accessToken}` })
       .expect(200);
 
     expect(getContentType(res.headers)).toBe('image/jpeg');
@@ -413,7 +414,7 @@ describe('reading files', () => {
     const file = await getFile(AccessType.Authenticated);
     const res = await r
       .get(baseURL(file.folderLocation))
-      .set('Cookie', `e-access-token=${accessToken}`)
+      .set({ Authorization: `Bearer ${accessToken}` })
       .expect(200);
 
     expect(getContentType(res.headers)).toBe('image/jpeg');

@@ -13,6 +13,7 @@ export const errorHandler = (err: GraphQLError) => {
   }
 
   logger.warn(`Non {RequestError} type found - ${originalError?.name ?? err.name}, see to change`);
+  logger.warn(err.message);
 
   return err;
 };

@@ -52,31 +52,29 @@ const LU = {
   CAS: (process.env.LU_CAS as string) ?? 'https://idpv4.lu.se',
 };
 
-/** Cookie auth
- * @param {string} domain - The base domain for your app
- */
-const COOKIE = {
-  DOMAIN: (process.env.COOKIE_DOMAIN as string) ?? '',
-};
-
 const WIKI = {
   URL: process.env.WIKI_BASE_URL ?? '',
   USERNAME: process.env.WIKI_USERNAME ?? '',
   PASSWORD: process.env.WIKI_PASSWORD ?? '',
 };
 
+const JWT = {
+  SECRET: (process.env.JWT_SECRET as string) ?? '',
+};
+
 const config = {
   PORT: parseInt(process.env.PORT ?? '5000', 10),
   HOST: process.env.HOST ?? '0.0.0.0',
   DEV: process.env.NODE_ENV !== 'production',
+  X_API_KEY_HEADER: 'X-E-Api-Key',
   DB,
   SKIP_ACCESS_CHECKS: process.env.SKIP_ACCESS_CHECKS?.toLowerCase() === 'true',
   FILES,
   EBREV,
   CORS,
   LU,
-  COOKIE,
   WIKI,
+  JWT,
 };
 
 export default config;
