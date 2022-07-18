@@ -287,7 +287,7 @@ jobs:
           docker compose -f docker-compose.ci.yml -p $PROJECT_NAME down 2> /dev/null || true
       - name: deploy to host
         run: |
-          if [ $ENV = 'production' || $ENV = 'staging' ]; then
+          if [ $ENV = 'production' ] || [ $ENV = 'staging' ]; then
             docker compose -f docker-compose.ci.yml -f docker-compose.prod.yml -p $PROJECT_NAME up -d --force-recreate ekorre
           fi
           if [ $ENV = 'review' ] || [ $ENV = 'testing' ]; then
