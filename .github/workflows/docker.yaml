@@ -176,6 +176,7 @@ jobs:
         uses: ataylorme/eslint-annotate-action@v2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          only-pr-files: false
       - name: reset db
         run: npm run prisma:ci
       - name: run test
@@ -190,6 +191,7 @@ jobs:
           coverage-file: report.json
           base-coverage-file: report.json
           prnumber: ${{ steps.findPr.outputs.number }}
+          annotations: failed
 
   deploy:
     # To run this locally using act set act to false in event.json
@@ -247,14 +249,6 @@ jobs:
           ssh-private-key: ${{ steps.s.outputs.ssh_key }}
           ssh-username: ${{ steps.s.outputs.ssh_user }}
           context-use: true
-      - name: debug
-        run: |
-          ls ~ -a
-          ls ~/.ssh
-          cat ~/.ssh/config
-          pwd
-          ls -a
-          docker context ls -q
       - name: check connection
         run: |
           docker info
