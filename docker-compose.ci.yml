@@ -9,19 +9,18 @@ services:
   ekorre:
     image: $IMAGE_NAME
     environment:
-      DB_HOST: "postgres://$DB_USER:$DB_PASSWORD@$DB_HOST/$DB_NAME"
+      DB_HOST: posgres://postgres:example@postgres:5432/ekorre_ci
     networks:
       - traefik
-      - default
+      - default # to join compose network
     labels:
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_ekorre.rule=Host(`$DEPLOY_URL`)"
     
   postgres:
     image: postgres:alpine
-    #ports: [ 5432:5432 ]
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: ekorre_ci
     labels:
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_ekorre.rule=Host(`$DEPLOY_URL`)"

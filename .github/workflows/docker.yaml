@@ -80,7 +80,7 @@ jobs:
           if ${{ (github.event_name == 'release' && github.event.action == 'released') || env.ONLY_PROD == 'true' }}; then
             ENV=production
             DEPLOY_ENV=$ENV
-            PROJECT_NAME=$PROJ_BASE-prod
+            PROJECT_NAME=$PROJ_BASE-production
           fi
           if ${{ github.event_name == 'release' && github.event.action == 'prereleased' }}; then
             ENV=staging
@@ -204,6 +204,15 @@ jobs:
         continue-on-error: true
         with:
           fileName: CHANGELOG.MD
+          checkNotification: Simple 
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: check package.json
+        uses: Zomzog/changelog-checker@v1.2.0
+        continue-on-error: true
+        with:
+          fileName: package.json
+          checkNotification: Simple 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -231,9 +240,6 @@ jobs:
             kv/data/common ssh_key;
             kv/data/common ssh_user;
             kv/data/common ssh_host;
-            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_USER;
-            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_PASSWORD;
-            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_NAME;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_HOST;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DEPLOY_URL;
       - name: set variables
@@ -281,11 +287,12 @@ jobs:
           docker compose -f docker-compose.ci.yml -p $PROJECT_NAME down 2> /dev/null || true
       - name: deploy to host
         run: |
-          docker compose -f docker-compose.ci.yml -p $PROJECT_NAME up -d --force-recreate ekorre
+          if [ $ENV = 'production' || $ENV = 'staging' ]; then
+            docker compose -f docker-compose.ci.yml -f docker-compose.prod.yml -p $PROJECT_NAME up -d --force-recreate ekorre
+          fi
           if [ $ENV = 'review' ] || [ $ENV = 'testing' ]; then
-            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME up -d --force-recreate postgres
-            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c './wait-for-it.sh postgres:5432' 
-            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c 'npm run prisma:ci' 
+            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME up -d --force-recreate
+            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c './wait-for-it.sh postgres:5432; npm run prisma:ci' 
           fi
       - name: prune system
         run: docker system prune -f 2> /dev/null || true
