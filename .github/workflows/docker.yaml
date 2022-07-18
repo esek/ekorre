@@ -164,7 +164,7 @@ jobs:
       - name: setup env
         run: |
          mv .env.example.dev .env
-         sed -i 's/localhost/localhost/' .env
+         sed -i 's/localhost/postgres/' .env
          mkdir public.local
       - uses: actions/setup-node@v3
         with:
@@ -174,7 +174,7 @@ jobs:
       - name: lint
         run: npm run lint:ci
       - name: publish lint
-        if: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ secrets.GITHUB_TOKEN  != "" }}
         uses: ataylorme/eslint-annotate-action@v2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
@@ -183,7 +183,7 @@ jobs:
       - name: run test
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
-        if: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ secrets.GITHUB_TOKEN != "" }}
         uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
