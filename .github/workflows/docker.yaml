@@ -19,10 +19,8 @@ on:
 
 env:
   REGISTRY: registry.esek.se
-  PROD_URL: api.esek.se # Optional
-  # STAGING_URL: blabla.esek.se # Optional
   DEFAULT_BRANCH: main
-  ONLY_PROD: true
+  ONLY_PROD: false
 
 jobs:
   # This can only contain env vars and not secrets since actions is a fussy about it
@@ -341,8 +339,6 @@ jobs:
       - name: stop container
         run: |
           docker compose -f docker-compose.ci.yml -p ${{ needs.env-vars.outputs.project_name }} down 2> /dev/null || true
-      - name: prune system
-        run: docker image prune -f 2> /dev/null || true
       - if: ${{ !env.ACT }}
         name: comment deployment url to pr
         uses: mshick/add-pr-comment@v1
