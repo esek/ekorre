@@ -197,6 +197,14 @@ jobs:
           base-coverage-file: report.json
           prnumber: ${{ steps.findPr.outputs.number }}
           annotations: failed
+      - name: check changelog
+        uses: Zomzog/changelog-checker@v1.2.0
+        continue-on-error: true
+        with:
+          fileName: CHANGELOG.MD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
   deploy:
     # To run this locally using act set act to false in event.json
@@ -247,12 +255,11 @@ jobs:
           override: true
           env: ${{ env.DEPLOY_ENV }}
       - name: login to host
-        uses: amirmarmul/docker-context-ssh-action@v1
+        uses: nightstory/setup-docker-remote@v1
         with:
-          ssh-host: ${{ steps.s.outputs.ssh_host }}
-          ssh-private-key: ${{ steps.s.outputs.ssh_key }}
-          ssh-username: ${{ steps.s.outputs.ssh_user }}
-          context-use: true
+          ssh_host: ${{ steps.s.outputs.ssh_host }}
+          ssh_key: ${{ steps.s.outputs.ssh_key }}
+          ssh_host_user: ${{ steps.s.outputs.ssh_user }}
       - name: check connection
         run: |
           docker info
