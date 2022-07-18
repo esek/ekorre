@@ -67,6 +67,7 @@ jobs:
           echo "::set-output name=image_name::$IMAGE_NAME"
           echo "::set-output name=tag::$TAG"
           echo "::set-output name=basename::$(basename ${{ github.repository }} | slugify)"
+          echo "::set-output name=branch::$($BRANCH | slugify)"
           echo "::echo::off"
       - name: select environment
         id: env
@@ -75,6 +76,7 @@ jobs:
           export DEPLOY_ENV=testing
           export PROJ_BASE=${{ steps.vars.outputs.basename }}
           export TAG=${{ steps.vars.outputs.tag }}
+          export BRANCH=${{ steps.vars.outputs.branch }}
           export PROJECT_NAME=$PROJ_BASE-testing
 
           if ${{ (github.event_name == 'release' && github.event.action == 'released') || env.ONLY_PROD == 'true' }}; then
@@ -89,8 +91,8 @@ jobs:
           fi
           if ${{ github.event_name == 'pull_request' }}; then
             ENV=review
-            DEPLOY_ENV=$TAG-review
-            PROJECT_NAME=$PROJ_BASE-$TAG
+            DEPLOY_ENV=$BRANCH-review
+            PROJECT_NAME=$PROJ_BASE-$BRANCH
           fi
 
           echo "::echo::on"
@@ -102,6 +104,7 @@ jobs:
       image_name: ${{ steps.vars.outputs.image_name }}
       tag: ${{ steps.vars.outputs.tag }}
       basename: ${{ steps.vars.outputs.basename }}
+      branch: ${{ steps.vars.outputs.branch }}
       env: ${{ steps.env.outputs.env }}
       project_name: ${{ steps.env.outputs.project_name }}
       deploy_env: ${{ steps.env.outputs.deploy_env }}
@@ -232,7 +235,7 @@ jobs:
           echo "PROJECT_NAME=${{ needs.env-vars.outputs.project_name }}" >> $GITHUB_ENV
 
           if [ ${{ needs.env-vars.outputs.env }} = 'review' ]; then
-            echo "DEPLOY_URL=$TAG.review.esek.se" >> $GITHUB_ENV
+            echo "DEPLOY_URL=${{ needs.env-vars.outputs.branch-${{ needs.env-vars.outputs.basename }}.review.esek.se" >> $GITHUB_ENV
           fi
       - name: start deployment
         uses: bobheadxi/deployments@v1
