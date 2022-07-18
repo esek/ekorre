@@ -170,7 +170,7 @@ jobs:
           cache: npm
       - name: setup env
         run: |
-         mv .env.example.dev .env
+         mv .env.example .env
          sed -i 's/localhost/postgres/' .env
       - name: install deps
         run: npm ci
