@@ -1,5 +1,4 @@
 /* eslint-disable class-methods-use-this */
-import config from '@/config';
 import { Logger } from '@/logger';
 import type { NewUser } from '@generated/graphql';
 import { PrismaPasswordReset, PrismaUser } from '@prisma/client';

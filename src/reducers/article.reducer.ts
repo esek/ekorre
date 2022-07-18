@@ -2,7 +2,6 @@ import { ArticleResponse } from '@/models/mappers';
 import { PrismaExtendedArticle } from '@/models/prisma';
 import { slugify } from '@/util';
 import { ArticleType } from '@generated/graphql';
-import { PrismaArticle } from '@prisma/client';
 
 export const articleReducer = (article: PrismaExtendedArticle): ArticleResponse => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

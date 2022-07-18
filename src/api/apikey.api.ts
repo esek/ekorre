@@ -1,4 +1,3 @@
-import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';

@@ -44,7 +44,7 @@ const authResolver: Resolvers = {
     },
   },
   Mutation: {
-    login: async (_, { username, password }, { response }) => {
+    login: async (_, { username, password }) => {
       try {
         const user = await api.loginUser(username, password);
 
@@ -80,7 +80,7 @@ const authResolver: Resolvers = {
         refreshToken,
       };
     },
-    refresh: async (_, { refreshToken }) => {
+    refresh: (_, { refreshToken }) => {
       const { username } = TokenProvider.verifyToken(refreshToken, 'refresh_token');
 
       const newAccessToken = TokenProvider.issueToken(username, 'access_token');
@@ -91,7 +91,7 @@ const authResolver: Resolvers = {
         refreshToken: newRefreshToken,
       };
     },
-    casLogin: async (_, { token }, { request, response }) => {
+    casLogin: async (_, { token }, { request }) => {
       const { referer } = request.headers;
 
       const username = await validateCasTicket(token, referer ?? '');
