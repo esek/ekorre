@@ -190,7 +190,7 @@ jobs:
       - name: run test
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
-        uses: jwalton/gh-find-env-pr@v1
+        uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
         uses: ArtiomTr/jest-coverage-report-action@v2
@@ -209,6 +209,8 @@ jobs:
       - build
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
+      volumes:
+        - "/run/docker.sock:/run/docker.sock"
     steps:
       - name: import secrets
         id: s
@@ -304,6 +306,8 @@ jobs:
     needs: env-vars
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
+      volumes:
+        - "/run/docker.sock:/run/docker.sock"
     steps:
       - name: import secrets
         id: s
