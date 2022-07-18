@@ -251,7 +251,7 @@ jobs:
           echo "PROJECT_NAME=${{ needs.env-vars.outputs.project_name }}" >> $GITHUB_ENV
           echo "COMPOSE_PROJECT_NAME=${{ needs.env-vars.outputs.project_name }}" >> $GITHUB_ENV
 
-          if [ "$ENV" = "review" ]; then
+          if [ ${{ needs.env-vars.outputs.env }} = 'review' ]; then
             echo "DEPLOY_URL=${{ needs.env-vars.outputs.branch }}-${{ needs.env-vars.outputs.basename }}.review.esek.se" >> $GITHUB_ENV
           fi
       - name: checkout repo
