@@ -30,6 +30,7 @@ jobs:
     runs-on: self-hosted
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
+      options: --rm
     steps:
       - name: set variables
         id: vars
@@ -114,6 +115,7 @@ jobs:
       image: ghcr.io/catthehacker/ubuntu:act-latest
       volumes:
         - "/run/docker.sock:/run/docker.sock"
+      options: --rm
     steps:
       - name: import secrets
         id: s
@@ -158,6 +160,7 @@ jobs:
          POSTGRES_DB: ekorre_foot
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
+      options: --rm
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
@@ -201,9 +204,10 @@ jobs:
       - build
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
-      volumes:
-        - "/run/docker.sock:/run/docker.sock"
+      options: --rm
     steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: import secrets
         id: s
         uses: hashicorp/vault-action@v2.4.1
@@ -233,8 +237,6 @@ jobs:
           if [ ${{ needs.env-vars.outputs.env }} = 'review' ]; then
             echo "DEPLOY_URL=$TAG.review.esek.se" >> $GITHUB_ENV
           fi
-      - name: checkout repo
-        uses: actions/checkout@v3
       - name: start deployment
         uses: bobheadxi/deployments@v1
         id: deployment
@@ -300,8 +302,7 @@ jobs:
     needs: env-vars
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
-      volumes:
-        - "/run/docker.sock:/run/docker.sock"
+      options: --rm
     steps:
       - name: import secrets
         id: s
