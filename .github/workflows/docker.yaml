@@ -7,6 +7,7 @@ name: Docker Image CI
 # act -j <job>
 # act <event_name>
 # act -e .github/act/<event>.json // For additinal event params
+# act -P self-hosted=ghcr.io/catthehacker/ubuntu:act-latest  // To make it wokr with self hosted
 
 on:
   push:
