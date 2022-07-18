@@ -40,6 +40,7 @@ test('that password is reduced properly', () => {
     userPostHistory: [],
     wikiEdits: 0,
     emergencyContacts: [],
+    loginProviders: [],
   };
 
   expect(userReduce(dummyDbUser)).toStrictEqual(compare);
