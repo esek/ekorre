@@ -114,8 +114,6 @@ jobs:
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
-      volumes:
-        - "/run/docker.sock:/run/docker.sock"
     steps:
       - name: import secrets
         id: s
@@ -145,6 +143,8 @@ jobs:
           context: .
           push: true
           tags: ${{ needs.env-vars.outputs.image_name }}
+      - uses: colpal/actions-clean@v1
+        if: ${{ always() }} # To ensure this step runs even when earlier steps fail
   # This should need build and use the image to test
   test:
     runs-on: self-hosted
@@ -204,7 +204,8 @@ jobs:
           fileName: CHANGELOG.MD
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - uses: colpal/actions-clean@v1
+        if: ${{ always() }} # To ensure this step runs even when earlier steps fail
 
   deploy:
     # To run this locally using act set act to false in event.json
@@ -215,8 +216,6 @@ jobs:
       - build
     container: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
-      - name: checkout repo
-        uses: actions/checkout@v3
       - name: import secrets
         id: s
         uses: hashicorp/vault-action@v2.4.1
@@ -246,6 +245,8 @@ jobs:
           if [ ${{ needs.env-vars.outputs.env }} = 'review' ]; then
             echo "DEPLOY_URL=${{ needs.env-vars.outputs.branch }}-${{ needs.env-vars.outputs.basename }}.review.esek.se" >> $GITHUB_ENV
           fi
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: start deployment
         uses: bobheadxi/deployments@v1
         id: deployment
@@ -302,6 +303,8 @@ jobs:
         with:
           message: I have deployed this PR to [${{ env.DEPLOY_URL }}](https://${{ env.DEPLOY_URL }}) 🚀
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: colpal/actions-clean@v1
+        if: ${{ always() }} # To ensure this step runs even when earlier steps fail
 
   teardown:
     runs-on: self-hosted
@@ -330,6 +333,8 @@ jobs:
         run: |
           docker info
           docker compose version
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: stop container
         run: |
           docker compose -f docker-compose.ci.yml -p ${{ needs.env-vars.outputs.project_name }} down 2> /dev/null || true
@@ -341,3 +346,5 @@ jobs:
         with:
           message: I have removed this deploy now 😇
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: colpal/actions-clean@v1
+        if: ${{ always() }} # To ensure this step runs even when earlier steps fail
