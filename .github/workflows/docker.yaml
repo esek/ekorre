@@ -247,10 +247,11 @@ jobs:
           echo "IMAGE_NAME=${{ needs.env-vars.outputs.image_name }}" >> $GITHUB_ENV
           echo "TAG=${{ needs.env-vars.outputs.tag }}" >> $GITHUB_ENV
           echo "DEPLOY_ENV=${{ needs.env-vars.outputs.deploy_env }}" >> $GITHUB_ENV
+          echo "ENV=${{ needs.env-vars.outputs.env }}" >> $GITHUB_ENV
           echo "PROJECT_NAME=${{ needs.env-vars.outputs.project_name }}" >> $GITHUB_ENV
           echo "COMPOSE_PROJECT_NAME=${{ needs.env-vars.outputs.project_name }}" >> $GITHUB_ENV
 
-          if [ ${{ needs.env-vars.outputs.env }} = 'review' ]; then
+          if [ "$ENV" = "review" ]; then
             echo "DEPLOY_URL=${{ needs.env-vars.outputs.branch }}-${{ needs.env-vars.outputs.basename }}.review.esek.se" >> $GITHUB_ENV
           fi
       - name: checkout repo
