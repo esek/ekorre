@@ -25,6 +25,11 @@ env:
   ONLY_PROD: true
 
 jobs:
+  test:
+    runs-on: self-hosted
+    steps:
+      - run: ls
+      - run: ls /
   # This can only contain env vars and not secrets since actions is a fussy about it
   env-vars:
     runs-on: self-hosted
