@@ -28,9 +28,7 @@ jobs:
   # This can only contain env vars and not secrets since actions is a fussy about it
   env-vars:
     runs-on: self-hosted
-    container:
-      image: ghcr.io/catthehacker/ubuntu:act-latest
-      options: --rm
+    container: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
       - name: set variables
         id: vars
@@ -115,7 +113,6 @@ jobs:
       image: ghcr.io/catthehacker/ubuntu:act-latest
       volumes:
         - "/run/docker.sock:/run/docker.sock"
-      options: --rm
     steps:
       - name: import secrets
         id: s
@@ -158,20 +155,20 @@ jobs:
          POSTGRES_USER: postgres
          POSTGRES_PASSWORD: password
          POSTGRES_DB: ekorre_foot
-    container:
-      image: ghcr.io/catthehacker/ubuntu:act-latest
-      options: --rm
+    container: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
+      - name: setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16  
+          cache: npm
       - name: setup env
         run: |
          mv .env.example.dev .env
          sed -i 's/localhost/postgres/' .env
          mkdir public.local
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16  
       - name: install deps
         run: npm ci
       - name: lint
@@ -202,9 +199,7 @@ jobs:
     needs: 
       - env-vars
       - build
-    container:
-      image: ghcr.io/catthehacker/ubuntu:act-latest
-      options: --rm
+    container: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
@@ -252,10 +247,15 @@ jobs:
           ssh_key: ${{ steps.s.outputs.ssh_key }}
           ssh_host_user: ${{ steps.s.outputs.ssh_user }}
           ssh_host: ${{ steps.s.outputs.ssh_host }}
-      - name: check connection
+      - name: debug
         run: |
+          ls ~ -a
           ls ~/.ssh
           cat ~/.ssh/config
+          pwd
+          ls -a
+      - name: check connection
+        run: |
           docker info
           docker compose version
       - name: login to registry
@@ -300,9 +300,7 @@ jobs:
     runs-on: self-hosted
     if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' }}
     needs: env-vars
-    container:
-      image: ghcr.io/catthehacker/ubuntu:act-latest
-      options: --rm
+    container: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
       - name: import secrets
         id: s
