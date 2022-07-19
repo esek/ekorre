@@ -302,9 +302,6 @@ jobs:
           fi
       - name: prune system
         run: docker system prune -f 2> /dev/null || true
-      - name: remove keys
-        if: always()
-        run: rm -f ~/.docker/*.pem
       - name: update deployment status
         uses: bobheadxi/deployments@v1
         if: ${{ always() && !env.ACT && github.event_name != 'pull_request' }}
