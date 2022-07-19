@@ -237,9 +237,10 @@ jobs:
           secrets: |
             kv/data/common registry_username;
             kv/data/common registry_password;
-            kv/data/common ssh_key;
-            kv/data/common ssh_user;
-            kv/data/common ssh_host;
+            kv/data/common docker_ca;
+            kv/data/common docker_cert;
+            kv/data/common docker_key;
+            kv/data/common docker_host;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_HOST;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DEPLOY_URL;
       - name: set variables
@@ -266,11 +267,14 @@ jobs:
           override: true
           env: ${{ env.DEPLOY_ENV }}
       - name: login to host
-        uses: nightstory/setup-docker-remote@v1
-        with:
-          ssh_host: ${{ steps.s.outputs.ssh_host }}
-          ssh_key: ${{ steps.s.outputs.ssh_key }}
-          ssh_host_user: ${{ steps.s.outputs.ssh_user }}
+        shell: bash
+        run: |
+          mkdir -pv ~/.docker
+          echo '${{ steps.s.outputs.docker_ca }}' > ~/.docker/ca.pem
+          echo '${{ steps.s.outputs.docker_cert }}' > ~/.docker/cert.pem
+          echo '${{ steps.s.outputs.docker_key }}' > ~/.docker/key.pem
+          echo "DOCKER_HOST=tcp://${{ steps.s.outputs.docker_key }}:2376" >> $GITHUB_ENV
+          echo "DOCKR_TLS_VERIFY=1" >> $GITHUB_ENV
       - name: check connection
         run: |
           docker info
@@ -298,6 +302,9 @@ jobs:
           fi
       - name: prune system
         run: docker system prune -f 2> /dev/null || true
+      - name: remove keys
+        if: always()
+        run: rm -f ~/.docker/*.pem
       - name: update deployment status
         uses: bobheadxi/deployments@v1
         if: ${{ always() && !env.ACT && github.event_name != 'pull_request' }}

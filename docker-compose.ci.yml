@@ -14,13 +14,11 @@ services:
       - traefik
       - default # to join compose network
     labels:
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_ekorre.rule=Host(`$DEPLOY_URL`)"
-    
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ekorre.rule=Host(`$DEPLOY_URL`)"
+
   postgres:
     image: postgres:alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: example
       POSTGRES_DB: ekorre_ci
-    labels:
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}_ekorre.rule=Host(`$DEPLOY_URL`)"
