@@ -302,6 +302,14 @@ jobs:
           fi
       - name: prune system
         run: docker system prune -f 2> /dev/null || true
+      - name: remove keys
+        if: always()
+        run: rm -f ~/.docker/*.pem
+      - name: remove vars
+        if: always()
+        run: |
+          echo 'DOCKER_HOST=' >> $GITHUB_ENV
+          echo "DOCKER_TLS_VERIFY=0" >> $GITHUB_ENV
       - name: update deployment status
         uses: bobheadxi/deployments@v1
         if: ${{ always() && !env.ACT && github.event_name != 'pull_request' }}
