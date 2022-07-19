@@ -273,8 +273,8 @@ jobs:
           echo '${{ steps.s.outputs.docker_ca }}' > ~/.docker/ca.pem
           echo '${{ steps.s.outputs.docker_cert }}' > ~/.docker/cert.pem
           echo '${{ steps.s.outputs.docker_key }}' > ~/.docker/key.pem
-          echo "DOCKER_HOST=tcp://${{ steps.s.outputs.docker_key }}:2376" >> $GITHUB_ENV
-          echo "DOCKR_TLS_VERIFY=1" >> $GITHUB_ENV
+          echo "DOCKER_HOST=tcp://${{ steps.s.outputs.docker_host }}:2376" >> $GITHUB_ENV
+          echo "DOCKER_TLS_VERIFY=1" >> $GITHUB_ENV
       - name: check connection
         run: |
           docker info
