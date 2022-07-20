@@ -224,8 +224,12 @@ jobs:
       - env-vars
       - build
     steps:
-      - name: ready cleanup
-        uses: TooMuch4U/actions-clean@v2.1
+      - name: setup workflow manager
+        uses: xembly/workflow-manager@v1.0.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          run: clean, cancel
+          verbose: true
       - name: import secrets
         id: s
         uses: hashicorp/vault-action@v2.4.1
