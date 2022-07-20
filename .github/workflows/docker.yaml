@@ -267,7 +267,7 @@ jobs:
           override: true
           env: ${{ env.DEPLOY_ENV }}
       - name: login to host
-        uses: blennster/setup-docker-remote-tls@v3.0.1
+        uses: blennster/setup-docker-remote-tls@v4
         with:
           tls_key: ${{ steps.s.outputs.docker_key }} 
           tls_ca: ${{ steps.s.outputs.docker_ca }}
