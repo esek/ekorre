@@ -84,6 +84,12 @@ export class UserAPI {
     return u;
   }
 
+  /**
+   * Returns all users matching a search, where a match is any `User` where
+   * their first name, last name, or username, contains the passed string. Is case _insensitive_
+   * @param search An (optionally) space-separated string containing first name, last name, or username, or a combination
+   * @returns A list of users matching the search
+   */
   async searchUser(search: string): Promise<PrismaUser[]> {
     // Replace all 'one-or-more' whitespaces with logical OR for prisma search
     const formattedSearchString = search.replace(/\s+/g, ' | ');
