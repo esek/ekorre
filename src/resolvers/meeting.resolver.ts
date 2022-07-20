@@ -1,6 +1,6 @@
 import { StrictObject } from '@/models/base';
 import { reduce } from '@/reducers';
-import { hasAccess } from '@/util';
+import { hasAccess, hasAuthenticated } from '@/util';
 import { MeetingAPI } from '@api/meeting';
 import { Feature, Resolvers } from '@generated/graphql';
 import { meetingReduce } from '@reducer/meeting';
@@ -45,16 +45,19 @@ const meetingResolver: Resolvers = {
     },
   },
   Query: {
-    meeting: async (_, { id }) => {
+    meeting: async (_, { id }, ctx) => {
+      await hasAuthenticated(ctx);
       const m = await api.getSingleMeeting(id);
       return reduce(m, meetingReduce);
     },
-    meetings: async (_, params) => {
+    meetings: async (_, params, ctx) => {
+      await hasAuthenticated(ctx);
       const strictParams: StrictObject = params;
       const m = await api.getMultipleMeetings(strictParams);
       return reduce(m, meetingReduce);
     },
-    latestBoardMeetings: async (_, { limit }) => {
+    latestBoardMeetings: async (_, { limit }, ctx) => {
+      await hasAuthenticated(ctx);
       const m = await api.getLatestBoardMeetings(limit ?? undefined);
       return reduce(m, meetingReduce);
     },
