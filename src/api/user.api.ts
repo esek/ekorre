@@ -85,22 +85,28 @@ export class UserAPI {
   }
 
   async searchUser(search: string): Promise<PrismaUser[]> {
+    // Replace all 'one-or-more' whitespaces with logical OR for prisma search
+    const formattedSearchString = search.replace(/\s+/g, ' | ');
+
     const users = await prisma.prismaUser.findMany({
       where: {
         OR: [
           {
             username: {
-              contains: search,
+              search: formattedSearchString,
+              mode: 'insensitive',
             },
           },
           {
             firstName: {
-              contains: search,
+              contains: formattedSearchString,
+              mode: 'insensitive',
             },
           },
           {
             lastName: {
-              contains: search,
+              contains: formattedSearchString,
+              mode: 'insensitive',
             },
           },
         ],
