@@ -267,14 +267,12 @@ jobs:
           override: true
           env: ${{ env.DEPLOY_ENV }}
       - name: login to host
-        shell: bash
-        run: |
-          mkdir -pv ~/.docker
-          echo '${{ steps.s.outputs.docker_ca }}' > ~/.docker/ca.pem
-          echo '${{ steps.s.outputs.docker_cert }}' > ~/.docker/cert.pem
-          echo '${{ steps.s.outputs.docker_key }}' > ~/.docker/key.pem
-          echo "DOCKER_HOST=tcp://${{ steps.s.outputs.docker_host }}:2376" >> $GITHUB_ENV
-          echo "DOCKER_TLS_VERIFY=1" >> $GITHUB_ENV
+        uses: blennster/setup-docker-remote-tls@v3
+        with:
+          tls_key: ${{ steps.s.outputs.docker_key }} 
+          tls_ca: ${{ steps.s.outputs.docker_ca }}
+          tls_cert: ${{ steps.s.outputs.docker_cert }}
+          tcp_host: ${{ steps.s.outputs.docker_host }}:2376
       - name: check connection
         run: |
           docker info
@@ -302,14 +300,6 @@ jobs:
           fi
       - name: prune system
         run: docker system prune -f 2> /dev/null || true
-      - name: remove keys
-        if: always()
-        run: rm -f ~/.docker/*.pem
-      - name: remove vars
-        if: always()
-        run: |
-          echo 'DOCKER_HOST=' >> $GITHUB_ENV
-          echo "DOCKER_TLS_VERIFY=0" >> $GITHUB_ENV
       - name: update deployment status
         uses: bobheadxi/deployments@v1
         if: ${{ always() && !env.ACT && github.event_name != 'pull_request' }}
