@@ -5,6 +5,11 @@ Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.16.0] - 2022-07-21
+
+### Tillagt
+- Länkning för användare till inloggningsproviders 
+
 ## [0.15.1] - 2022-07-20
 
 ### Ändrat

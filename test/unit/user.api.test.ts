@@ -1,6 +1,6 @@
 import { UserAPI } from '@/api/user.api';
 import { BadRequestError, NotFoundError, UnauthenticatedError } from '@/errors/request.errors';
-import { NewUser } from '@generated/graphql';
+import { LoginProvider, NewUser } from '@generated/graphql';
 import { PrismaUser } from '@prisma/client';
 import { getRandomUsername } from '@test/utils/utils';
 
@@ -283,7 +283,31 @@ test('reset password properly', async () => {
 test('getting number of members', async () => {
   // Svårtestat då users skrivs och tas bort från DB konstant under tester
   const numberOfMembers = await api.getNumberOfMembers();
-  
+
   // Det borde iaf vara större eller lika med antalet seeded users
   expect(numberOfMembers).toBeGreaterThanOrEqual(3);
+});
+
+describe('login providers', () => {
+  const testProvider: LoginProvider = {
+    id: 123,
+    provider: 'google',
+    token: 'username',
+    email: 'email@example.com',
+  };
+  it('can link a new provider', async () => {
+    const user = await api.createUser(mockNewUser1);
+
+    const provider = await api.linkLoginProvider(
+      user.username,
+      testProvider.provider as any,
+      testProvider.token,
+      testProvider.email ?? undefined,
+    );
+
+    expect(provider).not.toBeNull();
+
+    const providers = await api.getLoginProviders(user.username);
+    expect(providers).toHaveLength(1);
+  });
 });
