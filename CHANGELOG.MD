@@ -8,6 +8,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - Uppdaterat `UserAPI.searchUser` att inte vara case sensitive och söka bättre allmännt
+- Uppdaterat `FileAPI.searchFile` att inte vara case sensitive också _for good measure_
 
 ## [0.15.1] - 2022-07-20
 
