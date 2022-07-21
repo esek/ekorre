@@ -56,8 +56,8 @@ jobs:
           fi
 
           if ${{ github.ref_type == 'tag' }}; then
-            BRANCH=${{ env.DEFAULT_BRANCH }}
             TAG=$BRANCH
+            BRANCH=${{ env.DEFAULT_BRANCH }}
           fi
 
           TAG=$(echo "$TAG" | slugify)
