@@ -92,56 +92,45 @@ export class UserAPI {
    */
   async searchUser(search: string): Promise<PrismaUser[]> {
     const searchArray = search.split(/\s+/g);
+    
+    if (searchArray.length === 0) {
+      throw new BadRequestError('Searches must contain at least one symbol');
+    }
 
-    const probableUsernames: string[] = [];
-    const probableNames: string[] = [];
-    searchArray.forEach((s) => {
-      // Find everything that might be a username, looking for digits
-      // and -
-      if (s.match(/[-0-9]+/g) != null) {
-        probableUsernames.push(s);
-      } else {
-        probableNames.push(s);
-      }
-    });
-
-    // Build or OR
+    const searchOr = searchArray.join(' | ');
+    
+    // Easier to just make to concurrent searches than to fight with prisma
     const promises: Promise<PrismaUser[]>[] = [];
 
-    if (probableUsernames.length > 0) {
-      const usernameQuery = prisma.prismaUser.findMany({
+    const usernameQuery = prisma.prismaUser.findMany({
         where: {
           username: {
-            search: probableUsernames.join(' | '),
+            search: searchOr,
             mode: 'insensitive',
           },
         },
       });
-      promises.push(usernameQuery);
-    }
+    promises.push(usernameQuery);
 
-    if (probableNames.length > 0) {
-      const nameSearch = probableNames.join(' | ');
-      const nameQuery = prisma.prismaUser.findMany({
-        where: {
-          AND: [
-            {
-              firstName: {
-                search: nameSearch,
-                mode: 'insensitive',
-              },
+    const nameQuery = prisma.prismaUser.findMany({
+      where: {
+        AND: [
+          {
+            firstName: {
+              search: searchOr,
+              mode: 'insensitive',
             },
-            {
-              lastName: {
-                search: nameSearch,
-                mode: 'insensitive',
-              },
+          },
+          {
+            lastName: {
+              search: searchOr,
+              mode: 'insensitive',
             },
-          ],
-        },
-      });
-      promises.push(nameQuery);
-    }
+          },
+        ],
+      },
+    });
+    promises.push(nameQuery);
     
     const users = (await Promise.all(promises)).flat();
 
