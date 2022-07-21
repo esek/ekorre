@@ -46,15 +46,18 @@ const meetingResolver: Resolvers = {
   },
   Query: {
     meeting: async (_, { id }) => {
+      // Meetings _should_ be visible to the public
       const m = await api.getSingleMeeting(id);
       return reduce(m, meetingReduce);
     },
     meetings: async (_, params) => {
+      // Meetings _should_ be visible to the public
       const strictParams: StrictObject = params;
       const m = await api.getMultipleMeetings(strictParams);
       return reduce(m, meetingReduce);
     },
     latestBoardMeetings: async (_, { limit }) => {
+      // Meetings _should_ be visible to the public
       const m = await api.getLatestBoardMeetings(limit ?? undefined);
       return reduce(m, meetingReduce);
     },

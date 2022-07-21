@@ -1,6 +1,7 @@
 node_modules
 build
 public
+public.local
 .env
 *.db
 *.swp

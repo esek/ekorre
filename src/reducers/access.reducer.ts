@@ -58,6 +58,7 @@ const featureDescriptions: Record<Feature, string> = {
   [Feature.Superadmin]: 'För att kunna administrera allt',
   [Feature.MeetingsAdmin]: 'För att kunna administrera möten',
   [Feature.FilesAdmin]: 'För att kunna administrera filer',
+  [Feature.EmailAdmin]: 'För att kunna skicka mejl',
 };
 
 export const featureReducer = (features: Feature[]): FeatureInfo[] => {
