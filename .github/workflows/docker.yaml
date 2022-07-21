@@ -327,9 +327,10 @@ jobs:
           method: token
           exportEnv: true
           secrets: |
-            kv/data/common ssh_key;
-            kv/data/common ssh_user;
-            kv/data/common ssh_host;
+            kv/data/common docker_ca;
+            kv/data/common docker_cert;
+            kv/data/common docker_key;
+            kv/data/common docker_host;
       - name: login to host
         uses: blennster/setup-docker-remote-tls@v4
         with:
