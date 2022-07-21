@@ -96,7 +96,6 @@ export class UserAPI {
     }
     const searchArray = search.split(/\s+/g);
 
-    
     // We do the following since 'Emil Eriksson' will only hit
     // (firstName: 'Emil' || 'Eriksson') && (lastName: 'Emil' | 'Eriksson')
     // (which is good since we don't know which part in searchArray is what),
@@ -152,7 +151,7 @@ export class UserAPI {
       });
       promises.push(nameQuery);
     }
-    
+
     const users = (await Promise.all(promises)).flat();
 
     return users;
