@@ -4,16 +4,16 @@ name: Docker Image CI
 
 # To use act:
 # Create a .secrets file and set all the needed variables
-# Multiline variables need to be set using adding -s KEY="$(<value.txt)""
-# And run the following command
-# sudo act
-# or
-# sudo act -s KEY="$(<value.txt)"
+# act -j <job>
+# act <event_name>
+# act -e .github/act/<event>.json // For additinal event params
+# act -P self-hosted=ghcr.io/catthehacker/ubuntu:act-latest  // To make it wokr with self hosted
 
 on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, closed, reopened, synchronize]
   release:
     types: [released, prereleased]
 
@@ -38,6 +38,8 @@ jobs:
             | sed -E 's/^-+|-+$//g' \
             | tr "[:upper:]" "[:lower:]"
           }
+
+          echo ${{ github.event }}
 
           export BRANCH=
           if [ -z $GITHUB_HEAD_REF ]; then
@@ -113,8 +115,6 @@ jobs:
     container:
       image: ghcr.io/catthehacker/ubuntu:act-latest
     steps:
-      - name: ready cleanup
-        uses: TooMuch4U/actions-clean@v2.1
       - name: import secrets
         id: s
         uses: hashicorp/vault-action@v2.4.1
@@ -149,7 +149,7 @@ jobs:
     runs-on: self-hosted
     # To run this locally using act set act to false in event.json
     # Note act does not support services...
-    if: ${{ !github.event.act || !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
+    if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
     services:
       postgres:
         image: postgres:alpine
@@ -157,17 +157,10 @@ jobs:
          POSTGRES_USER: postgres
          POSTGRES_PASSWORD: password
          POSTGRES_DB: ekorre_foot
-    container: ghcr.io/catthehacker/ubuntu:act-latest
+    container: node:16-alpine
     steps:
-      - name: ready cleanup
-        uses: TooMuch4U/actions-clean@v2.1
       - name: checkout repo
         uses: actions/checkout@v3
-      - name: setup node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16  
-          cache: npm
       - name: setup env
         run: |
          mv .env.example .env
@@ -175,8 +168,10 @@ jobs:
       - name: install deps
         run: npm ci
       - name: lint
-        run: npm run lint:ci
+        continue-on-error: true
+        run: npm run lint -- --output-file eslint_report.json --format json
       - name: publish lint
+        if: ${{ !env.ACT }}
         uses: ataylorme/eslint-annotate-action@v2
         continue-on-error: true
         with:
@@ -185,13 +180,16 @@ jobs:
       - name: reset db
         run: npm run prisma:ci
       - name: run test
+        continue-on-error: true
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
         continue-on-error: true
+        if: ${{ !env.ACT }}
         uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
         continue-on-error: true
+        if: ${{ !env.ACT }}
         uses: ArtiomTr/jest-coverage-report-action@v2.0.9
         with:
           skip-step: all
@@ -201,18 +199,18 @@ jobs:
           annotations: failed-tests
       - name: check changelog
         uses: Zomzog/changelog-checker@v1.2.0
+        if: ${{ !env.ACT }}
         continue-on-error: true
         with:
           fileName: CHANGELOG.MD
-          checkNotification: Simple 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: check package.json
+        if: ${{ !env.ACT }}
         uses: Zomzog/changelog-checker@v1.2.0
         continue-on-error: true
         with:
           fileName: package.json
-          checkNotification: Simple 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -224,8 +222,6 @@ jobs:
       - env-vars
       - build
     steps:
-      - name: ready cleanup
-        uses: TooMuch4U/actions-clean@v2.1
       - name: import secrets
         id: s
         uses: hashicorp/vault-action@v2.4.1
@@ -237,9 +233,10 @@ jobs:
           secrets: |
             kv/data/common registry_username;
             kv/data/common registry_password;
-            kv/data/common ssh_key;
-            kv/data/common ssh_user;
-            kv/data/common ssh_host;
+            kv/data/common docker_ca;
+            kv/data/common docker_cert;
+            kv/data/common docker_key;
+            kv/data/common docker_host;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_HOST;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DEPLOY_URL;
       - name: set variables
@@ -247,6 +244,7 @@ jobs:
           echo "IMAGE_NAME=${{ needs.env-vars.outputs.image_name }}" >> $GITHUB_ENV
           echo "TAG=${{ needs.env-vars.outputs.tag }}" >> $GITHUB_ENV
           echo "DEPLOY_ENV=${{ needs.env-vars.outputs.deploy_env }}" >> $GITHUB_ENV
+          echo "ENV=${{ needs.env-vars.outputs.env }}" >> $GITHUB_ENV
           echo "PROJECT_NAME=${{ needs.env-vars.outputs.project_name }}" >> $GITHUB_ENV
           echo "COMPOSE_PROJECT_NAME=${{ needs.env-vars.outputs.project_name }}" >> $GITHUB_ENV
 
@@ -258,18 +256,19 @@ jobs:
       - name: start deployment
         uses: bobheadxi/deployments@v1
         id: deployment
-        if: ${{ !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env == 'review' }}
+        if: ${{ !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env != 'review' }}
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
           override: true
           env: ${{ env.DEPLOY_ENV }}
       - name: login to host
-        uses: nightstory/setup-docker-remote@v1
+        uses: blennster/setup-docker-remote-tls@v4
         with:
-          ssh_host: ${{ steps.s.outputs.ssh_host }}
-          ssh_key: ${{ steps.s.outputs.ssh_key }}
-          ssh_host_user: ${{ steps.s.outputs.ssh_user }}
+          tls_key: ${{ steps.s.outputs.docker_key }} 
+          tls_ca: ${{ steps.s.outputs.docker_ca }}
+          tls_cert: ${{ steps.s.outputs.docker_cert }}
+          tcp_host: ${{ steps.s.outputs.docker_host }}:2376
       - name: check connection
         run: |
           docker info
@@ -284,13 +283,14 @@ jobs:
         run: echo $IMAGE_NAME; docker pull $IMAGE_NAME
       - name: Stop old container
         run: |
-          docker compose -f docker-compose.ci.yml -p $PROJECT_NAME down 2> /dev/null || true
+          docker compose -f docker-compose.ci.yml -p $PROJECT_NAME down
       - name: deploy to host
+        shell: bash
         run: |
-          if [ $ENV = 'production' || $ENV = 'staging' ]; then
-            docker compose -f docker-compose.ci.yml -f docker-compose.prod.yml -p $PROJECT_NAME up -d --force-recreate ekorre
+          if [[ "$ENV" = "production" || "$ENV" = "staging" ]]; then
+            docker compose -f docker-compose.ci.yml -f docker-compose.prod.yml -p $PROJECT_NAME up -d --force-recreate ${{ needs.env-vars.outputs.basename }}
           fi
-          if [ $ENV = 'review' ] || [ $ENV = 'testing' ]; then
+          if [[ "$ENV" = "review" || "$ENV" = "testing" ]]; then
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME up -d --force-recreate
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c './wait-for-it.sh postgres:5432; npm run prisma:ci' 
           fi
@@ -298,7 +298,7 @@ jobs:
         run: docker system prune -f 2> /dev/null || true
       - name: update deployment status
         uses: bobheadxi/deployments@v1
-        if: ${{ always() && !env.ACT && github.event_name != 'pull_request' }}
+        if: ${{ always() && !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env != 'review' }}
         with:
           step: finish
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -318,8 +318,6 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' }}
     needs: env-vars
     steps:
-      - name: ready cleanup
-        uses: TooMuch4U/actions-clean@v2.1
       - name: import secrets
         id: s
         uses: hashicorp/vault-action@v2.4.1
@@ -333,11 +331,12 @@ jobs:
             kv/data/common ssh_user;
             kv/data/common ssh_host;
       - name: login to host
-        uses: nightstory/setup-docker-remote@v1
+        uses: blennster/setup-docker-remote-tls@v4
         with:
-          ssh_key: ${{ steps.s.outputs.ssh_key }}
-          ssh_host_user: ${{ steps.s.outputs.ssh_user }}
-          ssh_host: ${{ steps.s.outputs.ssh_host }}
+          tls_key: ${{ steps.s.outputs.docker_key }} 
+          tls_ca: ${{ steps.s.outputs.docker_ca }}
+          tls_cert: ${{ steps.s.outputs.docker_cert }}
+          tcp_host: ${{ steps.s.outputs.docker_host }}:2376
       - name: check connection
         run: |
           docker info
