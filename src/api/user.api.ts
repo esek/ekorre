@@ -91,33 +91,59 @@ export class UserAPI {
    * @returns A list of users matching the search
    */
   async searchUser(search: string): Promise<PrismaUser[]> {
-    // Replace all 'one-or-more' whitespaces with logical OR for prisma search
-    const formattedSearchString = search.replace(/\s+/g, ' | ');
+    const searchArray = search.split(/\s+/g);
 
-    const users = await prisma.prismaUser.findMany({
-      where: {
-        OR: [
-          {
-            username: {
-              search: formattedSearchString,
-              mode: 'insensitive',
-            },
-          },
-          {
-            firstName: {
-              search: formattedSearchString,
-              mode: 'insensitive',
-            },
-          },
-          {
-            lastName: {
-              search: formattedSearchString,
-              mode: 'insensitive',
-            },
-          },
-        ],
-      },
+    const probableUsernames: string[] = [];
+    const probableNames: string[] = [];
+    searchArray.forEach((s) => {
+      // Find everything that might be a username, looking for digits
+      // and -
+      if (s.match(/[-0-9]+/g) != null) {
+        probableUsernames.push(s);
+      } else {
+        probableNames.push(s);
+      }
     });
+
+    // Build or OR
+    const promises: Promise<PrismaUser[]>[] = [];
+
+    if (probableUsernames.length > 0) {
+      const usernameQuery = prisma.prismaUser.findMany({
+        where: {
+          username: {
+            search: probableUsernames.join(' | '),
+            mode: 'insensitive',
+          },
+        },
+      });
+      promises.push(usernameQuery);
+    }
+
+    if (probableNames.length > 0) {
+      const nameSearch = probableNames.join(' | ');
+      const nameQuery = prisma.prismaUser.findMany({
+        where: {
+          AND: [
+            {
+              firstName: {
+                search: nameSearch,
+                mode: 'insensitive',
+              },
+            },
+            {
+              lastName: {
+                search: nameSearch,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        },
+      });
+      promises.push(nameQuery);
+    }
+    
+    const users = (await Promise.all(promises)).flat();
 
     return users;
   }
