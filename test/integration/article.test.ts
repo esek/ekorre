@@ -100,6 +100,7 @@ test('creating, modyfying and deleting article', async () => {
   expect(addArticleData.id).not.toBeNull();
 
   // The body will be turned to HTML and won't match
+  // eslint-disable-line @typescript-eslint/no-unused-vars
   const { body, ...reducedNewArticle } = mockNewArticle;
 
   expect(addArticleData).toMatchObject({
@@ -148,7 +149,7 @@ test('creating, modyfying and deleting article', async () => {
   // lastUpdatedAt could have changed, but we are unable to use
   // fake timers here due to DataLoaders shitting themselves if they are
   // are used in the same Node process
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  // eslint-disable-line @typescript-eslint/no-unused-vars
   const { lastUpdatedAt, tags, ...noLastUpdatedAtOriginalArticle } = addArticleData;
 
   expect(updatedArticleRes?.data?.article).toMatchObject({

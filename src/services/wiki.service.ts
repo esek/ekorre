@@ -61,7 +61,7 @@ class EWiki {
       // If token is needed, just rerun the function with the token
       if (data.login.result === 'NeedToken') {
         logger.info('Token needed, rerunning login');
-        return this.login(data.login.token);
+        return await this.login(data.login.token);
       }
 
       // Something else went wrong
@@ -107,7 +107,7 @@ class EWiki {
       if (data.error?.code === 'readapidenied' && !retrying) {
         logger.info('Unauthorized, reauthenticating');
         this.isAuthenticated = false;
-        return this.getNbrOfUserEdits(username, true);
+        return await this.getNbrOfUserEdits(username, true);
       }
 
       // User does not have a wiki account

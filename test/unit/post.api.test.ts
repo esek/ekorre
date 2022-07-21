@@ -55,8 +55,8 @@ afterEach(async () => {
   await api.clearHistoryForUser(dummyUser.username);
   await prisma.prismaPost.deleteMany({
     where: {
-      postname: np.name
-    }
+      postname: np.name,
+    },
   });
   await removeDummyUser();
 });
@@ -320,15 +320,6 @@ test('modyfing post without touching neither PostType nor spots', async () => {
 test('increasing spots with postType set to u', async () => {
   const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));
-
-  const localMp: ModifyPost = {
-    ...mp,
-    utskott: Utskott.Styrelsen,
-    spots: 2,
-    interviewRequired: true,
-    id: postId,
-  };
-
   // API should silently fix spots to 2
 
   const res = await api.getPost(postId);

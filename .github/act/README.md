@@ -1,0 +1,1 @@
+run `act -e ./github/act/pr.json` to simulate pull_request closing.

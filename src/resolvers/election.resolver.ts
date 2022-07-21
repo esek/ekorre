@@ -47,6 +47,7 @@ const electionResolver: Resolvers = {
       return reduce(n, nominationReduce);
     },
     myNominations: async (_, { electionId, answer }, ctx) => {
+      await hasAuthenticated(ctx);
       const n = await api.getAllNominationsForUser(
         electionId,
         ctx.getUsername(),
@@ -54,10 +55,12 @@ const electionResolver: Resolvers = {
       );
       return reduce(n, nominationReduce);
     },
-    numberOfNominations: async (_, { electionId, postId }) => {
+    numberOfNominations: async (_, { electionId, postId }, ctx) => {
+      await hasAuthenticated(ctx);
       return api.getNumberOfNominations(electionId, postId ?? undefined);
     },
-    numberOfProposals: async (_, { electionId, postId }) => {
+    numberOfProposals: async (_, { electionId, postId }, ctx) => {
+      await hasAuthenticated(ctx);
       return api.getNumberOfProposals(electionId, postId ?? undefined);
     },
   },
@@ -120,7 +123,6 @@ const electionResolver: Resolvers = {
       dataLoader: context.userDataLoader,
       key: model.creator.username,
     })),
-    createdAt: (model) => new Date(model.createdAt),
     openedAt: (model) => {
       if (model.openedAt != null) {
         return new Date(model.openedAt);

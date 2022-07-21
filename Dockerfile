@@ -6,6 +6,8 @@ ARG WORKING_DIR=/srv/app
 ## Build
 ##
 FROM node:${NODE_VERSION} as BUILD_IMAGE
+
+# Make arg available
 ARG WORKING_DIR
 
 # Create app directory
@@ -25,7 +27,7 @@ RUN npm run prisma:generate
 
 RUN npm run build
 
-RUN npm prune --production
+RUN npm prune --omit=dev
 
 ##
 ## Create runtime image
@@ -38,16 +40,16 @@ ENV NODE_ENV=production
 
 WORKDIR $WORKING_DIR
 
-COPY --from=BUILD_IMAGE $WORKING_DIR/. ./.
+# Best practices
+# https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md
+RUN apk add --no-cache tini bash
+ENTRYPOINT [ "/sbin/tini", "--" ]
 
-RUN apk update
-RUN apk add sqlite
-RUN chmod +x tools/initenv.sh
-RUN ./tools/initenv.sh
+RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh; chmod +x wait-for-it.sh
 
-LABEL project=$PROJECT
+COPY --from=BUILD_IMAGE $WORKING_DIR/. .
 
-EXPOSE 3001
+EXPOSE 3000
 
 # Run using tsconfig-paths to rewrite paths
 CMD ["node", "-r", "ts-node/register/transpile-only", "-r", "tsconfig-paths/register", "build/src/index.js"]

@@ -1,17 +1,15 @@
-import { PrismaIndividualAccess, PrismaPostAccess, PrismaResourceType } from '@prisma/client';
+import { Prisma, PrismaResourceType } from '@prisma/client';
 
-export const individualAccess: PrismaIndividualAccess[] = [
+export const individualAccess: Prisma.PrismaIndividualAccessUncheckedCreateInput[] = [
   {
-    id: 1,
     refUser: 'aa0000bb-s',
     resource: 'superadmin',
     resourceType: PrismaResourceType.feature,
   },
 ];
 
-export const postAccess: PrismaPostAccess[] = [
+export const postAccess: Prisma.PrismaPostAccessUncheckedCreateInput[] = [
   {
-    id: 1,
     refPost: 1,
     resource: 'superadmin',
     resourceType: PrismaResourceType.feature,

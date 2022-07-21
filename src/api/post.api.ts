@@ -1,11 +1,10 @@
 /* eslint-disable class-methods-use-this */
-import config from '@/config';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { StrictObject } from '@/models/base';
 import { devGuard, midnightTimestamp, stripObject } from '@/util';
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '@generated/graphql';
-import { PrismaPost, Prisma, PrismaPostHistory } from '@prisma/client';
+import { Prisma, PrismaPost, PrismaPostHistory } from '@prisma/client';
 
 import prisma from './prisma';
 

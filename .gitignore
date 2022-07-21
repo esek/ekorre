@@ -1,11 +1,11 @@
 node_modules
 build
 public
+public.local
 .env
 *.db
 *.swp
 *.swo
-public.local
 startup.tmp.log
 coverage
 __pycache__

@@ -6,16 +6,36 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@generated/*": ["./src/models/generated/*"],
-      "@db/*": ["./src/models/db/*"],
-      "@reducer/*": ["./src/reducers/*.reducer"],
-      "@api/*": ["./src/api/*.api"],
-      "@dataloader/*": ["./src/dataloaders/*.dataloader"],
-      "@route/*": ["./src/routes/*.routes"],
-      "@middleware/*": ["./src/middlewares/*.middleware"],
-      "@service/*": ["./src/services/*.service"],
-      "@test/*": ["./test/*"],
-      "@/*": ["./src/*"]
+      "@generated/*": [
+        "./src/models/generated/*"
+      ],
+      "@db/*": [
+        "./src/models/db/*"
+      ],
+      "@reducer/*": [
+        "./src/reducers/*.reducer"
+      ],
+      "@api/*": [
+        "./src/api/*.api"
+      ],
+      "@dataloader/*": [
+        "./src/dataloaders/*.dataloader"
+      ],
+      "@route/*": [
+        "./src/routes/*.routes"
+      ],
+      "@middleware/*": [
+        "./src/middlewares/*.middleware"
+      ],
+      "@service/*": [
+        "./src/services/*.service"
+      ],
+      "@test/*": [
+        "./test/*"
+      ],
+      "@/*": [
+        "./src/*"
+      ]
     },
     "esModuleInterop": true,
     "inlineSourceMap": true,
@@ -24,7 +44,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "lib": ["es2018", "esnext.asynciterable"]
+    "lib": [
+      "es2018",
+      "esnext.asynciterable"
+    ]
   },
   "exclude": [
     "node_modules",

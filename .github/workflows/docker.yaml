@@ -4,43 +4,151 @@ name: Docker Image CI
 
 # To use act:
 # Create a .secrets file and set all the needed variables
-# Multiline variables need to be set using adding -s KEY="$(<value.txt)""
-# And run the following command
-# sudo act
-# or
-# sudo act -s KEY="$(<value.txt)"
+# act -j <job>
+# act <event_name>
+# act -e .github/act/<event>.json // For additinal event params
+# act -P self-hosted=ghcr.io/catthehacker/ubuntu:act-latest  // To make it wokr with self hosted
 
 on:
   push:
     branches: [main]
   pull_request:
+    types: [opened, closed, reopened, synchronize]
   release:
     types: [released, prereleased]
 
 env:
   REGISTRY: registry.esek.se
-  PROD_URL: esek.se # Optional
-  # STAGING_URL: blabla.esek.se # Optional
   DEFAULT_BRANCH: main
-  # Settting args for the deploy applies to all environments.
-  # You can also set the following secret values:
-  # PROD_DEPLOY_ARGS, STAGING_DEPLOY_ARGS, TESTING_DEPLOY_ARGS, PR_DEPLOY_ARGS
-  DEPLOY_ARGS: ''
-  # Setting env vars can be done by setting
-  # PROD_ENV_VARS, STAGING_ENV_VARS, TESTING_ENV_VARS, PR_ENV_VARS
-  ONLY_PROD: true
-  SLUGIFY_FUNCTION: |
-    function slugify() {
-      iconv -t ascii//TRANSLIT \
-      | tr -d "'" \
-      | sed -E 's/[^a-zA-Z0-9]+/-/g' \
-      | sed -E 's/^-+|-+$//g' \
-      | tr "[:upper:]" "[:lower:]"
-    }
+  ONLY_PROD: false
 
 jobs:
+  # This can only contain env vars and not secrets since actions is a fussy about it
+  env-vars:
+    runs-on: self-hosted
+    container: ghcr.io/catthehacker/ubuntu:act-latest
+    steps:
+      - name: set variables
+        id: vars
+        run: |
+          slugify () {
+            iconv -t ascii//TRANSLIT \
+            | tr -d "'" \
+            | sed -E 's/[^a-zA-Z0-9]+/-/g' \
+            | sed -E 's/^-+|-+$//g' \
+            | tr "[:upper:]" "[:lower:]"
+          }
+
+          echo ${{ github.event }}
+
+          export BRANCH=
+          if [ -z $GITHUB_HEAD_REF ]; then
+            BRANCH=$(basename $GITHUB_REF)
+          else
+            BRANCH=$GITHUB_HEAD_REF
+          fi
+          echo "Running on $BRANCH"
+
+          export TAG=ephermal
+
+          if [ "$BRANCH" = "${{ env.DEFAULT_BRANCH }}" ]; then
+            TAG=latest
+          fi
+
+          if ${{ github.ref_type == 'tag' }}; then
+            TAG=$BRANCH
+            BRANCH=${{ env.DEFAULT_BRANCH }}
+          fi
+
+          TAG=$(echo "$TAG" | slugify)
+          export IMAGE_NAME="${{ env.REGISTRY }}/${{ github.repository }}:$TAG"
+
+          echo "::echo::on"
+          echo "::set-output name=image_name::$IMAGE_NAME"
+          echo "::set-output name=tag::$TAG"
+          echo "::set-output name=basename::$(basename ${{ github.repository }} | slugify)"
+          echo "::set-output name=branch::$( echo $BRANCH | slugify)"
+          echo "::echo::off"
+      - name: select environment
+        id: env
+        run: |
+          export ENV=testing
+          export DEPLOY_ENV=testing
+          export PROJ_BASE=${{ steps.vars.outputs.basename }}
+          export TAG=${{ steps.vars.outputs.tag }}
+          export BRANCH=${{ steps.vars.outputs.branch }}
+          export PROJECT_NAME=$PROJ_BASE-testing
+
+          if ${{ (github.event_name == 'release' && github.event.action == 'released') || env.ONLY_PROD == 'true' }}; then
+            ENV=production
+            DEPLOY_ENV=$ENV
+            PROJECT_NAME=$PROJ_BASE-production
+          fi
+          if ${{ github.event_name == 'release' && github.event.action == 'prereleased' }}; then
+            ENV=staging
+            DEPLOY_ENV=$ENV
+            PROJECT_NAME=$PROJ_BASE-staging
+          fi
+          if ${{ github.event_name == 'pull_request' }}; then
+            ENV=review
+            DEPLOY_ENV=$BRANCH-review
+            PROJECT_NAME=$PROJ_BASE-$BRANCH
+          fi
+
+          echo "::echo::on"
+          echo "::set-output name=env::$ENV"
+          echo "::set-output name=project_name::$PROJECT_NAME"
+          echo "::set-output name=deploy_env::$DEPLOY_ENV"
+          echo "::echo::off"
+    outputs:
+      image_name: ${{ steps.vars.outputs.image_name }}
+      tag: ${{ steps.vars.outputs.tag }}
+      basename: ${{ steps.vars.outputs.basename }}
+      branch: ${{ steps.vars.outputs.branch }}
+      env: ${{ steps.env.outputs.env }}
+      project_name: ${{ steps.env.outputs.project_name }}
+      deploy_env: ${{ steps.env.outputs.deploy_env }}
+  build:
+    runs-on: self-hosted
+    needs: env-vars
+    if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
+    container:
+      image: ghcr.io/catthehacker/ubuntu:act-latest
+    steps:
+      - name: import secrets
+        id: s
+        uses: hashicorp/vault-action@v2.4.1
+        with:
+          url: ${{ secrets.VAULT_URL }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          method: token
+          secrets: |
+            kv/data/common registry_username;
+            kv/data/common registry_password;
+      - name: setup buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          install: true
+      - name: checkout repo
+        uses: actions/checkout@v3
+      - name: login to registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ steps.s.outputs.registry_username }}
+          password: ${{ steps.s.outputs.registry_password }}
+      - name: build and push image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: ${{ needs.env-vars.outputs.image_name }}
+
+  # This should need build and use the image to test
   test:
     runs-on: self-hosted
+    # To run this locally using act set act to false in event.json
+    # Note act does not support services...
     if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
     services:
       postgres:
@@ -49,202 +157,148 @@ jobs:
          POSTGRES_USER: postgres
          POSTGRES_PASSWORD: password
          POSTGRES_DB: ekorre_foot
-        ports:
-          - 5432:5432
+    container: node:16-alpine
     steps:
-      - name: setup buildx
-        uses: docker/setup-buildx-action@v2
-        id: buildx
-        with:
-          install: true
-      - name: self hosted runner post job cleanup action
-        uses: TooMuch4U/actions-clean@v2.1
       - name: checkout repo
         uses: actions/checkout@v3
-      - name: install deps
-        run: npm ci
       - name: setup env
         run: |
-         mv .env.example.dev .env
-         mkdir public.local
-      - name: debug
-        run: cat .env
+         mv .env.example .env
+         sed -i 's/localhost/postgres/' .env
+      - name: install deps
+        run: npm ci
+      - name: lint
+        continue-on-error: true
+        run: npm run lint -- --output-file eslint_report.json --format json
+      - name: publish lint
+        if: ${{ !env.ACT }}
+        uses: ataylorme/eslint-annotate-action@v2
+        continue-on-error: true
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          only-pr-files: false
       - name: reset db
         run: npm run prisma:ci
       - name: run test
-        run: npm run test:prebuild
-  build:
-    runs-on: self-hosted
-    if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
-    steps:
-      - name: setup buildx
-        uses: docker/setup-buildx-action@v2
-        id: buildx
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
+      - name: find pr
+        continue-on-error: true
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        uses: jwalton/gh-find-current-pr@v1
+        id: findPr
+      - name: publish coverage
+        continue-on-error: true
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        uses: ArtiomTr/jest-coverage-report-action@v2.0.9
         with:
-          install: true
-      - name: self hosted runner post job cleanup action
-        uses: TooMuch4U/actions-clean@v2.1
-      - name: checkout repo
-        uses: actions/checkout@v3
-      - name: set variables
-        run: |
-          eval "$SLUGIFY_FUNCTION"
-
-          if [ -z $GITHUB_HEAD_REF ]; then
-            BRANCH=$(basename $GITHUB_REF)
-          else
-            BRANCH=$GITHUB_HEAD_REF
-          fi
-          echo "Running on $BRANCH"
-          TAG=$BRANCH
-          if [ "$BRANCH" = "${{ env.DEFAULT_BRANCH }}" ]; then
-            TAG=latest
-          fi
-
-          if ${{ github.ref_type == 'tag' }}; then
-            BRANCH=${{ env.DEFAULT_BRANCH }}
-            TAG=latest
-          fi
-
-          TAG=$(echo "$TAG" | slugify)
-          echo "TAG=$TAG" >> $GITHUB_ENV
-      - name: login to registry
-        uses: docker/login-action@v2
+          skip-step: all
+          coverage-file: report.json
+          base-coverage-file: report.json
+          prnumber: ${{ steps.findPr.outputs.number }}
+          annotations: failed-tests
+      - name: check changelog
+        uses: Zomzog/changelog-checker@v1.2.0
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        continue-on-error: true
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
-      - name: build and push image
-        uses: docker/build-push-action@v3
+          fileName: CHANGELOG.MD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: check package.json
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        uses: Zomzog/changelog-checker@v1.2.0
+        continue-on-error: true
         with:
-          context: .
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ env.TAG }}
+          fileName: package.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
     # To run this locally using act set act to false in event.json
     if: ${{ !github.event.act || !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
     runs-on: self-hosted
-    needs: build
+    needs: 
+      - env-vars
+      - build
     steps:
-      - name: self hosted runner post job cleanup action
-        uses: TooMuch4U/actions-clean@v2.1
-      - name: checkout repo
-        uses: actions/checkout@v3
+      - name: import secrets
+        id: s
+        uses: hashicorp/vault-action@v2.4.1
+        with:
+          url: ${{ secrets.VAULT_URL }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          method: token
+          exportEnv: true
+          secrets: |
+            kv/data/common registry_username;
+            kv/data/common registry_password;
+            kv/data/common docker_ca;
+            kv/data/common docker_cert;
+            kv/data/common docker_key;
+            kv/data/common docker_host;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_HOST;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DEPLOY_URL;
       - name: set variables
         run: |
-          eval "$SLUGIFY_FUNCTION"
+          echo "IMAGE_NAME=${{ needs.env-vars.outputs.image_name }}" >> $GITHUB_ENV
+          echo "TAG=${{ needs.env-vars.outputs.tag }}" >> $GITHUB_ENV
+          echo "DEPLOY_ENV=${{ needs.env-vars.outputs.deploy_env }}" >> $GITHUB_ENV
+          echo "ENV=${{ needs.env-vars.outputs.env }}" >> $GITHUB_ENV
+          echo "PROJECT_NAME=${{ needs.env-vars.outputs.project_name }}" >> $GITHUB_ENV
+          echo "COMPOSE_PROJECT_NAME=${{ needs.env-vars.outputs.project_name }}" >> $GITHUB_ENV
 
-          if [ -z $GITHUB_HEAD_REF ]; then
-            BRANCH=$(basename $GITHUB_REF)
-          else
-            BRANCH=$GITHUB_HEAD_REF
+          if [ ${{ needs.env-vars.outputs.env }} = 'review' ]; then
+            echo "DEPLOY_URL=${{ needs.env-vars.outputs.branch }}-${{ needs.env-vars.outputs.basename }}.review.esek.se" >> $GITHUB_ENV
           fi
-          echo "Running on $BRANCH"
-          TAG=$BRANCH
-          if [ "$BRANCH" = "${{ env.DEFAULT_BRANCH }}" ]; then
-            TAG=latest
-          fi
-
-          if ${{ github.ref_type == 'tag' }}; then
-            BRANCH=${{ env.DEFAULT_BRANCH }}
-            TAG=latest
-          fi
-
-          REPO_NAME=$(basename ${{ github.repository }})
-          CONTAINER_NAME=$REPO_NAME-${BRANCH/${{ env.DEFAULT_BRANCH }}/testing}
-
-          TAG=$(echo "$TAG" | slugify)
-          BRANCH_SLUG=$(echo "$BRANCH" | slugify)
-          REPO_NAME_SLUG=$(echo "$REPO_NAME" | slugify)
-          CONTAINER_NAME=$(echo "$CONTAINER_NAME" | slugify)
-
-          DEPLOY_URL=$REPO_NAME_SLUG.testing.esek.se
-          DEPLOY_ENV=${BRANCH_SLUG/${{ env.DEFAULT_BRANCH }}/testing}
-          DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.TESTING_DEPLOY_ARGS) }}"
-          echo '${{ secrets.TESTING_ENV_VARS }}' > .env
-
-          if ${{ (github.event_name == 'release' && github.event.action == 'released') || env.ONLY_PROD == 'true' }}; then
-            DEPLOY_ENV=production
-            CONTAINER_NAME=$REPO_NAME_SLUG
-            DEPLOY_URL=$REPO_NAME_SLUG.esek.se
-            if [ -n '${{ env.PROD_URL }}' ]; then
-              DEPLOY_URL=${{ env.PROD_URL }}
-            fi
-            DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.PROD_DEPLOY_ARGS) }}"
-            echo '${{ secrets.PROD_ENV_VARS }}' > .env
-          fi
-
-          if ${{ github.event_name == 'release' && github.event.action == 'prereleased' }}; then
-            DEPLOY_ENV=staging
-            CONTAINER_NAME=$REPO_NAME_SLUG-staging
-            DEPLOY_URL=$REPO_NAME_SLUG.staging.esek.se
-            if [ -n '${{ env.STAGING_URL }}' ]; then
-              DEPLOY_URL=${{ env.STAGING_URL }}
-            fi
-            DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.STAGING_DEPLOY_ARGS) }}"
-            echo '${{ secrets.STAGING_ENV_VARS }}' > .env
-          fi
-
-          if ${{ github.event_name == 'pull_request' }}; then
-            DEPLOY_ENV=review
-            CONTAINER_NAME=$CONTAINER_NAME-review
-            DEPLOY_URL=$REPO_NAME_SLUG-$BRANCH_SLUG.review.esek.se
-            DEPLOY_ARGS="${{ format('{0} {1}', env.DEPLOY_ARGS, secrets.PR_DEPLOY_ARGS) }}"
-            echo '${{ secrets.PR_ENV_VARS }}' > .env
-          fi
-
-          echo 'CI_REGISTRY_IMAGE=${{ env.REGISTRY }}/${{ github.repository }}' >> .env >> $GITHUB_ENV
-
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
-          echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ github.repository }}:$TAG" >> $GITHUB_ENV
-          echo "DEPLOY_URL=$DEPLOY_URL" >> $GITHUB_ENV
-          echo "DEPLOY_ENV=$DEPLOY_ENV" >> $GITHUB_ENV
-          echo "DEPLOY_ARGS=${DEPLOY_ARGS//$'\n'/ }" >> $GITHUB_ENV
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: start deployment
         uses: bobheadxi/deployments@v1
         id: deployment
-        if: ${{ !env.ACT && github.event_name != 'pull_request' }}
+        if: ${{ !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env != 'review' }}
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
           override: true
           env: ${{ env.DEPLOY_ENV }}
       - name: login to host
-        uses: nightstory/setup-docker-remote@v1
+        uses: blennster/setup-docker-remote-tls@v4
         with:
-          ssh_key: ${{ secrets.SSH_KEY }}
-          ssh_host_user: ${{ secrets.SSH_USER }}
-          ssh_host: ${{ secrets.SSH_HOST }}
+          tls_key: ${{ steps.s.outputs.docker_key }} 
+          tls_ca: ${{ steps.s.outputs.docker_ca }}
+          tls_cert: ${{ steps.s.outputs.docker_cert }}
+          tcp_host: ${{ steps.s.outputs.docker_host }}:2376
       - name: check connection
-        run: docker info
+        run: |
+          docker info
+          docker compose version
       - name: login to registry
         uses: docker/login-action@v2
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          username: ${{ steps.s.outputs.registry_username }}
+          password: ${{ steps.s.outputs.registry_password }}
       - name: pull image
-        run: docker pull $IMAGE_NAME
+        run: echo $IMAGE_NAME; docker pull $IMAGE_NAME
       - name: Stop old container
         run: |
-          docker stop $CONTAINER_NAME 2> /dev/null || true
-          docker rm --force $CONTAINER_NAME 2> /dev/null || true
+          docker compose -f docker-compose.ci.yml -p $PROJECT_NAME down
       - name: deploy to host
-        run: >
-          docker run
-          --name $CONTAINER_NAME
-          --label "traefik.http.routers.$CONTAINER_NAME.rule=Host(\`$DEPLOY_URL\`)"
-          --network=traefik
-          --env-file .env
-          ${{ env.DEPLOY_ARGS }}
-          -d $IMAGE_NAME
+        shell: bash
+        run: |
+          if [[ "$ENV" = "production" || "$ENV" = "staging" ]]; then
+            docker compose -f docker-compose.ci.yml -f docker-compose.prod.yml -p $PROJECT_NAME up -d --force-recreate ${{ needs.env-vars.outputs.basename }}
+          fi
+          if [[ "$ENV" = "review" || "$ENV" = "testing" ]]; then
+            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME up -d --force-recreate
+            docker compose -f docker-compose.ci.yml -p $PROJECT_NAME exec ekorre sh -c './wait-for-it.sh postgres:5432; npm run prisma:ci' 
+          fi
       - name: prune system
         run: docker system prune -f 2> /dev/null || true
       - name: update deployment status
         uses: bobheadxi/deployments@v1
-        if: ${{ always() && !env.ACT && github.event_name != 'pull_request' }}
+        if: ${{ always() && !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env != 'review' }}
         with:
           step: finish
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -262,38 +316,37 @@ jobs:
   teardown:
     runs-on: self-hosted
     if: ${{ github.event_name == 'pull_request' && github.event.action == 'closed' }}
+    needs: env-vars
     steps:
-      - name: self hosted runner post job cleanup action
-        uses: TooMuch4U/actions-clean@v2.1
-      - name: setup variables
-        run: |
-          eval "$SLUGIFY_FUNCTION"
-
-          if [ -z $GITHUB_HEAD_REF ]; then
-            BRANCH=$(basename ${GITHUB_REF})
-          else
-            BRANCH=$GITHUB_HEAD_REF
-          fi
-
-          echo "Running on $BRANCH"
-          REPO_NAME=$(basename ${{ github.repository }})
-
-          CONTAINER_NAME=$( echo "$REPO_NAME-$BRANCH-review" | slugify )
-          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
-      - name: login to host
-        uses: nightstory/setup-docker-remote@v1
+      - name: import secrets
+        id: s
+        uses: hashicorp/vault-action@v2.4.1
         with:
-          ssh_key: ${{ secrets.SSH_KEY }}
-          ssh_host_user: ${{ secrets.SSH_USER }}
-          ssh_host: ${{ secrets.SSH_HOST }}
+          url: ${{ secrets.VAULT_URL }}
+          token: ${{ secrets.VAULT_TOKEN }}
+          method: token
+          exportEnv: true
+          secrets: |
+            kv/data/common docker_ca;
+            kv/data/common docker_cert;
+            kv/data/common docker_key;
+            kv/data/common docker_host;
+      - name: login to host
+        uses: blennster/setup-docker-remote-tls@v4
+        with:
+          tls_key: ${{ steps.s.outputs.docker_key }} 
+          tls_ca: ${{ steps.s.outputs.docker_ca }}
+          tls_cert: ${{ steps.s.outputs.docker_cert }}
+          tcp_host: ${{ steps.s.outputs.docker_host }}:2376
       - name: check connection
-        run: docker info
+        run: |
+          docker info
+          docker compose version
+      - name: checkout repo
+        uses: actions/checkout@v3
       - name: stop container
         run: |
-          docker stop $CONTAINER_NAME 2> /dev/null || true
-          docker rm --force $CONTAINER_NAME 2> /dev/null || true
-      - name: prune system
-        run: docker image prune -f 2> /dev/null || true
+          docker compose -f docker-compose.ci.yml -p ${{ needs.env-vars.outputs.project_name }} down 2> /dev/null || true
       - if: ${{ !env.ACT }}
         name: comment deployment url to pr
         uses: mshick/add-pr-comment@v1

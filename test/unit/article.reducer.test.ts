@@ -1,9 +1,9 @@
 /* eslint-disable no-multi-str */
 import { ArticleResponse } from '@/models/mappers';
 import { PrismaExtendedArticle } from '@/models/prisma';
+import { parseSlug } from '@/util';
 import { ArticleType } from '@generated/graphql';
 import { articleReducer } from '@reducer/article';
-import { parseSlug } from '@/util';
 
 const USERNAME = 'aa0000bb-s';
 const BODY = 'This is a test body';
@@ -48,9 +48,12 @@ const dummy: PrismaExtendedArticle = {
   ],
 };
 
-
 test('slug parsing', () => {
-  expect(parseSlug(expected.slug!)).toBe(expected.id);
+  if (!expected.slug) {
+    throw new Error('expected.slug is undefined');
+  }
+
+  expect(parseSlug(expected.slug)).toBe(expected.id);
 });
 
 test('slug generation', () => {

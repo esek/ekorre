@@ -1,5 +1,4 @@
 import { PostAPI } from '@/api/post.api';
-import config from '@/config';
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { AccessEntry } from '@/models/access';
@@ -251,7 +250,7 @@ export class AccessAPI {
     await prisma.prismaIndividualAccess.deleteMany({
       where: {
         refUser: username,
-      }
+      },
     });
   }
 
@@ -265,7 +264,7 @@ export class AccessAPI {
     await prisma.prismaPostAccess.deleteMany({
       where: {
         refPost: postId,
-      }
+      },
     });
   }
 
@@ -279,7 +278,7 @@ export class AccessAPI {
     await prisma.prismaApiKeyAccess.deleteMany({
       where: {
         refApiKey: key,
-      }
+      },
     });
   }
 }

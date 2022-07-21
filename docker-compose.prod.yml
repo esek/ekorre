@@ -1,0 +1,12 @@
+# Needs docker v2 since COMPOSE_PROJECT_NAME is not available in v1
+version: '3.9'
+
+services:
+  ekorre:
+    extends:
+      file: docker-compose.ci.yml
+      service: ekorre
+    environment:
+      DB_HOST: $DB_HOST
+    volumes:
+      - /mnt/storage/ekorre_public/${ENV}:public
