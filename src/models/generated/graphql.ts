@@ -12,8 +12,8 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  Date: string;
-  DateTime: string;
+  Date: Date;
+  DateTime: Date;
   Object: Record<string, string>;
 };
 

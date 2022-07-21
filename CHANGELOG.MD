@@ -9,6 +9,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - Uppdaterat/lagt till auth-check på flera platser(!) i resolvers
+
 ## [0.15.0] - 2022-07-21
 
 ### Ändrat
