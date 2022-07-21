@@ -105,13 +105,13 @@ export class UserAPI {
           },
           {
             firstName: {
-              contains: formattedSearchString,
+              search: formattedSearchString,
               mode: 'insensitive',
             },
           },
           {
             lastName: {
-              contains: formattedSearchString,
+              search: formattedSearchString,
               mode: 'insensitive',
             },
           },
