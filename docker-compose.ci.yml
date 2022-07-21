@@ -16,7 +16,7 @@ services:
       - default # to join compose network
     labels:
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ekorre.rule=Host(`$DEPLOY_URL`)"
-      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}.middlewares=cors@file"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ekorre.middlewares=cors@file"
 
   postgres:
     image: postgres:alpine
