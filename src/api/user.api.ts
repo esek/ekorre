@@ -92,43 +92,66 @@ export class UserAPI {
    */
   async searchUser(search: string): Promise<PrismaUser[]> {
     if (search.length === 0) {
-      throw new BadRequestError('Searches must contain at least one symbol');
+      throw new BadRequestError('Search must contain at least one symbol');
     }
+    const searchArray = search.split(/\s+/g);
 
-    const searchOr = search.replace(/\s+/g, ' | ');
     
-    // Easier to just make to concurrent searches than to fight with prisma
+    // We do the following since 'Emil Eriksson' will only hit
+    // (firstName: 'Emil' || 'Eriksson') && (lastName: 'Emil' | 'Eriksson')
+    // (which is good since we don't know which part in searchArray is what),
+    // but this will also hit any person having 'em' or 'er' in their STiL-id!
+    // So we isolate anything looking like a username to a search on username,
+    // and everything looking like a name in one search
+    const probableUsernames: string[] = [];
+    const probableNames: string[] = [];
+    searchArray.forEach((s) => {
+      // Find everything that might be a username, looking for digits
+      // and -
+      if (s.match(/[-0-9]+/g) != null) {
+        probableUsernames.push(s);
+      } else {
+        probableNames.push(s);
+      }
+    });
+
+    // Build or OR
     const promises: Promise<PrismaUser[]>[] = [];
 
-    const usernameQuery = prisma.prismaUser.findMany({
+    if (probableUsernames.length > 0) {
+      const usernameQuery = prisma.prismaUser.findMany({
         where: {
           username: {
-            search: searchOr,
+            search: probableUsernames.join(' | '),
             mode: 'insensitive',
           },
         },
       });
-    promises.push(usernameQuery);
+      promises.push(usernameQuery);
+    }
 
-    const nameQuery = prisma.prismaUser.findMany({
-      where: {
-        AND: [
-          {
-            firstName: {
-              search: searchOr,
-              mode: 'insensitive',
+    if (probableNames.length > 0) {
+      const nameSearch = probableNames.join(' | ');
+      const nameQuery = prisma.prismaUser.findMany({
+        where: {
+          AND: [
+            {
+              firstName: {
+                search: nameSearch,
+                mode: 'insensitive',
+              },
             },
-          },
-          {
-            lastName: {
-              search: searchOr,
-              mode: 'insensitive',
+            {
+              lastName: {
+                search: nameSearch,
+                mode: 'insensitive',
+              },
             },
-          },
-        ],
-      },
-    });
-    promises.push(nameQuery);
+          ],
+        },
+      });
+      promises.push(nameQuery);
+    }
     
     const users = (await Promise.all(promises)).flat();
 
