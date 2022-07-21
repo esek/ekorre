@@ -180,16 +180,16 @@ jobs:
       - name: reset db
         run: npm run prisma:ci
       - name: run test
-        continue-on-error: true
+        continue-on-error: ${{ github.event_name == 'pull_request' }}
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
         continue-on-error: true
-        if: ${{ !env.ACT }}
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
         uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
         continue-on-error: true
-        if: ${{ !env.ACT }}
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
         uses: ArtiomTr/jest-coverage-report-action@v2.0.9
         with:
           skip-step: all
@@ -199,14 +199,14 @@ jobs:
           annotations: failed-tests
       - name: check changelog
         uses: Zomzog/changelog-checker@v1.2.0
-        if: ${{ !env.ACT }}
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
         continue-on-error: true
         with:
           fileName: CHANGELOG.MD
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: check package.json
-        if: ${{ !env.ACT }}
+        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
         uses: Zomzog/changelog-checker@v1.2.0
         continue-on-error: true
         with:
