@@ -1,7 +1,8 @@
 /* eslint-disable class-methods-use-this */
 import { Logger } from '@/logger';
+import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
-import { PrismaPasswordReset, PrismaUser } from '@prisma/client';
+import { Prisma, PrismaPasswordReset, PrismaUser } from '@prisma/client';
 import crypto from 'crypto';
 
 import {
@@ -84,30 +85,35 @@ export class UserAPI {
     return u;
   }
 
+  /**
+   * Returns all users matching a search, where a match is any `User` where
+   * their first name, last name, or username, contains the passed string. Is case _insensitive_
+   * @param search An (optionally) space-separated string containing first name, last name, or username, or a combination
+   * @returns A list of users matching the search
+   */
   async searchUser(search: string): Promise<PrismaUser[]> {
-    const users = await prisma.prismaUser.findMany({
-      where: {
-        OR: [
-          {
-            username: {
-              contains: search,
-            },
-          },
-          {
-            firstName: {
-              contains: search,
-            },
-          },
-          {
-            lastName: {
-              contains: search,
-            },
-          },
-        ],
-      },
-    });
-
-    return users;
+    if (search.length === 0) {
+      throw new BadRequestError('Search must contain at least one symbol');
+    }
+    
+    // We do a search by using $queryRaw's power to escape search terms, and
+    // concat a lowercase version of the database first name, last name, and username,
+    // and then want everything that fits for all parts of the search to some part
+    // (% around strings are for `LIKE`)
+    const searchArray = search.toLowerCase().split(/\s+/g).map((s) => `%${s}%`);
+    const users = await prisma.$queryRaw`
+      SELECT username, password_hash AS "passwordHash", password_salt AS "passwordSalt",
+      first_name AS "firstName", last_name AS "lastName", class, photo_url AS "photoUrl",
+      email, phone, address, zip_code AS "zipCode", website, date_joined AS "dateJoined"
+      FROM users
+      WHERE lower(concat(first_name, last_name, username))
+      LIKE ${
+        Prisma.join(searchArray,
+        ' AND lower(concat(first_name, last_name, username)) LIKE ')
+      }
+    `;
+    
+    return users as PrismaUser[];
   }
 
   async getNumberOfMembers(): Promise<number> {
@@ -340,4 +346,78 @@ export class UserAPI {
 
     return res != null && res1 != null;
   }
+
+  linkLoginProvider = async (
+    username: string,
+    provider: LoginProvider,
+    token: string,
+    email?: string,
+  ) => {
+    const created = await prisma.prismaLoginProvider.create({
+      data: {
+        provider,
+        token,
+        email,
+        refUser: username,
+      },
+    });
+    return created;
+  };
+
+  unlinkLoginProvider = async (id: number, username: string): Promise<boolean> => {
+    const res = await prisma.prismaLoginProvider.deleteMany({
+      where: {
+        id: id,
+        refUser: username,
+      },
+    });
+
+    return res.count > 0;
+  };
+
+  getUserFromProvider = async (token: string, provider: string, email?: string) => {
+    const AND: Prisma.Enumerable<Prisma.PrismaLoginProviderWhereInput> = [
+      {
+        token,
+      },
+      {
+        provider,
+      },
+    ];
+
+    if (email) {
+      AND.push({
+        email,
+      });
+    }
+
+    const response = await prisma.prismaLoginProvider.findFirst({
+      where: {
+        AND,
+      },
+      select: {
+        user: true,
+      },
+    });
+
+    if (!response) {
+      throw new NotFoundError('Denna användaren finns inte');
+    }
+
+    return response.user;
+  };
+
+  getLoginProviders = async (username: string, provider?: string) => {
+    const where: Record<string, string> = { refUser: username };
+
+    if (provider) {
+      where.provider = provider;
+    }
+
+    const providers = await prisma.prismaLoginProvider.findMany({
+      where,
+    });
+
+    return providers;
+  };
 }

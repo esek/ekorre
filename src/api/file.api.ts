@@ -198,6 +198,7 @@ class FileAPI {
           {
             name: {
               search,
+              mode: 'insensitive',
             },
           },
           {

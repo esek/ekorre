@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "0.15.1",
+  "version": "0.15.2",
   "description": "E-Sektionens backend",
   "main": "src/index.ts",
   "scripts": {
@@ -38,8 +38,8 @@
   "prisma": {
     "seed": "ts-node prisma/data/seed.ts"
   },
-  "dependencies": {    
-    "@esek/auth-server": "^0.0.7",
+  "dependencies": {
+    "@esek/auth-server": "^1.0.9",
     "@graphql-tools/graphql-file-loader": "^7.3.3",
     "@graphql-tools/load": "^7.5.1",
     "@graphql-tools/schema": "^8.3.1",

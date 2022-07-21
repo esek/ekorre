@@ -10,6 +10,7 @@ const run = async () => {
   await Promise.all([
     prisma.prismaUser.createMany({ data: users, skipDuplicates: true }),
     prisma.prismaPost.createMany({ data: posts, skipDuplicates: true }),
+    prisma.prismaApiKey.createMany({ data: apiKeys, skipDuplicates: true }),
   ]);
 
   await prisma.prismaApiKey.createMany({ data: apiKeys, skipDuplicates: true });

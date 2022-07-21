@@ -9,12 +9,14 @@ services:
   ekorre:
     image: $IMAGE_NAME
     environment:
-      DB_HOST: postgres://postgres:example@postgres:5432/ekorre_ci
+      - DB_HOST=postgres://postgres:example@postgres:5432/ekorre_ci
+      - NODE_ENV=development
     networks:
       - traefik
       - default # to join compose network
     labels:
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ekorre.rule=Host(`$DEPLOY_URL`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ekorre.middlewares=cors@file"
 
   postgres:
     image: postgres:alpine
