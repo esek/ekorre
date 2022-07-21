@@ -88,7 +88,7 @@ const articleResolver: Resolvers = {
       // Vi får tillbaka en DatabaseArticle som inte har en hel användare, bara unikt användarnamn.
       // Vi måste använda UserAPI:n för att få fram denna användare.
       const apiResponse = await articleApi.getArticle(id ?? undefined, slug ?? undefined);
-      
+
       // Vi vill bara returnera til vem som om denna är information
       if (apiResponse.articleType !== ArticleType.Information) {
         await hasAuthenticated(ctx);
@@ -98,20 +98,15 @@ const articleResolver: Resolvers = {
     },
     articles: async (_, { author, id, type, tags }, ctx) => {
       const apiResponse = await articleApi.getArticles(author, id, type, tags);
-      
-      // Same as above
-      // We want to break as fast as we have authenticated once, but
-      // we only want to authenticate if we have more than zero
-      // non-information articles
-      // eslint-disable-next-line no-restricted-syntax
-      for (const a of apiResponse) {
-        if (a.articleType !== ArticleType.Information) {
-          // eslint-disable-next-line no-await-in-loop
-          await hasAuthenticated(ctx);
-          break; // If it does not fail it's ok
-        }
-      }
 
+      // We only want to authenticate if we have more than zero
+      // non-information articles
+      const firstNonInformationArticle = apiResponse.find(
+        (a) => a.articleType !== ArticleType.Information,
+      );
+      if (firstNonInformationArticle != null) {
+        await hasAuthenticated(ctx);
+      }
       return reduce(apiResponse, articleReducer);
     },
   },
