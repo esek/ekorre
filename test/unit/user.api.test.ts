@@ -177,7 +177,7 @@ test('search for users by username that exists', async () => {
 
   expect((await api.searchUser('nouserhasthis'))).toHaveLength(0);
   expect((await api.searchUser(mockNewUser0.username))).toHaveLength(1);
-  expect((await api.searchUser(`${mockNewUser0.username} nouserhasthis`))).toHaveLength(1);
+  expect((await api.searchUser(`${mockNewUser0.username} nouserhasthis`))).toHaveLength(0);
   expect((await api.searchUser(mockNewUser0.username.toUpperCase()))).toHaveLength(1);
 
   expect((await api.searchUser(sharedUsername.substring(0, 2))).length).not.toBeLessThan(2); // We can have more matches from other tests
