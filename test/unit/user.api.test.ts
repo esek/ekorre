@@ -1,6 +1,7 @@
 import { UserAPI } from '@/api/user.api';
 import { BadRequestError, NotFoundError, UnauthenticatedError } from '@/errors/request.errors';
-import { NewUser } from '@generated/graphql';
+import type { LoginProvider as LoginProviderType } from '@esek/auth-server';
+import { LoginProvider, NewUser } from '@generated/graphql';
 import { PrismaUser } from '@prisma/client';
 import { getRandomUsername } from '@test/utils/utils';
 
@@ -285,7 +286,64 @@ test('reset password properly', async () => {
 test('getting number of members', async () => {
   // Svårtestat då users skrivs och tas bort från DB konstant under tester
   const numberOfMembers = await api.getNumberOfMembers();
-  
+
   // Det borde iaf vara större eller lika med antalet seeded users
   expect(numberOfMembers).toBeGreaterThanOrEqual(3);
+});
+
+describe('login providers', () => {
+  beforeAll(async () => {
+    await api.createUser(mockNewUser1);
+  });
+
+  const testProvider1: Omit<LoginProvider, 'id'> = {
+    provider: 'google',
+    token: 'username',
+    email: 'email@example.com',
+  };
+
+  const testProvider2: Omit<LoginProvider, 'id'> = {
+    provider: 'facebook',
+    token: 'zuckyzucky9000',
+    email: 'email@me.com',
+  };
+
+  it('can link and unlink a new provider', async () => {
+    const provider = await api.linkLoginProvider(
+      mockNewUser1.username,
+      testProvider1.provider as LoginProviderType,
+      testProvider1.token,
+      testProvider1.email ?? undefined,
+    );
+
+    expect(provider).not.toBeNull();
+
+    const providers = await api.getLoginProviders(mockNewUser1.username);
+    expect(providers).toHaveLength(1);
+
+    await expect(api.unlinkLoginProvider(provider.id, mockNewUser1.username)).resolves.toBeTruthy();
+  });
+
+  it('can get a user from the provider', async () => {
+    const provider = await api.linkLoginProvider(
+      mockNewUser0.username,
+      testProvider2.provider as LoginProviderType,
+      testProvider2.token,
+      testProvider2.email ?? undefined,
+    );
+
+    expect(provider).not.toBeNull();
+
+    const user = await api.getUserFromProvider(
+      provider.token,
+      provider.provider,
+      provider.email ?? undefined,
+    );
+
+    expect(user).not.toBeNull();
+
+    await expect(
+      api.getUserFromProvider('not a token', 'not a provider', 'not an email'),
+    ).rejects.toThrow();
+  });
 });

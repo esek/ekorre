@@ -1,5 +1,6 @@
 # import Post, UserPostHistoryEntry from 'post.graphql'
 # import Access from 'access.graphql'
+# import LoginProvider from 'auth.graphql'
 
 scalar Date
 
@@ -45,6 +46,7 @@ type User {
   """
   userPostHistory: [UserPostHistoryEntry]!
   wikiEdits: Int!
+  loginProviders: [LoginProvider]!
 }
 
 input NewUser {

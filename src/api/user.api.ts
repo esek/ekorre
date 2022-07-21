@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { Logger } from '@/logger';
+import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
 import { Prisma, PrismaPasswordReset, PrismaUser } from '@prisma/client';
 import crypto from 'crypto';
@@ -345,4 +346,78 @@ export class UserAPI {
 
     return res != null && res1 != null;
   }
+
+  linkLoginProvider = async (
+    username: string,
+    provider: LoginProvider,
+    token: string,
+    email?: string,
+  ) => {
+    const created = await prisma.prismaLoginProvider.create({
+      data: {
+        provider,
+        token,
+        email,
+        refUser: username,
+      },
+    });
+    return created;
+  };
+
+  unlinkLoginProvider = async (id: number, username: string): Promise<boolean> => {
+    const res = await prisma.prismaLoginProvider.deleteMany({
+      where: {
+        id: id,
+        refUser: username,
+      },
+    });
+
+    return res.count > 0;
+  };
+
+  getUserFromProvider = async (token: string, provider: string, email?: string) => {
+    const AND: Prisma.Enumerable<Prisma.PrismaLoginProviderWhereInput> = [
+      {
+        token,
+      },
+      {
+        provider,
+      },
+    ];
+
+    if (email) {
+      AND.push({
+        email,
+      });
+    }
+
+    const response = await prisma.prismaLoginProvider.findFirst({
+      where: {
+        AND,
+      },
+      select: {
+        user: true,
+      },
+    });
+
+    if (!response) {
+      throw new NotFoundError('Denna användaren finns inte');
+    }
+
+    return response.user;
+  };
+
+  getLoginProviders = async (username: string, provider?: string) => {
+    const where: Record<string, string> = { refUser: username };
+
+    if (provider) {
+      where.provider = provider;
+    }
+
+    const providers = await prisma.prismaLoginProvider.findMany({
+      where,
+    });
+
+    return providers;
+  };
 }
