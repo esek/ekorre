@@ -359,6 +359,17 @@ export class UserAPI {
     return created;
   };
 
+  unlinkLoginProvider = async (id: number, username: string): Promise<boolean> => {
+    const res = await prisma.prismaLoginProvider.deleteMany({
+      where: {
+        id: id,
+        refUser: username,
+      },
+    });
+
+    return res.count > 0;
+  };
+
   getUserFromProvider = async (token: string, provider: string, email?: string) => {
     const AND: Prisma.Enumerable<Prisma.PrismaLoginProviderWhereInput> = [
       {

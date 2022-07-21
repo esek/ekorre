@@ -6,7 +6,6 @@ import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
-import { userApi } from '@dataloader/user';
 import { LoginProvider } from '@esek/auth-server';
 import { Feature, Resolvers, User } from '@generated/graphql';
 import { apiKeyReducer } from '@reducer/apikey';
@@ -96,7 +95,7 @@ const authResolver: Resolvers = {
     providerLogin: async (_, { input }) => {
       const { provider, token, email } = input;
 
-      const user = await userApi.getUserFromProvider(token, provider, email ?? undefined);
+      const user = await api.getUserFromProvider(token, provider, email ?? undefined);
       const accessToken = TokenProvider.issueToken(user.username, 'access_token');
       const refreshToken = TokenProvider.issueToken(user.username, 'refresh_token');
 
@@ -114,7 +113,7 @@ const authResolver: Resolvers = {
         throw new BadRequestError('Denna providern finns inte');
       }
 
-      const provider = userApi.linkLoginProvider(
+      const provider = api.linkLoginProvider(
         username,
         input.provider as LoginProvider,
         input.token,
@@ -122,6 +121,10 @@ const authResolver: Resolvers = {
       );
 
       return provider;
+    },
+    unlinkLoginProvider: async (_, { id }, { getUsername }) => {
+      const success = await api.unlinkLoginProvider(id, getUsername());
+      return success;
     },
     casLogin: async (_, { token }, { request }) => {
       const { referer } = request.headers;

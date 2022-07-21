@@ -283,7 +283,7 @@ model PrismaLoginProvider {
   provider String
   token    String
   email    String?
-  user     PrismaUser @relation(name: "PrismaUserToPrismaLoginProvider", fields: [refUser], references: [username])
+  user     PrismaUser @relation(name: "PrismaUserToPrismaLoginProvider", fields: [refUser], references: [username], onDelete: Cascade)
   refUser  String     @map("ref_user")
 
   @@map("login_providers")
