@@ -256,7 +256,7 @@ jobs:
       - name: start deployment
         uses: bobheadxi/deployments@v1
         id: deployment
-        if: ${{ !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env == 'review' }}
+        if: ${{ !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env != 'review' }}
         with:
           step: start
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -288,7 +288,7 @@ jobs:
         shell: bash
         run: |
           if [[ "$ENV" = "production" || "$ENV" = "staging" ]]; then
-            docker compose -f docker-compose.ci.yml -f docker-compose.prod.yml -p $PROJECT_NAME up -d --force-recreate ekorre
+            docker compose -f docker-compose.ci.yml -f docker-compose.prod.yml -p $PROJECT_NAME up -d --force-recreate ${{ needs.env-vars.outputs.basename }}
           fi
           if [[ "$ENV" = "review" || "$ENV" = "testing" ]]; then
             docker compose -f docker-compose.ci.yml -p $PROJECT_NAME up -d --force-recreate
@@ -298,7 +298,7 @@ jobs:
         run: docker system prune -f 2> /dev/null || true
       - name: update deployment status
         uses: bobheadxi/deployments@v1
-        if: ${{ always() && !env.ACT && github.event_name != 'pull_request' }}
+        if: ${{ !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env != 'review' }}
         with:
           step: finish
           token: ${{ secrets.GITHUB_TOKEN }}
