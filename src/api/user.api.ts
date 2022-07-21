@@ -91,13 +91,11 @@ export class UserAPI {
    * @returns A list of users matching the search
    */
   async searchUser(search: string): Promise<PrismaUser[]> {
-    const searchArray = search.split(/\s+/g);
-    
-    if (searchArray.length === 0) {
+    if (search.length === 0) {
       throw new BadRequestError('Searches must contain at least one symbol');
     }
 
-    const searchOr = searchArray.join(' | ');
+    const searchOr = search.replace(/\s+/g, ' | ');
     
     // Easier to just make to concurrent searches than to fight with prisma
     const promises: Promise<PrismaUser[]>[] = [];
