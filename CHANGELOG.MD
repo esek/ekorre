@@ -4,6 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.15.1] - 2022-07-20
+
+### Ändrat
+- Uppdaterat/lagt till auth-check på flera platser(!) i resolvers
+
 ## [0.15.0] - 2022-07-21
 
 ### Ändrat

@@ -75,4 +75,5 @@ enum Feature {
     news_editor,
     post_admin,
     user_admin,
+    email_admin
 }
