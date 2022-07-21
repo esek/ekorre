@@ -1,7 +1,8 @@
 /* eslint-disable class-methods-use-this */
 import { Logger } from '@/logger';
+import { user } from '@/resolvers';
 import type { NewUser } from '@generated/graphql';
-import { PrismaPasswordReset, PrismaUser } from '@prisma/client';
+import { Prisma, PrismaPasswordReset, PrismaUser } from '@prisma/client';
 import crypto from 'crypto';
 
 import {
@@ -94,67 +95,27 @@ export class UserAPI {
     if (search.length === 0) {
       throw new BadRequestError('Search must contain at least one symbol');
     }
-    const searchArray = search.split(/\s+/g);
-
-    // We do the following since 'Emil Eriksson' will only hit
-    // (firstName: 'Emil' || 'Eriksson') && (lastName: 'Emil' | 'Eriksson')
-    // (which is good since we don't know which part in searchArray is what),
-    // but this will also hit any person having 'em' or 'er' in their STiL-id!
-    // So we isolate anything looking like a username to a search on username,
-    // and everything looking like a name in one search
-    const probableUsernames: string[] = [];
-    const probableNames: string[] = [];
-    searchArray.forEach((s) => {
-      // Find everything that might be a username, looking for digits
-      // and -
-      if (s.match(/[-0-9]+/g) != null) {
-        probableUsernames.push(s);
-      } else {
-        probableNames.push(s);
+    
+    // We do a search by using $queryRaw's power to escape search terms, and
+    // concat a lowercase version of the database first name, last name, and username,
+    // and then want everything that fits for all parts of the search to some part
+    // (% around strings are for `LIKE`)
+    const searchArray = search.toLowerCase().split(/\s+/g).map((s) => `%${s}%`);
+    const users = await prisma.$queryRaw`
+      SELECT username, password_hash AS "passwordHash", password_salt AS "passwordSalt",
+      first_name AS "firstName", last_name AS "lastName", class, photo_url AS "photoUrl",
+      email, phone, address, zip_code AS "zipCode", website, date_joined AS "dateJoined"
+      FROM users
+      WHERE lower(concat(first_name, last_name, username))
+      LIKE ${
+        Prisma.join(searchArray,
+        ' AND lower(concat(first_name, last_name, username)) LIKE ')
       }
-    });
+    `;
+    
+    logger.log(users);
 
-    // Build or OR
-    const promises: Promise<PrismaUser[]>[] = [];
-
-    if (probableUsernames.length > 0) {
-      const usernameQuery = prisma.prismaUser.findMany({
-        where: {
-          username: {
-            search: probableUsernames.join(' | '),
-            mode: 'insensitive',
-          },
-        },
-      });
-      promises.push(usernameQuery);
-    }
-
-    if (probableNames.length > 0) {
-      const nameSearch = probableNames.join(' | ');
-      const nameQuery = prisma.prismaUser.findMany({
-        where: {
-          AND: [
-            {
-              firstName: {
-                search: nameSearch,
-                mode: 'insensitive',
-              },
-            },
-            {
-              lastName: {
-                search: nameSearch,
-                mode: 'insensitive',
-              },
-            },
-          ],
-        },
-      });
-      promises.push(nameQuery);
-    }
-
-    const users = (await Promise.all(promises)).flat();
-
-    return users;
+    return users as PrismaUser[];
   }
 
   async getNumberOfMembers(): Promise<number> {
