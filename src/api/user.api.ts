@@ -113,8 +113,6 @@ export class UserAPI {
       }
     `;
     
-    logger.log(users);
-
     return users as PrismaUser[];
   }
 
