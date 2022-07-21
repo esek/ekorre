@@ -298,7 +298,7 @@ jobs:
         run: docker system prune -f 2> /dev/null || true
       - name: update deployment status
         uses: bobheadxi/deployments@v1
-        if: ${{ !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env != 'review' }}
+        if: ${{ always() && !env.ACT && github.event_name != 'pull_request' && needs.env-vars.outputs.env != 'review' }}
         with:
           step: finish
           token: ${{ secrets.GITHUB_TOKEN }}
