@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import TokenProvider from '@/auth';
+import TokenProvider, { getBearerToken } from '@/auth';
 import { UnauthenticatedError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { AccessAPI } from '@api/access';
@@ -31,12 +31,7 @@ export type RequestHandlerWithLocals = RequestHandler<
 >;
 
 export const setUser: RequestHandlerWithLocals = (req, res, next) => {
-  let token = req.headers.authorization ?? req.query?.token?.toString() ?? '';
-
-  // Remove `Bearer ` from token string
-  if (token.includes('Bearer')) {
-    token = token.replace('Bearer ', '');
-  }
+  const token = getBearerToken(req);
 
   res.locals.getUser = async () => {
     const { username } = TokenProvider.verifyToken(token, 'access_token');

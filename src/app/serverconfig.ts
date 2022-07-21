@@ -1,4 +1,4 @@
-import TokenProvider from '@/auth';
+import TokenProvider, { getBearerToken } from '@/auth';
 import config from '@/config';
 import { createDataLoader } from '@/dataloaders';
 import { BadRequestError, UnauthenticatedError } from '@/errors/request.errors';
@@ -11,7 +11,6 @@ import { batchElectionsFunction } from '@dataloader/election';
 import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
 import { batchUsersFunction } from '@dataloader/user';
-import { Cookies } from '@esek/auth-server';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { makeExecutableSchema } from '@graphql-tools/schema';
@@ -50,20 +49,13 @@ const apiKeyApi = new ApiKeyAPI();
 const apolloServerConfig: Config<ExpressContext> = {
   schema,
   context: ({ req, res }: ContextParams): Context => {
-    const getBearerToken = () => {
-      const header = () => req.headers.authorization?.replace('Bearer ', '');
-      const cookie = () => req.cookies[Cookies.access_token];
-
-      return header() ?? cookie() ?? '';
-    };
-
     const getXHeader = () => {
       const header = config.X_API_KEY_HEADER;
       const value = req?.headers?.[header] ?? req?.headers?.[header.toLocaleLowerCase()];
       return value?.toString().toLowerCase() ?? '';
     };
 
-    const bearerToken = getBearerToken();
+    const bearerToken = getBearerToken(req);
     const apiKey = getXHeader();
 
     /**
