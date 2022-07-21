@@ -175,17 +175,19 @@ test('search for users by username that exists', async () => {
   const mockUsr: NewUser = { ...mockNewUser1, username: sharedUsername };
   await api.createUser(mockUsr);
 
-  expect((await api.searchUser('nouserhasthis')).length).toBe(0);
-  expect((await api.searchUser(mockNewUser0.username)).length).toBe(1);
+  expect((await api.searchUser('nouserhasthis'))).toHaveLength(0);
+  expect((await api.searchUser(mockNewUser0.username))).toHaveLength(1);
+  expect((await api.searchUser(`${mockNewUser0.username} nouserhasthis`))).toHaveLength(1);
+  expect((await api.searchUser(mockNewUser0.username.toUpperCase()))).toHaveLength(1);
 
   expect((await api.searchUser(sharedUsername.substring(0, 2))).length).not.toBeLessThan(2); // We can have more matches from other tests
   await api.deleteUser(sharedUsername);
 });
 
 test('search for user by name that exists', async () => {
-  expect((await api.searchUser(mockNewUser0.username)).length).toBe(1);
-  expect((await api.searchUser(mockNewUser0.firstName)).length).toBe(1);
-  expect((await api.searchUser(mockNewUser0.lastName)).length).toBe(1);
+  expect((await api.searchUser(mockNewUser0.username))).toHaveLength(1);
+  expect((await api.searchUser(mockNewUser0.firstName))).toHaveLength(1);
+  expect((await api.searchUser(mockNewUser0.lastName))).toHaveLength(1);
 });
 
 test('search for non-existant user', async () => {

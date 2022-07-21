@@ -4,6 +4,9 @@ networks:
   traefik:
     external: true
 
+volumes:
+  ekorre_postgres:
+
 services:
   postgres:
     image: postgres:alpine
