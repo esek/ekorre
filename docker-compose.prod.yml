@@ -7,6 +7,7 @@ services:
       file: docker-compose.ci.yml
       service: ekorre
     environment:
-      DB_HOST: $DB_HOST
+      - DB_HOST=$DB_HOST
+      - NODE_ENV=production
     volumes:
       - /mnt/storage/ekorre_public/${ENV}:public
