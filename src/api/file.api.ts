@@ -286,6 +286,7 @@ class FileAPI {
 
       return [f, dbPaths];
     } catch (err) {
+      logger.error(err);
       throw new ServerError('Kunde inte hämta filer');
     }
   }
