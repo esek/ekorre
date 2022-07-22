@@ -53,7 +53,11 @@ const postresolver: Resolvers = {
       return api.getNumberOfVolunteers(date ?? undefined);
     },
     currentPostHolders: async (_, { utskott, postIds, includeInactive }, ctx) => {
-      await hasAuthenticated(ctx);
+      // STYRELSEN should be available to the public
+      if (utskott !== Utskott.Styrelsen) {
+        await hasAuthenticated(ctx);
+      }
+
       const apiResponse = await api.getCurrentPostHolders(
         utskott ?? undefined,
         postIds ?? undefined,
