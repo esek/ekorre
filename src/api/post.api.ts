@@ -160,13 +160,19 @@ export class PostAPI {
     postIds?: number[],
     includeInactive = true,
   ): Promise<PrismaPostHolder[]> {
+    const where: Prisma.PrismaPostWhereInput = {};
+
+    if (!includeInactive) {
+      where.active = true;
+    }
+
     const dbRes = await prisma.prismaPost.findMany({
       where: {
+        ...where,
         utskott,
         id: {
           in: postIds,
         },
-        active: includeInactive,
         history: {
           // Only include currently active posts
           some: {
@@ -434,9 +440,9 @@ export class PostAPI {
   }
 
   /**
-   * Sätter slutdatumet för en användares post.
+   * Sätter slutdatumet (kl. 23:59:59.999) för en användares post.
    * @param id ID på entriet
-   * @param end När posten går av posten
+   * @param end När posten går av posten. Tiden sätts automatiskt till 23:59:59.999 på detta datum
    */
   async setUserPostEnd(id: number, end: Date): Promise<boolean> {
     const post = await prisma.prismaPostHistory.update({
