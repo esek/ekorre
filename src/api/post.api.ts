@@ -2,13 +2,19 @@
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { StrictObject } from '@/models/base';
+import { post, user } from '@/resolvers';
 import { devGuard, midnightTimestamp, stripObject } from '@/util';
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '@generated/graphql';
-import { Prisma, PrismaPost, PrismaPostHistory } from '@prisma/client';
+import { Prisma, PrismaPost, PrismaPostHistory, PrismaUser } from '@prisma/client';
 
 import prisma from './prisma';
 
 const logger = Logger.getLogger('PostAPI');
+
+type PrismaPostHolder = {
+  holder: PrismaUser;
+  post: PrismaPost;
+};
 
 /**
  * Kontrollerar att posttyp och antalet platser som
@@ -141,6 +147,65 @@ export class PostAPI {
     });
 
     return posts;
+  }
+
+  /**
+   * Get the current post holders of posts matching the provided parameters
+   * @param utskott Utskott of the posts to be found
+   * @param postIds IDs of the posts to be found
+   * @param includeInactive If posts marked as inactive are to be included
+   */
+  async getCurrentPostHolders(
+    utskott?: Utskott,
+    postIds?: number[],
+    includeInactive = true,
+  ): Promise<PrismaPostHolder[]> {
+    const dbRes = await prisma.prismaPost.findMany({
+      where: {
+        utskott,
+        id: {
+          in: postIds,
+        },
+        active: includeInactive,
+        history: {
+          // Only include currently active posts
+          some: {
+            OR: [
+              { end: null },
+              {
+                end: {
+                  gt: new Date(),
+                },
+              },
+            ],
+          },
+        },
+      },
+      include: {
+        // We need to get the users in the same query,
+        // so include only users from included history
+        history: {
+          include: {
+            user: true,
+          },
+        },
+      }
+    });
+    
+    // Extract so we have correct format,
+    // a history may contain more than one user
+    const postHolders: PrismaPostHolder[] = [];
+    dbRes.forEach((r) => {
+      const { history, ...reduced } = r;
+      history.forEach((u) => {
+        postHolders.push({
+          holder: u.user,
+          post: reduced,
+        })
+      });
+    });
+    
+    return postHolders;
   }
 
   /**
