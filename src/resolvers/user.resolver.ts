@@ -13,6 +13,13 @@ import EWiki from '@service/wiki';
 const api = new UserAPI();
 const wiki = new EWiki();
 
+/**
+ * Ensures the requester is the `User` requested,
+ * and if not, that the requester is a User Admin
+ * @param ctx Context containing information about the user or API key making the request
+ * @param obj The requested object
+ * @throws {ForbiddenError} if the requester is not allowed to view this
+ */
 export const checkUserFieldAccess = async (ctx: Context, obj: User) => {
   if (ctx.apiKey) {
     await hasAccess(ctx, [Feature.UserAdmin]);
@@ -25,7 +32,21 @@ export const checkUserFieldAccess = async (ctx: Context, obj: User) => {
 };
 
 const userResolver: Resolvers = {
+  // To hide user fields from the public, add fields here with auth
   User: {
+    email: async (obj, _, ctx) => {
+      // Don't want to leak contact details to the public
+      await hasAuthenticated(ctx);
+      
+      return obj.email;
+    },
+    phone: async (obj, _, ctx) => {
+      // Don't want to leak contact details to the public
+      await hasAuthenticated(ctx);
+      
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return obj.phone!;
+    },
     address: async (obj, _, ctx) => {
       await checkUserFieldAccess(ctx, obj);
 
