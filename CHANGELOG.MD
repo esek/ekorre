@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.3] - 2022-07-23
+
+### Ändrat
+- Ser till att användare måste vara inloggade för att få tillgång till en `User`s `email` och `phone`
+
 ## [0.15.2] - 2022-07-20
 
 ### Ändrat
