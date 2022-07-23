@@ -4,21 +4,21 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.15.3] - 2022-07-23
+## [1.16.1] - 2022-07-23
 
 ### Ändrat
 - Ser till att användare måste vara inloggade för att få tillgång till en `User`s `email` och `phone`
+
+## [0.16.0] - 2022-07-21
+
+### Tillagt
+- Länkning för användare till inloggningsproviders 
 
 ## [0.15.2] - 2022-07-20
 
 ### Ändrat
 - Uppdaterat `UserAPI.searchUser` att inte vara case sensitive och söka bättre allmännt
 - Uppdaterat `FileAPI.searchFile` att inte vara case sensitive också _for good measure_
-
-## [0.16.0] - 2022-07-21
-
-### Tillagt
-- Länkning för användare till inloggningsproviders 
 
 ## [0.15.1] - 2022-07-20
 
