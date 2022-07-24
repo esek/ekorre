@@ -1,5 +1,7 @@
 # Resolvers
 
+_Se även (eller kanske hellre) [Apollos docs](https://www.apollographql.com/docs/apollo-server/data/resolvers)_
+
 Detta är den viktigaste delen av ett Graphql-API. Dessa hanterar
 alla queries och ser till att de returnera vettig data.
 För att göra det så användbart som möjligt så bör varje resolver
