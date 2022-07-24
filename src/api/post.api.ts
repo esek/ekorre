@@ -4,7 +4,7 @@ import { Logger } from '@/logger';
 import { StrictObject } from '@/models/base';
 import { devGuard, midnightTimestamp, stripObject } from '@/util';
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '@generated/graphql';
-import { Prisma, PrismaPost, PrismaPostHistory, PrismaUser } from '@prisma/client';
+import { Prisma, PrismaPost, PrismaPostHistory } from '@prisma/client';
 
 import prisma from './prisma';
 
@@ -180,6 +180,7 @@ export class PostAPI {
           },
         },
       },
+      orderBy: user
     });
 
     // Extract so we have correct format,
