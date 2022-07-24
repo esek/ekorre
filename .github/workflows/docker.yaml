@@ -166,21 +166,22 @@ jobs:
          mv .env.example .env
          sed -i 's/localhost/postgres/' .env
       - name: install deps
-        run: npm ci
+        run: |
+          apk add --no-cache bash
+          npm ci
       - name: lint
         continue-on-error: true
         run: npm run lint -- --output-file eslint_report.json --format json
       - name: publish lint
         if: ${{ !env.ACT }}
         uses: ataylorme/eslint-annotate-action@v2
-        continue-on-error: true
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           only-pr-files: false
       - name: reset db
         run: npm run prisma:ci
       - name: run test
-        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        continue-on-error: false
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
         continue-on-error: true
