@@ -9,6 +9,11 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Tillagt
 - Lägger till `currentPostHolders` med tillhörande typer i `Post`-queries
 
+## [1.16.1] - 2022-07-23
+
+### Ändrat
+- Ser till att användare måste vara inloggade för att få tillgång till en `User`s `email` och `phone`
+
 ## [0.16.0] - 2022-07-21
 
 ### Tillagt
