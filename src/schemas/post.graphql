@@ -5,11 +5,10 @@
 scalar Date
 
 type Query {
-    post(id: Int!): Post!
+    post(id: Int!): Post
     posts(utskott: Utskott, includeInactive: Boolean!): [Post!]!
     groupedPosts(includeInactive: Boolean!): [GroupedPost!]!
     numberOfVolunteers(date: Date): Int!
-    currentPostHolders(utskott: Utskott, postIds: [Int!], includeInactive: Boolean!): [PostHolder!]!
 }
 
 type Mutation {
@@ -42,11 +41,7 @@ type Post {
     """
     interviewRequired: Boolean
     history: [HistoryEntry!]!
-}
-
-type PostHolder {
-    holder: User!
-    post: Post!
+    currentHolders: [User!]!
 }
 
 type GroupedPost {

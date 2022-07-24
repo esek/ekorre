@@ -673,6 +673,7 @@ export enum NominationAnswer {
 export type Post = {
   access: Access;
   active: Scalars['Boolean'];
+  currentHolders: Array<User>;
   description: Scalars['String'];
   history: Array<HistoryEntry>;
   id: Scalars['Int'];
@@ -686,11 +687,6 @@ export type Post = {
    */
   spots: Scalars['Int'];
   utskott: Utskott;
-};
-
-export type PostHolder = {
-  holder: User;
-  post: Post;
 };
 
 /** Hur en post tillsätts enligt Reglementet */
@@ -729,7 +725,6 @@ export type Query = {
   apiKeys: Array<ApiKey>;
   article: Article;
   articles: Array<Article>;
-  currentPostHolders: Array<PostHolder>;
   doors: Array<DoorInfo>;
   election?: Maybe<Election>;
   elections: Array<Maybe<Election>>;
@@ -737,7 +732,7 @@ export type Query = {
   file: File;
   fileSystem: FileSystemResponse;
   files: Array<File>;
-  groupedPosts: Array<Maybe<GroupedPost>>;
+  groupedPosts: Array<GroupedPost>;
   hehe?: Maybe<Hehe>;
   hehes: Array<Maybe<Hehe>>;
   /** Used if nominations are hidden but an election-admin wants too see nominations */
@@ -760,7 +755,7 @@ export type Query = {
   openElection?: Maybe<Election>;
   post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
-  posts?: Maybe<Array<Maybe<Post>>>;
+  posts: Array<Post>;
   searchFiles: Array<File>;
   searchUser: Array<User>;
   user: User;
@@ -796,17 +791,6 @@ export type QueryArticlesArgs = {
   id?: Maybe<Scalars['Int']>;
   tags?: Maybe<Array<Scalars['String']>>;
   type?: Maybe<ArticleType>;
-};
-
-
-/**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
- */
-export type QueryCurrentPostHoldersArgs = {
-  includeInactive: Scalars['Boolean'];
-  postIds?: Maybe<Array<Scalars['Int']>>;
-  utskott?: Maybe<Utskott>;
 };
 
 
@@ -1265,7 +1249,6 @@ export type ResolversTypes = ResolversObject<{
   NominationAnswer: NominationAnswer;
   Object: ResolverTypeWrapper<Scalars['Object']>;
   Post: ResolverTypeWrapper<Post>;
-  PostHolder: ResolverTypeWrapper<PostHolder>;
   PostType: PostType;
   Proposal: ResolverTypeWrapper<ProposalResponse>;
   ProviderOptions: ProviderOptions;
@@ -1314,7 +1297,6 @@ export type ResolversParentTypes = ResolversObject<{
   Nomination: NominationResponse;
   Object: Scalars['Object'];
   Post: Post;
-  PostHolder: PostHolder;
   Proposal: ProposalResponse;
   ProviderOptions: ProviderOptions;
   Query: {};
@@ -1549,6 +1531,7 @@ export interface ObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTyp
 export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  currentHolders?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   history?: Resolver<Array<ResolversTypes['HistoryEntry']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1557,12 +1540,6 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
   postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   spots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type PostHolderResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PostHolder'] = ResolversParentTypes['PostHolder']> = ResolversObject<{
-  holder?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
-  post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1577,7 +1554,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   apiKeys?: Resolver<Array<ResolversTypes['ApiKey']>, ParentType, ContextType>;
   article?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
-  currentPostHolders?: Resolver<Array<ResolversTypes['PostHolder']>, ParentType, ContextType, RequireFields<QueryCurrentPostHoldersArgs, 'includeInactive'>>;
   doors?: Resolver<Array<ResolversTypes['DoorInfo']>, ParentType, ContextType>;
   election?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType, RequireFields<QueryElectionArgs, 'electionId'>>;
   elections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryElectionsArgs, 'electionIds'>>;
@@ -1585,7 +1561,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QueryFilesArgs, never>>;
-  groupedPosts?: Resolver<Array<Maybe<ResolversTypes['GroupedPost']>>, ParentType, ContextType, RequireFields<QueryGroupedPostsArgs, 'includeInactive'>>;
+  groupedPosts?: Resolver<Array<ResolversTypes['GroupedPost']>, ParentType, ContextType, RequireFields<QueryGroupedPostsArgs, 'includeInactive'>>;
   hehe?: Resolver<Maybe<ResolversTypes['Hehe']>, ParentType, ContextType, RequireFields<QueryHeheArgs, 'number' | 'year'>>;
   hehes?: Resolver<Array<Maybe<ResolversTypes['Hehe']>>, ParentType, ContextType, RequireFields<QueryHehesArgs, 'year'>>;
   hiddenNominations?: Resolver<Array<Maybe<ResolversTypes['Nomination']>>, ParentType, ContextType, RequireFields<QueryHiddenNominationsArgs, 'electionId'>>;
@@ -1606,7 +1582,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   openElection?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType>;
   post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'id'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postId'>>;
-  posts?: Resolver<Maybe<Array<Maybe<ResolversTypes['Post']>>>, ParentType, ContextType, RequireFields<QueryPostsArgs, 'includeInactive'>>;
+  posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostsArgs, 'includeInactive'>>;
   searchFiles?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QuerySearchFilesArgs, 'search'>>;
   searchUser?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySearchUserArgs, 'search'>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
@@ -1670,7 +1646,6 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Nomination?: NominationResolvers<ContextType>;
   Object?: GraphQLScalarType;
   Post?: PostResolvers<ContextType>;
-  PostHolder?: PostHolderResolvers<ContextType>;
   Proposal?: ProposalResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   TokenResponse?: TokenResponseResolvers<ContextType>;

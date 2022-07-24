@@ -4,16 +4,11 @@ import { Logger } from '@/logger';
 import { StrictObject } from '@/models/base';
 import { devGuard, midnightTimestamp, stripObject } from '@/util';
 import { Maybe, ModifyPost, NewPost, PostType, Utskott } from '@generated/graphql';
-import { Prisma, PrismaPost, PrismaPostHistory, PrismaUser } from '@prisma/client';
+import { Prisma, PrismaPost, PrismaPostHistory } from '@prisma/client';
 
 import prisma from './prisma';
 
 const logger = Logger.getLogger('PostAPI');
-
-type PrismaPostHolder = {
-  holder: PrismaUser;
-  post: PrismaPost;
-};
 
 /**
  * Kontrollerar att posttyp och antalet platser som
@@ -149,29 +144,14 @@ export class PostAPI {
   }
 
   /**
-   * Get the current post holders of posts matching the provided parameters
-   * @param utskott Utskott of the posts to be found
-   * @param postIds IDs of the posts to be found
-   * @param includeInactive If posts marked as inactive are to be included
+   * Get the current post holders of post provided
+   * @param postId ID of the post to be found
+   * @returns A list of usernames for the current holders of the post
    */
-  async getCurrentPostHolders(
-    utskott?: Utskott,
-    postIds?: number[],
-    includeInactive = true,
-  ): Promise<PrismaPostHolder[]> {
-    const where: Prisma.PrismaPostWhereInput = {};
-
-    if (!includeInactive) {
-      where.active = true;
-    }
-
+  async getCurrentPostHolders(postId: number): Promise<string[]> {
     const dbRes = await prisma.prismaPost.findMany({
       where: {
-        ...where,
-        utskott,
-        id: {
-          in: postIds,
-        },
+        id: postId,
         history: {
           // Only include currently active posts
           some: {
@@ -191,29 +171,28 @@ export class PostAPI {
         // so include only users from included history
         history: {
           include: {
-            user: true,
+            user: {
+              // We only want the username
+              select: {
+                username: true,
+              },
+            },
           },
         },
       },
-      orderBy: {
-        postname: 'asc'
-      },
     });
-    
+
     // Extract so we have correct format,
     // a history may contain more than one user
-    const postHolders: PrismaPostHolder[] = [];
+    const refPostHolders: string[] = [];
     dbRes.forEach((r) => {
-      const { history, ...reduced } = r;
+      const { history } = r;
       history.forEach((u) => {
-        postHolders.push({
-          holder: u.user,
-          post: reduced,
-        })
+        refPostHolders.push(u.user.username);
       });
     });
-    
-    return postHolders;
+
+    return refPostHolders;
   }
 
   /**
