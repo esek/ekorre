@@ -1,4 +1,5 @@
 import { NotFoundError } from '@/errors/request.errors';
+import { Logger } from '@/logger';
 import { PostAPI } from '@api/post';
 
 // Om vi kör tester behöver vi denna konstant
@@ -25,7 +26,7 @@ export const batchCurrentHoldersFunction = async (
   apiResponse.forEach((v) => {
     mappedValues.set(v.postId, v.usernames);
   });
-
+  
   return postIds.map((pid) => {
     // If this post have no holders, we just return an empty list instead of
     // error

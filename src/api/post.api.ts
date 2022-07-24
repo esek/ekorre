@@ -145,7 +145,8 @@ export class PostAPI {
 
   /**
    * Get the current post holders of post provided, or an empty list of the post have no holders.
-   * To be used by DataLoader.
+   * 
+   * **To be used by DataLoader, not directly**
    * @param postId ID of the post to be found
    * @returns An objecy containing usernames for the current holders of the post, and the post ID
    */
@@ -184,7 +185,7 @@ export class PostAPI {
         },
       },
     });
-
+    
     // Extract so we have correct format,
     // a history may contain more than one user
     const refPostHolders: { postId: number, usernames: string[]}[] = [];
