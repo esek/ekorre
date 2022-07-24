@@ -3,7 +3,6 @@ import { hasAccess, hasAuthenticated } from '@/util';
 import { PostAPI } from '@api/post';
 import { Feature, Post, Resolvers, Utskott } from '@generated/graphql';
 import { postReduce } from '@reducer/post';
-import { userReduce } from '@reducer/user';
 
 const api = new PostAPI();
 
@@ -51,25 +50,6 @@ const postresolver: Resolvers = {
     },
     numberOfVolunteers: async (_, { date }) => {
       return api.getNumberOfVolunteers(date ?? undefined);
-    },
-    currentPostHolders: async (_, { utskott, postIds, includeInactive }, ctx) => {
-      // STYRELSEN should be available to the public
-      if (utskott !== Utskott.Styrelsen) {
-        await hasAuthenticated(ctx);
-      }
-
-      const apiResponse = await api.getCurrentPostHolders(
-        utskott ?? undefined,
-        postIds ?? undefined,
-        includeInactive,
-      );
-
-      return apiResponse.map((ph) => {
-        return {
-          holder: reduce(ph.holder, userReduce),
-          post: reduce(ph.post, postReduce),
-        };
-      });
     },
   },
   Mutation: {
