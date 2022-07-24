@@ -63,12 +63,12 @@ const postresolver: Resolvers = {
         postIds ?? undefined,
         includeInactive,
       );
-      
+
       return apiResponse.map((ph) => {
         return {
           holder: reduce(ph.holder, userReduce),
           post: reduce(ph.post, postReduce),
-        }
+        };
       });
     },
   },
@@ -160,6 +160,17 @@ const postresolver: Resolvers = {
           return { id: refPost, holder, start: new Date(start), end: safeEnd };
         }),
       );
+      return a;
+    },
+    currentHolders: async ({ id }, _, ctx) => {
+      const refPostHolders = await api.getCurrentPostHolders(id);
+
+      const a = Promise.all(
+        refPostHolders.map(async (username) => {
+          return ctx.userDataLoader.load(username);
+        }),
+      );
+
       return a;
     },
   },
