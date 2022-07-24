@@ -146,7 +146,7 @@ export class PostAPI {
   /**
    * Get the current post holders of post provided
    * @param postId ID of the post to be found
-   * @return A list of usernames to the current holders of the post
+   * @returns A list of usernames for the current holders of the post
    */
   async getCurrentPostHolders(postId: number): Promise<string[]> {
     const dbRes = await prisma.prismaPost.findMany({
