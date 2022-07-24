@@ -729,7 +729,7 @@ export type Query = {
   apiKeys: Array<ApiKey>;
   article: Article;
   articles: Array<Article>;
-  currentPostHolders: Array<Maybe<PostHolder>>;
+  currentPostHolders: Array<PostHolder>;
   doors: Array<DoorInfo>;
   election?: Maybe<Election>;
   elections: Array<Maybe<Election>>;
@@ -1577,7 +1577,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   apiKeys?: Resolver<Array<ResolversTypes['ApiKey']>, ParentType, ContextType>;
   article?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<QueryArticleArgs, never>>;
   articles?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, RequireFields<QueryArticlesArgs, never>>;
-  currentPostHolders?: Resolver<Array<Maybe<ResolversTypes['PostHolder']>>, ParentType, ContextType, RequireFields<QueryCurrentPostHoldersArgs, 'includeInactive'>>;
+  currentPostHolders?: Resolver<Array<ResolversTypes['PostHolder']>, ParentType, ContextType, RequireFields<QueryCurrentPostHoldersArgs, 'includeInactive'>>;
   doors?: Resolver<Array<ResolversTypes['DoorInfo']>, ParentType, ContextType>;
   election?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType, RequireFields<QueryElectionArgs, 'electionId'>>;
   elections?: Resolver<Array<Maybe<ResolversTypes['Election']>>, ParentType, ContextType, RequireFields<QueryElectionsArgs, 'electionIds'>>;
