@@ -180,7 +180,6 @@ export class PostAPI {
           },
         },
       },
-      orderBy: user
     });
 
     // Extract so we have correct format,
