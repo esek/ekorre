@@ -143,7 +143,7 @@ const postresolver: Resolvers = {
       return a;
     },
     currentHolders: async ({ id }, _, ctx) => {
-      const refPostHolders = await api.getCurrentPostHolders(id);
+      const refPostHolders = await ctx.currentHoldersDataLoader.load(id)
 
       const a = Promise.all(
         refPostHolders.map(async (username) => {
