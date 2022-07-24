@@ -753,7 +753,7 @@ export type Query = {
   numberOfProposals: Scalars['Int'];
   numberOfVolunteers: Scalars['Int'];
   openElection?: Maybe<Election>;
-  post: Post;
+  post?: Maybe<Post>;
   postAccess?: Maybe<Access>;
   posts: Array<Post>;
   searchFiles: Array<File>;
@@ -1580,7 +1580,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   numberOfProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfProposalsArgs, 'electionId'>>;
   numberOfVolunteers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfVolunteersArgs, never>>;
   openElection?: Resolver<Maybe<ResolversTypes['Election']>, ParentType, ContextType>;
-  post?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<QueryPostArgs, 'id'>>;
+  post?: Resolver<Maybe<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostArgs, 'id'>>;
   postAccess?: Resolver<Maybe<ResolversTypes['Access']>, ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postId'>>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostsArgs, 'includeInactive'>>;
   searchFiles?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QuerySearchFilesArgs, 'search'>>;

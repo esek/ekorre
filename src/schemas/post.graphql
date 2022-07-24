@@ -5,7 +5,7 @@
 scalar Date
 
 type Query {
-    post(id: Int!): Post!
+    post(id: Int!): Post
     posts(utskott: Utskott, includeInactive: Boolean!): [Post!]!
     groupedPosts(includeInactive: Boolean!): [GroupedPost!]!
     numberOfVolunteers(date: Date): Int!
