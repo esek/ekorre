@@ -5,9 +5,9 @@
 scalar Date
 
 type Query {
-    post(id: Int!): Post
-    posts(utskott: Utskott, includeInactive: Boolean!): [Post]
-    groupedPosts(includeInactive: Boolean!): [GroupedPost]!
+    post(id: Int!): Post!
+    posts(utskott: Utskott, includeInactive: Boolean!): [Post!]!
+    groupedPosts(includeInactive: Boolean!): [GroupedPost!]!
     numberOfVolunteers(date: Date): Int!
     currentPostHolders(utskott: Utskott, postIds: [Int!], includeInactive: Boolean!): [PostHolder!]!
 }
