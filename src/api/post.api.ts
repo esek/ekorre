@@ -194,7 +194,10 @@ export class PostAPI {
             user: true,
           },
         },
-      }
+      },
+      orderBy: {
+        postname: 'asc'
+      },
     });
     
     // Extract so we have correct format,
