@@ -7,7 +7,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.17.0] - 2022-07-22
 
 ### Tillagt
-- Lägger till `currentPostHolders` med tillhörande typer i `Post`-queries
+- Lägger till `currentHolders` i `Post`
 
 ## [1.16.1] - 2022-07-23
 
