@@ -185,12 +185,12 @@ jobs:
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
         continue-on-error: true
-        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        if: ${{ !env.ACT && github.event_name == 'pull_request' && always() }}
         uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
         continue-on-error: true
-        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        if: ${{ !env.ACT && github.event_name == 'pull_request' && always() }}
         uses: ArtiomTr/jest-coverage-report-action@v2.0.9
         with:
           skip-step: all
@@ -200,14 +200,14 @@ jobs:
           annotations: failed-tests
       - name: check changelog
         uses: Zomzog/changelog-checker@v1.2.0
-        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        if: ${{ !env.ACT && github.event_name == 'pull_request' && always() }}
         continue-on-error: true
         with:
           fileName: CHANGELOG.MD
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: check package.json
-        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        if: ${{ !env.ACT && github.event_name == 'pull_request' && always() }}
         uses: Zomzog/changelog-checker@v1.2.0
         continue-on-error: true
         with:
