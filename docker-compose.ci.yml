@@ -11,6 +11,10 @@ services:
     environment:
       - DB_HOST=postgres://postgres:example@postgres:5432/ekorre_ci
       - NODE_ENV=development
+      - COOKIE_DOMAIN
+      - JWT_SECRET
+      - EBREV
+      - EBREV_API_TOKEN
     networks:
       - traefik
       - default # to join compose network
