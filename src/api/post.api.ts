@@ -144,6 +144,58 @@ export class PostAPI {
   }
 
   /**
+   * Get the current post holders of post provided
+   * @param postId ID of the post to be found
+   * @returns A list of usernames for the current holders of the post
+   */
+  async getCurrentPostHolders(postId: number): Promise<string[]> {
+    const dbRes = await prisma.prismaPost.findMany({
+      where: {
+        id: postId,
+        history: {
+          // Only include currently active posts
+          some: {
+            OR: [
+              { end: null },
+              {
+                end: {
+                  gt: new Date(),
+                },
+              },
+            ],
+          },
+        },
+      },
+      include: {
+        // We need to get the users in the same query,
+        // so include only users from included history
+        history: {
+          include: {
+            user: {
+              // We only want the username
+              select: {
+                username: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Extract so we have correct format,
+    // a history may contain more than one user
+    const refPostHolders: string[] = [];
+    dbRes.forEach((r) => {
+      const { history } = r;
+      history.forEach((u) => {
+        refPostHolders.push(u.user.username);
+      });
+    });
+
+    return refPostHolders;
+  }
+
+  /**
    * Hämta alla poster som tillhör ett utskott.
    * @param utskott utskottet
    * @param includeInactive Om inaktiva poster ska inkluderas
@@ -369,9 +421,9 @@ export class PostAPI {
   }
 
   /**
-   * Sätter slutdatumet för en användares post.
+   * Sätter slutdatumet (kl. 23:59:59.999) för en användares post.
    * @param id ID på entriet
-   * @param end När posten går av posten
+   * @param end När posten går av posten. Tiden sätts automatiskt till 23:59:59.999 på detta datum
    */
   async setUserPostEnd(id: number, end: Date): Promise<boolean> {
     const post = await prisma.prismaPostHistory.update({

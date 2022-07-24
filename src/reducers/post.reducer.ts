@@ -14,7 +14,8 @@ export function postReduce(post: PrismaPost): Post {
     access,
     postType: postType as PostType,
     utskott: utskott as Utskott,
-    history: [], // Det här fylls på senare,
+    history: [], // This is filled by resolver,
+    currentHolders: [], // Same as above
   };
 
   return p;

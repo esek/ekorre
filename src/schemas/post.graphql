@@ -6,8 +6,8 @@ scalar Date
 
 type Query {
     post(id: Int!): Post
-    posts(utskott: Utskott, includeInactive: Boolean!): [Post]
-    groupedPosts(includeInactive: Boolean!): [GroupedPost]!
+    posts(utskott: Utskott, includeInactive: Boolean!): [Post!]!
+    groupedPosts(includeInactive: Boolean!): [GroupedPost!]!
     numberOfVolunteers(date: Date): Int!
 }
 
@@ -41,6 +41,7 @@ type Post {
     """
     interviewRequired: Boolean
     history: [HistoryEntry!]!
+    currentHolders: [User!]!
 }
 
 type GroupedPost {

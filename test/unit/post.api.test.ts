@@ -96,6 +96,40 @@ test('getting history entries for user', async () => {
   });
 });
 
+test('getting current holder of a post without holder should be empty list', async () => {
+  const { id: postId } = await api.createPost(np);
+  await expect(api.getCurrentPostHolders(postId)).resolves.toHaveLength(0);
+
+  const ok = await api.addUsersToPost([dummyUser.username], postId);
+  expect(ok).toBe(true);
+
+  // Now we should have one!
+  const holders = await api.getCurrentPostHolders(postId);
+  expect(holders).toHaveLength(1);
+  expect(holders[0]).toEqual(dummyUser.username);
+});
+
+test('getting current holders returns only current holders', async () => {
+  const { id: postId } = await api.createPost(np);
+  const ok = await api.addUsersToPost([dummyUser.username], postId);
+  expect(ok).toBe(true);
+  await expect(api.getCurrentPostHolders(postId)).resolves.toHaveLength(1);
+
+  // Remove it again
+  const [historyEntry] = await api.getHistoryEntries({ refUser: dummyUser.username });
+
+  // This user got of this post a long time ago...
+  await expect(api.setUserPostEnd(historyEntry.id, new Date('1970-01-01'))).resolves.toBeTruthy();
+  await expect(api.getCurrentPostHolders(postId)).resolves.toHaveLength(0);
+});
+
+test('getting current post holders for utskott', async () => {
+  const { id: postId } = await api.createPost(np);
+  await expect(api.getCurrentPostHolders(postId)).resolves.toHaveLength(0);
+  await expect(api.addUsersToPost([dummyUser.username], postId)).resolves.toBeTruthy();
+  await expect(api.getCurrentPostHolders(postId)).resolves.toHaveLength(1);
+});
+
 test('adding post', async () => {
   const { id: postId } = await api.createPost(np);
   expect(postId).toEqual(expect.any(Number));

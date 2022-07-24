@@ -142,6 +142,17 @@ const postresolver: Resolvers = {
       );
       return a;
     },
+    currentHolders: async ({ id }, _, ctx) => {
+      const refPostHolders = await api.getCurrentPostHolders(id);
+
+      const a = Promise.all(
+        refPostHolders.map(async (username) => {
+          return ctx.userDataLoader.load(username);
+        }),
+      );
+
+      return a;
+    },
   },
 };
 
