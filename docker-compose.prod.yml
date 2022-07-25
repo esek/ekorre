@@ -10,4 +10,4 @@ services:
       - DB_HOST=$DB_HOST
       - NODE_ENV=production
     volumes:
-      - /mnt/storage/ekorre_public/${ENV}:public
+      - /mnt/storage/ekorre_public/${ENV}:/srv/app/public
