@@ -134,7 +134,7 @@ export class PostAPI {
       where: {
         ...where,
         history: {
-          every: {
+          some: {
             OR: [
               { end: null },
               {
@@ -146,13 +146,6 @@ export class PostAPI {
             AND: {
               refUser: username,
             },
-          },
-        },
-      },
-      include: {
-        history: {
-          orderBy: {
-            start: 'desc',
           },
         },
       },

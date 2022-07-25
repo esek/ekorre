@@ -8,6 +8,15 @@ import { Prisma, PrismaArticleType } from '@prisma/client';
 
 import prisma from './prisma';
 
+const orderBy: Prisma.PrismaArticleOrderByWithRelationAndSearchRelevanceInput[] = [
+  {
+    createdAt: 'desc',
+  },
+  {
+    title: 'asc',
+  },
+];
+
 /**
  * Det här är API:n för att hantera artiklar
  */
@@ -20,9 +29,7 @@ export class ArticleAPI {
       include: {
         tags: true,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
     });
 
     return a;
@@ -36,9 +43,7 @@ export class ArticleAPI {
       where: {
         articleType: PrismaArticleType.NEWS,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
       include: {
         tags: true,
       },
@@ -52,9 +57,7 @@ export class ArticleAPI {
       where: {
         articleType: PrismaArticleType.INFORMATION,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
       include: {
         tags: true,
       },
@@ -87,6 +90,7 @@ export class ArticleAPI {
       include: {
         tags: true,
       },
+      orderBy,
     });
 
     return a;
@@ -163,9 +167,7 @@ export class ArticleAPI {
       include: {
         tags: true,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy,
     });
 
     return a;

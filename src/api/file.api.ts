@@ -16,6 +16,11 @@ const {
 
 const logger = Logger.getLogger('Files');
 
+const orderBy: Prisma.PrismaFileOrderByWithRelationAndSearchRelevanceInput[] = [
+  { name: 'asc' },
+  { createdAt: 'desc' },
+];
+
 class FileAPI {
   /**
    * Saves a new file to the server
@@ -152,9 +157,7 @@ class FileAPI {
 
     const f = await prisma.prismaFile.findMany({
       where,
-      orderBy: {
-        name: 'asc',
-      },
+      orderBy,
     });
 
     return f;
@@ -167,9 +170,7 @@ class FileAPI {
           in: ids.slice(), // Slice to copy readonly, required by prisma
         },
       },
-      orderBy: {
-        name: 'asc',
-      },
+      orderBy,
     });
 
     return f;
@@ -215,14 +216,18 @@ class FileAPI {
           },
         ],
       },
-      orderBy: {
-        _relevance: {
-          fields: ['name', 'id'],
-          search,
-          sort: 'desc',
+      orderBy: [
+        {
+          _relevance: {
+            fields: ['name', 'id'],
+            search,
+            sort: 'desc',
+          },
         },
-        createdAt: 'desc',
-      },
+        {
+          createdAt: 'desc',
+        },
+      ],
     });
 
     return f;
@@ -280,10 +285,7 @@ class FileAPI {
             in: pathNames,
           },
         },
-        orderBy: {
-          name: 'asc',
-          createdAt: 'desc',
-        },
+        orderBy,
       });
 
       // Read files in current directory
@@ -301,10 +303,7 @@ class FileAPI {
             in: fileIds,
           },
         },
-        orderBy: {
-          name: 'asc',
-          createdAt: 'desc',
-        },
+        orderBy,
       });
 
       return [f, dbPaths];

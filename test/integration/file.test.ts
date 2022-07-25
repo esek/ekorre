@@ -40,10 +40,6 @@ beforeAll(async () => {
   await createUser();
 });
 
-afterEach(async () => {
-  await removeCreatedFiles();
-});
-
 afterAll(async () => {
   await Promise.all([removeCreatedFiles(), teardown()]);
 });

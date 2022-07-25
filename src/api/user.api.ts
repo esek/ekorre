@@ -14,6 +14,17 @@ import {
 import prisma from './prisma';
 
 const logger = Logger.getLogger('UserAPI');
+const orderBy: Prisma.PrismaUserOrderByWithRelationAndSearchRelevanceInput[] = [
+  {
+    firstName: 'asc',
+  },
+  {
+    lastName: 'asc',
+  },
+  {
+    class: 'desc',
+  },
+];
 
 /**
  * Det är användar api:n. Alla operationer bör göras
@@ -48,11 +59,7 @@ export class UserAPI {
    */
   async getAllUsers(): Promise<PrismaUser[]> {
     const users = await prisma.prismaUser.findMany({
-      orderBy: {
-        firstName: 'asc',
-        lastName: 'asc',
-        class: 'desc',
-      },
+      orderBy,
     });
     return users;
   }
@@ -86,11 +93,7 @@ export class UserAPI {
           in: usernames,
         },
       },
-      orderBy: {
-        firstName: 'asc',
-        lastName: 'asc',
-        class: 'desc',
-      },
+      orderBy,
     });
 
     return u;
