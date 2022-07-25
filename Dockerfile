@@ -29,6 +29,8 @@ RUN npm run build
 
 RUN npm prune --omit=dev
 
+RUN mkdir public
+
 ##
 ## Create runtime image
 ##
