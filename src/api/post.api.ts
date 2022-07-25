@@ -144,14 +144,18 @@ export class PostAPI {
   }
 
   /**
-   * Get the current post holders of post provided
+   * Get the current post holders of post provided, or an empty list of the post have no holders.
+   * 
+   * **To be used by DataLoader, not directly**
    * @param postId ID of the post to be found
-   * @returns A list of usernames for the current holders of the post
+   * @returns An objecy containing usernames for the current holders of the post, and the post ID
    */
-  async getCurrentPostHolders(postId: number): Promise<string[]> {
+  async getCurrentPostHolders(postIds: number[]): Promise<{ postId: number, usernames: string[]}[]> {
     const dbRes = await prisma.prismaPost.findMany({
       where: {
-        id: postId,
+        id: {
+          in: postIds,
+        },
         history: {
           // Only include currently active posts
           some: {
@@ -181,15 +185,16 @@ export class PostAPI {
         },
       },
     });
-
+    
     // Extract so we have correct format,
     // a history may contain more than one user
-    const refPostHolders: string[] = [];
+    const refPostHolders: { postId: number, usernames: string[]}[] = [];
     dbRes.forEach((r) => {
-      const { history } = r;
-      history.forEach((u) => {
-        refPostHolders.push(u.user.username);
-      });
+      const { history, id: postId } = r;
+      refPostHolders.push({
+        postId,
+        usernames: history.map((h) => h.refUser),
+      })
     });
 
     return refPostHolders;
