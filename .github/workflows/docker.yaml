@@ -167,7 +167,6 @@ jobs:
         run: |
          mv .env.example .env
          sed -i 's/localhost/postgres/' .env
-         mkdir public
       - name: install deps
         run: |
           npm ci
