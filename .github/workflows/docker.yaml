@@ -149,7 +149,7 @@ jobs:
     runs-on: self-hosted
     # To run this locally using act set act to false in event.json
     # Note act does not support services...
-    if: ${{ !(github.event_name == 'pull_request' && github.event.action == 'closed') }}
+    if: ${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
     services:
       postgres:
         image: postgres:alpine
@@ -159,6 +159,8 @@ jobs:
          POSTGRES_DB: ekorre_foot
     container: node:16-alpine
     steps:
+      - name: add bash (needed for actions)
+        run: apk add --no-cache bash
       - name: checkout repo
         uses: actions/checkout@v3
       - name: setup env
@@ -173,23 +175,22 @@ jobs:
       - name: publish lint
         if: ${{ !env.ACT }}
         uses: ataylorme/eslint-annotate-action@v2
-        continue-on-error: true
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           only-pr-files: false
       - name: reset db
         run: npm run prisma:ci
       - name: run test
-        continue-on-error: ${{ github.event_name == 'pull_request' }}
+        continue-on-error: true
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
         continue-on-error: true
-        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        if: ${{ !env.ACT  }}
         uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
         continue-on-error: true
-        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        if: ${{ !env.ACT }}
         uses: ArtiomTr/jest-coverage-report-action@v2.0.9
         with:
           skip-step: all
@@ -199,14 +200,14 @@ jobs:
           annotations: failed-tests
       - name: check changelog
         uses: Zomzog/changelog-checker@v1.2.0
-        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        if: ${{ !env.ACT }}
         continue-on-error: true
         with:
           fileName: CHANGELOG.MD
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: check package.json
-        if: ${{ !env.ACT && github.event_name == 'pull_request' }}
+        if: ${{ !env.ACT }}
         uses: Zomzog/changelog-checker@v1.2.0
         continue-on-error: true
         with:
@@ -239,6 +240,9 @@ jobs:
             kv/data/common docker_host;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_HOST;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DEPLOY_URL;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} JWT_SECRET;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} EBREV;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} EBREV_API_TOKEN;
       - name: set variables
         run: |
           echo "IMAGE_NAME=${{ needs.env-vars.outputs.image_name }}" >> $GITHUB_ENV
