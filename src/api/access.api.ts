@@ -45,13 +45,12 @@ export class AccessAPI {
 
   /**
    * Hämta access för en post.
-   * @param postname posten
+   * @param postid posten
    */
-  // TOOD: Migrera till prisma
-  async getPostAccess(postname: number): Promise<PrismaPostAccess[]> {
+  async getPostAccess(postid: number): Promise<PrismaPostAccess[]> {
     const access = await prisma.prismaPostAccess.findMany({
       where: {
-        refPost: postname,
+        refPost: postid,
       },
       orderBy: {
         resource: 'asc',
@@ -229,6 +228,9 @@ export class AccessAPI {
         refPost: {
           in: posts.map((p) => p.id),
         },
+      },
+      orderBy: {
+        resource: 'asc',
       },
     });
 

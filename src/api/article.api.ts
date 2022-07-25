@@ -20,6 +20,9 @@ export class ArticleAPI {
       include: {
         tags: true,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
 
     return a;
@@ -138,15 +141,15 @@ export class ArticleAPI {
     if (author != null) {
       whereAnd.push({ refAuthor: author });
     }
-    
+
     if (id != null) {
       whereAnd.push({ id });
     }
-    
+
     if (type != null) {
       whereAnd.push({ articleType: type });
     }
-    
+
     if (tags != null && tags.length > 0) {
       whereAnd.push({
         tags: { some: { tag: { in: tags } } },
@@ -159,6 +162,9 @@ export class ArticleAPI {
       },
       include: {
         tags: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 

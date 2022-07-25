@@ -25,18 +25,6 @@ const EBREV = {
   API_TOKEN: process.env.EBREV_API_TOKEN ?? '',
 };
 
-/**
- * Cors options
- * @param {string} ALLOWED_ORIGINS - Commaseparated list of origins that are allowed to make requests
- */
-const CORS = {
-  ALLOWED_ORIGINS: [
-    'https://localhost',
-    'http://localhost:3000',
-    ...(process.env.ALLOWED_ORIGINS?.split(',') ?? []),
-  ],
-};
-
 /** LU Options
  * @param {string} CAS - The base URL for LU CAS
  */
@@ -62,7 +50,6 @@ const config = {
   SKIP_ACCESS_CHECKS: process.env.SKIP_ACCESS_CHECKS?.toLowerCase() === 'true',
   FILES,
   EBREV,
-  CORS,
   LU,
   WIKI,
   JWT,

@@ -52,6 +52,9 @@ export class HeheAPI {
       where: {
         year,
       },
+      orderBy: {
+        number: 'desc',
+      },
     });
 
     return h;
@@ -118,7 +121,7 @@ export class HeheAPI {
 
   /**
    * Removes all HeHEs from the database.
-   * 
+   *
    * Not callable in a production environment
    */
   async clear() {

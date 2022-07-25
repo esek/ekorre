@@ -5,16 +5,16 @@
 scalar Date
 
 type Query {
-    post(id: Int!): Post
-    posts(utskott: Utskott, includeInactive: Boolean!): [Post!]!
-    groupedPosts(includeInactive: Boolean!): [GroupedPost!]!
+    post(id: Int!): Post!
+    posts(utskott: Utskott, includeInactive: Boolean): [Post!]!
+    groupedPosts(includeInactive: Boolean): [GroupedPost!]!
     numberOfVolunteers(date: Date): Int!
 }
 
 type Mutation {
     addPost(info: NewPost!): Post!
     modifyPost(info: ModifyPost!): Boolean!
-    addUsersToPost(usernames: [String!]!, id: Int!, start: Date, end: Date): Boolean!
+    addUsersToPost(usernames: [String!]!, id: Int!, start: Date, end: Date): Post!
     activatePost(id: Int!): Boolean!
     deactivatePost(id: Int!): Boolean!
     setUserPostEnd(id: Int!, end: Date!): Boolean!
@@ -40,7 +40,7 @@ type Post {
     Om sökande valbereds och kallas till intervju
     """
     interviewRequired: Boolean
-    history: [HistoryEntry!]!
+    history(current: Boolean): [HistoryEntry!]!
     currentHolders: [User!]!
 }
 

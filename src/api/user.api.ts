@@ -47,7 +47,13 @@ export class UserAPI {
    * Returnerar alla lagarade användare.
    */
   async getAllUsers(): Promise<PrismaUser[]> {
-    const users = await prisma.prismaUser.findMany();
+    const users = await prisma.prismaUser.findMany({
+      orderBy: {
+        firstName: 'asc',
+        lastName: 'asc',
+        class: 'desc',
+      },
+    });
     return users;
   }
 
@@ -80,6 +86,11 @@ export class UserAPI {
           in: usernames,
         },
       },
+      orderBy: {
+        firstName: 'asc',
+        lastName: 'asc',
+        class: 'desc',
+      },
     });
 
     return u;
@@ -95,24 +106,25 @@ export class UserAPI {
     if (search.length === 0) {
       throw new BadRequestError('Search must contain at least one symbol');
     }
-    
+
     // We do a search by using $queryRaw's power to escape search terms, and
     // concat a lowercase version of the database first name, last name, and username,
     // and then want everything that fits for all parts of the search to some part
     // (% around strings are for `LIKE`)
-    const searchArray = search.toLowerCase().split(/\s+/g).map((s) => `%${s}%`);
+    const searchArray = search
+      .toLowerCase()
+      .split(/\s+/g)
+      .map((s) => `%${s}%`);
     const users = await prisma.$queryRaw`
       SELECT username, password_hash AS "passwordHash", password_salt AS "passwordSalt",
       first_name AS "firstName", last_name AS "lastName", class, photo_url AS "photoUrl",
       email, phone, address, zip_code AS "zipCode", website, date_joined AS "dateJoined"
       FROM users
       WHERE lower(concat(first_name, last_name, username))
-      LIKE ${
-        Prisma.join(searchArray,
-        ' AND lower(concat(first_name, last_name, username)) LIKE ')
-      }
+      LIKE ${Prisma.join(searchArray, ' AND lower(concat(first_name, last_name, username)) LIKE ')}
+      ORDERBY first_name ASC, last_name ASC, class DESC
     `;
-    
+
     return users as PrismaUser[];
   }
 
@@ -416,6 +428,9 @@ export class UserAPI {
 
     const providers = await prisma.prismaLoginProvider.findMany({
       where,
+      orderBy: {
+        provider: 'asc',
+      },
     });
 
     return providers;

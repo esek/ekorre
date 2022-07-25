@@ -152,6 +152,9 @@ class FileAPI {
 
     const f = await prisma.prismaFile.findMany({
       where,
+      orderBy: {
+        name: 'asc',
+      },
     });
 
     return f;
@@ -163,6 +166,9 @@ class FileAPI {
         id: {
           in: ids.slice(), // Slice to copy readonly, required by prisma
         },
+      },
+      orderBy: {
+        name: 'asc',
       },
     });
 
@@ -197,16 +203,25 @@ class FileAPI {
         OR: [
           {
             name: {
-              search,
+              contains: search,
               mode: 'insensitive',
             },
           },
           {
             id: {
-              search,
+              contains: search,
+              mode: 'insensitive',
             },
           },
         ],
+      },
+      orderBy: {
+        _relevance: {
+          fields: ['name', 'id'],
+          search,
+          sort: 'desc',
+        },
+        createdAt: 'desc',
       },
     });
 
@@ -265,6 +280,10 @@ class FileAPI {
             in: pathNames,
           },
         },
+        orderBy: {
+          name: 'asc',
+          createdAt: 'desc',
+        },
       });
 
       // Read files in current directory
@@ -281,6 +300,10 @@ class FileAPI {
           id: {
             in: fileIds,
           },
+        },
+        orderBy: {
+          name: 'asc',
+          createdAt: 'desc',
         },
       });
 

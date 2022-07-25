@@ -47,9 +47,6 @@ export class ElectionAPI {
       where: {
         open: true,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
     });
 
     if (e == null) {
@@ -70,6 +67,9 @@ export class ElectionAPI {
         id: {
           in: electionIds.slice(),
         },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
 
@@ -99,6 +99,11 @@ export class ElectionAPI {
           },
         },
       },
+      orderBy: {
+        post: {
+          postname: 'asc',
+        },
+      },
     });
 
     return n;
@@ -125,6 +130,11 @@ export class ElectionAPI {
           refElection: electionId,
           answer,
         },
+        orderBy: {
+          post: {
+            postname: 'asc',
+          },
+        },
       }),
       prisma.prismaElectable.findMany({
         select: {
@@ -132,6 +142,11 @@ export class ElectionAPI {
         },
         where: {
           refElection: electionId,
+        },
+        orderBy: {
+          post: {
+            postname: 'asc',
+          },
         },
       }),
     ]);
@@ -164,6 +179,11 @@ export class ElectionAPI {
           refUser: username,
           answer,
         },
+        orderBy: {
+          post: {
+            postname: 'asc',
+          },
+        },
       }),
       prisma.prismaElectable.findMany({
         select: {
@@ -171,6 +191,11 @@ export class ElectionAPI {
         },
         where: {
           refElection: electionId,
+        },
+        orderBy: {
+          post: {
+            postname: 'asc',
+          },
         },
       }),
     ]);
@@ -248,6 +273,11 @@ export class ElectionAPI {
       where: {
         refElection: electionId,
       },
+      orderBy: {
+        post: {
+          postname: 'asc',
+        },
+      },
     });
 
     return p;
@@ -265,6 +295,11 @@ export class ElectionAPI {
       },
       where: {
         refElection: electionId,
+      },
+      orderBy: {
+        post: {
+          postname: 'asc',
+        },
       },
     });
 

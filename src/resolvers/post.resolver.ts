@@ -1,3 +1,4 @@
+import { BadRequestError, ServerError } from '@/errors/request.errors';
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { PostAPI } from '@api/post';
@@ -11,20 +12,22 @@ const postresolver: Resolvers = {
     post: async (_, { id }, ctx) => {
       await hasAuthenticated(ctx);
       const res = await api.getPost(id);
-      if (res != null) return postReduce(res);
-      return null;
+      if (res == null) {
+        throw new BadRequestError('Den posten finns inte!');
+      }
+      return postReduce(res);
     },
     posts: async (_, { utskott, includeInactive }, ctx) => {
       await hasAuthenticated(ctx);
       if (utskott != null) {
-        return reduce(await api.getPostsFromUtskott(utskott, includeInactive), postReduce);
+        return reduce(await api.getPostsFromUtskott(utskott, includeInactive ?? false), postReduce);
       }
       return reduce(await api.getPosts(), postReduce);
     },
     groupedPosts: async (_, { includeInactive }, ctx) => {
       await hasAuthenticated(ctx);
       // Get all posts
-      const allPosts = await api.getPosts(undefined, includeInactive);
+      const allPosts = await api.getPosts(undefined, includeInactive ?? false);
 
       // Create temp object to group posts
       const temp: Record<Utskott, Post[]> = {} as Record<Utskott, Post[]>;
@@ -65,7 +68,13 @@ const postresolver: Resolvers = {
     },
     addUsersToPost: async (_, { usernames, id, start, end }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
-      return api.addUsersToPost(usernames, id, start ?? undefined, end ?? undefined);
+
+      if (await api.addUsersToPost(usernames, id, start ?? undefined, end ?? undefined)) {
+        throw new ServerError('Kunde inte lägga till användare till posten!');
+      }
+
+      const res = await api.getPost(id);
+      return postReduce(res);
     },
     activatePost: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
@@ -122,8 +131,8 @@ const postresolver: Resolvers = {
     },
   },
   Post: {
-    history: async ({ id }, _, ctx) => {
-      const entries = await api.getHistoryEntries({ refPost: id });
+    history: async ({ id }, { current }, ctx) => {
+      const entries = await api.getHistoryEntries({ refPost: id }, current ?? false);
 
       const a = Promise.all(
         entries.map(async (e) => {
@@ -143,7 +152,7 @@ const postresolver: Resolvers = {
       return a;
     },
     currentHolders: async ({ id }, _, ctx) => {
-      const refPostHolders = await ctx.currentHoldersDataLoader.load(id)
+      const refPostHolders = await ctx.currentHoldersDataLoader.load(id);
 
       const a = Promise.all(
         refPostHolders.map(async (username) => {

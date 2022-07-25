@@ -13,6 +13,9 @@ class EmergencyContactAPI {
       where: {
         refUser: username,
       },
+      orderBy: {
+        name: 'asc',
+      },
     });
 
     return contacts;

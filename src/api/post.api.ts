@@ -40,6 +40,11 @@ const checkPostTypeAndSpots = (
   return null;
 };
 
+type PostWithUsernames = {
+  postId: number;
+  usernames: string[];
+};
+
 /**
  * Det här är apin för att hantera poster.
  */
@@ -65,6 +70,9 @@ export class PostAPI {
     const posts = await prisma.prismaPost.findMany({
       where,
       take: limit,
+      orderBy: {
+        postname: 'asc',
+      },
     });
 
     return posts;
@@ -102,6 +110,9 @@ export class PostAPI {
 
     const posts = await prisma.prismaPost.findMany({
       where,
+      orderBy: {
+        postname: 'asc',
+      },
     });
 
     return posts;
@@ -123,7 +134,7 @@ export class PostAPI {
       where: {
         ...where,
         history: {
-          some: {
+          every: {
             OR: [
               { end: null },
               {
@@ -138,6 +149,16 @@ export class PostAPI {
           },
         },
       },
+      include: {
+        history: {
+          orderBy: {
+            start: 'desc',
+          },
+        },
+      },
+      orderBy: {
+        postname: 'asc',
+      },
     });
 
     return posts;
@@ -145,12 +166,12 @@ export class PostAPI {
 
   /**
    * Get the current post holders of post provided, or an empty list of the post have no holders.
-   * 
+   *
    * **To be used by DataLoader, not directly**
    * @param postId ID of the post to be found
    * @returns An objecy containing usernames for the current holders of the post, and the post ID
    */
-  async getCurrentPostHolders(postIds: number[]): Promise<{ postId: number, usernames: string[]}[]> {
+  async getCurrentPostHolders(postIds: number[]): Promise<PostWithUsernames[]> {
     const dbRes = await prisma.prismaPost.findMany({
       where: {
         id: {
@@ -182,19 +203,25 @@ export class PostAPI {
               },
             },
           },
+          orderBy: {
+            start: 'desc',
+          },
         },
       },
+      orderBy: {
+        postname: 'asc',
+      },
     });
-    
+
     // Extract so we have correct format,
     // a history may contain more than one user
-    const refPostHolders: { postId: number, usernames: string[]}[] = [];
+    const refPostHolders: PostWithUsernames[] = [];
     dbRes.forEach((r) => {
       const { history, id: postId } = r;
       refPostHolders.push({
         postId,
         usernames: history.map((h) => h.refUser),
-      })
+      });
     });
 
     return refPostHolders;
@@ -216,6 +243,9 @@ export class PostAPI {
 
     const posts = await prisma.prismaPost.findMany({
       where,
+      orderBy: {
+        postname: 'asc',
+      },
     });
 
     return posts;
@@ -387,9 +417,15 @@ export class PostAPI {
     return post != null;
   }
 
-  async getHistoryEntries(where: Prisma.PrismaPostHistoryWhereInput): Promise<PrismaPostHistory[]> {
+  async getHistoryEntries(
+    where: Prisma.PrismaPostHistoryWhereInput,
+    onlyCurrent = false,
+  ): Promise<PrismaPostHistory[]> {
     const history = await prisma.prismaPostHistory.findMany({
-      where,
+      where: {
+        ...where,
+        ...(onlyCurrent ? { OR: [{ end: null }, { end: { gt: new Date() } }] } : {}),
+      },
     });
 
     return history;
