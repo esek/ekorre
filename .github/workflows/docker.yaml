@@ -168,8 +168,7 @@ jobs:
          mv .env.example .env
          sed -i 's/localhost/postgres/' .env
       - name: install deps
-        run: |
-          npm ci
+        run: npm ci
       - name: lint
         continue-on-error: true
         run: npm run lint -- --output-file eslint_report.json --format json
@@ -242,7 +241,6 @@ jobs:
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DB_HOST;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} DEPLOY_URL;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} JWT_SECRET;
-            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} COOKIE_DOMAIN;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} EBREV;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} EBREV_API_TOKEN;
       - name: set variables
