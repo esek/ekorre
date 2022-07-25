@@ -65,6 +65,7 @@ input NewPost {
     Om sökande valbereds och kallas till intervju
     """
     interviewRequired: Boolean
+    active: Boolean
 }
 
 input ModifyPost {

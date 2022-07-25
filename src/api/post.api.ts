@@ -145,12 +145,14 @@ export class PostAPI {
 
   /**
    * Get the current post holders of post provided, or an empty list of the post have no holders.
-   * 
+   *
    * **To be used by DataLoader, not directly**
    * @param postId ID of the post to be found
    * @returns An objecy containing usernames for the current holders of the post, and the post ID
    */
-  async getCurrentPostHolders(postIds: number[]): Promise<{ postId: number, usernames: string[]}[]> {
+  async getCurrentPostHolders(
+    postIds: number[],
+  ): Promise<{ postId: number; usernames: string[] }[]> {
     const dbRes = await prisma.prismaPost.findMany({
       where: {
         id: {
@@ -185,16 +187,16 @@ export class PostAPI {
         },
       },
     });
-    
+
     // Extract so we have correct format,
     // a history may contain more than one user
-    const refPostHolders: { postId: number, usernames: string[]}[] = [];
+    const refPostHolders: { postId: number; usernames: string[] }[] = [];
     dbRes.forEach((r) => {
       const { history, id: postId } = r;
       refPostHolders.push({
         postId,
         usernames: history.map((h) => h.refUser),
-      })
+      });
     });
 
     return refPostHolders;
@@ -262,6 +264,7 @@ export class PostAPI {
     spots,
     description,
     interviewRequired,
+    active,
   }: NewPost): Promise<PrismaPost> {
     const s = checkPostTypeAndSpots(postType, spots);
 
@@ -289,7 +292,7 @@ export class PostAPI {
         spots: s,
         description: description || 'Postbeskrivning saknas :/',
         interviewRequired: interviewRequired ?? false,
-        active: true,
+        active: active ?? true,
       },
     });
 
