@@ -1,5 +1,3 @@
-import { NotFoundError } from '@/errors/request.errors';
-import { Logger } from '@/logger';
 import { PostAPI } from '@api/post';
 
 // Om vi kör tester behöver vi denna konstant
