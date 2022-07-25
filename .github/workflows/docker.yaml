@@ -159,15 +159,17 @@ jobs:
          POSTGRES_DB: ekorre_foot
     container: node:16-alpine
     steps:
+      - name: add bash (needed for actions)
+        run: apk add --no-cache bash
       - name: checkout repo
         uses: actions/checkout@v3
       - name: setup env
         run: |
          mv .env.example .env
          sed -i 's/localhost/postgres/' .env
+         mkdir public
       - name: install deps
         run: |
-          apk add --no-cache bash
           npm ci
       - name: lint
         continue-on-error: true
