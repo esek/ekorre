@@ -339,11 +339,9 @@ export class ElectionAPI {
             // Nested create
             electables: {
               createMany: {
-                data: electables.map((e) => {
-                  return {
-                    refPost: e,
-                  };
-                }),
+                data: electables.map((e) => ({
+                  refPost: e,
+                })),
               },
             },
           },
