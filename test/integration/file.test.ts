@@ -207,6 +207,8 @@ describe('fetching files', () => {
     ]);
   });
 
+  afterAll(removeCreatedFiles);
+
   const GET_FILES_QUERY = `
 	query($type: FileType) {
 		files(type: $type) {
@@ -355,6 +357,8 @@ describe('reading files', () => {
     ]);
   });
 
+  afterAll(removeCreatedFiles);
+
   /**
    * Gets the content type from the response headers
    * @param headers request headers
@@ -394,27 +398,7 @@ describe('reading files', () => {
       .set('authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    expect(getContentType(res.headers)).toBe('image/jpeg');
-  });
-
-  it('can get the token is in cookie', async () => {
-    const file = await getFile(AccessType.Authenticated);
-    const res: { headers: StrictObject<string, string> } = await r
-      .get(baseURL(file.folderLocation))
-      .set('authorization', `Bearer ${accessToken}`)
-      .expect(200);
-
-    expect(getContentType(res.headers)).toBe('image/jpeg');
-  });
-
-  it('can get the token is in query', async () => {
-    const file = await getFile(AccessType.Authenticated);
-    const res: { headers: StrictObject<string, string> } = await r
-      .get(baseURL(file.folderLocation))
-      .query({ token: accessToken })
-      .expect(200);
-
-    expect(getContentType(res.headers)).toBe('image/jpeg');
+    expect(getContentType(res.headers)).toBe('text/plain; charset=UTF-8');
   });
 
   it('can get the bearer token is in header', async () => {
@@ -423,16 +407,7 @@ describe('reading files', () => {
       .get(baseURL(file.folderLocation))
       .set('authorization', `Bearer ${accessToken}`)
       .expect(200);
-    expect(getContentType(res.headers)).toBe('image/jpeg');
-  });
-
-  it('can get the token is in header', async () => {
-    const file = await getFile(AccessType.Authenticated);
-    const res: { headers: StrictObject<string, string> } = await r
-      .get(baseURL(file.folderLocation))
-      .set('authorization', accessToken)
-      .expect(200);
-    expect(getContentType(res.headers)).toBe('image/jpeg');
+    expect(getContentType(res.headers)).toBe('text/plain; charset=UTF-8');
   });
 
   it('returns 404 if the file is not found', async () => {
