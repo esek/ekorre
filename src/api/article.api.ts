@@ -8,7 +8,7 @@ import { Prisma, PrismaArticleType } from '@prisma/client';
 
 import prisma from './prisma';
 
-const orderBy: Prisma.PrismaArticleOrderByWithRelationAndSearchRelevanceInput[] = [
+const defaultOrder: Prisma.PrismaArticleOrderByWithRelationAndSearchRelevanceInput[] = [
   {
     createdAt: 'desc',
   },
@@ -29,7 +29,7 @@ export class ArticleAPI {
       include: {
         tags: true,
       },
-      orderBy,
+      orderBy: defaultOrder,
     });
 
     return a;
@@ -43,7 +43,7 @@ export class ArticleAPI {
       where: {
         articleType: PrismaArticleType.NEWS,
       },
-      orderBy,
+      orderBy: defaultOrder,
       include: {
         tags: true,
       },
@@ -57,7 +57,7 @@ export class ArticleAPI {
       where: {
         articleType: PrismaArticleType.INFORMATION,
       },
-      orderBy,
+      orderBy: defaultOrder,
       include: {
         tags: true,
       },
@@ -90,7 +90,7 @@ export class ArticleAPI {
       include: {
         tags: true,
       },
-      orderBy,
+      orderBy: defaultOrder,
     });
 
     return a;
@@ -167,7 +167,7 @@ export class ArticleAPI {
       include: {
         tags: true,
       },
-      orderBy,
+      orderBy: defaultOrder,
     });
 
     return a;

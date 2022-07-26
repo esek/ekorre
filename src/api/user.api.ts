@@ -14,7 +14,7 @@ import {
 import prisma from './prisma';
 
 const logger = Logger.getLogger('UserAPI');
-const orderBy: Prisma.PrismaUserOrderByWithRelationAndSearchRelevanceInput[] = [
+const defaultOrder: Prisma.PrismaUserOrderByWithRelationAndSearchRelevanceInput[] = [
   {
     firstName: 'asc',
   },
@@ -59,7 +59,7 @@ export class UserAPI {
    */
   async getAllUsers(): Promise<PrismaUser[]> {
     const users = await prisma.prismaUser.findMany({
-      orderBy,
+      orderBy: defaultOrder,
     });
     return users;
   }
@@ -93,7 +93,7 @@ export class UserAPI {
           in: usernames,
         },
       },
-      orderBy,
+      orderBy: defaultOrder,
     });
 
     return u;

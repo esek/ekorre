@@ -34,7 +34,7 @@ export const checkUserFieldAccess = async (ctx: Context, obj: User) => {
 const userResolver: Resolvers = {
   // To hide user fields from the public, add fields here with auth
   User: {
-    fullName: (obj) => `${obj.firstName} ${obj.lastName}`,
+    fullName: ({ firstName, lastName }) => `${firstName} ${lastName}`,
     email: async (obj, _, ctx) => {
       // Don't want to leak contact details to the public
       await hasAuthenticated(ctx);

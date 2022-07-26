@@ -415,10 +415,15 @@ export class PostAPI {
     where: Prisma.PrismaPostHistoryWhereInput,
     onlyCurrent = false,
   ): Promise<PrismaPostHistory[]> {
+    let or = {};
+    if (onlyCurrent) {
+      or = { OR: [{ end: null }, { end: { gt: new Date() } }] };
+    }
+
     const history = await prisma.prismaPostHistory.findMany({
       where: {
         ...where,
-        ...(onlyCurrent ? { OR: [{ end: null }, { end: { gt: new Date() } }] } : {}),
+        ...or,
       },
     });
 

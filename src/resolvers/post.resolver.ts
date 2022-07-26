@@ -12,15 +12,13 @@ const postresolver: Resolvers = {
     post: async (_, { id }, ctx) => {
       await hasAuthenticated(ctx);
       const res = await api.getPost(id);
-      if (res == null) {
-        throw new BadRequestError('Den posten finns inte!');
-      }
       return postReduce(res);
     },
     posts: async (_, { utskott, includeInactive }, ctx) => {
       await hasAuthenticated(ctx);
       if (utskott != null) {
-        return reduce(await api.getPostsFromUtskott(utskott, includeInactive ?? false), postReduce);
+        const res = await api.getPostsFromUtskott(utskott, includeInactive ?? false);
+        return reduce(res, postReduce);
       }
       return reduce(await api.getPosts(), postReduce);
     },
@@ -69,9 +67,7 @@ const postresolver: Resolvers = {
     addUsersToPost: async (_, { usernames, id, start, end }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
 
-      if (await api.addUsersToPost(usernames, id, start ?? undefined, end ?? undefined)) {
-        throw new ServerError('Kunde inte lägga till användare till posten!');
-      }
+      await api.addUsersToPost(usernames, id, start ?? undefined, end ?? undefined);
 
       const res = await api.getPost(id);
       return postReduce(res);

@@ -45,12 +45,12 @@ export class AccessAPI {
 
   /**
    * Hämta access för en post.
-   * @param postid posten
+   * @param postId posten
    */
-  async getPostAccess(postid: number): Promise<PrismaPostAccess[]> {
+  async getPostAccess(postId: number): Promise<PrismaPostAccess[]> {
     const access = await prisma.prismaPostAccess.findMany({
       where: {
-        refPost: postid,
+        refPost: postId,
       },
       orderBy: {
         resource: 'asc',
