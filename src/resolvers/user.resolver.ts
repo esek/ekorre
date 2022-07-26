@@ -37,13 +37,13 @@ const userResolver: Resolvers = {
     email: async (obj, _, ctx) => {
       // Don't want to leak contact details to the public
       await hasAuthenticated(ctx);
-      
+
       return obj.email;
     },
     phone: async (obj, _, ctx) => {
       // Don't want to leak contact details to the public
       await hasAuthenticated(ctx);
-      
+
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return obj.phone!;
     },
@@ -110,7 +110,7 @@ const userResolver: Resolvers = {
 
       return reduce(user, userReduce);
     },
-    requestPasswordReset: async (_, { username }) => {
+    requestPasswordReset: async (_, { username, resetLink }) => {
       const user = await api.getSingleUser(username);
 
       if (!user) {
@@ -123,9 +123,14 @@ const userResolver: Resolvers = {
         return false;
       }
 
+      const params = new URLSearchParams({
+        token,
+        username: user.username,
+      });
+
       await sendEmail(user.email, 'Glömt lösenord?', 'forgot-password', {
         firstName: user.firstName,
-        resetLink: `https://esek.se/account/forgot-password?token=${token}&username=${user.username}`,
+        resetLink: `${resetLink}?${params.toString()}`,
         contactEmail: 'macapar@esek.se',
         userEmail: user.email,
       });
