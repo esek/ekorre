@@ -635,6 +635,7 @@ export type NewArticle = {
 };
 
 export type NewPost = {
+  active?: Maybe<Scalars['Boolean']>;
   description?: Maybe<Scalars['String']>;
   /** Om sökande valbereds och kallas till intervju */
   interviewRequired?: Maybe<Scalars['Boolean']>;

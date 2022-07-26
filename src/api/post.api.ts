@@ -285,6 +285,7 @@ export class PostAPI {
     spots,
     description,
     interviewRequired,
+    active,
   }: NewPost): Promise<PrismaPost> {
     const s = checkPostTypeAndSpots(postType, spots);
 
@@ -312,7 +313,7 @@ export class PostAPI {
         spots: s,
         description: description || 'Postbeskrivning saknas :/',
         interviewRequired: interviewRequired ?? false,
-        active: true,
+        active: active ?? true,
       },
     });
 
