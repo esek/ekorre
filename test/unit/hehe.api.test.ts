@@ -20,12 +20,15 @@ const DUMMY_HEHE: Omit<PrismaHehe, 'refUploader'> = {
   uploadedAt: new Date(),
 };
 
-const generateDummyHehe = async (uploaderUsername: string, overrides: Partial<PrismaHehe> = {}): Promise<PrismaHehe> => {
+const generateDummyHehe = async (
+  uploaderUsername: string,
+  overrides: Partial<PrismaHehe> = {},
+): Promise<PrismaHehe> => {
   ctr += 1;
   const { id } = await prisma.prismaFile.create({
     data: {
       refUploader: USERNAME0,
-      name: `heheApiTestFile${ctr}`,
+      name: `heheFile${ctr}`,
       folderLocation: 'heheApiTestFile',
       type: 'dummy',
       accessType: 'PUBLIC',

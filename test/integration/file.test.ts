@@ -260,6 +260,7 @@ describe('fetching files', () => {
 	}
 `;
 
+  // TODO: fuckar med hehe testerna ibland
   it('gets multiple files', async () => {
     const res = await requestWithAuth(GET_FILES_QUERY, {}, accessToken);
 

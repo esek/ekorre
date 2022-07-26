@@ -131,9 +131,6 @@ class FileAPI {
 
     const location = `${ROOT}/${file.folderLocation}`;
 
-    // Delete file from system
-    fs.rmSync(location, { recursive: true });
-
     try {
       // Delete file from DB
       await prisma.prismaFile.delete({
@@ -141,6 +138,9 @@ class FileAPI {
           id,
         },
       });
+
+      // Delete file from system
+      fs.rmSync(location, { recursive: true });
       logger.info(`Deleted ${file.type} ${file.name}`);
       return true;
     } catch {
