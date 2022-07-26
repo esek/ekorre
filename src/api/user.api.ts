@@ -125,7 +125,7 @@ export class UserAPI {
       FROM users
       WHERE lower(concat(first_name, last_name, username))
       LIKE ${Prisma.join(searchArray, ' AND lower(concat(first_name, last_name, username)) LIKE ')}
-      ORDERBY first_name ASC, last_name ASC, class DESC
+      ORDER BY first_name ASC, last_name ASC, class DESC
     `;
 
     return users as PrismaUser[];
