@@ -5,7 +5,8 @@ import { AccessType, FileSystemResponsePath, FileType } from '@generated/graphql
 import { Prisma, PrismaAccessType, PrismaFile } from '@prisma/client';
 import { createHash } from 'crypto';
 import { UploadedFile } from 'express-fileupload';
-import fs from 'fs';
+import syncFs from 'fs';
+import fs from 'fs/promises';
 import { extname } from 'path';
 
 import prisma from './prisma';
@@ -47,8 +48,8 @@ class FileAPI {
       const location = `${folder}${hashedName}`;
 
       // Create folder(s) if it doesn't exist
-      if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder, { recursive: true });
+      if (!syncFs.existsSync(folder)) {
+        await fs.mkdir(folder, { recursive: true });
       }
 
       // Move file to correct location
@@ -93,7 +94,7 @@ class FileAPI {
 
     try {
       // Create folder in storage
-      fs.mkdirSync(fullPath, { recursive: true });
+      await fs.mkdir(fullPath, { recursive: true });
 
       const location = `${folderTrimmed}${hash}`;
 
@@ -140,7 +141,7 @@ class FileAPI {
       });
 
       // Delete file from system
-      fs.rmSync(location, { recursive: true });
+      await fs.rm(location, { recursive: true });
       logger.info(`Deleted ${file.type} ${file.name}`);
       return true;
     } catch {
@@ -289,7 +290,7 @@ class FileAPI {
       });
 
       // Read files in current directory
-      const fileIds = fs.readdirSync(fullPath);
+      const fileIds = await fs.readdir(fullPath);
 
       // If no files, return empty array
       if (!fileIds?.length) {
