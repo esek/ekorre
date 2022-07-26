@@ -110,7 +110,7 @@ const userResolver: Resolvers = {
 
       return reduce(user, userReduce);
     },
-    requestPasswordReset: async (_, { username, resetLink }) => {
+    requestPasswordReset: async (_, { username, resetLink, returnTo }) => {
       const user = await api.getSingleUser(username);
 
       if (!user) {
@@ -127,6 +127,10 @@ const userResolver: Resolvers = {
         token,
         username: user.username,
       });
+
+      if (returnTo) {
+        params.append('return-to', returnTo);
+      }
 
       await sendEmail(user.email, 'Glömt lösenord?', 'forgot-password', {
         firstName: user.firstName,

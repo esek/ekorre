@@ -549,6 +549,7 @@ export type MutationRemoveProposalArgs = {
 
 export type MutationRequestPasswordResetArgs = {
   resetLink: Scalars['String'];
+  returnTo?: Maybe<Scalars['String']>;
   username: Scalars['String'];
 };
 
