@@ -56,7 +56,7 @@ export class PostAPI {
     await prisma.prismaPost.delete({ where: { id: postId } });
   }
   /**
-   * Hämta alla poster.
+   * Hämta alla poster ordnat efter namn.
    * @param limit Begränsning av antal poster
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
@@ -93,7 +93,7 @@ export class PostAPI {
   }
 
   /**
-   * Returnerar ett antal poster.
+   * Returnerar de poster som finns i `ids` ordnat efter namn.
    * @param postnames Lista på postnamn
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
@@ -119,7 +119,7 @@ export class PostAPI {
   }
 
   /**
-   * Hämta alla poster som en användare sitter på, eller har suttit på.
+   * Hämta alla poster som en användare sitter på, eller har suttit på ordnat efter namn.
    * @param username användaren
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
@@ -158,11 +158,11 @@ export class PostAPI {
   }
 
   /**
-   * Get the current post holders of post provided, or an empty list of the post have no holders.
+   * Hämta alla poster som en användare sitter på, eller har suttit på ordnat efter namn.
    *
-   * **To be used by DataLoader, not directly**
-   * @param postId ID of the post to be found
-   * @returns An objecy containing usernames for the current holders of the post, and the post ID
+   * **Ska användas DataLoader**
+   * @param postIds lista med postid:er
+   * @returns ett lista av objekt med postId och användarnamnen
    */
   async getCurrentPostHolders(postIds: number[]): Promise<PostWithUsernames[]> {
     const dbRes = await prisma.prismaPost.findMany({
@@ -195,9 +195,6 @@ export class PostAPI {
                 username: true,
               },
             },
-          },
-          orderBy: {
-            start: 'desc',
           },
         },
       },

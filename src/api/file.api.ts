@@ -149,6 +149,10 @@ class FileAPI {
     }
   }
 
+  /**
+   * Hämtar alla filer som är av typen `type` sorterat efter namn och skapelse
+   * @param type Typ av filer att hämta
+   */
   async getMultipleFiles(type?: FileType): Promise<PrismaFile[]> {
     const where: Prisma.PrismaFileWhereInput = {};
 
@@ -164,6 +168,10 @@ class FileAPI {
     return f;
   }
 
+  /**
+   * Hämtar alla filer som finns i `ids` sorterat efter namn och skapelse
+   * @param ids Ids av filerna att hämta
+   */
   async getMultipleFilesById(ids: readonly string[]): Promise<PrismaFile[]> {
     const f = await prisma.prismaFile.findMany({
       where: {
@@ -196,6 +204,11 @@ class FileAPI {
     return file;
   }
 
+  /**
+   * Söker efter filer (namn och id) som innehåller @search ordnat
+   * efter relevans och skapelse
+   * @param search söksträng
+   */
   async searchFiles(search: string): Promise<PrismaFile[]> {
     const f = await prisma.prismaFile.findMany({
       where: {
@@ -261,9 +274,9 @@ class FileAPI {
   }
 
   /**
-   * Gets all items in provided folder
-   * @param folder The path to the directory
-   * @returns List of folder/files
+   * Får mappar och/eller filer i en mapp ordnat efter namn och skapelse
+   * @param folder sökvägen till mappen
+   * @returns en lista på filer och/eller mappar
    */
   async getFolderData(folder: string): Promise<[PrismaFile[], FileSystemResponsePath[]]> {
     const folderTrimmed = this.trimFolder(folder);

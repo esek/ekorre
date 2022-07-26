@@ -22,7 +22,7 @@ const defaultOrder: Prisma.PrismaArticleOrderByWithRelationAndSearchRelevanceInp
  */
 export class ArticleAPI {
   /**
-   * Hämta alla artiklar
+   * Hämta alla artiklar sorterade på skapande och titel.
    */
   async getAllArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
@@ -36,7 +36,7 @@ export class ArticleAPI {
   }
 
   /**
-   * Hämtar alla nyhetsartiklar, sorterade på skapande
+   * Hämtar alla nyhetsartiklar, sorterade på skapande och titel.
    */
   async getAllNewsArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
@@ -52,6 +52,9 @@ export class ArticleAPI {
     return a;
   }
 
+  /**
+   * Hämtar alla informationsartiklar, sorterade på skapande och titel.
+   */
   async getAllInformationArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
@@ -68,7 +71,7 @@ export class ArticleAPI {
 
   /**
    * Hämtar alla nyhetsartiklar i ett intervall. Utelämnas
-   * parametrar finns ingen begränsning.
+   * parametrar finns ingen begränsning. Sorteras på skapande och titel.
    * @param after
    * @param before
    * @param author Username of original author of the article
@@ -174,7 +177,7 @@ export class ArticleAPI {
   }
 
   /**
-   * Hämtar de senaste nyhetsartiklarna
+   * Hämtar de senaste nyhetsartiklarna sorterat på skapande (nyas först).
    * @param nbr antal artiklar
    */
   async getLatestNews(limit: number): Promise<PrismaExtendedArticle[]> {

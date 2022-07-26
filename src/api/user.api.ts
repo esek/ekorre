@@ -55,7 +55,7 @@ export class UserAPI {
   }
 
   /**
-   * Returnerar alla lagarade användare.
+   * Returnerar alla lagarade användare ordnat efter förnamn, efternamn, klass.
    */
   async getAllUsers(): Promise<PrismaUser[]> {
     const users = await prisma.prismaUser.findMany({
@@ -83,7 +83,7 @@ export class UserAPI {
   }
 
   /**
-   * Hämta flera användare.
+   * Hämta flera användare ordnat efter förnamn, efternamn, klass.
    * @param usernames användarnamnen
    */
   async getMultipleUsers(usernames: string[]): Promise<PrismaUser[]> {
@@ -422,6 +422,13 @@ export class UserAPI {
     return response.user;
   };
 
+  /**
+   * Hämtar inloggningsleverantörer för en användare baserat på `provider`
+   * ordnat efter namn.
+   * @param username
+   * @param provider
+   * @returns lista med leverantörer
+   */
   getLoginProviders = async (username: string, provider?: string) => {
     const where: Record<string, string> = { refUser: username };
 

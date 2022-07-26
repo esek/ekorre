@@ -43,9 +43,9 @@ export class HeheAPI {
   }
 
   /**
-   * Returns all numbers of HeHE for a given year
+   * Hämta alla HeHes från ett specifikt år ordnat efter nummer.
    * @param year
-   * @returns A list of database representations of HeHEs
+   * @returns en lista med HeHes
    */
   async getHehesByYear(year: number): Promise<PrismaHehe[]> {
     const h = await prisma.prismaHehe.findMany({

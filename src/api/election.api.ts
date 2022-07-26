@@ -16,6 +16,7 @@ const logger = Logger.getLogger('ElectionAPI');
 
 export class ElectionAPI {
   /**
+   * Hämta val sorterat efter skapande.
    * @param limit Gräns på antal möten. Om null ges alla möten
    * @returns Senaste mötet som skapades
    */
@@ -57,7 +58,7 @@ export class ElectionAPI {
   }
 
   /**
-   * Returnerar en lista med alla val som matchar något av de angivna ID:n.
+   * Returnerar en lista med alla val som matchar något av de angivna ID:n sorterat efter skapande.
    * @param electionIds En lista med `electionId`
    * @returns En lista med val
    */
@@ -78,7 +79,7 @@ export class ElectionAPI {
 
   /**
    * Returnerar alla nomineringar för posten och valet, men bara
-   * poster man kan nomineras till.
+   * poster man kan nomineras till sorterat på postnamn.
    * @param electionId ID på ett val
    * @param postId ID på en post
    * @returns Lista över nomineringar
@@ -111,7 +112,7 @@ export class ElectionAPI {
 
   /**
    * Returnerar alla nomineringar för valet, om specificerat endast
-   * de med ett specifikt svar. Returnerar inte nomineringar som inte
+   * de med ett specifikt svar sorterat på postnamn. Returnerar inte nomineringar som inte
    * finns som electables.
    * @param electionId ID på ett val
    * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
@@ -159,8 +160,9 @@ export class ElectionAPI {
   }
 
   /**
-   * Returnerar alla nomineringar för en användare för ett val, om specificerat endast
-   * de med ett specifikt svar. Hämtar inte nomineringar som inte finns som electables
+   * Returnerar alla nomineringar för en användare för ett val , om specificerat endast
+   * de med ett specifikt svar. Hämtar inte nomineringar som inte finns som electables.
+   * Svaret är sorterat på postnamn.
    * @param electionId ID på ett val
    * @param username Användarnamnet
    * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
@@ -265,7 +267,7 @@ export class ElectionAPI {
   }
 
   /**
-   * Hittar alla valberedningens nomineringar för ett val.
+   * Hittar alla valberedningens nomineringar för ett val sorterat på postnamn.
    * @param electionId ID på ett val
    */
   async getAllProposals(electionId: number): Promise<PrismaProposal[]> {
@@ -284,7 +286,7 @@ export class ElectionAPI {
   }
 
   /**
-   * Hittar alla valbara poster (postnamn) för ett val.
+   * Hittar alla valbara poster (postnamn) för ett val sorterat på postnamn.
    * @param electionId ID på ett val
    * @returns Lista på `posts.id`
    */
