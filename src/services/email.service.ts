@@ -17,7 +17,7 @@ const api = axios.create({
   headers: { Authorization: API_TOKEN },
 });
 
-export const sendEmail = (
+export const sendEmail = async (
   to: string[] | string,
   subject: string,
   templateName: string,
@@ -25,7 +25,7 @@ export const sendEmail = (
   body?: string,
 ) => {
   try {
-    return api.post<SendEmailOptions, AxiosResponse>('/send', {
+    return await api.post<SendEmailOptions, AxiosResponse>('/send', {
       to: to instanceof Array ? to : [to],
       subject,
       templateName,

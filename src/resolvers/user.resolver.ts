@@ -129,7 +129,7 @@ const userResolver: Resolvers = {
       });
 
       if (returnTo) {
-        params.append('return-to', returnTo);
+        params.append('return_to', returnTo);
       }
 
       await sendEmail(user.email, 'Glömt lösenord?', 'forgot-password', {
