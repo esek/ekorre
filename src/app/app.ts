@@ -2,18 +2,34 @@
 import config from '@/config';
 import fileRoute from '@route/file';
 import healthRoute from '@route/health';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, ServerRegistration } from 'apollo-server-express';
 import cookieparser from 'cookie-parser';
+import cors, { type CorsOptions } from 'cors';
 import express from 'express';
 
 import apolloServerConfig from './serverconfig';
 
-const { FILES } = config;
+const { FILES, DEV } = config;
 
 // Visa en referens till källfilen istället för den kompilerade
 
 // Starta server.
 export const app = express();
+
+const registration: ServerRegistration = {
+  app,
+  path: '/',
+};
+
+// this is handled by traefik in other envs
+if (DEV) {
+  const options: CorsOptions = {
+    credentials: true,
+    origin: 'http://localhost:3000',
+  };
+  app.use(cors(options));
+  registration.cors = options;
+}
 
 (async () => {
   app.use(cookieparser());
@@ -27,5 +43,5 @@ export const app = express();
 
   await server.start();
 
-  server.applyMiddleware({ app, path: '/' });
+  server.applyMiddleware(registration);
 })();
