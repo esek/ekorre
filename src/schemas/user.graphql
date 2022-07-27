@@ -14,7 +14,7 @@ type Query {
 type Mutation {
   createUser(input: NewUser!): User!
   updateUser(input: UpdateUser!): User!
-  requestPasswordReset(username: String!): Boolean!
+  requestPasswordReset(username: String!, resetLink: String!, returnTo: String): Boolean!
   validatePasswordResetToken(username: String!, token: String!): Boolean!
   resetPassword(username: String!, token: String!, password: String!): Boolean!
   casCreateUser(input: NewUser!, hash: String!): User!

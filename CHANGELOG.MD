@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] - 2022-07-27
+
+### Ändrat
+- `requestPasswordReset` tar numera en `resetLink` och en `returnTo` parameter som skickas vidare till användaren i mailet.
+
 ## [0.18.0] - 2022-07-26
 
 ### Tillagt
@@ -17,7 +22,6 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `Post.Mutation.addUsersToPost` returnerar en `Post!` istället för `Boolean!`
 - `Election.acceptedNominations` är alltid en lista
 - Default värden för docker compose till postgres databas
-
 
 ### Borttaget
 - CORS

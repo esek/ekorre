@@ -111,7 +111,7 @@ const userResolver: Resolvers = {
 
       return reduce(user, userReduce);
     },
-    requestPasswordReset: async (_, { username }) => {
+    requestPasswordReset: async (_, { username, resetLink, returnTo }) => {
       const user = await api.getSingleUser(username);
 
       if (!user) {
@@ -124,9 +124,18 @@ const userResolver: Resolvers = {
         return false;
       }
 
+      const params = new URLSearchParams({
+        token,
+        username: user.username,
+      });
+
+      if (returnTo) {
+        params.append('return_to', returnTo);
+      }
+
       await sendEmail(user.email, 'Glömt lösenord?', 'forgot-password', {
         firstName: user.firstName,
-        resetLink: `https://esek.se/account/forgot-password?token=${token}&username=${user.username}`,
+        resetLink: `${resetLink}?${params.toString()}`,
         contactEmail: 'macapar@esek.se',
         userEmail: user.email,
       });
