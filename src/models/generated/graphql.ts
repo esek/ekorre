@@ -676,7 +676,6 @@ export enum NominationAnswer {
 export type Post = {
   access: Access;
   active: Scalars['Boolean'];
-  currentHolders: Array<User>;
   description: Scalars['String'];
   history: Array<HistoryEntry>;
   id: Scalars['Int'];
@@ -1540,7 +1539,6 @@ export interface ObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTyp
 export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  currentHolders?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   history?: Resolver<Array<ResolversTypes['HistoryEntry']>, ParentType, ContextType, RequireFields<PostHistoryArgs, never>>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;

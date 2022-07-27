@@ -41,7 +41,6 @@ type Post {
     """
     interviewRequired: Boolean
     history(current: Boolean): [HistoryEntry!]!
-    currentHolders: [User!]!
 }
 
 type GroupedPost {

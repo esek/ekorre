@@ -15,7 +15,6 @@ export type Context = {
   postDataLoader: DataLoader<number, Post>;
   fileDataLoader: DataLoader<string, FileResponse>;
   electionDataLoader: DataLoader<number, ElectionResponse>;
-  currentHoldersDataLoader: DataLoader<number, string[]>;
 };
 
 export type ContextParams = Omit<ExpressContext, 'req'> & { req: CustomReq };
