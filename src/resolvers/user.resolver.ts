@@ -77,7 +77,7 @@ const userResolver: Resolvers = {
     },
     class: ({ firstName, class: className }) => {
       // hide phøsets class
-      if (firstName.toLowerCase().match(/ph[øö]s$/)) {
+      if (/ph[øö]s$/.test(firstName.toLowerCase().split(' ')[0])) {
         return 'XXXX';
       }
 
