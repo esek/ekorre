@@ -9,6 +9,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - Fixar att `Post.history` resolver returns history entry ID instead of `refPost` id
+- Gömmer klass om förnamn innehåller phøs
 
 ## [0.19.2] - 2022-07-27
 

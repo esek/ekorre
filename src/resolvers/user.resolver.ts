@@ -75,6 +75,14 @@ const userResolver: Resolvers = {
 
       return providers;
     },
+    class: ({ firstName, class: className }) => {
+      // hide phøsets class
+      if (firstName.toLowerCase().match(/ph[øö]s$/)) {
+        return 'XXXX';
+      }
+
+      return className;
+    },
   },
   Query: {
     me: async (_, __, { getUsername }) => {
