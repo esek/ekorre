@@ -25,6 +25,7 @@ type User {
 
   firstName: String!
   lastName: String!
+  fullName: String!
 
   photoUrl: String
   email: String!

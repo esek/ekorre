@@ -38,7 +38,7 @@ type TokenResponse {
 
 type CasLoginResponse {
   username: String!
-  hash: String
+  hash: String!
   exists: Boolean!
 }
 

@@ -153,7 +153,7 @@ const electionResolver: Resolvers = {
       // det kontrollerar vi detta här. I fallet att admin vill se dold
       // används `hiddenNominations`
       if (model.nominationsHidden ?? true) {
-        return null;
+        return [];
       }
 
       // Vi vill bara visa de nomineringar där folk tackat ja

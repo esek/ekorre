@@ -4,12 +4,11 @@ import fileRoute from '@route/file';
 import healthRoute from '@route/health';
 import { ApolloServer } from 'apollo-server-express';
 import cookieparser from 'cookie-parser';
-import cors, { CorsOptions } from 'cors';
 import express from 'express';
 
 import apolloServerConfig from './serverconfig';
 
-const { FILES, CORS } = config;
+const { FILES } = config;
 
 // Visa en referens till källfilen istället för den kompilerade
 
@@ -17,14 +16,7 @@ const { FILES, CORS } = config;
 export const app = express();
 
 (async () => {
-  const corsOptions: CorsOptions = {
-    origin: CORS.ALLOWED_ORIGINS,
-    credentials: true,
-  };
-
   app.use(cookieparser());
-
-  app.use(cors(corsOptions));
 
   // Setup files endpoint for REST-file handling
   app.use(FILES.ENDPOINT, fileRoute);
@@ -35,5 +27,5 @@ export const app = express();
 
   await server.start();
 
-  server.applyMiddleware({ app, path: '/', cors: corsOptions });
+  server.applyMiddleware({ app, path: '/' });
 })();

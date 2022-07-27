@@ -16,6 +16,7 @@ export function userReduce(user: PrismaUser): User {
 
   const u: User = {
     ...reduced,
+    fullName: '',
     photoUrl,
     access,
     posts: [],

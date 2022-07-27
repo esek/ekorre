@@ -25,6 +25,7 @@ test('that password is reduced properly', () => {
     username: 'kk6969öö-s',
     firstName: 'Kalle',
     lastName: 'Testballe',
+    fullName: '', // This will get evaled in resolver
     email: 'no-reply@esek.se',
     class: 'E18',
     photoUrl: null,

@@ -9,26 +9,26 @@ does not take an `electionId` parameter.
 """
 
 type Query {
-  openElection: Election
-  latestElections(limit: Int, includeUnopened: Boolean, includeHiddenNominations: Boolean): [Election]!
-  election(electionId: Int!): Election
-  elections(electionIds: [Int!]!): [Election]!
+  openElection: Election!
+  latestElections(limit: Int, includeUnopened: Boolean, includeHiddenNominations: Boolean): [Election!]!
+  election(electionId: Int!): Election!
+  elections(electionIds: [Int!]!): [Election!]!
 
   """
   Used if nominations are hidden but an election-admin wants too see nominations
   """
-  hiddenNominations(electionId: Int!, answer: NominationAnswer): [Nomination]!
+  hiddenNominations(electionId: Int!, answer: NominationAnswer): [Nomination!]!
 
   "A users own nominations should always be available to them"
-  myNominations(electionId: Int!, answer: NominationAnswer): [Nomination]!
+  myNominations(electionId: Int!, answer: NominationAnswer): [Nomination!]!
   numberOfNominations(electionId: Int!, postId: Int): Int!
   numberOfProposals(electionId: Int!, postId: Int): Int!
 }
 
 type Mutation {
   createElection(electables: [Int!]!, nominationsHidden: Boolean!): Election!
-  addElectables(electionId: Int!, postIds: [Int!]): Boolean!
-  removeElectables(electionId: Int!, postIds: [Int!]): Boolean!
+  addElectables(electionId: Int!, postIds: [Int!]!): Boolean!
+  removeElectables(electionId: Int!, postIds: [Int!]!): Boolean!
   setElectables(electionId: Int!, postIds: [Int!]!): Boolean!
   setHiddenNominations(electionId: Int!, hidden: Boolean!): Boolean!
   openElection(electionId: Int!): Boolean!
@@ -52,11 +52,11 @@ type Election {
   open: Boolean!
 
   "Which posts can be elected in the election"
-  electables: [Post]!
+  electables: [Post!]!
   proposals: [Proposal]
 
   "Is only available if `nominationsHidden` is `false`"
-  acceptedNominations: [Nomination]
+  acceptedNominations: [Nomination!]!
 
   "Whether accepted nominations are to be hidden"
   nominationsHidden: Boolean!

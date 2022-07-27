@@ -4,10 +4,26 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] - 2022-07-27
+### Ändrat
+- `requestPasswordReset` tar numera en `resetLink` och en `returnTo` parameter som skickas vidare till användaren i mailet.
+
 ## [0.18.0] - 2022-07-26
 
-## Ändrat
-- `requestPasswordReset` tar numera en `resetLink` och en `returnTo` parameter som skickas vidare till användaren i mailet.
+### Tillagt
+- `User.fullName`
+
+### Ändrat
+- Nu har alla api en specifik ordning som de returneras i
+- `File.api.ts` är så async den kan vara
+- `@types/node` är v16 vilket innebär att node måste minst vara 16
+- Många objekt som kunde vara null får inte vara det längre
+- `Post.Mutation.addUsersToPost` returnerar en `Post!` istället för `Boolean!`
+- `Election.acceptedNominations` är alltid en lista
+- Default värden för docker compose till postgres databas
+
+### Borttaget
+- CORS
 
 ## [0.17.1] - 2022-07-24
 

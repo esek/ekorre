@@ -46,11 +46,8 @@ beforeAll(async () => {
   [postId0, postId1] = (await Promise.all([createPost0(), createPost1()])).map((p) => p.id);
 });
 
-afterEach(async () => {
-  await clearDatabase();
-});
-
 afterAll(async () => {
+  await clearDatabase();
   await Promise.all([deletePost0(), deletePost1()]);
 });
 
@@ -76,7 +73,7 @@ test('getting nominations when nominations are hidden', async () => {
   // är valadmin och använder `hiddenNominations`-querien
   expect(data?.data?.openElection).toMatchObject({
     id: electionId,
-    acceptedNominations: null,
+    acceptedNominations: [],
   });
 
   // Om nomineringar görs öppna kan man hitta dem!

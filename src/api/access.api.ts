@@ -26,7 +26,7 @@ const postApi = new PostAPI();
  */
 export class AccessAPI {
   /**
-   * Hämta specifik access för en användare
+   * Hämta specifik access för en användare i bokstavsordning.
    * @param username användaren
    */
   // TODO: Migrera till prisma
@@ -44,14 +44,13 @@ export class AccessAPI {
   }
 
   /**
-   * Hämta access för en post.
-   * @param postname posten
+   * Hämta access för en post i bokstavsordning.
+   * @param postId posten
    */
-  // TOOD: Migrera till prisma
-  async getPostAccess(postname: number): Promise<PrismaPostAccess[]> {
+  async getPostAccess(postId: number): Promise<PrismaPostAccess[]> {
     const access = await prisma.prismaPostAccess.findMany({
       where: {
-        refPost: postname,
+        refPost: postId,
       },
       orderBy: {
         resource: 'asc',
@@ -61,7 +60,10 @@ export class AccessAPI {
     return access;
   }
 
-  // TODO: Migrera till prisma
+  /**
+   * Hämta access för en apiNyckel i bokstavsordning.
+   * @param apiKey apiNyckeln
+   */
   async getApiKeyAccess(apiKey: string): Promise<PrismaApiKeyAccess[]> {
     const access = await prisma.prismaApiKeyAccess.findMany({
       where: {
@@ -229,6 +231,9 @@ export class AccessAPI {
         refPost: {
           in: posts.map((p) => p.id),
         },
+      },
+      orderBy: {
+        resource: 'asc',
       },
     });
 

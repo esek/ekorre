@@ -8,10 +8,17 @@ import prisma from './prisma';
 const logger = Logger.getLogger('EmergencyContactApi');
 
 class EmergencyContactAPI {
+  /**
+   * Hämtar alla nödkontakter för en användare sorterat efter namn
+   * @param username Användaren som äger nödkontakterna
+   */
   async getEmergencyContacts(username: string): Promise<PrismaEmergencyContact[]> {
     const contacts = await prisma.prismaEmergencyContact.findMany({
       where: {
         refUser: username,
+      },
+      orderBy: {
+        name: 'asc',
       },
     });
 
