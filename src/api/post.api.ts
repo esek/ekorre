@@ -158,66 +158,6 @@ export class PostAPI {
   }
 
   /**
-   * Hämta alla poster som en användare sitter på, eller har suttit på ordnat efter namn.
-   *
-   * **Ska användas DataLoader**
-   * @param postIds lista med postid:er
-   * @returns ett lista av objekt med postId och användarnamnen
-   */
-  async getCurrentPostHolders(postIds: number[]): Promise<PostWithUsernames[]> {
-    const dbRes = await prisma.prismaPost.findMany({
-      where: {
-        id: {
-          in: postIds,
-        },
-        history: {
-          // Only include currently active posts
-          some: {
-            OR: [
-              { end: null },
-              {
-                end: {
-                  gt: new Date(),
-                },
-              },
-            ],
-          },
-        },
-      },
-      include: {
-        // We need to get the users in the same query,
-        // so include only users from included history
-        history: {
-          include: {
-            user: {
-              // We only want the username
-              select: {
-                username: true,
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        postname: 'asc',
-      },
-    });
-
-    // Extract so we have correct format,
-    // a history may contain more than one user
-    const refPostHolders: PostWithUsernames[] = [];
-    dbRes.forEach((r) => {
-      const { history, id: postId } = r;
-      refPostHolders.push({
-        postId,
-        usernames: history.map((h) => h.refUser),
-      });
-    });
-
-    return refPostHolders;
-  }
-
-  /**
    * Hämta alla poster som tillhör ett utskott.
    * @param utskott utskottet
    * @param includeInactive Om inaktiva poster ska inkluderas
