@@ -40,11 +40,6 @@ const checkPostTypeAndSpots = (
   return null;
 };
 
-type PostWithUsernames = {
-  postId: number;
-  usernames: string[];
-};
-
 /**
  * Det här är apin för att hantera poster.
  */
