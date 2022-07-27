@@ -134,14 +134,14 @@ const postresolver: Resolvers = {
           const holder = await ctx.userDataLoader.load(e.refUser);
 
           // Konvertera timestamp till datum
-          const { start, end, refPost } = e;
+          const { start, end, id: entryId } = e;
           let safeEnd: Date | null = null;
 
           if (end != null) {
             safeEnd = new Date(end);
           }
 
-          return { id: refPost, holder, start: new Date(start), end: safeEnd };
+          return { id: entryId, holder, start: new Date(start), end: safeEnd };
         }),
       );
       return a;
