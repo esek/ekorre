@@ -115,7 +115,6 @@ const apolloServerConfig: Config<ExpressContext> = {
       postDataLoader: createDataLoader(batchPostsFunction),
       fileDataLoader: createDataLoader(batchFilesFunction),
       electionDataLoader: createDataLoader(batchElectionsFunction),
-      currentHoldersDataLoader: createDataLoader(batchCurrentHoldersFunction),
     };
   },
   debug: ['info', 'debug'].includes(process.env.LOGLEVEL ?? 'normal'),
