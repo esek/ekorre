@@ -7,7 +7,6 @@ import type { Context, ContextParams } from '@/models/context';
 import * as Resolvers from '@/resolvers';
 import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
-import { batchCurrentHoldersFunction } from '@dataloader/currentholder';
 import { batchElectionsFunction } from '@dataloader/election';
 import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
