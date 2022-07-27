@@ -34,7 +34,7 @@
   "bugs": {
     "email": "macapar@esek.se"
   },
-  "license": "ISC",
+  "license": "AGPL-3.0-only",
   "prisma": {
     "seed": "ts-node prisma/data/seed.ts"
   },
