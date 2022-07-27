@@ -23,6 +23,7 @@ healthRoute.get('/', async (req, res) => {
       url: req.headers.referer,
     },
     version: packageJson.version,
+    license: packageJson.license,
   });
 });
 
