@@ -4,6 +4,18 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.19.3] - 2022-07-27
+
+### Ändrat
+- Fixar att `Post.history` resolver returns history entry ID instead of `refPost` id
+- Gömmer klass om förnamn innehåller phøs
+
+## [0.19.2] - 2022-07-27
+
+## Ändrat
+- Lagt till cors igen fast endast för development.
+
 ## [0.19.1] - 2022-07-27
 
 ### Ändrat
