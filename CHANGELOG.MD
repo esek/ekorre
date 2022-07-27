@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.1] - 2022-07-27
+
+### Ändrat
+- `username` och `email` är nu alltid lowercase, och all input i API omvandlas till lowercase
+
 ## [0.19.0] - 2022-07-27
 
 ### Ändrat

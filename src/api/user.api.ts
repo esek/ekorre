@@ -71,7 +71,7 @@ export class UserAPI {
   async getSingleUser(username: string): Promise<PrismaUser> {
     const u = await prisma.prismaUser.findFirst({
       where: {
-        username,
+        username: username.toLowerCase(),
       },
     });
 
@@ -90,7 +90,7 @@ export class UserAPI {
     const u = await prisma.prismaUser.findMany({
       where: {
         username: {
-          in: usernames,
+          in: usernames.map((un) => un.toLowerCase()),
         },
       },
       orderBy: defaultOrder,
@@ -145,7 +145,7 @@ export class UserAPI {
   async loginUser(username: string, password: string): Promise<PrismaUser> {
     const user = await prisma.prismaUser.findFirst({
       where: {
-        username,
+        username: username.toLowerCase(),
       },
     });
 
@@ -171,9 +171,10 @@ export class UserAPI {
     oldPassword: string,
     newPassword: string,
   ): Promise<boolean> {
+    const lowerUsername = username.toLowerCase();
     const user = await prisma.prismaUser.findFirst({
       where: {
-        username,
+        username: lowerUsername,
       },
     });
 
@@ -187,7 +188,7 @@ export class UserAPI {
 
     const updated = await prisma.prismaUser.update({
       where: {
-        username,
+        username: lowerUsername,
       },
       data: {
         ...this.generateSaltAndHash(newPassword),
@@ -220,18 +221,20 @@ export class UserAPI {
       throw new BadRequestError('Ogiltigt användarnamn');
     }
 
+    const lowerUsername = username.toLowerCase();
+
     // We cannot be sure what email is
     let { email } = input;
 
     if (!email || email === '') {
-      email = `${username}@student.lu.se`;
+      email = `${lowerUsername}@student.lu.se`;
     }
 
     const createdUser = await prisma.prismaUser.create({
       data: {
         ...inputReduced,
-        username,
-        email,
+        username: lowerUsername,
+        email: email.toLowerCase(),
         passwordHash,
         passwordSalt,
       },
@@ -250,7 +253,7 @@ export class UserAPI {
 
     const res = await prisma.prismaUser.update({
       where: {
-        username,
+        username: username.toLowerCase(),
       },
       data: partial,
     });
@@ -260,11 +263,12 @@ export class UserAPI {
 
   async requestPasswordReset(username: string): Promise<string> {
     const token = crypto.randomBytes(24).toString('hex');
+    const lowerUsername = username.toLowerCase();
 
     const res = await prisma.prismaPasswordReset.create({
       data: {
         token,
-        refUser: username,
+        refUser: lowerUsername,
       },
     });
 
@@ -275,7 +279,7 @@ export class UserAPI {
 
     await prisma.prismaPasswordReset.deleteMany({
       where: {
-        refUser: username,
+        refUser: lowerUsername,
         AND: {
           NOT: {
             token,
@@ -290,7 +294,7 @@ export class UserAPI {
   async validateResetPasswordToken(username: string, token: string): Promise<boolean> {
     const row = await prisma.prismaPasswordReset.findFirst({
       where: {
-        refUser: username,
+        refUser: username.toLowerCase(),
         AND: {
           token,
         },
@@ -303,7 +307,7 @@ export class UserAPI {
   async resetPassword(token: string, username: string, password: string): Promise<void> {
     const row = await prisma.prismaPasswordReset.findFirst({
       where: {
-        refUser: username,
+        refUser: username.toLowerCase(),
         AND: {
           token,
         },
@@ -347,15 +351,17 @@ export class UserAPI {
   }
 
   async deleteUser(username: string): Promise<boolean> {
+    const lowerUsername = username.toLowerCase();
+
     const res1 = await prisma.prismaPasswordReset.deleteMany({
       where: {
-        refUser: username,
+        refUser: lowerUsername,
       },
     });
 
     const res = await prisma.prismaUser.delete({
       where: {
-        username,
+        username: lowerUsername,
       },
     });
 
@@ -372,8 +378,8 @@ export class UserAPI {
       data: {
         provider,
         token,
-        email,
-        refUser: username,
+        email: email?.toLowerCase(),
+        refUser: username.toLowerCase(),
       },
     });
     return created;
@@ -383,7 +389,7 @@ export class UserAPI {
     const res = await prisma.prismaLoginProvider.deleteMany({
       where: {
         id: id,
-        refUser: username,
+        refUser: username.toLowerCase(),
       },
     });
 
@@ -402,7 +408,7 @@ export class UserAPI {
 
     if (email) {
       AND.push({
-        email,
+        email: email.toLowerCase(),
       });
     }
 
