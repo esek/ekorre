@@ -234,7 +234,7 @@ export class UserAPI {
       data: {
         ...inputReduced,
         username: lowerUsername,
-        email,
+        email: email.toLowerCase(),
         passwordHash,
         passwordSalt,
       },
@@ -378,7 +378,7 @@ export class UserAPI {
       data: {
         provider,
         token,
-        email,
+        email: email?.toLowerCase(),
         refUser: username.toLowerCase(),
       },
     });
@@ -408,7 +408,7 @@ export class UserAPI {
 
     if (email) {
       AND.push({
-        email,
+        email: email.toLowerCase(),
       });
     }
 

@@ -7,7 +7,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.19.1] - 2022-07-27
 
 ### Ändrat
-- `username` är nu alltid lowercase, och all input i API omvandlas till lowercase
+- `username` och `email` är nu alltid lowercase, och all input i API omvandlas till lowercase
 
 ## [0.19.0] - 2022-07-27
 
