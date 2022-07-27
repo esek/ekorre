@@ -86,6 +86,14 @@ test('create a new user with invalid password', async () => {
   await expect(api.getSingleUser(localMu.username)).rejects.toThrowError(NotFoundError);
 });
 
+test('creating user with uppercase username creates user with lowercase username', async () => {
+  const localMu = {...mockNewUser1};
+  localMu.username = localMu.username.toUpperCase();
+
+  const createdUser = await api.createUser(localMu);
+  expect(createdUser.username).toEqual(localMu.username.toLowerCase());
+})
+
 test('creating duplicate user fails', async () => {
   await expect(api.createUser(mockNewUser0)).rejects.toThrowError();
 });
