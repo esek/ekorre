@@ -9,6 +9,9 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Ändrat
 - `requestPasswordReset` tar numera en `resetLink` och en `returnTo` parameter som skickas vidare till användaren i mailet.
 
+### Borttaget
+- `currentHolder`, `current` i posthistorik-query används istället
+
 ## [0.18.0] - 2022-07-26
 
 ### Tillagt
