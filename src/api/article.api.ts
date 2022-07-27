@@ -8,34 +8,42 @@ import { Prisma, PrismaArticleType } from '@prisma/client';
 
 import prisma from './prisma';
 
+const defaultOrder: Prisma.PrismaArticleOrderByWithRelationAndSearchRelevanceInput[] = [
+  {
+    createdAt: 'desc',
+  },
+  {
+    title: 'asc',
+  },
+];
+
 /**
  * Det här är API:n för att hantera artiklar
  */
 export class ArticleAPI {
   /**
-   * Hämta alla artiklar
+   * Hämta alla artiklar sorterade på skapande och titel.
    */
   async getAllArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       include: {
         tags: true,
       },
+      orderBy: defaultOrder,
     });
 
     return a;
   }
 
   /**
-   * Hämtar alla nyhetsartiklar, sorterade på skapande
+   * Hämtar alla nyhetsartiklar, sorterade på skapande och titel.
    */
   async getAllNewsArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
         articleType: PrismaArticleType.NEWS,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: defaultOrder,
       include: {
         tags: true,
       },
@@ -44,14 +52,15 @@ export class ArticleAPI {
     return a;
   }
 
+  /**
+   * Hämtar alla informationsartiklar, sorterade på skapande och titel.
+   */
   async getAllInformationArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
       where: {
         articleType: PrismaArticleType.INFORMATION,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: defaultOrder,
       include: {
         tags: true,
       },
@@ -62,7 +71,7 @@ export class ArticleAPI {
 
   /**
    * Hämtar alla nyhetsartiklar i ett intervall. Utelämnas
-   * parametrar finns ingen begränsning.
+   * parametrar finns ingen begränsning. Sorteras på skapande och titel.
    * @param after
    * @param before
    * @param author Username of original author of the article
@@ -84,6 +93,7 @@ export class ArticleAPI {
       include: {
         tags: true,
       },
+      orderBy: defaultOrder,
     });
 
     return a;
@@ -138,15 +148,15 @@ export class ArticleAPI {
     if (author != null) {
       whereAnd.push({ refAuthor: author });
     }
-    
+
     if (id != null) {
       whereAnd.push({ id });
     }
-    
+
     if (type != null) {
       whereAnd.push({ articleType: type });
     }
-    
+
     if (tags != null && tags.length > 0) {
       whereAnd.push({
         tags: { some: { tag: { in: tags } } },
@@ -160,13 +170,14 @@ export class ArticleAPI {
       include: {
         tags: true,
       },
+      orderBy: defaultOrder,
     });
 
     return a;
   }
 
   /**
-   * Hämtar de senaste nyhetsartiklarna
+   * Hämtar de senaste nyhetsartiklarna sorterat på skapande (nyas först).
    * @param nbr antal artiklar
    */
   async getLatestNews(limit: number): Promise<PrismaExtendedArticle[]> {

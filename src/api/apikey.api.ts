@@ -59,8 +59,15 @@ export class ApiKeyAPI {
     return apiKey;
   }
 
+  /**
+   * Hämta alla api-nycklar ordnade efter tillverkningsdatum.
+   */
   async getApiKeys(): Promise<PrismaApiKey[]> {
-    const apiKeys = await prisma.prismaApiKey.findMany();
+    const apiKeys = await prisma.prismaApiKey.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
     return apiKeys;
   }
 

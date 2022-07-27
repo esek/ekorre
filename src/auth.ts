@@ -20,8 +20,8 @@ const tokenProvider = new ETokenProvider({
 });
 
 export const getBearerToken = (req: CustomReq) => {
-  const header = () => req.headers?.authorization?.replace('Bearer ', '');
-  const cookie = () => req.cookies?.[Cookies.access_token];
+  const header = () => req?.headers?.authorization?.replace('Bearer ', '');
+  const cookie = () => req?.cookies?.[Cookies.access_token];
 
   return header() ?? cookie() ?? '';
 };

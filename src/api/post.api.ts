@@ -40,6 +40,11 @@ const checkPostTypeAndSpots = (
   return null;
 };
 
+type PostWithUsernames = {
+  postId: number;
+  usernames: string[];
+};
+
 /**
  * Det här är apin för att hantera poster.
  */
@@ -51,7 +56,7 @@ export class PostAPI {
     await prisma.prismaPost.delete({ where: { id: postId } });
   }
   /**
-   * Hämta alla poster.
+   * Hämta alla poster ordnat efter namn.
    * @param limit Begränsning av antal poster
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
@@ -65,6 +70,9 @@ export class PostAPI {
     const posts = await prisma.prismaPost.findMany({
       where,
       take: limit,
+      orderBy: {
+        postname: 'asc',
+      },
     });
 
     return posts;
@@ -85,7 +93,7 @@ export class PostAPI {
   }
 
   /**
-   * Returnerar ett antal poster.
+   * Returnerar de poster som finns i `ids` ordnat efter namn.
    * @param postnames Lista på postnamn
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
@@ -102,13 +110,16 @@ export class PostAPI {
 
     const posts = await prisma.prismaPost.findMany({
       where,
+      orderBy: {
+        postname: 'asc',
+      },
     });
 
     return posts;
   }
 
   /**
-   * Hämta alla poster som en användare sitter på, eller har suttit på.
+   * Hämta alla poster som en användare sitter på, eller har suttit på ordnat efter namn.
    * @param username användaren
    * @param includeInactive Om inaktiva poster ska inkluderas
    */
@@ -138,21 +149,22 @@ export class PostAPI {
           },
         },
       },
+      orderBy: {
+        postname: 'asc',
+      },
     });
 
     return posts;
   }
 
   /**
-   * Get the current post holders of post provided, or an empty list of the post have no holders.
+   * Hämta alla poster som en användare sitter på, eller har suttit på ordnat efter namn.
    *
-   * **To be used by DataLoader, not directly**
-   * @param postId ID of the post to be found
-   * @returns An objecy containing usernames for the current holders of the post, and the post ID
+   * **Ska användas DataLoader**
+   * @param postIds lista med postid:er
+   * @returns ett lista av objekt med postId och användarnamnen
    */
-  async getCurrentPostHolders(
-    postIds: number[],
-  ): Promise<{ postId: number; usernames: string[] }[]> {
+  async getCurrentPostHolders(postIds: number[]): Promise<PostWithUsernames[]> {
     const dbRes = await prisma.prismaPost.findMany({
       where: {
         id: {
@@ -186,11 +198,14 @@ export class PostAPI {
           },
         },
       },
+      orderBy: {
+        postname: 'asc',
+      },
     });
 
     // Extract so we have correct format,
     // a history may contain more than one user
-    const refPostHolders: { postId: number; usernames: string[] }[] = [];
+    const refPostHolders: PostWithUsernames[] = [];
     dbRes.forEach((r) => {
       const { history, id: postId } = r;
       refPostHolders.push({
@@ -218,6 +233,9 @@ export class PostAPI {
 
     const posts = await prisma.prismaPost.findMany({
       where,
+      orderBy: {
+        postname: 'asc',
+      },
     });
 
     return posts;
@@ -390,9 +408,20 @@ export class PostAPI {
     return post != null;
   }
 
-  async getHistoryEntries(where: Prisma.PrismaPostHistoryWhereInput): Promise<PrismaPostHistory[]> {
+  async getHistoryEntries(
+    where: Prisma.PrismaPostHistoryWhereInput,
+    onlyCurrent = false,
+  ): Promise<PrismaPostHistory[]> {
+    let or = {};
+    if (onlyCurrent) {
+      or = { OR: [{ end: null }, { end: { gt: new Date() } }] };
+    }
+
     const history = await prisma.prismaPostHistory.findMany({
-      where,
+      where: {
+        ...where,
+        ...or,
+      },
     });
 
     return history;

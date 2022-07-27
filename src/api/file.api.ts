@@ -5,7 +5,8 @@ import { AccessType, FileSystemResponsePath, FileType } from '@generated/graphql
 import { Prisma, PrismaAccessType, PrismaFile } from '@prisma/client';
 import { createHash } from 'crypto';
 import { UploadedFile } from 'express-fileupload';
-import fs from 'fs';
+import syncFs from 'fs';
+import fs from 'fs/promises';
 import { extname } from 'path';
 
 import prisma from './prisma';
@@ -15,6 +16,11 @@ const {
 } = config;
 
 const logger = Logger.getLogger('Files');
+
+const defaultOrder: Prisma.PrismaFileOrderByWithRelationAndSearchRelevanceInput[] = [
+  { name: 'asc' },
+  { createdAt: 'desc' },
+];
 
 class FileAPI {
   /**
@@ -42,8 +48,8 @@ class FileAPI {
       const location = `${folder}${hashedName}`;
 
       // Create folder(s) if it doesn't exist
-      if (!fs.existsSync(folder)) {
-        fs.mkdirSync(folder, { recursive: true });
+      if (!syncFs.existsSync(folder)) {
+        await fs.mkdir(folder, { recursive: true });
       }
 
       // Move file to correct location
@@ -88,7 +94,7 @@ class FileAPI {
 
     try {
       // Create folder in storage
-      fs.mkdirSync(fullPath, { recursive: true });
+      await fs.mkdir(fullPath, { recursive: true });
 
       const location = `${folderTrimmed}${hash}`;
 
@@ -126,9 +132,6 @@ class FileAPI {
 
     const location = `${ROOT}/${file.folderLocation}`;
 
-    // Delete file from system
-    fs.rmSync(location, { recursive: true });
-
     try {
       // Delete file from DB
       await prisma.prismaFile.delete({
@@ -136,6 +139,9 @@ class FileAPI {
           id,
         },
       });
+
+      // Delete file from system
+      await fs.rm(location, { recursive: true });
       logger.info(`Deleted ${file.type} ${file.name}`);
       return true;
     } catch {
@@ -143,6 +149,10 @@ class FileAPI {
     }
   }
 
+  /**
+   * Hämtar alla filer som är av typen `type` sorterat efter namn och skapelse
+   * @param type Typ av filer att hämta
+   */
   async getMultipleFiles(type?: FileType): Promise<PrismaFile[]> {
     const where: Prisma.PrismaFileWhereInput = {};
 
@@ -152,11 +162,16 @@ class FileAPI {
 
     const f = await prisma.prismaFile.findMany({
       where,
+      orderBy: defaultOrder,
     });
 
     return f;
   }
 
+  /**
+   * Hämtar alla filer som finns i `ids` sorterat efter namn och skapelse
+   * @param ids Ids av filerna att hämta
+   */
   async getMultipleFilesById(ids: readonly string[]): Promise<PrismaFile[]> {
     const f = await prisma.prismaFile.findMany({
       where: {
@@ -164,6 +179,7 @@ class FileAPI {
           in: ids.slice(), // Slice to copy readonly, required by prisma
         },
       },
+      orderBy: defaultOrder,
     });
 
     return f;
@@ -188,6 +204,11 @@ class FileAPI {
     return file;
   }
 
+  /**
+   * Söker efter filer (namn och id) som innehåller @search ordnat
+   * efter relevans och skapelse
+   * @param search söksträng
+   */
   async searchFiles(search: string): Promise<PrismaFile[]> {
     const f = await prisma.prismaFile.findMany({
       where: {
@@ -197,17 +218,30 @@ class FileAPI {
         OR: [
           {
             name: {
-              search,
+              contains: search,
               mode: 'insensitive',
             },
           },
           {
             id: {
-              search,
+              contains: search,
+              mode: 'insensitive',
             },
           },
         ],
       },
+      orderBy: [
+        {
+          _relevance: {
+            fields: ['name', 'id'],
+            search,
+            sort: 'desc',
+          },
+        },
+        {
+          createdAt: 'desc',
+        },
+      ],
     });
 
     return f;
@@ -240,9 +274,9 @@ class FileAPI {
   }
 
   /**
-   * Gets all items in provided folder
-   * @param folder The path to the directory
-   * @returns List of folder/files
+   * Får mappar och/eller filer i en mapp ordnat efter namn och skapelse
+   * @param folder sökvägen till mappen
+   * @returns en lista på filer och/eller mappar
    */
   async getFolderData(folder: string): Promise<[PrismaFile[], FileSystemResponsePath[]]> {
     const folderTrimmed = this.trimFolder(folder);
@@ -265,10 +299,11 @@ class FileAPI {
             in: pathNames,
           },
         },
+        orderBy: defaultOrder,
       });
 
       // Read files in current directory
-      const fileIds = fs.readdirSync(fullPath);
+      const fileIds = await fs.readdir(fullPath);
 
       // If no files, return empty array
       if (!fileIds?.length) {
@@ -282,6 +317,7 @@ class FileAPI {
             in: fileIds,
           },
         },
+        orderBy: defaultOrder,
       });
 
       return [f, dbPaths];

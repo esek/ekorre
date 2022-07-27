@@ -77,6 +77,7 @@ model PrismaPost {
   // Posts are either searched by name or by utskott,
   // name handled by primare key (@id)
   PrismaProposal PrismaProposal[] @relation("PrismaProposalToPrismaPost")
+
   @@index([utskott])
   @@map("posts")
 }

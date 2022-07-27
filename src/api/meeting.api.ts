@@ -42,7 +42,7 @@ export class MeetingAPI {
   /**
    * Hämta flertalet möte ur databasen, genom en fördefinierad prisma-query
    * @param params En `where`-baserad query för Prisma
-   * @returns 
+   * @returns
    */
   async getMultipleMeetings(params: Prisma.PrismaMeetingFindManyArgs): Promise<PrismaMeeting[]> {
     const m = await prisma.prismaMeeting.findMany(params);
@@ -55,7 +55,7 @@ export class MeetingAPI {
   }
 
   /**
-   * Hämtar de senaste `limit` styrelsemötena
+   * Hämtar de senaste `limit` styrelsemötena ordnade nummer och år
    * @param limit Antal styrelsemöten som ska returneras. Om null
    * returneras alla
    */

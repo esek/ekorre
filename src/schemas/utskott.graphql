@@ -2,7 +2,7 @@
 # utskotten
 
 type Query {
-    utskott(name: String): Utskott
+    utskott(name: String!): Utskott!
 }
 
 enum Utskott {

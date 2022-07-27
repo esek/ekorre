@@ -14,6 +14,17 @@ import {
 import prisma from './prisma';
 
 const logger = Logger.getLogger('UserAPI');
+const defaultOrder: Prisma.PrismaUserOrderByWithRelationAndSearchRelevanceInput[] = [
+  {
+    firstName: 'asc',
+  },
+  {
+    lastName: 'asc',
+  },
+  {
+    class: 'desc',
+  },
+];
 
 /**
  * Det är användar api:n. Alla operationer bör göras
@@ -44,10 +55,12 @@ export class UserAPI {
   }
 
   /**
-   * Returnerar alla lagarade användare.
+   * Returnerar alla lagarade användare ordnat efter förnamn, efternamn, klass.
    */
   async getAllUsers(): Promise<PrismaUser[]> {
-    const users = await prisma.prismaUser.findMany();
+    const users = await prisma.prismaUser.findMany({
+      orderBy: defaultOrder,
+    });
     return users;
   }
 
@@ -70,7 +83,7 @@ export class UserAPI {
   }
 
   /**
-   * Hämta flera användare.
+   * Hämta flera användare ordnat efter förnamn, efternamn, klass.
    * @param usernames användarnamnen
    */
   async getMultipleUsers(usernames: string[]): Promise<PrismaUser[]> {
@@ -80,6 +93,7 @@ export class UserAPI {
           in: usernames,
         },
       },
+      orderBy: defaultOrder,
     });
 
     return u;
@@ -95,24 +109,25 @@ export class UserAPI {
     if (search.length === 0) {
       throw new BadRequestError('Search must contain at least one symbol');
     }
-    
+
     // We do a search by using $queryRaw's power to escape search terms, and
     // concat a lowercase version of the database first name, last name, and username,
     // and then want everything that fits for all parts of the search to some part
     // (% around strings are for `LIKE`)
-    const searchArray = search.toLowerCase().split(/\s+/g).map((s) => `%${s}%`);
+    const searchArray = search
+      .toLowerCase()
+      .split(/\s+/g)
+      .map((s) => `%${s}%`);
     const users = await prisma.$queryRaw`
       SELECT username, password_hash AS "passwordHash", password_salt AS "passwordSalt",
       first_name AS "firstName", last_name AS "lastName", class, photo_url AS "photoUrl",
       email, phone, address, zip_code AS "zipCode", website, date_joined AS "dateJoined"
       FROM users
       WHERE lower(concat(first_name, last_name, username))
-      LIKE ${
-        Prisma.join(searchArray,
-        ' AND lower(concat(first_name, last_name, username)) LIKE ')
-      }
+      LIKE ${Prisma.join(searchArray, ' AND lower(concat(first_name, last_name, username)) LIKE ')}
+      ORDER BY first_name ASC, last_name ASC, class DESC
     `;
-    
+
     return users as PrismaUser[];
   }
 
@@ -407,6 +422,13 @@ export class UserAPI {
     return response.user;
   };
 
+  /**
+   * Hämtar inloggningsleverantörer för en användare baserat på `provider`
+   * ordnat efter namn.
+   * @param username
+   * @param provider
+   * @returns lista med leverantörer
+   */
   getLoginProviders = async (username: string, provider?: string) => {
     const where: Record<string, string> = { refUser: username };
 
@@ -416,6 +438,9 @@ export class UserAPI {
 
     const providers = await prisma.prismaLoginProvider.findMany({
       where,
+      orderBy: {
+        provider: 'asc',
+      },
     });
 
     return providers;
