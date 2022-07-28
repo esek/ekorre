@@ -1106,14 +1106,19 @@ export type User = {
   loginProviders: Array<Maybe<LoginProvider>>;
   phone?: Maybe<Scalars['String']>;
   photoUrl?: Maybe<Scalars['String']>;
+  /** Past and current posts held by this user */
+  postHistory: Array<UserPostHistoryEntry>;
   /** Currents posts held by this user */
   posts: Array<Post>;
-  /** Past and current posts held by this user */
-  userPostHistory: Array<Maybe<UserPostHistoryEntry>>;
   username: Scalars['String'];
   website?: Maybe<Scalars['String']>;
   wikiEdits: Scalars['Int'];
   zipCode?: Maybe<Scalars['String']>;
+};
+
+
+export type UserPostHistoryArgs = {
+  current?: Maybe<Scalars['Boolean']>;
 };
 
 export type UserPostHistoryEntry = {
@@ -1614,8 +1619,8 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   loginProviders?: Resolver<Array<Maybe<ResolversTypes['LoginProvider']>>, ParentType, ContextType>;
   phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   photoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  postHistory?: Resolver<Array<ResolversTypes['UserPostHistoryEntry']>, ParentType, ContextType, RequireFields<UserPostHistoryArgs, never>>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
-  userPostHistory?: Resolver<Array<Maybe<ResolversTypes['UserPostHistoryEntry']>>, ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   wikiEdits?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;

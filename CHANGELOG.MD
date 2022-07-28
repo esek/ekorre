@@ -4,6 +4,10 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] - 2022-07-28
+### Ändrat
+- Ändrat `User.userPostHistory` till `User.postHistory`
+- Lagt till `current` som valbar parameter till `User.postHistory`
 
 ## [0.19.3] - 2022-07-27
 
