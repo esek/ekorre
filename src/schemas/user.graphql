@@ -46,7 +46,7 @@ type User {
   """
   Past and current posts held by this user
   """
-  userPostHistory: [UserPostHistoryEntry]!
+  postHistory(current: Boolean): [UserPostHistoryEntry!]!
   wikiEdits: Int!
   loginProviders: [LoginProvider]!
 }
