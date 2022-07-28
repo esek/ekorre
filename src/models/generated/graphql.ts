@@ -295,6 +295,7 @@ export type Mutation = {
   addUsersToPost: Post;
   casCreateUser: User;
   casLogin: CasLoginResponse;
+  changePassword: Scalars['Boolean'];
   closeElection: Scalars['Boolean'];
   createApiKey: Scalars['String'];
   createElection: Election;
@@ -407,6 +408,12 @@ export type MutationCasCreateUserArgs = {
 
 export type MutationCasLoginArgs = {
   token: Scalars['String'];
+};
+
+
+export type MutationChangePasswordArgs = {
+  newPassword: Scalars['String'];
+  oldPassword: Scalars['String'];
 };
 
 
@@ -1482,6 +1489,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addUsersToPost?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'id' | 'usernames'>>;
   casCreateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
+  changePassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationChangePasswordArgs, 'newPassword' | 'oldPassword'>>;
   closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createApiKey?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateApiKeyArgs, 'description'>>;
   createElection?: Resolver<ResolversTypes['Election'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
