@@ -24,6 +24,7 @@ healthRoute.get('/', async (req, res) => {
     },
     version: packageJson.version,
     license: packageJson.license,
+    repository: packageJson.repository,
   });
 });
 

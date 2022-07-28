@@ -35,6 +35,10 @@
     "email": "macapar@esek.se"
   },
   "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/esek/ekorre.git"
+  },
   "prisma": {
     "seed": "ts-node prisma/data/seed.ts"
   },
