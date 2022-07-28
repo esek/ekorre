@@ -357,6 +357,16 @@ export class PostAPI {
         ...where,
         ...or,
       },
+      orderBy: [
+        {
+          start: 'desc',
+        },
+        {
+          post: {
+            postname: 'asc',
+          },
+        },
+      ],
     });
 
     return history;
