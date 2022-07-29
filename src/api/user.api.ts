@@ -183,7 +183,7 @@ export class UserAPI {
     }
 
     if (!this.verifyUser(oldPassword, user.passwordHash, user.passwordSalt)) {
-      throw new UnauthenticatedError('Lösenordet stämmer ej översens med det som redan är sparat');
+      throw new UnauthenticatedError('Ditt gamla lösenord är fel');
     }
 
     const updated = await prisma.prismaUser.update({
