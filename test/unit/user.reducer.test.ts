@@ -38,7 +38,7 @@ test('that password is reduced properly', () => {
       doors: [],
     },
     posts: [],
-    userPostHistory: [],
+    postHistory: [],
     wikiEdits: 0,
     emergencyContacts: [],
     loginProviders: [],
