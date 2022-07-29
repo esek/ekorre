@@ -166,6 +166,13 @@ const userResolver: Resolvers = {
 
       return reduce(created, userReduce);
     },
+    changePassword: async (_, { oldPassword, newPassword }, { getUsername }) => {
+      const username = getUsername();
+
+      const updated = await api.changePassword(username, oldPassword, newPassword);
+
+      return updated;
+    },
   },
 };
 
