@@ -2,7 +2,7 @@
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
-import { MeetingDocumentType, MeetingType } from '@generated/graphql';
+import { AccessType, MeetingDocumentType, MeetingType } from '@generated/graphql';
 import { Prisma, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
 
 import prisma from './prisma';
@@ -40,12 +40,34 @@ export class MeetingAPI {
   }
 
   /**
-   * Hämta flertalet möte ur databasen, genom en fördefinierad prisma-query
-   * @param params En `where`-baserad query för Prisma
+   * Hämta flertalet möte ur databasen, genom ökad specifitet
+   * @param year det år som möten ska hämtas från
+   * @param number det nummer som möten ska hämtas från
+   * @param type typen av möte som ska hämtas
    * @returns
    */
-  async getMultipleMeetings(params: Prisma.PrismaMeetingFindManyArgs): Promise<PrismaMeeting[]> {
-    const m = await prisma.prismaMeeting.findMany(params);
+  async getMultipleMeetings(
+    year?: number,
+    number?: number,
+    type?: MeetingType,
+  ): Promise<PrismaMeeting[]> {
+    const whereAnd: Prisma.PrismaMeetingWhereInput[] = [];
+
+    if (year != null) {
+      whereAnd.push({ year });
+    }
+    if (number != null) {
+      whereAnd.push({ number });
+    }
+    if (type != null) {
+      whereAnd.push({ type: type as unknown as PrismaMeetingType });
+    }
+
+    const m = await prisma.prismaMeeting.findMany({
+      where: {
+        AND: whereAnd,
+      },
+    });
 
     if (m === null) {
       throw new ServerError('Mötessökningen misslyckades');
@@ -192,6 +214,16 @@ export class MeetingAPI {
 
       if (possibleDouble != null) {
         throw new BadRequestError(`Detta möte har redan en fil av typen ${fileType}`);
+      }
+
+      const file = await p.prismaFile.findFirst({
+        where: {
+          id: fileId,
+        },
+      });
+
+      if (file?.accessType !== AccessType.Public) {
+        throw new BadRequestError('Filen måste vara publik');
       }
 
       try {

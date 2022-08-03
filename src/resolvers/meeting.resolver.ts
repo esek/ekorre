@@ -1,4 +1,3 @@
-import { StrictObject } from '@/models/base';
 import { reduce } from '@/reducers';
 import { hasAccess } from '@/util';
 import { MeetingAPI } from '@api/meeting';
@@ -50,10 +49,13 @@ const meetingResolver: Resolvers = {
       const m = await api.getSingleMeeting(id);
       return reduce(m, meetingReduce);
     },
-    meetings: async (_, params) => {
+    meetings: async (_, { number, year, type }) => {
       // Meetings _should_ be visible to the public
-      const strictParams: StrictObject = params;
-      const m = await api.getMultipleMeetings(strictParams);
+      const m = await api.getMultipleMeetings(
+        number ?? undefined,
+        year ?? undefined,
+        type ?? undefined,
+      );
       return reduce(m, meetingReduce);
     },
     latestBoardMeetings: async (_, { limit }) => {
