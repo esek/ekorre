@@ -25,7 +25,7 @@ const registration: ServerRegistration = {
 if (DEV) {
   const options: CorsOptions = {
     credentials: true,
-    origin: 'http://localhost:3000',
+    origin: true,
   };
   app.use(cors(options));
   registration.cors = options;

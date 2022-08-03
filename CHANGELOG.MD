@@ -4,6 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] - 2022-08-03
+
+### Ändrat
+- `Post`-resolvern kräver inte auth längre, användare skyddas i `User`-resolver
+- CORS i dev accepterar allt nu
+
 ## [0.22.0] - 2022-08-03
 
 ### Tillagt

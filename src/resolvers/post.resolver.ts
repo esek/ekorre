@@ -1,5 +1,5 @@
 import { reduce } from '@/reducers';
-import { hasAccess, hasAuthenticated } from '@/util';
+import { hasAccess } from '@/util';
 import { PostAPI } from '@api/post';
 import { Feature, Post, Resolvers, Utskott } from '@generated/graphql';
 import { postReduce } from '@reducer/post';
@@ -8,13 +8,13 @@ const api = new PostAPI();
 
 const postresolver: Resolvers = {
   Query: {
-    post: async (_, { id }, ctx) => {
-      await hasAuthenticated(ctx);
+    post: async (_, { id }) => {
+      // Should be available to the public, users protected by user resolver
       const res = await api.getPost(id);
       return postReduce(res);
     },
-    posts: async (_, { utskott, includeInactive }, ctx) => {
-      await hasAuthenticated(ctx);
+    posts: async (_, { utskott, includeInactive }) => {
+      // Should be available to the public
       if (utskott != null) {
         const res = await api.getPostsFromUtskott(utskott, includeInactive ?? false);
         return reduce(res, postReduce);
@@ -22,7 +22,7 @@ const postresolver: Resolvers = {
       return reduce(await api.getPosts(), postReduce);
     },
     groupedPosts: async (_, { includeInactive }, ctx) => {
-      await hasAuthenticated(ctx);
+      // Should be available to the public
       // Get all posts
       const allPosts = await api.getPosts(undefined, includeInactive ?? false);
 
