@@ -14,6 +14,7 @@ let removeDummyUser: () => Promise<void>;
 
 const np: NewPost = {
   name: getRandomPostname(),
+  email: 'spamme@example.com',
   utskott: Utskott.Nollu,
   postType: PostType.U,
   spots: 1,
@@ -24,6 +25,7 @@ const np: NewPost = {
 // ID given by `createPost`
 const p: Omit<PrismaPost, 'id'> = {
   postname: np.name,
+  email: 'spamme@example.com',
   utskott: Utskott.Nollu,
   postType: PostType.U,
   spots: 1,
