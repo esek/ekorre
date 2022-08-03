@@ -1,6 +1,6 @@
 import { reduce } from '@/reducers';
 import { hasAccess } from '@/util';
-import { GetMeetingsOptions, MeetingAPI } from '@api/meeting';
+import { MeetingAPI } from '@api/meeting';
 import { Feature, Resolvers } from '@generated/graphql';
 import { meetingReduce } from '@reducer/meeting';
 
@@ -51,7 +51,11 @@ const meetingResolver: Resolvers = {
     },
     meetings: async (_, { number, year, type }) => {
       // Meetings _should_ be visible to the public
-      const m = await api.getMultipleMeetings(number, year, type);
+      const m = await api.getMultipleMeetings(
+        number ?? undefined,
+        year ?? undefined,
+        type ?? undefined,
+      );
       return reduce(m, meetingReduce);
     },
     latestBoardMeetings: async (_, { limit }) => {

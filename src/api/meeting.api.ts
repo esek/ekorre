@@ -2,7 +2,7 @@
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
-import { AccessType, Maybe, MeetingDocumentType, MeetingType } from '@generated/graphql';
+import { AccessType, MeetingDocumentType, MeetingType } from '@generated/graphql';
 import { Prisma, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
 
 import prisma from './prisma';
@@ -47,9 +47,9 @@ export class MeetingAPI {
    * @returns
    */
   async getMultipleMeetings(
-    year?: Maybe<number>,
-    number?: Maybe<number>,
-    type?: Maybe<MeetingAPI>,
+    year?: number,
+    number?: number,
+    type?: MeetingType,
   ): Promise<PrismaMeeting[]> {
     const whereAnd: Prisma.PrismaMeetingWhereInput[] = [];
 
