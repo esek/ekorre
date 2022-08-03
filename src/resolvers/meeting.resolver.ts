@@ -51,8 +51,7 @@ const meetingResolver: Resolvers = {
     },
     meetings: async (_, { number, year, type }) => {
       // Meetings _should_ be visible to the public
-      const strictParams: GetMeetingsOptions = { number, year, type };
-      const m = await api.getMultipleMeetings(strictParams);
+      const m = await api.getMultipleMeetings(number, year, type);
       return reduce(m, meetingReduce);
     },
     latestBoardMeetings: async (_, { limit }) => {

@@ -3,17 +3,11 @@ import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.er
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { AccessType, Maybe, MeetingDocumentType, MeetingType } from '@generated/graphql';
-import { PrismaMeeting, PrismaMeetingType } from '@prisma/client';
+import { Prisma, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
 
 import prisma from './prisma';
 
 const logger = Logger.getLogger('MeetingAPI');
-
-export type GetMeetingsOptions = {
-  year?: Maybe<number>;
-  number?: Maybe<number>;
-  type?: Maybe<MeetingType>;
-};
 
 export class MeetingAPI {
   /**
@@ -47,17 +41,31 @@ export class MeetingAPI {
 
   /**
    * Hämta flertalet möte ur databasen, genom ökad specifitet
-   * @param year En `where`-baserad query för Prisma
+   * @param year det år som möten ska hämtas från
+   * @param number det nummer som möten ska hämtas från
+   * @param type typen av möte som ska hämtas
    * @returns
    */
-  async getMultipleMeetings(options: GetMeetingsOptions): Promise<PrismaMeeting[]> {
-    const and = Object.entries(options)
-      .filter(([_, value]) => value != null) // Remove nulls
-      .map(([key, value]) => ({ [key]: value })); // Map to a and array
+  async getMultipleMeetings(
+    year?: Maybe<number>,
+    number?: Maybe<number>,
+    type?: Maybe<MeetingAPI>,
+  ): Promise<PrismaMeeting[]> {
+    const whereAnd: Prisma.PrismaMeetingWhereInput[] = [];
+
+    if (year != null) {
+      whereAnd.push({ year });
+    }
+    if (number != null) {
+      whereAnd.push({ number });
+    }
+    if (type != null) {
+      whereAnd.push({ type: type as unknown as PrismaMeetingType });
+    }
 
     const m = await prisma.prismaMeeting.findMany({
       where: {
-        AND: and,
+        AND: whereAnd,
       },
     });
 
