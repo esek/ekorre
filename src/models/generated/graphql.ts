@@ -270,6 +270,7 @@ export type ModifyArticle = {
 
 export type ModifyPost = {
   description?: Maybe<Scalars['String']>;
+  email?: Maybe<Scalars['String']>;
   id: Scalars['Int'];
   /** Om sökande valbereds och kallas till intervju */
   interviewRequired?: Maybe<Scalars['Boolean']>;
@@ -646,6 +647,7 @@ export type NewArticle = {
 export type NewPost = {
   active?: Maybe<Scalars['Boolean']>;
   description?: Maybe<Scalars['String']>;
+  email?: Maybe<Scalars['String']>;
   /** Om sökande valbereds och kallas till intervju */
   interviewRequired?: Maybe<Scalars['Boolean']>;
   name: Scalars['String'];
@@ -684,6 +686,8 @@ export type Post = {
   access: Access;
   active: Scalars['Boolean'];
   description: Scalars['String'];
+  /** Email till posten, om sådan finns */
+  email?: Maybe<Scalars['String']>;
   history: Array<HistoryEntry>;
   id: Scalars['Int'];
   /** Om sökande valbereds och kallas till intervju */
@@ -1553,6 +1557,7 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   history?: Resolver<Array<ResolversTypes['HistoryEntry']>, ParentType, ContextType, RequireFields<PostHistoryArgs, never>>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   interviewRequired?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;

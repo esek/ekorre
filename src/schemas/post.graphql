@@ -24,6 +24,11 @@ type Mutation {
 type Post {
     id: Int!,
     postname: String!
+    
+    """
+    Email till posten, om sådan finns
+    """
+    email: String
     utskott: Utskott!
     postType: PostType!
 
@@ -50,6 +55,7 @@ type GroupedPost {
 
 input NewPost {
     name: String!
+    email: String
     utskott: Utskott!
     postType: PostType!
 
@@ -70,6 +76,7 @@ input NewPost {
 input ModifyPost {
     id: Int!
     postname: String
+    email: String
     utskott: Utskott
     postType: PostType
 
