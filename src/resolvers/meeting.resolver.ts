@@ -1,7 +1,6 @@
-import { StrictObject } from '@/models/base';
 import { reduce } from '@/reducers';
 import { hasAccess } from '@/util';
-import { MeetingAPI } from '@api/meeting';
+import { GetMeetingsOptions, MeetingAPI } from '@api/meeting';
 import { Feature, Resolvers } from '@generated/graphql';
 import { meetingReduce } from '@reducer/meeting';
 
@@ -50,9 +49,9 @@ const meetingResolver: Resolvers = {
       const m = await api.getSingleMeeting(id);
       return reduce(m, meetingReduce);
     },
-    meetings: async (_, params) => {
+    meetings: async (_, { number, year, type }) => {
       // Meetings _should_ be visible to the public
-      const strictParams: StrictObject = params;
+      const strictParams: GetMeetingsOptions = { number, year, type };
       const m = await api.getMultipleMeetings(strictParams);
       return reduce(m, meetingReduce);
     },

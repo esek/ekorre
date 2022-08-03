@@ -32,7 +32,10 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await api.clear();
-  await Promise.all([prisma.prismaFile.delete({ where: { id: DUMMY_FILE.id }}), deleteDummyUser()]);
+  await Promise.all([
+    prisma.prismaFile.delete({ where: { id: DUMMY_FILE.id } }),
+    deleteDummyUser(),
+  ]);
 });
 
 test('creating valid VTM/HTM/VM specifying year but not number', async () => {
@@ -124,10 +127,8 @@ test('get multiple meetings', async () => {
   await api.createMeeting(MeetingType.Htm, 1, 1999);
   await api.createMeeting(MeetingType.Sm, 5, 1667);
 
-  const m = await api.getMultipleMeetings({
-    where: { type: MeetingType.Sm, number: 5, year: undefined },
-  });
-  
+  const m = await api.getMultipleMeetings({ type: MeetingType.Sm, number: 5, year: undefined });
+
   expect(m.length).toBe(1);
   expect(m[0]).toMatchObject({
     type: MeetingType.Sm,
@@ -144,18 +145,18 @@ test('finding non-existant meeting', async () => {
 
 test('finding multiple non-existant meetings', async () => {
   await expect(
-    api.getMultipleMeetings({ where: { type: MeetingType.Sm, number: 5000, year: 0 } }),
+    api.getMultipleMeetings({ type: MeetingType.Sm, number: 5000, year: 0 }),
   ).resolves.toHaveLength(0);
 });
 
 test('adding file to meeting', async () => {
   await api.createMeeting(MeetingType.Extra, 1, 2021);
   const { id } = (await api.getAllMeetings())[0];
-  
+
   await expect(
     api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Summons),
   ).resolves.toBeTruthy();
-  
+
   const { refSummons } = await api.getSingleMeeting(id);
   expect(refSummons).toStrictEqual(DUMMY_FILE.id);
 });

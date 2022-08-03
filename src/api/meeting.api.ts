@@ -2,12 +2,18 @@
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
-import { MeetingDocumentType, MeetingType } from '@generated/graphql';
-import { Prisma, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
+import { AccessType, Maybe, MeetingDocumentType, MeetingType } from '@generated/graphql';
+import { PrismaMeeting, PrismaMeetingType } from '@prisma/client';
 
 import prisma from './prisma';
 
 const logger = Logger.getLogger('MeetingAPI');
+
+export type GetMeetingsOptions = {
+  year?: Maybe<number>;
+  number?: Maybe<number>;
+  type?: Maybe<MeetingType>;
+};
 
 export class MeetingAPI {
   /**
@@ -40,12 +46,20 @@ export class MeetingAPI {
   }
 
   /**
-   * Hämta flertalet möte ur databasen, genom en fördefinierad prisma-query
-   * @param params En `where`-baserad query för Prisma
+   * Hämta flertalet möte ur databasen, genom ökad specifitet
+   * @param year En `where`-baserad query för Prisma
    * @returns
    */
-  async getMultipleMeetings(params: Prisma.PrismaMeetingFindManyArgs): Promise<PrismaMeeting[]> {
-    const m = await prisma.prismaMeeting.findMany(params);
+  async getMultipleMeetings(options: GetMeetingsOptions): Promise<PrismaMeeting[]> {
+    const and = Object.entries(options)
+      .filter(([_, value]) => value != null) // Remove nulls
+      .map(([key, value]) => ({ [key]: value })); // Map to a and array
+
+    const m = await prisma.prismaMeeting.findMany({
+      where: {
+        AND: and,
+      },
+    });
 
     if (m === null) {
       throw new ServerError('Mötessökningen misslyckades');
@@ -192,6 +206,16 @@ export class MeetingAPI {
 
       if (possibleDouble != null) {
         throw new BadRequestError(`Detta möte har redan en fil av typen ${fileType}`);
+      }
+
+      const file = await p.prismaFile.findFirst({
+        where: {
+          id: fileId,
+        },
+      });
+
+      if (file?.accessType !== AccessType.Public) {
+        throw new BadRequestError('Filen måste vara publik');
       }
 
       try {
