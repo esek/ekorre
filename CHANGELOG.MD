@@ -8,6 +8,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - `Post`-resolvern kräver inte auth längre, användare skyddas i `User`-resolver
+- CORS i dev accepterar allt nu
 
 ## [0.22.0] - 2022-08-03
 
