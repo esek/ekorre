@@ -67,6 +67,7 @@ model PrismaPost {
   nominations       PrismaNomination[]  @relation(name: "PrismaNominationToPrismaPost")
   history           PrismaPostHistory[] @relation(name: "PrismaPostToPrismaPostHistory")
   postname          String              @unique
+  email             String?
   utskott           PrismaUtskott
   description       String
   spots             Int

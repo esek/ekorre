@@ -212,6 +212,7 @@ export class PostAPI {
 
   async createPost({
     name,
+    email,
     utskott,
     postType,
     spots,
@@ -240,6 +241,7 @@ export class PostAPI {
     const created = await prisma.prismaPost.create({
       data: {
         postname: name,
+        email,
         utskott,
         postType,
         spots: s,
