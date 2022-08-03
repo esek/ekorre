@@ -52,8 +52,8 @@ const meetingResolver: Resolvers = {
     meetings: async (_, { number, year, type }) => {
       // Meetings _should_ be visible to the public
       const m = await api.getMultipleMeetings(
-        number ?? undefined,
         year ?? undefined,
+        number ?? undefined,
         type ?? undefined,
       );
       return reduce(m, meetingReduce);
