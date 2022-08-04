@@ -381,7 +381,13 @@ export class UserAPI {
       },
     });
 
-    return res != null && res1 != null;
+    const res2 = await prisma.prismaPasswordReset.deleteMany({
+      where: {
+        refUser: lowerUsername,
+      },
+    });
+
+    return res != null && res1 != null && res2 != null;
   }
 
   async deleteUser(username: string): Promise<boolean> {
@@ -389,19 +395,13 @@ export class UserAPI {
 
     const lowerUsername = username.toLowerCase();
 
-    const res1 = await prisma.prismaPasswordReset.deleteMany({
-      where: {
-        refUser: lowerUsername,
-      },
-    });
-
     const res = await prisma.prismaUser.delete({
       where: {
         username: lowerUsername,
       },
     });
 
-    return res != null && res1 != null;
+    return res != null;
   }
 
   linkLoginProvider = async (

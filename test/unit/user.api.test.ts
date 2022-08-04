@@ -354,4 +354,18 @@ describe('login providers', () => {
       api.getUserFromProvider('not a token', 'not a provider', 'not an email'),
     ).rejects.toThrow();
   });
+
+  test('forget a user', async () => {
+    const couldDelete = await api.deleteUser(mockNewUser0.username);
+    expect(couldDelete).toBeTruthy();
+
+    const user = await api.getSingleUser(mockNewUser0.username);
+    expect(user.firstName).toEqual('Borttagen');
+    expect(user.lastName).toEqual('Användare');
+    expect(user.email).toEqual('');
+
+    await expect(
+      api.loginUser(mockNewUser0.username, mockNewUser0.password),
+    ).rejects.toThrowError();
+  });
 });
