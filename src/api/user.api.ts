@@ -3,7 +3,7 @@ import { Logger } from '@/logger';
 import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
 import { Prisma, PrismaPasswordReset, PrismaUser } from '@prisma/client';
-import crypto from 'crypto';
+import crypto, { randomUUID } from 'crypto';
 
 import {
   BadRequestError,
@@ -362,8 +362,8 @@ export class UserAPI {
         username: lowerUsername,
       },
       data: {
-        passwordHash: '',
-        passwordSalt: '',
+        passwordHash: 'engalenhash',
+        passwordSalt: randomUUID(),
         firstName: 'Raderad',
         lastName: 'Användare',
         class: 'EXX',

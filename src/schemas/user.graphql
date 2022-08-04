@@ -13,7 +13,7 @@ type Query {
 
 type Mutation {
   createUser(input: NewUser!): User!
-  forgetUser(username: String!): Boolean!
+  forgetUser(username: String!): User!
   updateUser(input: UpdateUser!): User!
   requestPasswordReset(username: String!, resetLink: String!, returnTo: String): Boolean!
   validatePasswordResetToken(username: String!, token: String!): Boolean!

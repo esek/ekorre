@@ -182,7 +182,8 @@ const userResolver: Resolvers = {
 
       await api.forgetUser(username);
 
-      return true;
+      const res = await api.getSingleUser(username);
+      return userReduce(res);
     },
   },
 };
