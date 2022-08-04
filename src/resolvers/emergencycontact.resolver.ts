@@ -1,6 +1,6 @@
 import { reduce } from '@/reducers';
 import EmergencyContactAPI from '@api/emergencycontact';
-import type { Resolvers } from '@generated/graphql';
+import { Resolvers } from '@generated/graphql';
 import { emergencyContactReducer } from '@reducer/emergencycontact';
 
 import { checkUserFieldAccess } from './user.resolver';
@@ -11,6 +11,22 @@ const emergencycontactresolver: Resolvers = {
   Mutation: {
     addEmergencyContact: async (_, { name, phone, type }, { getUsername }) => {
       const username = getUsername();
+
+      // TODO: Pga GDPR får vi tyvärr inte ha detta längre
+      // if (type === EmergencyContactType.Sister) {
+      //   sendEmail(
+      //     'mr.emil101@gmail.com',
+      //     'Ny syrra i din närhet!',
+      //     '',
+      //     {},
+      //     `
+      //     <h1>Ny syrra i din närhet!</h1>
+      //     <p>${username} har lagt till en ny syrra i sin närhet.</p>
+      //     <p>Namn: ${name}</p>
+      //     <p>Telefon: ${phone}</p>
+      //   `,
+      //   );
+      // }
 
       const added = await ecApi.addEmergencyContact(username, name, phone, type);
       return reduce(added, emergencyContactReducer);
