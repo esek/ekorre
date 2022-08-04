@@ -363,7 +363,7 @@ export class UserAPI {
         username: lowerUsername,
       },
       data: {
-        passwordHash: 'engalenhash',
+        passwordHash: randomUUID(),
         passwordSalt: randomUUID(),
         firstName: 'Raderad',
         lastName: 'Användare',
