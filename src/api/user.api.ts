@@ -1,5 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { Logger } from '@/logger';
+import { devGuard } from '@/util';
 import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
 import { Prisma, PrismaPasswordReset, PrismaUser } from '@prisma/client';
@@ -377,6 +378,26 @@ export class UserAPI {
     const res1 = await prisma.prismaEmergencyContact.deleteMany({
       where: {
         refUser: lowerUsername,
+      },
+    });
+
+    return res != null && res1 != null;
+  }
+
+  async deleteUser(username: string): Promise<boolean> {
+    devGuard();
+
+    const lowerUsername = username.toLowerCase();
+
+    const res1 = await prisma.prismaPasswordReset.deleteMany({
+      where: {
+        refUser: lowerUsername,
+      },
+    });
+
+    const res = await prisma.prismaUser.delete({
+      where: {
+        username: lowerUsername,
       },
     });
 
