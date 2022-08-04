@@ -352,6 +352,7 @@ export class UserAPI {
 
   /**
    * Tar bort all info om en användare som inte behövs för att fungera
+   * @param username Användaren som ska anonymiseras
    */
   async forgetUser(username: string): Promise<boolean> {
     const lowerUsername = username.toLowerCase();
