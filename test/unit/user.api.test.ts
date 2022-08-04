@@ -280,7 +280,7 @@ test('forget a user', async () => {
   expect(couldForget).toBeTruthy();
 
   const user = await api.getSingleUser(mockNewUser0.username);
-  expect(user.firstName).toEqual('Borttagen');
+  expect(user.firstName).toEqual('Raderad');
   expect(user.lastName).toEqual('Användare');
   expect(user.email).toEqual('');
 
