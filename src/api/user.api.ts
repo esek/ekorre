@@ -350,18 +350,32 @@ export class UserAPI {
     return { passwordSalt, passwordHash };
   }
 
-  async deleteUser(username: string): Promise<boolean> {
+  /**
+   * Tar bort all info om en användare som inte behövs för att fungera
+   */
+  async forgetUser(username: string): Promise<boolean> {
     const lowerUsername = username.toLowerCase();
 
-    const res1 = await prisma.prismaPasswordReset.deleteMany({
+    const res = await prisma.prismaUser.update({
       where: {
-        refUser: lowerUsername,
+        username: lowerUsername,
+      },
+      data: {
+        passwordHash: '',
+        passwordSalt: '',
+        firstName: 'Raderad',
+        lastName: 'Användare',
+        class: 'EXX',
+        email: '',
+        phone: '',
+        address: '',
+        zipCode: '',
       },
     });
 
-    const res = await prisma.prismaUser.delete({
+    const res1 = await prisma.prismaEmergencyContact.deleteMany({
       where: {
-        username: lowerUsername,
+        refUser: lowerUsername,
       },
     });
 
