@@ -233,7 +233,7 @@ export class ArticleAPI {
   }
 
   private checkForSpecialTags(tags: string[]) {
-    if (tags.find((t) => t.toLowerCase().startsWith('special:')) != null) {
+    if (tags.some((t) => t.toLowerCase().startsWith('special:'))) {
       throw new BadRequestError('Specialtag kan inte användas för nyheter');
     }
   }

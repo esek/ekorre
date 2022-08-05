@@ -41,7 +41,7 @@ const articleResolver: Resolvers = {
     tags: (article, { includeSpecial }, _) => {
       const safeTags = article.tags ?? [];
 
-      if (includeSpecial !== true) {
+      if (!includeSpecial) {
         return safeTags.filter((tag) => !tag.startsWith('special:'));
       }
 
