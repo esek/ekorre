@@ -17,9 +17,6 @@ const defaultOrder: Prisma.PrismaArticleOrderByWithRelationAndSearchRelevanceInp
   },
 ];
 
-/**
- * This is the API to handle articles
- */
 export class ArticleAPI {
   /**
    * Retreives all articles ordered by creation date first and then title
@@ -228,7 +225,7 @@ export class ArticleAPI {
 
   /**
    * Modifies an article
-   * 
+   *
    * *Note:* Some parts of the article is not possible to be edited
    * @param id ID of the article
    * @param updaterUsername Username of the person who updated the article

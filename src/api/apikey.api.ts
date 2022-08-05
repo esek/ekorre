@@ -13,7 +13,7 @@ export class ApiKeyAPI {
    * Creates a new API key
    * @param description Description of the key
    * @param username The username of the creator of the key
-   * @returns The key as a string
+   * @returns The API key string identifier
    */
   async createApiKey(description: string, username: string): Promise<string> {
     const key = randomUUID();
