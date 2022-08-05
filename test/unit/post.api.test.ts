@@ -87,7 +87,7 @@ test('getting history entries for user', async () => {
   const ok = await api.addUsersToPost([dummyUser.username], postId);
   expect(ok).toBe(true);
 
-  const dph = await api.getHistoryEntries({ refUser: dummyUser.username });
+  const dph = await api.getHistoryEntries(dummyUser.username);
   expect(dph.length).toBe(1);
 
   // Tar bort start och slutdatum
@@ -253,7 +253,7 @@ test('deleting user from post', async () => {
   expect(ok).toBe(true);
 
   // Nu borde DUMMY_USER.username ha en post
-  const res = await api.getHistoryEntries({ refUser: dummyUser.username });
+  const res = await api.getHistoryEntries(dummyUser.username);
   expect(res.length).not.toBe(0);
 
   const removed = await api.removeHistoryEntry(res[0].id);
@@ -389,7 +389,7 @@ test('set end time of history entry', async () => {
 
   {
     // Som default ska `end` bli null
-    const { id, ...reduced } = (await api.getHistoryEntries({ refUser: dummyUser.username }))[0];
+    const { id, ...reduced } = (await api.getHistoryEntries(dummyUser.username))[0];
     expect(reduced).toEqual({
       refUser: dummyUser.username,
       refPost: postId,
@@ -401,7 +401,7 @@ test('set end time of history entry', async () => {
     await expect(api.setUserPostEnd(id, end)).resolves.toBeTruthy();
   }
 
-  const { id, ...reduced } = (await api.getHistoryEntries({ refUser: dummyUser.username }))[0];
+  const { id, ...reduced } = (await api.getHistoryEntries(dummyUser.username))[0];
   expect(reduced).toEqual({
     refUser: dummyUser.username,
     refPost: postId,

@@ -150,8 +150,8 @@ class FileAPI {
   }
 
   /**
-   * Hämtar alla filer som är av typen `type` sorterat efter namn och skapelse
-   * @param type Typ av filer att hämta
+   * Retrieves all files of the provided type, sorted first by name and then by creation date
+   * @param type Type of files to retrieve
    */
   async getMultipleFiles(type?: FileType): Promise<PrismaFile[]> {
     const where: Prisma.PrismaFileWhereInput = {};
@@ -169,8 +169,8 @@ class FileAPI {
   }
 
   /**
-   * Hämtar alla filer som finns i `ids` sorterat efter namn och skapelse
-   * @param ids Ids av filerna att hämta
+   * Retrieves all files with ID as provided, sorted first by name and then by creation date
+   * @param ids IDs of the files to retrieve
    */
   async getMultipleFilesById(ids: readonly string[]): Promise<PrismaFile[]> {
     const f = await prisma.prismaFile.findMany({
@@ -205,9 +205,9 @@ class FileAPI {
   }
 
   /**
-   * Söker efter filer (namn och id) som innehåller @search ordnat
-   * efter relevans och skapelse
-   * @param search söksträng
+   * Searches after files (names and IDs) that contains the search string,
+   * ordered by relevance and creation date
+   * @param search Search string
    */
   async searchFiles(search: string): Promise<PrismaFile[]> {
     const f = await prisma.prismaFile.findMany({

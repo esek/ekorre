@@ -71,7 +71,7 @@ afterAll(async () => {
   const clearUser1 = accessApi.clearAccessForUser(username1);
   await Promise.all([clearUser0, clearUser1]);
 
-  await postApi.clear(postId0);
+  await postApi.deletePost(postId0);
   await apiKeyApi.removeApiKey(apiKey);
   await userApi.deleteUser(username0);
   await userApi.deleteUser(username1);

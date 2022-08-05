@@ -4,6 +4,27 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.1] - 2022-08-5
+
+### Tillagt
+- Lägger till docstrings i `apikey.api.ts`
+
+### Ändrat
+- Ändrar docstrings i `article.api.ts` till engelska
+- Ändrar docstrings i `election.api.ts` till engelska
+- Gjort `ElectionAPI.nominate` till en transaktion, och optimert densamma
+- Ändrar docstrings i `emergencycontact.api.ts` till engelska
+- Ändrar några docstrings i `file.api.ts` till engelska
+- Ändrar docstrings i `hehe.api.ts` till engelska
+- Ändrar docstrings i `meeting.api.ts` till engelska
+- Ändrar docstrings i `post.api.ts` till engelska
+- `PostAPI.deletePost` använder nu en transaktion
+- `PostAPI.getHistoryEntries` now uses username and postname instead of prisma where input
+- Ändrar docstrings i `user.api.ts` till engelska
+- `UserAPI.requestPasswordReset` använder nu en transaktion, och gör saker i en rimlig ordning
+- `UserAPI.forgetUser` använder nu en transaktion
+- Other misc comment edits
+
 ## [0.25.0] - 2022-08-05
 
 ### Ändrat

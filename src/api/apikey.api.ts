@@ -9,6 +9,12 @@ import prisma from './prisma';
 const logger = Logger.getLogger('ApiKeyAPI');
 
 export class ApiKeyAPI {
+  /**
+   * Creates a new API key
+   * @param description Description of the key
+   * @param username The username of the creator of the key
+   * @returns The API key string identifier
+   */
   async createApiKey(description: string, username: string): Promise<string> {
     const key = randomUUID();
 
@@ -29,6 +35,10 @@ export class ApiKeyAPI {
     return key;
   }
 
+  /**
+   * Attempts to remove an API key
+   * @param key The API key to be removed
+   */
   async removeApiKey(key: string): Promise<boolean> {
     try {
       await prisma.prismaApiKey.delete({
@@ -45,6 +55,10 @@ export class ApiKeyAPI {
     return true;
   }
 
+  /**
+   * Attempts to get an API key
+   * @param key The API key string identifier
+   */
   async getApiKey(key: string): Promise<PrismaApiKey> {
     const apiKey = await prisma.prismaApiKey.findFirst({
       where: {
@@ -60,7 +74,7 @@ export class ApiKeyAPI {
   }
 
   /**
-   * Hämta alla api-nycklar ordnade efter tillverkningsdatum.
+   * Gets multiple API keys, ordered by creation date
    */
   async getApiKeys(): Promise<PrismaApiKey[]> {
     const apiKeys = await prisma.prismaApiKey.findMany({
@@ -71,6 +85,10 @@ export class ApiKeyAPI {
     return apiKeys;
   }
 
+  /**
+   * Checks if an API key exists
+   * @param key The API key string representation
+   */
   async checkApiKey(key: string): Promise<boolean> {
     const apiKey = await prisma.prismaApiKey.findFirst({
       where: {
@@ -81,6 +99,9 @@ export class ApiKeyAPI {
     return apiKey != null;
   }
 
+  /**
+   * Development function to clear all API keys
+   */
   async clear() {
     devGuard('Kan inte ta bort API nycklar i produktion');
 

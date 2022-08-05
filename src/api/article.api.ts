@@ -17,12 +17,9 @@ const defaultOrder: Prisma.PrismaArticleOrderByWithRelationAndSearchRelevanceInp
   },
 ];
 
-/**
- * Det här är API:n för att hantera artiklar
- */
 export class ArticleAPI {
   /**
-   * Hämta alla artiklar sorterade på skapande och titel.
+   * Retreives all articles ordered by creation date first and then title
    */
   async getAllArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
@@ -36,7 +33,7 @@ export class ArticleAPI {
   }
 
   /**
-   * Hämtar alla nyhetsartiklar, sorterade på skapande och titel.
+   * Retreives all news articles ordered by creation date first and then title
    */
   async getAllNewsArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
@@ -53,7 +50,7 @@ export class ArticleAPI {
   }
 
   /**
-   * Hämtar alla informationsartiklar, sorterade på skapande och titel.
+   * Retreives all information articles ordered by creation date first and then title
    */
   async getAllInformationArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
@@ -70,8 +67,8 @@ export class ArticleAPI {
   }
 
   /**
-   * Hämtar alla nyhetsartiklar i ett intervall. Utelämnas
-   * parametrar finns ingen begränsning. Sorteras på skapande och titel.
+   * Retrieves all news articles in an interval. If parameters are left
+   * out, no limit in that direction is used. ordered by creation first and then title
    * @param after
    * @param before
    * @param author Username of original author of the article
@@ -177,8 +174,8 @@ export class ArticleAPI {
   }
 
   /**
-   * Hämtar de senaste nyhetsartiklarna sorterat på skapande (nyas först).
-   * @param nbr antal artiklar
+   * Retrieves the last news articles, ordered by creation (newest first)
+   * @param nbr The number of articles to be retrieved
    */
   async getLatestNews(limit: number): Promise<PrismaExtendedArticle[]> {
     const lastestNews = await prisma.prismaArticle.findMany({
@@ -198,9 +195,9 @@ export class ArticleAPI {
   }
 
   /**
-   * Lägger till en ny artikel
-   * @param authorUsername Användarnamn på skaparen
-   * @param entry artikel som ska läggas till
+   * Creates a new article
+   * @param authorUsername Username of the article creator
+   * @param entry The article to be added
    */
   async newArticle(authorUsername: string, entry: NewArticle): Promise<PrismaExtendedArticle> {
     const { tags, ...reduced } = entry;
@@ -238,11 +235,12 @@ export class ArticleAPI {
   }
 
   /**
-   * Modifierar en artikel; notera att vissa saker inte får
-   * modifieras via API:n
-   * @param id Artikelns ID
-   * @param updaterUsername Användarnamn hos den som ändrat artikeln
-   * @param entry Modifiering av existerande artikel
+   * Modifies an article
+   *
+   * *Note:* Some parts of the article is not possible to be edited
+   * @param id ID of the article
+   * @param updaterUsername Username of the person who updated the article
+   * @param entry Modification of existing article
    */
   async modifyArticle(
     id: number,
@@ -286,6 +284,11 @@ export class ArticleAPI {
     return res;
   }
 
+  /**
+   * Removes an article
+   * @param id ID of the article to be removed
+   * @returns If the article was removed successfully
+   */
   async removeArticle(id: number): Promise<boolean> {
     const res = await prisma.prismaArticle.delete({
       where: {

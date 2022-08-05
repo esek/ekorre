@@ -102,7 +102,7 @@ const postresolver: Resolvers = {
       return reduced;
     },
     postHistory: async ({ username }, { current }, ctx) => {
-      const entries = await api.getHistoryEntries({ refUser: username }, current ?? false);
+      const entries = await api.getHistoryEntries(username, undefined, current ?? false);
 
       // Vi omvandlar från DatabaseHistoryEntry user history entries
       // genom att hämta ut Posts. Vi använder dataloader
@@ -127,7 +127,7 @@ const postresolver: Resolvers = {
   },
   Post: {
     history: async ({ id }, { current }, ctx) => {
-      const entries = await api.getHistoryEntries({ refPost: id }, current ?? false);
+      const entries = await api.getHistoryEntries(undefined, id, current ?? false);
 
       const a = Promise.all(
         entries.map(async (e) => {

@@ -9,8 +9,8 @@ const logger = Logger.getLogger('EmergencyContactApi');
 
 class EmergencyContactAPI {
   /**
-   * Hämtar alla nödkontakter för en användare sorterat efter namn
-   * @param username Användaren som äger nödkontakterna
+   * Retrieves all emergency contacts for a user, ordered by contact name
+   * @param username User owning the contacts
    */
   async getEmergencyContacts(username: string): Promise<PrismaEmergencyContact[]> {
     const contacts = await prisma.prismaEmergencyContact.findMany({
@@ -53,6 +53,13 @@ class EmergencyContactAPI {
     }
   }
 
+  /**
+   * Removes an emergency contact for a user
+   * @param username The username of the user owning the contact
+   * @param id ID of the emergency contact
+   * @returns If the contacy was removed
+   * @throws {ServerError} If the contact could not be removed
+   */
   async removeEmergencyContact(username: string, id: number): Promise<boolean> {
     try {
       await prisma.prismaEmergencyContact.delete({
