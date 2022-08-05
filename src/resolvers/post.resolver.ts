@@ -19,7 +19,7 @@ const postresolver: Resolvers = {
         const res = await api.getPostsFromUtskott(utskott, includeInactive ?? false);
         return reduce(res, postReduce);
       }
-      return reduce(await api.getPosts(), postReduce);
+      return reduce(await api.getPosts(undefined, includeInactive ?? false), postReduce);
     },
     groupedPosts: async (_, { includeInactive }, ctx) => {
       // Should be available to the public
