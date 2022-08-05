@@ -22,7 +22,7 @@ const mockNewArticle: NewArticle = {
   title: 'SUP NOLLAN YOYOYO',
   body: '# Some dank ass article containing cool stuff\nNot at all clickbait yo!',
   signature: 'Ett FUCKING Øverphøs',
-  tags: ['some', 'neat', 'tags', 'IMPORTANT'],
+  tags: ['some', 'neat', 'tags', 'important'],
   articleType: ArticleType.News,
 };
 
@@ -32,11 +32,22 @@ const mockModifyArticle: ModifyArticle = {
   articleType: ArticleType.Information,
 };
 
+const mockInfoArticle: NewArticle = {
+  ...mockNewArticle,
+  tags: ['special:nav'],
+  articleType: ArticleType.Information,
+};
+
+let accessToken0 = '';
+let accessToken1 = '';
+
 beforeAll(async () => {
   // Initialize random usernames
   [TEST_USERNAME_0, TEST_USERNAME_1, TEST_USER_WITHOUT_ACCESS] = (
     await Promise.all([createUser1(), createUser2(), createUser3()])
   ).map((u) => u.username);
+  accessToken0 = tokenProvider.issueToken(TEST_USERNAME_0, 'access_token');
+  accessToken1 = tokenProvider.issueToken(TEST_USERNAME_1, 'access_token');
 });
 
 afterAll(async () => {
@@ -50,143 +61,189 @@ beforeEach(() => {
   jest.useRealTimers();
 });
 
-test('access control', async () => {
+describe('access control', () => {
   const accessToken = tokenProvider.issueToken(TEST_USER_WITHOUT_ACCESS, 'access_token');
+  it('can not add article', async () => {
+    const addArticleRes = await requestWithAuth(
+      ADD_ARTICLE_MUTATION,
+      { entry: mockNewArticle },
+      accessToken,
+    );
 
-  const addArticleRes = await requestWithAuth(
-    ADD_ARTICLE_MUTATION,
-    { entry: mockNewArticle },
-    accessToken,
-  );
+    expect(addArticleRes.errors).toBeDefined();
+  });
 
-  const getArticle = await requestWithAuth(ARTICLES_QUERY, {}, accessToken);
+  it('can get article', async () => {
+    const getArticle = await requestWithAuth(ARTICLES_QUERY, {}, accessToken);
+    expect(getArticle.data).toBeDefined();
+  });
 
-  const modifyArticleRes = await requestWithAuth(
-    MODIFY_ARTICLE_MUTATION,
-    {
-      articleId: -1, // Should not matter
-      entry: mockModifyArticle,
-    },
-    accessToken,
-  );
+  it('can not modify article', async () => {
+    const modifyArticleRes = await requestWithAuth(
+      MODIFY_ARTICLE_MUTATION,
+      {
+        articleId: -1, // Should not matter
+        entry: mockModifyArticle,
+      },
+      accessToken,
+    );
+    expect(modifyArticleRes.errors).toBeDefined();
+  });
 
-  const removeArticleRes = await requestWithAuth(
-    REMOVE_ARTICLE_MUTATION,
-    { articleId: -1 }, // Should not matter
-    accessToken,
-  );
+  it('can not remove article', async () => {
+    const removeArticleRes = await requestWithAuth(
+      REMOVE_ARTICLE_MUTATION,
+      { articleId: -1 }, // Should not matter
+      accessToken,
+    );
 
-  expect(addArticleRes.errors).toBeDefined();
-  expect(getArticle.data).toBeDefined();
-  expect(modifyArticleRes.errors).toBeDefined();
-  expect(removeArticleRes.errors).toBeDefined();
+    expect(removeArticleRes.errors).toBeDefined();
+  });
 });
 
-test('creating, modyfying and deleting article', async () => {
-  const accessToken0 = tokenProvider.issueToken(TEST_USERNAME_0, 'access_token');
-  const accessToken1 = tokenProvider.issueToken(TEST_USERNAME_1, 'access_token');
+describe('creating, modyfying and deleting article', () => {
+  let articleOneId = -1;
+  let firstArticleData: Article;
 
-  const addArticleRes = await requestWithAuth(
-    ADD_ARTICLE_MUTATION,
-    { entry: mockNewArticle },
-    accessToken0,
-  );
+  it('should create an article', async () => {
+    const addArticleRes = await requestWithAuth(
+      ADD_ARTICLE_MUTATION,
+      { entry: mockNewArticle },
+      accessToken0,
+    );
 
-  expect(addArticleRes?.errors).toBeUndefined();
+    expect(addArticleRes?.errors).toBeUndefined();
+    firstArticleData = addArticleRes?.data?.addArticle as Article;
 
-  const addArticleData = addArticleRes?.data?.addArticle as Article;
+    expect(firstArticleData.slug).not.toBeNull();
+    expect(firstArticleData.id).not.toBeNull();
 
-  expect(addArticleData.slug).not.toBeNull();
-  expect(addArticleData.id).not.toBeNull();
+    // The body will be turned to HTML and won't match
+    // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { body, ...reducedNewArticle } = mockNewArticle;
 
-  // The body will be turned to HTML and won't match
-  // eslint-disable-line @typescript-eslint/no-unused-vars
-  const { body, ...reducedNewArticle } = mockNewArticle;
+    expect(firstArticleData).toMatchObject({
+      ...reducedNewArticle,
+      author: {
+        username: TEST_USERNAME_0,
+      },
+      lastUpdatedBy: {
+        username: TEST_USERNAME_0,
+      },
+    });
 
-  expect(addArticleData).toMatchObject({
-    ...reducedNewArticle,
-    author: {
-      username: TEST_USERNAME_0,
-    },
-    lastUpdatedBy: {
-      username: TEST_USERNAME_0,
-    },
+    articleOneId = firstArticleData.id;
   });
 
-  let modifyArticleRes = await requestWithAuth(
-    MODIFY_ARTICLE_MUTATION,
-    {
-      articleId: addArticleData.id,
-      entry: mockModifyArticle, // We change to a different article type but are not allowed
-    },
-    accessToken0,
-  );
+  it('should modify an article', async () => {
+    let modifyArticleRes = await requestWithAuth(
+      MODIFY_ARTICLE_MUTATION,
+      {
+        articleId: articleOneId,
+        entry: mockModifyArticle, // We change to a different article type but are not allowed
+      },
+      accessToken0,
+    );
 
-  expect(modifyArticleRes?.errors).toBeDefined();
+    expect(modifyArticleRes?.errors).toBeDefined();
 
-  modifyArticleRes = await requestWithAuth(
-    MODIFY_ARTICLE_MUTATION,
-    {
-      articleId: addArticleData.id,
-      entry: mockModifyArticle,
-    },
-    accessToken1, // This user should be allowed
-  );
+    modifyArticleRes = await requestWithAuth(
+      MODIFY_ARTICLE_MUTATION,
+      {
+        articleId: articleOneId,
+        entry: mockModifyArticle,
+      },
+      accessToken1, // This user should be allowed
+    );
 
-  expect(modifyArticleRes?.errors).toBeUndefined();
+    expect(modifyArticleRes?.errors).toBeUndefined();
 
-  // Now we check that the Article actually was updated properly
-  const updatedArticleRes = await requestWithAuth(
-    ARTICLE_QUERY,
-    {
-      id: addArticleData.id,
-    },
-    accessToken0,
-  );
+    // Now we check that the Article actually was updated properly
+    const updatedArticleRes = await requestWithAuth(
+      ARTICLE_QUERY,
+      {
+        id: articleOneId,
+      },
+      accessToken0,
+    );
 
-  expect(updatedArticleRes?.errors).toBeUndefined();
+    expect(updatedArticleRes?.errors).toBeUndefined();
 
-  // lastUpdatedAt could have changed, but we are unable to use
-  // fake timers here due to DataLoaders shitting themselves if they are
-  // are used in the same Node process
-  // eslint-disable-line @typescript-eslint/no-unused-vars
-  const { lastUpdatedAt, tags, ...noLastUpdatedAtOriginalArticle } = addArticleData;
+    // lastUpdatedAt could have changed, but we are unable to use
+    // fake timers here due to DataLoaders shitting themselves if they are
+    // are used in the same Node process
+    // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { lastUpdatedAt, tags, ...noLastUpdatedAtOriginalArticle } = firstArticleData;
 
-  expect(updatedArticleRes?.data?.article).toMatchObject({
-    ...noLastUpdatedAtOriginalArticle,
-    body: mockModifyArticle.body,
-    signature: mockModifyArticle.signature,
-    articleType: mockModifyArticle.articleType,
-    tags: [], // Update will remove all tags
-    lastUpdatedBy: {
-      username: TEST_USERNAME_1, // This should have been updated
-    },
+    expect(updatedArticleRes?.data?.article).toMatchObject({
+      ...noLastUpdatedAtOriginalArticle,
+      body: mockModifyArticle.body,
+      signature: mockModifyArticle.signature,
+      articleType: mockModifyArticle.articleType,
+      tags: [], // Update will remove all tags
+      lastUpdatedBy: {
+        username: TEST_USERNAME_1, // This should have been updated
+      },
+    });
   });
 
-  const removeArticleRes = await requestWithAuth(
-    REMOVE_ARTICLE_MUTATION,
-    { articleId: addArticleData.id },
-    accessToken1,
-  );
+  it('should remove an article', async () => {
+    const removeArticleRes = await requestWithAuth(
+      REMOVE_ARTICLE_MUTATION,
+      { articleId: articleOneId },
+      accessToken1,
+    );
 
-  expect(removeArticleRes?.errors).toBeUndefined();
-  expect(removeArticleRes?.data?.removeArticle).toBeTruthy();
+    expect(removeArticleRes?.errors).toBeUndefined();
+    expect(removeArticleRes?.data?.removeArticle).toBeTruthy();
 
-  // Now we check that the Article actually was removed
-  const nonExistantArticleRes = await requestWithAuth(
-    ARTICLE_QUERY,
-    {
-      id: addArticleData.id,
-      markdown: true,
-    },
-    accessToken0,
-  );
+    // Now we check that the Article actually was removed
+    const nonExistantArticleRes = await requestWithAuth(
+      ARTICLE_QUERY,
+      {
+        id: articleOneId,
+        markdown: true,
+      },
+      accessToken0,
+    );
 
-  expect(nonExistantArticleRes?.errors).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        errorType: 'NotFoundError',
-      }),
-    ]),
-  );
+    expect(nonExistantArticleRes?.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          errorType: 'NotFoundError',
+        }),
+      ]),
+    );
+  });
+
+  it('handles special tags', async () => {
+    const addNotCorrect = await requestWithAuth(
+      ADD_ARTICLE_MUTATION,
+      {
+        entry: {
+          ...mockNewArticle,
+          tags: ['special:tag'],
+        },
+      },
+      accessToken1,
+    );
+
+    expect(addNotCorrect?.errors).toBeDefined();
+
+    const addCorrect = await requestWithAuth(
+      ADD_ARTICLE_MUTATION,
+      { entry: mockInfoArticle },
+      accessToken1,
+    );
+
+    expect(addCorrect?.errors).toBeUndefined();
+
+    const removeRes = await requestWithAuth(
+      REMOVE_ARTICLE_MUTATION,
+      { articleId: (addCorrect.data.addArticle as Article).id },
+      accessToken1,
+    );
+
+    expect(removeRes?.errors).toBeUndefined();
+  });
 });

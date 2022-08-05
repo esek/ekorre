@@ -38,6 +38,15 @@ const articleResolver: Resolvers = {
       key: model.lastUpdatedBy.username,
       dataLoader: ctx.userDataLoader,
     })),
+    tags: (article, { includeSpecial }, _) => {
+      const safeTags = article.tags ?? [];
+
+      if (includeSpecial !== true) {
+        return safeTags.filter((tag) => !tag.startsWith('special:'));
+      }
+
+      return safeTags;
+    },
   },
   Query: {
     newsentries: async (_, { author, after, before }, ctx) => {
