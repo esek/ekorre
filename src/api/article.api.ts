@@ -203,7 +203,6 @@ export class ArticleAPI {
    * @param entry artikel som ska läggas till
    */
   async newArticle(authorUsername: string, entry: NewArticle): Promise<PrismaExtendedArticle> {
-    // todo: update so tags are set as well
     const { tags, ...reduced } = entry;
 
     const safeTags = (tags ?? []).map((t) => t.toLowerCase());
