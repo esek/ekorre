@@ -20,6 +20,9 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Ändrar docstrings i `post.api.ts` till engelska
 - `PostAPI.deletePost` använder nu en transaktion
 - `PostAPI.getHistoryEntries` now uses username and postname instead of prisma where input
+- Ändrar docstrings i `user.api.ts` till engelska
+- `UserAPI.requestPasswordReset` använder nu en transaktion, och gör saker i en rimlig ordning
+- `UserAPI.forgetUser` använder nu en transaktion
 - Other misc comment edits
 
 ## [0.24.1] - 2022-08-05
