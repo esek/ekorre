@@ -29,7 +29,8 @@ type Article {
   createdAt: DateTime!
   lastUpdatedAt: DateTime!
   signature: String!
-  tags: [String!]!
+  "Limit if special tags should be included. Will default to true"
+  tags(includeSpecial: Boolean): [String!]!
   articleType: ArticleType!
 }
 

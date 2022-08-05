@@ -58,8 +58,15 @@ export type Article = {
   signature: Scalars['String'];
   /** Used in URLs, but Intentification is done using only tail (Int) */
   slug: Scalars['String'];
+  /** Limit if special tags should be included. Will default to true */
   tags: Array<Scalars['String']>;
   title: Scalars['String'];
+};
+
+
+/** Body is saved as HTML serversInte, but edited in MarkDown */
+export type ArticleTagsArgs = {
+  includeSpecial?: Maybe<Scalars['Boolean']>;
 };
 
 /** News are the ones to be used by a website newsreel */
@@ -1362,7 +1369,7 @@ export type ArticleResolvers<ContextType = Context, ParentType extends Resolvers
   lastUpdatedBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   signature?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   slug?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  tags?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  tags?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<ArticleTagsArgs, never>>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

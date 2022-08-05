@@ -4,7 +4,7 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.24.2] - 2022-08-5
+## [0.25.2] - 2022-08-5
 
 ### Tillagt
 - Lägger till docstrings i `apikey.api.ts`
@@ -24,6 +24,12 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `UserAPI.requestPasswordReset` använder nu en transaktion, och gör saker i en rimlig ordning
 - `UserAPI.forgetUser` använder nu en transaktion
 - Other misc comment edits
+
+## [0.25.0] - 2022-08-05
+
+### Ändrat
+- Ändrat hur `special:` taggar hanteras
+- Lagt till `includeSpecial: Boolean` parameter till `Article.tags`
 
 ## [0.24.1] - 2022-08-05
 

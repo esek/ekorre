@@ -200,8 +200,13 @@ export class ArticleAPI {
    * @param entry The article to be added
    */
   async newArticle(authorUsername: string, entry: NewArticle): Promise<PrismaExtendedArticle> {
-    // todo: update so tags are set as well
     const { tags, ...reduced } = entry;
+
+    const safeTags = (tags ?? []).map((t) => t.toLowerCase());
+
+    if (entry.articleType === ArticleType.News) {
+      this.checkForSpecialTags(safeTags);
+    }
 
     const res = await prisma.prismaArticle.create({
       data: {
@@ -212,7 +217,7 @@ export class ArticleAPI {
         refAuthor: authorUsername,
         refLastUpdateBy: authorUsername,
         tags: {
-          create: tags.map((tag) => ({ tag })),
+          create: safeTags.map((tag) => ({ tag })),
         },
       },
       include: {
@@ -221,6 +226,12 @@ export class ArticleAPI {
     });
 
     return res;
+  }
+
+  private checkForSpecialTags(tags: string[]) {
+    if (tags.some((t) => t.toLowerCase().startsWith('special:'))) {
+      throw new BadRequestError('Specialtag kan inte användas för nyheter');
+    }
   }
 
   /**
@@ -248,7 +259,11 @@ export class ArticleAPI {
 
     update.updatedAt = toUTC(new Date());
 
-    const safeTags = tags ?? [];
+    const safeTags = (tags ?? []).map((t) => t.toLowerCase());
+
+    if (entry.articleType === ArticleType.News) {
+      this.checkForSpecialTags(safeTags);
+    }
 
     const res = await prisma.prismaArticle.update({
       data: {
