@@ -587,14 +587,14 @@ export class ElectionAPI {
       });
       
       if (openElectionRes  == null) {
-        throw new NotFoundError('Det finns inget öppet val!');
+        throw new NotFoundError('Det finns inget öppet val');
       }
       
       const electablePostIds = openElectionRes.electables.map((e) => e.refPost);
 
       if (electablePostIds.length === 0) {
         throw new BadRequestError(
-          'Det öppna valet inga valbara poster!',
+          'Det öppna valet inga valbara poster',
         );
       }
 
@@ -646,7 +646,7 @@ export class ElectionAPI {
           answer,
         },
         where: {
-          // Dessa tre är unik
+          // These three are unique as a combination
           refElection_refPost_refUser: {
             refElection: openElection.id,
             refUser: username,
@@ -662,14 +662,12 @@ export class ElectionAPI {
   }
 
   /**
-   * Lägger till ett förslag från valberedningen för en post. Kontrollerar
-   * inte att det finns lika många platser (`Post.spots`) som förslag,
-   * då det minskar prestanda, och valberedningen kan välja att
-   * överföreslå. Kontrollerar inte heller om posten är valbar;
-   * det får valberedningen lösa!
-   * @param electionId ID på ett val
-   * @param username Användarnamn på den som ska föreslås
-   * @param postId Posten användaren ska föreslås på
+   * Adds a proposals from Valberedningen for a post. Does *not* check that there are not
+   * more proposals than `Post.spots`, since Valberedningen can do whatever they want.
+   * Also does not ensure that the post is electable
+   * @param electionId ID of an election
+   * @param username Username for the user to be proposed for this post
+   * @param postId ID of the post this user is to be proposed for
    */
   async propose(electionId: number, username: string, postId: number): Promise<boolean> {
     try {
@@ -693,11 +691,12 @@ export class ElectionAPI {
   }
 
   /**
-   * Försöker ta bort en av valberedningens förslag till en post.
-   * @param electionId ID på valet
-   * @param username Användarnamn på föreslagen person
-   * @param postId ID på posten personen föreslagits till
-   * @throws `ServerError` om förslaget inte kunde tas bort (eller det aldrig fanns)
+   * Attempts to remove one of Valberedningen's proposals for a post
+   * @param electionId ID of the election
+   * @param username Username of the previously proposed user
+   * @param postId ID of the post the user has previously been proposed for
+   * @returns If the proposal could be removed
+   * @throws `ServerError` if the proposal could not be removed, or never existed
    */
   async removeProposal(electionId: number, username: string, postId: number): Promise<boolean> {
     try {
