@@ -18,18 +18,17 @@ const logger = Logger.getLogger('AccessAPI');
 const postApi = new PostAPI();
 
 /**
- * Det är api:n som hanterar access.
- * Access finns i två former:
- *   - Den access som en användare ärver från en post
- *   - Den access som en specifik användare får tilldelad
- * Det är viktigt att hålla koll på denna skillnaden.
+ * This is the API that handless access.
+ * Access exists in two forms:
+ *  - The access that a user inherits from their post(s)
+ *  - The access that an individual user gets assigned manually
+ * It's important to note the difference
  */
 export class AccessAPI {
   /**
-   * Hämta specifik access för en användare i bokstavsordning.
-   * @param username användaren
+   * Get specific access for an user in alphabetical order
+   * @param username Username for the user
    */
-  // TODO: Migrera till prisma
   async getIndividualAccess(username: string): Promise<PrismaIndividualAccess[]> {
     const access = await prisma.prismaIndividualAccess.findMany({
       where: {
@@ -44,8 +43,8 @@ export class AccessAPI {
   }
 
   /**
-   * Hämta access för en post i bokstavsordning.
-   * @param postId posten
+   * Get access for a post in alphabetical order
+   * @param postId ID for the post
    */
   async getPostAccess(postId: number): Promise<PrismaPostAccess[]> {
     const access = await prisma.prismaPostAccess.findMany({
@@ -61,8 +60,8 @@ export class AccessAPI {
   }
 
   /**
-   * Hämta access för en apiNyckel i bokstavsordning.
-   * @param apiKey apiNyckeln
+   * Get access for an API key in alphabetical order
+   * @param apiKey The API key
    */
   async getApiKeyAccess(apiKey: string): Promise<PrismaApiKeyAccess[]> {
     const access = await prisma.prismaApiKeyAccess.findMany({
@@ -76,22 +75,17 @@ export class AccessAPI {
 
     return access;
   }
-
+  
   /**
-   * Sätt access för en användare. VIKTIGT: Access är icke muterbart
-   * vilket innebär att accessobjektet som matas ska innehålla allt
-   * som behövs.
-   * @param username användaren
-   * @param newaccess den nya accessen
+   * Set the individual access for an user
+   * 
+   * **IMPORTANT**: Access is immutable, which means that the provided access object
+   * must contain all individual access desired for the user
+   * @param username Username for the user
+   * @param newAccess The new individual access for this user
    */
-  async setIndividualAccess(username: string, newaccess: AccessInput): Promise<boolean> {
-    await prisma.prismaIndividualAccess.deleteMany({
-      where: {
-        refUser: username,
-      },
-    });
-
-    const { doors, features } = newaccess;
+  async setIndividualAccess(username: string, newAccess: AccessInput): Promise<boolean> {
+    const { doors, features } = newAccess;
     const access: Prisma.PrismaIndividualAccessUncheckedCreateInput[] = [];
 
     doors.forEach((door) => {
@@ -116,23 +110,34 @@ export class AccessAPI {
       });
     });
 
-    const res = await prisma.prismaIndividualAccess.createMany({
+    const deleteQuery = prisma.prismaIndividualAccess.deleteMany({
+      where: {
+        refUser: username,
+      },
+    });
+    const createQuery = prisma.prismaIndividualAccess.createMany({
       data: access,
     });
 
+    // Ensure deletion and creation is made in one swoop,
+    // so access is not deleted if old one is bad
+    const [, res] = await prisma.$transaction([deleteQuery, createQuery]);
+
     logger.info(`Updated access for user ${username}`);
-    logger.debug(`Updated access for user ${username} to ${Logger.pretty(newaccess)}`);
+    logger.debug(`Updated access for user ${username} to ${Logger.pretty(newAccess)}`);
     return res.count === access.length;
   }
 
-  async setApiKeyAccess(key: string, newaccess: AccessInput): Promise<boolean> {
-    await prisma.prismaApiKeyAccess.deleteMany({
-      where: {
-        refApiKey: key,
-      },
-    });
-
-    const { doors, features } = newaccess;
+  /**
+   * Set the access for an API key
+   * 
+   * **IMPORTANT**: Access is immutable, which means that the provided access object
+   * must contain all access desired for the API key
+   * @param key The API key for which access is to be changed
+   * @param newAccess The new access for this API  key
+   */
+  async setApiKeyAccess(key: string, newAccess: AccessInput): Promise<boolean> {
+    const { doors, features } = newAccess;
     const access: Prisma.PrismaApiKeyAccessUncheckedCreateInput[] = [];
 
     doors.forEach((door) => {
@@ -157,30 +162,34 @@ export class AccessAPI {
       });
     });
 
-    const res = await prisma.prismaApiKeyAccess.createMany({
+    const deleteQuery = prisma.prismaApiKeyAccess.deleteMany({
+      where: {
+        refApiKey: key,
+      },
+    });
+    const createQuery = prisma.prismaApiKeyAccess.createMany({
       data: access,
     });
 
+    // Ensure deletion and creation is made in one swoop,
+    // so access is not deleted if old one is bad
+    const [, res] = await prisma.$transaction([deleteQuery, createQuery]);
+
     logger.info(`Updated access for key ${key}`);
-    logger.debug(`Updated access for key ${key} to ${Logger.pretty(newaccess)}`);
+    logger.debug(`Updated access for key ${key} to ${Logger.pretty(newAccess)}`);
     return res.count === access.length;
   }
 
   /**
-   * Sätt access för en post. VIKTIGT: Access är icke muterbart
-   * vilket innebär att accessobjektet som matas ska innehålla allt
-   * som behövs.
-   * @param postId posten
-   * @param newaccess den nya accessen
+   * Set the access for a post
+   * 
+   * **IMPORTANT**: Access is immutable, which means that the provided access object
+   * must contain all access desired for the post
+   * @param postId The ID for the user for which acces is to be changed
+   * @param newAccess The new access for this post
    */
-  async setPostAccess(postId: number, newaccess: AccessInput): Promise<boolean> {
-    await prisma.prismaPostAccess.deleteMany({
-      where: {
-        refPost: postId,
-      },
-    });
-
-    const { doors, features } = newaccess;
+  async setPostAccess(postId: number, newAccess: AccessInput): Promise<boolean> {
+    const { doors, features } = newAccess;
     const access: Prisma.PrismaPostAccessUncheckedCreateInput[] = [];
 
     doors.forEach((door) => {
@@ -205,19 +214,28 @@ export class AccessAPI {
       });
     });
 
-    await prisma.prismaPostAccess.createMany({
+    const deleteQuery = prisma.prismaPostAccess.deleteMany({
+      where: {
+        refPost: postId,
+      },
+    });
+    const createQuery = prisma.prismaPostAccess.createMany({
       data: access,
     });
 
+    // Ensure deletion and creation is made in one swoop,
+    // so access is not deleted if old one is bad
+    const [, res] = await prisma.$transaction([deleteQuery, createQuery]);
+
     logger.info(`Updated access for post with id ${postId}`);
-    logger.debug(`Updated access for post with id ${postId} to ${Logger.pretty(newaccess)}`);
-    return true;
+    logger.debug(`Updated access for post with id ${postId} to ${Logger.pretty(newAccess)}`);
+    return res.count === access.length;
   }
 
   /**
    * Gets a users entire access, including inherited access from posts
    * @param username The user whose access to get
-   * @returns A list of databaseaccess objects
+   * @returns A list of database access objects
    */
   async getUserFullAccess(username: string): Promise<AccessEntry[]> {
     // Get the individual access for that user
