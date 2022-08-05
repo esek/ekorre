@@ -587,7 +587,7 @@ export class ElectionAPI {
       });
       
       if (openElectionRes  == null) {
-        throw new BadRequestError('Det finns inget öppet val!');
+        throw new NotFoundError('Det finns inget öppet val!');
       }
       
       const electablePostIds = openElectionRes.electables.map((e) => e.refPost);
