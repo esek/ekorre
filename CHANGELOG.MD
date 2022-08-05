@@ -15,6 +15,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Gjort `Election.nominate` till en transaktion, och optimert densamma
 - Ändrar docstrings i `emergencycontact.api.ts` till engelska
 - Ändrar några docstrings i `file.api.ts` till engelska
+- Ändrar docstrings i `hehe.api.ts` till engelska
 
 ## [0.24.1] - 2022-08-05
 

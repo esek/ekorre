@@ -9,9 +9,9 @@ const logger = Logger.getLogger('HeheAPI');
 
 export class HeheAPI {
   /**
-   * Hämtar ett antal HeHE, sorterat efter först år och sen nummer.
-   * @param limit Antal HeHE som ska hämtas, om `undefined`/`null` ges alla
-   * @param sortOrder Hur nummer och år ska sorteras
+   * Retrieves all editions of HeHE, ordered by year and then number
+   * @param limit The number of HeHEs to be returned, if `undefined`/`null`, all HeHEs are returned
+   * @param sortOrder Ordering of returned HeHEs
    */
   async getAllHehes(limit?: number, sortOrder: 'desc' | 'asc' = 'desc'): Promise<PrismaHehe[]> {
     const h = await prisma.prismaHehe.findMany({
@@ -23,9 +23,9 @@ export class HeheAPI {
   }
 
   /**
-   * Hämtar en specifik upplaga av HeHE.
-   * @param number Nummer på tidningen
-   * @param year Vilket år tidningen publicerades
+   * Retrieves a specific edition of HeHE
+   * @param number Number of the paper
+   * @param year What year the paper was published
    */
   async getHehe(number: number, year: number): Promise<PrismaHehe> {
     const h = await prisma.prismaHehe.findFirst({
@@ -43,9 +43,8 @@ export class HeheAPI {
   }
 
   /**
-   * Hämta alla HeHes från ett specifikt år ordnat efter nummer.
+   * Retrieves all HeHEs from a specific year, ordered by number
    * @param year
-   * @returns en lista med HeHes
    */
   async getHehesByYear(year: number): Promise<PrismaHehe[]> {
     const h = await prisma.prismaHehe.findMany({
@@ -61,10 +60,10 @@ export class HeheAPI {
   }
 
   /**
-   * Lägger till ett nytt nummer av HeHE.
-   * @param fileId ID på filen för detta nummer
-   * @param number Nummer på tidningen
-   * @param year Vilket år tidningen publicerades
+   * Adds a new edition/paper of HeHE
+   * @param fileId ID of the file containing this paper
+   * @param number Number of the paper
+   * @param year What year the paper was published
    */
   async addHehe(
     uploaderUsername: string,
@@ -95,9 +94,9 @@ export class HeheAPI {
   }
 
   /**
-   * Försöker ta bort en upplaga av HeHE.
-   * @param number Nummer på tidningen
-   * @param year Vilket år tidningen publicerades
+   * Attempts to remove an edition of HeHE
+   * @param number Number of the paper
+   * @param year What year the paper was published
    */
   async removeHehe(number: number, year: number): Promise<boolean> {
     try {
