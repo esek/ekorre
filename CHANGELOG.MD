@@ -11,6 +11,8 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - Ändrar docstrings i `article.api.ts` till engelska
+- Ändrar docstrings i `election.api.ts` till engelska
+- Gjort `Election.nominate` till en transaktion, och optimert densamma
 
 ## [0.24.1] - 2022-08-05
 
