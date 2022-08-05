@@ -9,6 +9,9 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Tillagt
 - Lägger till docstrings i `apikey.api.ts`
 
+### Ändrat
+- Ändrar docstrings i `article.api.ts` till engelska
+
 ## [0.24.1] - 2022-08-05
 
 ### Ändrat
