@@ -16,9 +16,8 @@ const logger = Logger.getLogger('ElectionAPI');
 
 export class ElectionAPI {
   /**
-   * Hämta val sorterat efter skapande.
-   * @param limit Gräns på antal möten. Om null ges alla möten
-   * @returns Senaste mötet som skapades
+   * Retrieves elections ordered by creation date
+   * @param limit Number of elections to be returned; `null` means all meetings
    */
   async getLatestElections(
     limit?: number,
@@ -40,7 +39,7 @@ export class ElectionAPI {
   }
 
   /**
-   * @returns Senaste mötet markerat som `open`
+   * Retrieves the latest meeting marked as `open`
    * @throws `NotFoundError`
    */
   async getOpenElection(): Promise<PrismaElection> {
@@ -58,9 +57,10 @@ export class ElectionAPI {
   }
 
   /**
-   * Returnerar en lista med alla val som matchar något av de angivna ID:n sorterat efter skapande.
-   * @param electionIds En lista med `electionId`
-   * @returns En lista med val
+   * Retrieves a list of all elections that match any of the provided IDs,
+   * ordered by creation date (newest first)
+   * @param electionIds A list of `electionId`
+   * @returns A list of elections
    */
   async getMultipleElections(electionIds: number[] | readonly number[]): Promise<PrismaElection[]> {
     const e = await prisma.prismaElection.findMany({
@@ -78,11 +78,12 @@ export class ElectionAPI {
   }
 
   /**
-   * Returnerar alla nomineringar för posten och valet, men bara
-   * poster man kan nomineras till sorterat på postnamn.
-   * @param electionId ID på ett val
-   * @param postId ID på en post
-   * @returns Lista över nomineringar
+   * Retrieves all nominations for a post in the specified election,
+   * but only posts that a user can be elected to currently. Sorted
+   * by postnames
+   * @param electionId ID of an election
+   * @param postId ID of a post
+   * @returns List of nominations
    */
   async getNominations(electionId: number, postId: number): Promise<PrismaNomination[]> {
     const n = await prisma.prismaNomination.findMany({
@@ -90,8 +91,8 @@ export class ElectionAPI {
         refElection: electionId,
         refPost: postId,
 
-        // Bara om valet har denna posten som valbar,
-        // så att det kan stängas av och på
+        // Only of the election has this post marked as up for election currently,
+        // so it can be turned on and off
         election: {
           electables: {
             some: {
@@ -111,12 +112,12 @@ export class ElectionAPI {
   }
 
   /**
-   * Returnerar alla nomineringar för valet, om specificerat endast
-   * de med ett specifikt svar sorterat på postnamn. Returnerar inte nomineringar som inte
-   * finns som electables.
-   * @param electionId ID på ett val
-   * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
-   * @returns Lista över nomineringar
+   * Retrieves all nominations for an election, and if specified, only
+   * those with a specific answer. Does *not* return nominations not marked as electable.
+   * Response is ordered by postname
+   * @param electionId ID of an election
+   * @param answer What kind of answers are to be returned. If `null`, all answers are returned
+   * @returns List of nominations
    */
   async getAllNominations(
     electionId: number,
@@ -139,6 +140,7 @@ export class ElectionAPI {
       }),
       prisma.prismaElectable.findMany({
         select: {
+          // We only need postId, don't read anything else
           refPost: true,
         },
         where: {
@@ -160,13 +162,13 @@ export class ElectionAPI {
   }
 
   /**
-   * Returnerar alla nomineringar för en användare för ett val , om specificerat endast
-   * de med ett specifikt svar. Hämtar inte nomineringar som inte finns som electables.
-   * Svaret är sorterat på postnamn.
-   * @param electionId ID på ett val
-   * @param username Användarnamnet
-   * @param answer Vilken typ av svar som ska returneras. Om `undefined`/`null` ges alla
-   * @returns Lista över nomineringar
+   * Retrieves all nominations for a user for an election, and if specified, only
+   * those with a specific answer. Does *not* return nominations not marked as electable.
+   * Response is ordered by postname
+   * @param electionId ID of an election
+   * @param username Username for the user
+   * @param answer What kind of answers are to be returned. If `null`, all answers are returned
+   * @returns List of nominations
    */
   async getAllNominationsForUser(
     electionId: number,
@@ -210,12 +212,16 @@ export class ElectionAPI {
   }
 
   /**
-   * Räknar antalet nomineringar för en post och ett möte. Om posten utelämnas returneras
-   * det totala antalet nomineringar. Svaret kan inte specificeras, då det lämnar ut för
-   * mycket information. Räknar inte nomineringar som inte finns som electables.
-   * @param electionId ID på ett val
-   * @param postId ID på en post
-   * @returns Ett heltal (`number`)
+   * Counts the total number of nominations for a post for an election.
+   * If the post is left out, the total number of nominations of the election is returned.
+   *
+   * The answer cannot be specified, as it would provide too much information if the election
+   * is set to have hidden nominations.
+   *
+   * **Note:** Does *not* count nominations for posts not currently marked as electable
+   * @param electionId ID of an election
+   * @param postId ID of a post
+   * @returns An integer
    */
   async getNumberOfNominations(electionId: number, postId?: number): Promise<number> {
     // Explanatory comments in `getAllNominations`
@@ -249,11 +255,11 @@ export class ElectionAPI {
   }
 
   /**
-   * Räknar antalet förslag för en post och ett möte. Om posten utelämnas returneras
-   * det totala antalet förslag.
-   * @param electionId ID på ett val
-   * @param postId ID på en post
-   * @returns Ett heltal (`number`)
+   * Counts the total number of proposals for a post for an election. If the post ID is left
+   * out, the total number of proposals are returned instead
+   * @param electionId ID of an election
+   * @param postId ID of a post
+   * @returns An integer
    */
   async getNumberOfProposals(electionId: number, postId?: number): Promise<number> {
     const c = prisma.prismaProposal.count({
@@ -267,8 +273,8 @@ export class ElectionAPI {
   }
 
   /**
-   * Hittar alla valberedningens nomineringar för ett val sorterat på postnamn.
-   * @param electionId ID på ett val
+   * Retrieves all of Valberedningens proposals for an election ordered by postname
+   * @param electionId ID of an election
    */
   async getAllProposals(electionId: number): Promise<PrismaProposal[]> {
     const p = await prisma.prismaProposal.findMany({
@@ -286,9 +292,9 @@ export class ElectionAPI {
   }
 
   /**
-   * Hittar alla valbara poster (postnamn) för ett val sorterat på postnamn.
-   * @param electionId ID på ett val
-   * @returns Lista på `posts.id`
+   * Finds all electable posts (postIds) for an election, ordered by postname (not returned)
+   * @param electionId ID of an election
+   * @returns List of `posts.id`
    */
   async getAllElectables(electionId: number): Promise<number[]> {
     const electableRows = await prisma.prismaElectable.findMany({
@@ -311,12 +317,13 @@ export class ElectionAPI {
   }
 
   /**
-   * Skapar ett nytt val, förutsatt att det inte finns några öppna val,
-   * eller val som inte har ett datum de stängdes.
-   * @param creatorUsername Användarnamnet på skaparen av valet
-   * @param electables En lista med post-ID:n
-   * @param nominationsHidden Om nomineringar ska vara dolda för alla utom den som blivit nominerad och valadmin
-   * @returns `electionId` hos skapade mötet
+   * Creates a new election, on two conditions:
+   *  0. No election is currently marked as open
+   *  1. No election is currenly has an end date marked as `null`
+   * @param creatorUsername Username of the user who created the election
+   * @param electables A list of post IDs to be marked as electable
+   * @param nominationsHidden If nominations should be hidden to everyone except the person nominated and election admins
+   * @returns The created election
    */
   async createElection(
     creatorUsername: string,
@@ -324,7 +331,7 @@ export class ElectionAPI {
     nominationsHidden: boolean,
   ): Promise<PrismaElection> {
     return prisma.$transaction(async (p) => {
-      // Vi försäkrar oss om att det senaste valet är stängt
+      // We ensure that the last election is closed and over
       const lastElection = (await this.getLatestElections(1))[0];
       if (lastElection != null && (lastElection?.open || lastElection?.closedAt == null)) {
         throw new BadRequestError(
@@ -358,9 +365,9 @@ export class ElectionAPI {
   }
 
   /**
-   * Försöker att lägga till alla poster som valbara i det specificerade valet.
-   * @param electionId ID på ett val
-   * @param postIds Lista på post-ID:n
+   * Attempts to add all posts provided as electable in the specified election
+   * @param electionId ID of an election
+   * @param postIds List of post IDs
    */
   async addElectables(electionId: number, postIds: number[]): Promise<boolean> {
     if (postIds.length === 0) {
@@ -389,9 +396,9 @@ export class ElectionAPI {
   }
 
   /**
-   * Tar bort alla poster som valbara i det specificerade valet
-   * @param electionId ID på ett val
-   * @param postIds Lista på post-ID:n
+   * Removes all posts specified as electable in the specified election
+   * @param electionId ID of an election
+   * @param postIds List of post IDs
    */
   async removeElectables(electionId: number, postIds: number[]): Promise<boolean> {
     if (postIds.length === 0) {
@@ -416,13 +423,13 @@ export class ElectionAPI {
   }
 
   /**
-   * Försöker att lägga till alla poster som valbara i det specificerade valet.
-   * @param electionId ID på ett val
-   * @param postIds Lista på post-ID:n
+   * Adds all posts specified as electable in the specified election
+   * @param electionId ID of an election
+   * @param postIds List of post IDs
    */
   async setElectables(electionId: number, postIds: number[]): Promise<boolean> {
     try {
-      // Vi rollbacka om inte hela operationen fungerar
+      // We will rollback if the whole operation did succeed
       await prisma.$transaction([
         prisma.prismaElectable.deleteMany({
           where: {
@@ -453,10 +460,10 @@ export class ElectionAPI {
   }
 
   /**
-   * Ändrar om nomineringar är dolda eller ej för ett val.
-   * @param electionId ID på ett val
-   * @param hidden Om alla ska kunna vem som tackat ja till vad eller ej
-   * @returns Om en ändring gjordes eller ej
+   * Changes if nominations are to be hidden or not for an election
+   * @param electionId ID of an election
+   * @param hidden If all users should be able to see who accepted nominations or not
+   * @returns If a change was made or not
    */
   async setHiddenNominations(electionId: number, hidden: boolean): Promise<boolean> {
     try {
@@ -476,12 +483,12 @@ export class ElectionAPI {
   }
 
   /**
-   * Öppnar ett val, förutsatt att det inte redan stängts en gång
-   * @param electionId ID på ett val
+   * Opens an election, provided that is has not already been closed once
+   * @param electionId ID of an election
+   * @returns If the election was opened
    */
   async openElection(electionId: number): Promise<boolean> {
-    // Markerar valet som öppet, men bara om det inte redan stängts
-    // måste använda updateMany för att kunna söka på `openedAt`
+    // Must use `updateMany` to be able to search for `openedAt`
     const { count } = await prisma.prismaElection.updateMany({
       data: {
         openedAt: new Date(),
@@ -511,6 +518,10 @@ export class ElectionAPI {
   /**
    * Stänger alla öppna val, men ger ett fel om fler än ett måste stängas,
    * då endast ett ska kunna vara öppet samtidigt.
+   * Closes *all* open elections, but throws an error if more than one election had to
+   * be closed, as only one should have been able to be opened in the first place
+   * @returns If the elction could be closed without error
+   * @throws {ServerError} if more than one election was closed, or something else unexpected happened
    */
   async closeElection(): Promise<boolean> {
     try {
@@ -542,51 +553,84 @@ export class ElectionAPI {
   }
 
   /**
-   * Försöker hitta ett öppet val och om det finns, nominerar
-   * användaren till alla poster om de finns som electables.
-   * @param username Användarnamn på den som ska nomineras
-   * @param postIds ID:t på alla poster personen ska nomineras till
+   * Attempts to find an open election, and if it exists, nominates the user
+   * to all posts provided, if they are marked as electable at the time of nomination
+   * @param username Username of the user to be nominated
+   * @param postIds ID for all posts the person is to be elected to
+   * @returns If the person could be elected for any post provided
    */
   async nominate(username: string, postIds: number[]): Promise<boolean> {
     if (postIds.length === 0) {
       throw new BadRequestError('Inga postslugs specificerade');
     }
 
-    const openElection = await this.getOpenElection();
-
-    // Nomineringar måste finnas som electables
-    const electables = await this.getAllElectables(openElection.id);
-    const filteredPostIds = postIds.filter((e) => electables.includes(e));
-
-    if (filteredPostIds.length === 0) {
-      throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
-    }
-
-    try {
-      // Om nomineringen redan finns, ignorera den
-      // utan att ge error för att inte avslöja
-      // vad som finns i databasen redan
-      await prisma.prismaNomination.createMany({
-        skipDuplicates: true, // Ignorera om nomineringen redan finns
-        data: filteredPostIds.map((postId) => {
-          return {
-            refElection: openElection.id,
-            refUser: username,
-            refPost: postId,
-            answer: PrismaNominationAnswer.NOT_ANSWERED,
-          };
-        }),
+    // We want an atomic operation to protect us from race conditions
+    await prisma.$transaction(async () => {
+      // We want to minimize time blocked by this transaction, so we use
+      // a special query
+      const openElectionRes = await prisma.prismaElection.findFirst({
+        where: {
+          open: true,
+        },
+        select: {
+          id: true,
+          electables: {
+            select: {
+              refPost: true,
+            },
+          },
+        },
+        // Should only be one, but let's make sure
+        orderBy: {
+          createdAt: 'asc',
+        },
       });
+      
+      if (openElectionRes  == null) {
+        throw new NotFoundError('Det finns inget öppet val');
+      }
+      
+      const electablePostIds = openElectionRes.electables.map((e) => e.refPost);
 
-      return true;
-    } catch (err) {
-      logger.debug(
-        `Could not insert all nominations for election with ID ${
-          openElection.id
-        } due to error:\n\t${JSON.stringify(err)}`,
+      if (electablePostIds.length === 0) {
+        throw new BadRequestError(
+          'Det öppna valet inga valbara poster',
+        );
+      }
+
+      const filteredPostIds = postIds.filter((e) =>
+        electablePostIds.includes(e),
       );
-      throw new ServerError('Kunde inte nominera till alla poster');
-    }
+
+      if (filteredPostIds.length === 0) {
+        throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
+      }
+
+      try {
+        // If nominations already exists, ignore them without throwing
+        // errors to not reveal possibly hidden nominations
+        await prisma.prismaNomination.createMany({
+          skipDuplicates: true, // Ignore on collision
+          data: filteredPostIds.map((postId) => {
+            return {
+              refElection: openElectionRes.id,
+              refUser: username,
+              refPost: postId,
+              answer: PrismaNominationAnswer.NOT_ANSWERED,
+            };
+          }),
+        });
+      } catch (err) {
+        logger.debug(
+          `Could not insert all nominations for election with ID ${
+            openElectionRes.id
+          } due to error:\n\t${JSON.stringify(err)}`,
+        );
+        throw new ServerError('Kunde inte nominera till alla poster');
+      }
+    });
+
+    return true;
   }
 
   async respondToNomination(
@@ -602,7 +646,7 @@ export class ElectionAPI {
           answer,
         },
         where: {
-          // Dessa tre är unik
+          // These three are unique as a combination
           refElection_refPost_refUser: {
             refElection: openElection.id,
             refUser: username,
@@ -618,14 +662,12 @@ export class ElectionAPI {
   }
 
   /**
-   * Lägger till ett förslag från valberedningen för en post. Kontrollerar
-   * inte att det finns lika många platser (`Post.spots`) som förslag,
-   * då det minskar prestanda, och valberedningen kan välja att
-   * överföreslå. Kontrollerar inte heller om posten är valbar;
-   * det får valberedningen lösa!
-   * @param electionId ID på ett val
-   * @param username Användarnamn på den som ska föreslås
-   * @param postId Posten användaren ska föreslås på
+   * Adds a proposals from Valberedningen for a post. Does *not* check that there are not
+   * more proposals than `Post.spots`, since Valberedningen can do whatever they want.
+   * Also does not ensure that the post is electable
+   * @param electionId ID of an election
+   * @param username Username for the user to be proposed for this post
+   * @param postId ID of the post this user is to be proposed for
    */
   async propose(electionId: number, username: string, postId: number): Promise<boolean> {
     try {
@@ -649,11 +691,12 @@ export class ElectionAPI {
   }
 
   /**
-   * Försöker ta bort en av valberedningens förslag till en post.
-   * @param electionId ID på valet
-   * @param username Användarnamn på föreslagen person
-   * @param postId ID på posten personen föreslagits till
-   * @throws `ServerError` om förslaget inte kunde tas bort (eller det aldrig fanns)
+   * Attempts to remove one of Valberedningen's proposals for a post
+   * @param electionId ID of the election
+   * @param username Username of the previously proposed user
+   * @param postId ID of the post the user has previously been proposed for
+   * @returns If the proposal could be removed
+   * @throws `ServerError` if the proposal could not be removed, or never existed
    */
   async removeProposal(electionId: number, username: string, postId: number): Promise<boolean> {
     try {

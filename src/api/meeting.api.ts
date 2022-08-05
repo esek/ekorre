@@ -12,8 +12,9 @@ const logger = Logger.getLogger('MeetingAPI');
 export class MeetingAPI {
   /**
    * Hämtar alla möten efter en sortering.
-   * @param limit Begränsning på hur många möten som ska hämtas
-   * @param sortOrder Sorteringsordning för hämtningen
+   * Retrieves all meetings according to sort ordering
+   * @param limit Max number of meetings to retrieve
+   * @param sortOrder Sort order for retrieval
    */
   async getAllMeetings(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<PrismaMeeting[]> {
     const m = await prisma.prismaMeeting.findMany({
@@ -25,9 +26,9 @@ export class MeetingAPI {
   }
 
   /**
-   * Hämta ett möte.
-   * @param id Det unika mötes-idt
-   * @throws `NotFoundError` om mötet ej kan hittas
+   * Retrieves a meeting
+   * @param id ID for the meeting
+   * @throws {NotFoundError} If the meeting could not be found
    */
   async getSingleMeeting(id: number): Promise<PrismaMeeting> {
     const m = await prisma.prismaMeeting.findFirst({ where: { id } });
@@ -40,11 +41,11 @@ export class MeetingAPI {
   }
 
   /**
-   * Hämta flertalet möte ur databasen, genom ökad specifitet
-   * @param year det år som möten ska hämtas från
-   * @param number det nummer som möten ska hämtas från
-   * @param type typen av möte som ska hämtas
-   * @returns
+   * Retrieves multiple meetings from the database, with possible specifics
+   * @param year Year of the meeting
+   * @param number The number of the meeting, if applicable
+   * @param type The type of meeting
+   * @returns A list of meetings
    */
   async getMultipleMeetings(
     year?: number,
@@ -77,9 +78,8 @@ export class MeetingAPI {
   }
 
   /**
-   * Hämtar de senaste `limit` styrelsemötena ordnade nummer och år
-   * @param limit Antal styrelsemöten som ska returneras. Om null
-   * returneras alla
+   * Retrieves the latest board meetings, ordered by number and then year
+   * @param limit The number of board meetings to be returned. If `null`, all board meetings are returned
    */
   async getLatestBoardMeetings(limit?: number): Promise<PrismaMeeting[]> {
     const m = await prisma.prismaMeeting.findMany({
@@ -98,19 +98,19 @@ export class MeetingAPI {
   }
 
   /**
+   * Creates a new meeting
    * Skapar ett nytt möte. Misslyckas om mötet redan existerar
-   * @param type
-   * @param number
-   * @param year
-   * @returns ID på skapat möte
+   * @param type The type of meeting
+   * @param number The number of the meeting. If `null`, it will be number of the latest meeting for that year plus one
+   * @param year The year of the meeting. If `null`, it will be assumed to be the current year
+   * @returns The created meeting
    */
   async createMeeting(type: MeetingType, number?: number, year?: number): Promise<PrismaMeeting> {
-    // Vi tar i år om inget år ges
+    // Use current year if none is given
     const safeYear = (Number.isSafeInteger(year) ? year : new Date().getFullYear()) as number;
 
-    // Om det är ett Styrelsemöte eller extrainsatt sektionsmöte
-    // måste det ha ett nummer. Om det inte är definierat hämtar
-    // vi det från databasen
+    // If it is a board meeting, or a extra guild meeting (extrainsatt sektionsmöte),
+    // it must have a number. If not provided we get it from the DB
     let safeNbr: number;
     if (number == null || !Number.isSafeInteger(number)) {
       const lastMeeting = await prisma.prismaMeeting.findFirst({
@@ -120,8 +120,8 @@ export class MeetingAPI {
       });
 
       if (lastMeeting == null) {
-        // Vi hittade inget tidigare möte detta året,
-        // så detta är första
+        // If we can't find a previous meeting, this is the first
+        // for this year
         safeNbr = 1;
       } else {
         safeNbr = lastMeeting.number + 1;
@@ -130,10 +130,11 @@ export class MeetingAPI {
       safeNbr = number;
     }
 
-    // Vi vill att dessa queries och checkar ska köras direkt
-    // efter varandra i databasen, så att inget smiter imellan
+    // We want this to be an atomic operation to avoid race conditions.
+    // Since number might or might not be set by database, we just handle race
+    // conditions from meetings created at the same time as a normal double
     return prisma.$transaction(async (p) => {
-      // Kontrollera att vi inte har dubblettmöte
+      // Check for double
       const possibleDouble = await p.prismaMeeting.findFirst({
         where: {
           type: type === undefined ? undefined : (type as PrismaMeetingType),
@@ -173,9 +174,10 @@ export class MeetingAPI {
   }
 
   /**
-   * Tar bort ett möte
-   * @param id Mötes-ID
-   * @throws `NotFoundError` om mötet ej kunde tas bort
+   * Removes a meeting
+   * @param id ID of the meeting
+   * @returns If the meeting was successfully removed
+   * @throws {NotFoundError} If the meeting could not be found
    */
   async removeMeeting(id: number): Promise<boolean> {
     try {
@@ -187,12 +189,13 @@ export class MeetingAPI {
   }
 
   /**
-   * Försöker lägga till en fil till ett möte.
-   * Ger `ServerError` om filen redan finns för detta mötet
-   * @param meetingId
-   * @param fileId
-   * @param fileType
-   * @throws `ServerError`
+   * Attempts to add/attach a file to a meeting as a form of document. Requires
+   * the file access type to be set to public
+   * @param meetingId ID of the meeting
+   * @param fileId ID of the file to be attached
+   * @param fileType Type of file (documents, late documents etc.)
+   * @throws {ServerError} If the meeting does not exist
+   * @throws {BadRequestError} If this filetype already has an attached file for this meeting, or the file is not public
    */
   async addFileToMeeting(
     meetingId: number,
@@ -202,8 +205,7 @@ export class MeetingAPI {
     const d = this.createDataForMeetingType(fileType, fileId);
     const w = this.createDataForMeetingType(fileType, { not: null });
 
-    // Vi kollar om detta dokumentet redan finns, och om det gör
-    // det så ger vi ett error (i en transaction för att undvika race conditions)
+    // Once again avoiding race conditions
     await prisma.$transaction(async (p) => {
       const possibleDouble = await p.prismaMeeting.findFirst({
         where: {
@@ -244,16 +246,20 @@ export class MeetingAPI {
   }
 
   /**
-   * Försöker ta bort ett dokument från ett möte. Returnerar true
-   * om mötet hittades och referensen till denna dokumenttypen garanterat
-   * är `null` i databasen.
-   *
-   * Även kännt som _Annas Metod_, denna skapades specifikt för att
-   * Ordförande 2021 Anna Hollsten älskade att ladda upp handlingar
-   * som protokoll och vice versa, och den gamla hemsidan hade ingen
-   * funktion för att ta bort dokument...
-   * @param meetingId
-   * @param fileType
+   * Attempts to remove a document from a meeting. Returns `true` if the meeting
+   * was found and the reference for this document type is guaranteed to be `null` in the
+   * database.
+   * 
+   * *Note:* This does not actually remove the file from the file system, only makes it
+   * unrelated to this meeting
+   * 
+   * *Trivia:* Also known as *Annas Method*, this method was created specifically
+   * because Ordförande 2021 Anna Hollsten loved to upload documents as protocols and
+   * vice versa. The old website had no function to remove documents, meaning the poor
+   * Informationschef had to do this manually in phpMyAdmin...
+   * @param meetingId ID of the meeting
+   * @param fileType The type of file to be removed
+   * @returns If the file could be removed for the meeting
    */
   async removeFileFromMeeting(meetingId: number, fileType: MeetingDocumentType): Promise<boolean> {
     const d = this.createDataForMeetingType(fileType, null);

@@ -3,7 +3,7 @@ import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
-import { Prisma, PrismaPasswordReset, PrismaUser } from '@prisma/client';
+import { Prisma, PrismaLoginProvider, PrismaPasswordReset, PrismaUser } from '@prisma/client';
 import crypto, { randomUUID } from 'crypto';
 
 import {
@@ -27,17 +27,12 @@ const defaultOrder: Prisma.PrismaUserOrderByWithRelationAndSearchRelevanceInput[
   },
 ];
 
-/**
- * Det är användar api:n. Alla operationer bör göras
- * med hjälp av denna klass för den ser till att
- * allt blir rätt.
- */
 export class UserAPI {
   /**
-   * Verifierar om det givna lösenordet är rätt.
-   * @param input lösenordet
-   * @param hash den lagrade hashen
-   * @param salt den lagrade salten
+   * Verifies if the given password is correct
+   * @param input The password
+   * @param hash The stored hash
+   * @param salt The stored salt
    */
   private verifyUser(input: string, hash: string, salt: string): boolean {
     const equal = hash === this.hashPassword(input, salt);
@@ -45,9 +40,9 @@ export class UserAPI {
   }
 
   /**
-   * Hasha ett lösenord med den givna salten.
-   * @param password lösenordet
-   * @param salt den slumpmässigt generade salten
+   * Hashes a password with the given salt
+   * @param password The password to hash
+   * @param salt A randomly generated salt
    */
   private hashPassword(password: string, salt: string): string {
     const hash = crypto.pbkdf2Sync(password, Buffer.from(salt, 'base64'), 1000, 64, 'sha512');
@@ -56,7 +51,7 @@ export class UserAPI {
   }
 
   /**
-   * Returnerar alla lagarade användare ordnat efter förnamn, efternamn, klass.
+   * Retrieves all stored users, ordered by first name, last name, and finally class
    */
   async getAllUsers(): Promise<PrismaUser[]> {
     const users = await prisma.prismaUser.findMany({
@@ -66,8 +61,9 @@ export class UserAPI {
   }
 
   /**
-   * Hämta en användare.
-   * @param username det unika användarnamnet
+   * Retrieves a user
+   * @param username Username for the user
+   * @throws {NotFoundError} If the user is not found
    */
   async getSingleUser(username: string): Promise<PrismaUser> {
     const u = await prisma.prismaUser.findFirst({
@@ -84,8 +80,8 @@ export class UserAPI {
   }
 
   /**
-   * Hämta flera användare ordnat efter förnamn, efternamn, klass.
-   * @param usernames användarnamnen
+   * Retrieves multiple users ordered after first name, then last name, and finally class
+   * @param usernames Usernames to the users to be received
    */
   async getMultipleUsers(usernames: string[]): Promise<PrismaUser[]> {
     const u = await prisma.prismaUser.findMany({
@@ -132,6 +128,10 @@ export class UserAPI {
     return users as PrismaUser[];
   }
 
+  /**
+   * Retrieves the total number of members registered
+   * @returns The total number of registered users
+   */
   async getNumberOfMembers(): Promise<number> {
     const count = await prisma.prismaUser.count();
 
@@ -139,9 +139,9 @@ export class UserAPI {
   }
 
   /**
-   * Kontrollera ifall inloggningen är korrekt och returnera användaren.
-   * @param username användarnamnet
-   * @param password lösenordet i plaintext
+   * Ensures a login is correct, and if so returns the user
+   * @param username Username for the user
+   * @param password Password in plaintext
    */
   async loginUser(username: string, password: string): Promise<PrismaUser> {
     const user = await prisma.prismaUser.findFirst({
@@ -162,10 +162,10 @@ export class UserAPI {
   }
 
   /**
-   * Ändra lösenord för en användare
-   * @param username användarnamnet
-   * @param oldPassword det gamla lösenordet i plaintext
-   * @param newPassword det nya lösenordet i plaintext
+   * Change password for a user
+   * @param username Username for the user
+   * @param oldPassword The old password in plaintext
+   * @param newPassword The new password in plaintext
    */
   async changePassword(
     username: string,
@@ -203,8 +203,8 @@ export class UserAPI {
   }
 
   /**
-   * Skapa en ny anvädare. TODO: FIX, ska inte returnera User typ...
-   * @param input den nya användarinformationen
+   * Creates a new user
+   * @param input The user to be created
    */
   async createUser(input: NewUser): Promise<PrismaUser> {
     const { password, ...inputReduced } = input;
@@ -217,7 +217,7 @@ export class UserAPI {
 
     const { username } = input;
 
-    // Inga tomma användarnamn
+    // No empty usernames
     if (username === '') {
       throw new BadRequestError('Ogiltigt användarnamn');
     }
@@ -247,6 +247,13 @@ export class UserAPI {
     return createdUser;
   }
 
+  /**
+   * Update a user
+   * @param username Username of the user to be updated
+   * @param partial Database representation of how the user is to be
+   * @returns The modified user
+   * @throws {BadRequestError} If the username is attempted to be changed
+   */
   async updateUser(username: string, partial: Partial<PrismaUser>): Promise<PrismaUser> {
     if (partial.username) {
       throw new BadRequestError('Användarnamn kan inte uppdateras');
@@ -262,36 +269,37 @@ export class UserAPI {
     return res;
   }
 
+  /**
+   * Creates a password reset token for a user, and deletes all old ones
+   * @param username Username of the user wishing to change their password
+   * @returns The created password token
+   */
   async requestPasswordReset(username: string): Promise<string> {
     const token = crypto.randomBytes(24).toString('hex');
     const lowerUsername = username.toLowerCase();
 
-    const res = await prisma.prismaPasswordReset.create({
+    const deleteOldTokens = prisma.prismaPasswordReset.deleteMany({
+      where: {
+        refUser: lowerUsername,
+      },
+    });
+
+    const createNewToken = prisma.prismaPasswordReset.create({
       data: {
         token,
         refUser: lowerUsername,
       },
     });
 
-    // If no row was inserted into the DB
-    if (!res) {
-      throw new ServerError('Något gick fel');
-    }
-
-    await prisma.prismaPasswordReset.deleteMany({
-      where: {
-        refUser: lowerUsername,
-        AND: {
-          NOT: {
-            token,
-          },
-        },
-      },
-    });
-
+    await prisma.$transaction([deleteOldTokens, createNewToken]);
     return token;
   }
 
+  /**
+   * Validates a password reset token for a user
+   * @param username Username of the user
+   * @param token Password reset token
+   */
   async validateResetPasswordToken(username: string, token: string): Promise<boolean> {
     const row = await prisma.prismaPasswordReset.findFirst({
       where: {
@@ -305,33 +313,49 @@ export class UserAPI {
     return this.validateResetPasswordRow(row);
   }
 
+  /**
+   * Resets the password for a user, if the provided token is valid
+   * @param token Password reset token
+   * @param username Username of the user
+   * @param password New password as plaintext
+   */
   async resetPassword(token: string, username: string, password: string): Promise<void> {
-    const row = await prisma.prismaPasswordReset.findFirst({
-      where: {
-        refUser: username.toLowerCase(),
-        AND: {
-          token,
-        },
-      },
-    });
-
-    // If no entry or token expired
-    if (!this.validateResetPasswordRow(row)) {
-      throw new NotFoundError('Denna förfrågan finns inte eller har gått ut');
-    }
-
+    // This is a costly operation, do outside transaction
     const passwordData = this.generateSaltAndHash(password);
 
-    await this.updateUser(username, { ...passwordData });
+    // We want all of this as an atomic operation, and rollback everything
+    // if it fails
+    await prisma.$transaction(async () => {
+      const row = await prisma.prismaPasswordReset.findFirst({
+        where: {
+          refUser: username.toLowerCase(),
+          AND: {
+            token,
+          },
+        },
+      });
 
-    // Delete row in password table
-    await prisma.prismaPasswordReset.delete({
-      where: {
-        token,
-      },
+      // If no entry or token expired
+      if (!this.validateResetPasswordRow(row)) {
+        throw new NotFoundError('Denna förfrågan finns inte eller har gått ut');
+      }
+
+      await this.updateUser(username, { ...passwordData });
+
+      // Delete row in password table
+      await prisma.prismaPasswordReset.delete({
+        where: {
+          token,
+        },
+      });
     });
   }
 
+  /**
+   * Validates a reset password row in regards to time
+   * @param row A prisma password reset row
+   * @returns If the row is valid
+   */
   private validateResetPasswordRow(row: PrismaPasswordReset | null): boolean {
     if (!row) {
       return false;
@@ -344,6 +368,10 @@ export class UserAPI {
     return expirationTime < EXPIRE_MINUTES * 60 * 1000;
   }
 
+  /**
+   * Generates salt and hash for a password
+   * @param password Password as plaintext
+   */
   private generateSaltAndHash(password: string): { passwordSalt: string; passwordHash: string } {
     const passwordSalt = crypto.randomBytes(16).toString('base64');
     const passwordHash = this.hashPassword(password, passwordSalt);
@@ -352,13 +380,13 @@ export class UserAPI {
   }
 
   /**
-   * Tar bort all info om en användare som inte behövs för att fungera
-   * @param username Användaren som ska anonymiseras
+   * Removes all info about a user, that is not needed for the API to work
+   * @param username Username for the user to be anonymized
    */
   async forgetUser(username: string): Promise<boolean> {
     const lowerUsername = username.toLowerCase();
 
-    const res = await prisma.prismaUser.update({
+    const anonymizeUser = prisma.prismaUser.update({
       where: {
         username: lowerUsername,
       },
@@ -375,23 +403,35 @@ export class UserAPI {
       },
     });
 
-    const res1 = await prisma.prismaEmergencyContact.deleteMany({
+    const deleteEmergencyContacts = prisma.prismaEmergencyContact.deleteMany({
       where: {
         refUser: lowerUsername,
       },
     });
 
-    const res2 = await prisma.prismaPasswordReset.deleteMany({
+    const deletePasswordResets = prisma.prismaPasswordReset.deleteMany({
       where: {
         refUser: lowerUsername,
       },
     });
+
+    const [res, res1, res2] = await prisma.$transaction([
+      anonymizeUser,
+      deleteEmergencyContacts,
+      deletePasswordResets,
+    ]);
 
     return res != null && res1 != null && res2 != null;
   }
 
+  /**
+   * Completely deletes a user. Cannot be used in production, `forgetUser` should
+   * be used instead
+   * @param username Username of the user to be deleted
+   * @returns If the user was deleted
+   */
   async deleteUser(username: string): Promise<boolean> {
-    devGuard();
+    devGuard('Användare kan inte tas bort i produktion, de borde glömmas istället');
 
     const lowerUsername = username.toLowerCase();
 
@@ -404,12 +444,19 @@ export class UserAPI {
     return res != null;
   }
 
-  linkLoginProvider = async (
+  /**
+   * Links a login provider (like LU, GitLab, Discord etc.) to a user
+   * @param username Username of the user to be linked
+   * @param provider Which provider to be linked
+   * @param token Provider token
+   * @param email Case-insensitive E-mail at the login provider (like different Google accounts)
+   */
+  async linkLoginProvider(
     username: string,
     provider: LoginProvider,
     token: string,
     email?: string,
-  ) => {
+  ): Promise<PrismaLoginProvider> {
     const created = await prisma.prismaLoginProvider.create({
       data: {
         provider,
@@ -419,9 +466,14 @@ export class UserAPI {
       },
     });
     return created;
-  };
+  }
 
-  unlinkLoginProvider = async (id: number, username: string): Promise<boolean> => {
+  /**
+   * Unlinks a login provider for a user
+   * @param id ID of the login provider
+   * @param username Username of the user to be unlinked
+   */
+  async unlinkLoginProvider(id: number, username: string): Promise<boolean> {
     const res = await prisma.prismaLoginProvider.deleteMany({
       where: {
         id: id,
@@ -430,9 +482,16 @@ export class UserAPI {
     });
 
     return res.count > 0;
-  };
+  }
 
-  getUserFromProvider = async (token: string, provider: string, email?: string) => {
+  /**
+   * Retrieves the user with this token for this login provider,
+   * and optionally email (case-insensitive) if one exists
+   * @param token Provider token
+   * @param provider Which provider to be linked
+   * @param email Case-insensitive E-mail at the login provider (like different Google accounts)
+   */
+  async getUserFromProvider(token: string, provider: string, email?: string): Promise<PrismaUser> {
     const AND: Prisma.Enumerable<Prisma.PrismaLoginProviderWhereInput> = [
       {
         token,
@@ -462,16 +521,15 @@ export class UserAPI {
     }
 
     return response.user;
-  };
+  }
 
   /**
-   * Hämtar inloggningsleverantörer för en användare baserat på `provider`
-   * ordnat efter namn.
-   * @param username
-   * @param provider
-   * @returns lista med leverantörer
+   * Retrieves login providers for a user baser on provider enum, ordered by
+   * name of provider
+   * @param username Username of the user
+   * @param provider Provider name
    */
-  getLoginProviders = async (username: string, provider?: string) => {
+  async getLoginProviders(username: string, provider?: string): Promise<PrismaLoginProvider[]> {
     const where: Record<string, string> = { refUser: username };
 
     if (provider) {
@@ -486,5 +544,5 @@ export class UserAPI {
     });
 
     return providers;
-  };
+  }
 }
