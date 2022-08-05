@@ -273,7 +273,7 @@ model PrismaEmergencyContact {
 
 model PrismaPasswordReset {
   token   String     @id
-  User    PrismaUser @relation(name: "PrismaPasswordResetToPrismaUser", fields: [refUser], references: [username])
+  User    PrismaUser @relation(name: "PrismaPasswordResetToPrismaUser", fields: [refUser], references: [username], onDelete: Cascade)
   refUser String     @map("ref_user")
   time    DateTime   @default(now())
 

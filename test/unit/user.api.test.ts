@@ -275,6 +275,18 @@ test('reset password with expired resetPasswordToken', async () => {
   ).rejects.toThrowError(NotFoundError);
 });
 
+test('forget a user', async () => {
+  const couldForget = await api.forgetUser(mockNewUser0.username); // How could you forget me?
+  expect(couldForget).toBeTruthy();
+
+  const user = await api.getSingleUser(mockNewUser0.username);
+  expect(user.firstName).toEqual('Raderad');
+  expect(user.lastName).toEqual('Användare');
+  expect(user.email).toEqual('');
+
+  await expect(api.loginUser(mockNewUser0.username, mockNewUser0.password)).rejects.toThrowError();
+});
+
 test('reset password properly', async () => {
   await api.createUser(mockNewUser1);
   const token = await api.requestPasswordReset(mockNewUser1.username);

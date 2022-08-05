@@ -1,9 +1,10 @@
 /* eslint-disable class-methods-use-this */
 import { Logger } from '@/logger';
+import { devGuard } from '@/util';
 import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
 import { Prisma, PrismaPasswordReset, PrismaUser } from '@prisma/client';
-import crypto from 'crypto';
+import crypto, { randomUUID } from 'crypto';
 
 import {
   BadRequestError,
@@ -350,14 +351,49 @@ export class UserAPI {
     return { passwordSalt, passwordHash };
   }
 
-  async deleteUser(username: string): Promise<boolean> {
+  /**
+   * Tar bort all info om en användare som inte behövs för att fungera
+   * @param username Användaren som ska anonymiseras
+   */
+  async forgetUser(username: string): Promise<boolean> {
     const lowerUsername = username.toLowerCase();
 
-    const res1 = await prisma.prismaPasswordReset.deleteMany({
+    const res = await prisma.prismaUser.update({
+      where: {
+        username: lowerUsername,
+      },
+      data: {
+        passwordHash: randomUUID(),
+        passwordSalt: randomUUID(),
+        firstName: 'Raderad',
+        lastName: 'Användare',
+        class: 'EXX',
+        email: '',
+        phone: '',
+        address: '',
+        zipCode: '',
+      },
+    });
+
+    const res1 = await prisma.prismaEmergencyContact.deleteMany({
       where: {
         refUser: lowerUsername,
       },
     });
+
+    const res2 = await prisma.prismaPasswordReset.deleteMany({
+      where: {
+        refUser: lowerUsername,
+      },
+    });
+
+    return res != null && res1 != null && res2 != null;
+  }
+
+  async deleteUser(username: string): Promise<boolean> {
+    devGuard();
+
+    const lowerUsername = username.toLowerCase();
 
     const res = await prisma.prismaUser.delete({
       where: {
@@ -365,7 +401,7 @@ export class UserAPI {
       },
     });
 
-    return res != null && res1 != null;
+    return res != null;
   }
 
   linkLoginProvider = async (

@@ -4,6 +4,17 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.0] - 2022-08-03
+
+### Tillagt
+- `forgetUser` finns nu så vi kan anonymisera användare
+
+## [0.23.1] - 2022-08-03
+
+### Fixat
+- `meetings` funkade ifall man försöker filtrera
+- Nu kan man inte lägga till ickepublika filer till ett möte
+
 ## [0.23.0] - 2022-08-03
 
 ### Ändrat

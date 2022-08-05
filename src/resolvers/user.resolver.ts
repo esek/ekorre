@@ -173,6 +173,18 @@ const userResolver: Resolvers = {
 
       return updated;
     },
+    forgetUser: async (_, { username }, ctx) => {
+      const requester = ctx.getUsername();
+
+      if (username !== requester) {
+        await hasAccess(ctx, Feature.UserAdmin);
+      }
+
+      await api.forgetUser(username);
+
+      const res = await api.getSingleUser(username);
+      return userReduce(res);
+    },
   },
 };
 

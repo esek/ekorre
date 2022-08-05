@@ -305,6 +305,7 @@ export type Mutation = {
   deactivatePost: Scalars['Boolean'];
   deleteApiKey: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
+  forgetUser: User;
   issueTokens: TokenResponse;
   linkLoginProvider: LoginProvider;
   /** Test user credentials and if valid get a jwt token */
@@ -452,6 +453,11 @@ export type MutationDeleteApiKeyArgs = {
 
 export type MutationDeleteFileArgs = {
   id: Scalars['ID'];
+};
+
+
+export type MutationForgetUserArgs = {
+  username: Scalars['String'];
 };
 
 
@@ -1507,6 +1513,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'id'>>;
   deleteApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteApiKeyArgs, 'key'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
+  forgetUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationForgetUserArgs, 'username'>>;
   issueTokens?: Resolver<ResolversTypes['TokenResponse'], ParentType, ContextType, RequireFields<MutationIssueTokensArgs, 'username'>>;
   linkLoginProvider?: Resolver<ResolversTypes['LoginProvider'], ParentType, ContextType, RequireFields<MutationLinkLoginProviderArgs, 'input'>>;
   login?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
