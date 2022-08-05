@@ -22,7 +22,7 @@ const defaultOrder: Prisma.PrismaArticleOrderByWithRelationAndSearchRelevanceInp
  */
 export class ArticleAPI {
   /**
-   * Retreives all articles sorted by creation date first and then title
+   * Retreives all articles ordered by creation date first and then title
    */
   async getAllArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
@@ -36,7 +36,7 @@ export class ArticleAPI {
   }
 
   /**
-   * Retreives all news articles sorted by creation date first and then title
+   * Retreives all news articles ordered by creation date first and then title
    */
   async getAllNewsArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
@@ -53,7 +53,7 @@ export class ArticleAPI {
   }
 
   /**
-   * Retreives all information articles sorted by creation date first and then title
+   * Retreives all information articles ordered by creation date first and then title
    */
   async getAllInformationArticles(): Promise<PrismaExtendedArticle[]> {
     const a = await prisma.prismaArticle.findMany({
@@ -71,7 +71,7 @@ export class ArticleAPI {
 
   /**
    * Retrieves all news articles in an interval. If parameters are left
-   * out, no limit in that direction is used. Sorted by creation first and then title
+   * out, no limit in that direction is used. ordered by creation first and then title
    * @param after
    * @param before
    * @param author Username of original author of the article
@@ -177,7 +177,7 @@ export class ArticleAPI {
   }
 
   /**
-   * Retrieves the last news articles, sorted by creation (newest first)
+   * Retrieves the last news articles, ordered by creation (newest first)
    * @param nbr The number of articles to be retrieved
    */
   async getLatestNews(limit: number): Promise<PrismaExtendedArticle[]> {

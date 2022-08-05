@@ -9,7 +9,7 @@ const logger = Logger.getLogger('EmergencyContactApi');
 
 class EmergencyContactAPI {
   /**
-   * Retrieves all emergency contacts for a user, sorted by contact name
+   * Retrieves all emergency contacts for a user, ordered by contact name
    * @param username User owning the contacts
    */
   async getEmergencyContacts(username: string): Promise<PrismaEmergencyContact[]> {

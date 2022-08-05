@@ -240,7 +240,7 @@ model PrismaMeeting {
   refAppendix      String?           @unique @map("ref_appendix")
 
   // Year has priority in queries,
-  // but often also sorted by number
+  // but often also ordered by number
   @@unique([type, number, year])
   @@index([year, number])
   @@index([type])

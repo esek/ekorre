@@ -16,7 +16,7 @@ const logger = Logger.getLogger('ElectionAPI');
 
 export class ElectionAPI {
   /**
-   * Retrieves elections sorted by creation date
+   * Retrieves elections ordered by creation date
    * @param limit Number of elections to be returned; `null` means all meetings
    */
   async getLatestElections(
@@ -58,7 +58,7 @@ export class ElectionAPI {
 
   /**
    * Retrieves a list of all elections that match any of the provided IDs,
-   * sorted by creation date (newest first)
+   * ordered by creation date (newest first)
    * @param electionIds A list of `electionId`
    * @returns A list of elections
    */
@@ -114,7 +114,7 @@ export class ElectionAPI {
   /**
    * Retrieves all nominations for an election, and if specified, only
    * those with a specific answer. Does *not* return nominations not marked as electable.
-   * Response is sorted by postname
+   * Response is ordered by postname
    * @param electionId ID of an election
    * @param answer What kind of answers are to be returned. If `null`, all answers are returned
    * @returns List of nominations
@@ -164,7 +164,7 @@ export class ElectionAPI {
   /**
    * Retrieves all nominations for a user for an election, and if specified, only
    * those with a specific answer. Does *not* return nominations not marked as electable.
-   * Response is sorted by postname
+   * Response is ordered by postname
    * @param electionId ID of an election
    * @param username Username for the user
    * @param answer What kind of answers are to be returned. If `null`, all answers are returned
@@ -273,7 +273,7 @@ export class ElectionAPI {
   }
 
   /**
-   * Retrieves all of Valberedningens proposals for an election sorted by postname
+   * Retrieves all of Valberedningens proposals for an election ordered by postname
    * @param electionId ID of an election
    */
   async getAllProposals(electionId: number): Promise<PrismaProposal[]> {
@@ -292,7 +292,7 @@ export class ElectionAPI {
   }
 
   /**
-   * Finds all electable posts (postIds) for an election, sorted by postname (not returned)
+   * Finds all electable posts (postIds) for an election, ordered by postname (not returned)
    * @param electionId ID of an election
    * @returns List of `posts.id`
    */
