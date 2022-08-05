@@ -12,11 +12,15 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Ändrat
 - Ändrar docstrings i `article.api.ts` till engelska
 - Ändrar docstrings i `election.api.ts` till engelska
-- Gjort `Election.nominate` till en transaktion, och optimert densamma
+- Gjort `ElectionAPI.nominate` till en transaktion, och optimert densamma
 - Ändrar docstrings i `emergencycontact.api.ts` till engelska
 - Ändrar några docstrings i `file.api.ts` till engelska
 - Ändrar docstrings i `hehe.api.ts` till engelska
 - Ändrar docstrings i `meeting.api.ts` till engelska
+- Ändrar docstrings i `post.api.ts` till engelska
+- `PostAPI.deletePost` använder nu en transaktion
+- `PostAPI.getHistoryEntries` now uses username and postname instead of prisma where input
+- Other misc comment edits
 
 ## [0.24.1] - 2022-08-05
 

@@ -20,9 +20,11 @@ if (config.DEV) {
   });
 }
 
-/* Prisma middleware that throws a requesterror if a query fails
-  Also logs the error using the logger
-*/
+/* */
+/**
+ * Prisma middleware that throws a `ServerError` if a query fails,
+ * to hide problems from end user
+ */
 prisma.$use(async (params, next) => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
