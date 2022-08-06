@@ -8,10 +8,9 @@ const api = new PostAPI();
 
 const postresolver: Resolvers = {
   Query: {
-    post: async (_, { id }) => {
+    post: async (_, { id }, ctx) => {
       // Should be available to the public, users protected by user resolver
-      const res = await api.getPost(id);
-      return postReduce(res);
+      return ctx.postDataLoader.load(id);
     },
     posts: async (_, { utskott, includeInactive }) => {
       // Should be available to the public

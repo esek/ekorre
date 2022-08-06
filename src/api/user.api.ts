@@ -9,7 +9,6 @@ import crypto, { randomUUID } from 'crypto';
 import {
   BadRequestError,
   NotFoundError,
-  ServerError,
   UnauthenticatedError,
 } from '../errors/request.errors';
 import prisma from './prisma';
