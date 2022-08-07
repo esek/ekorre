@@ -10,7 +10,8 @@ const postresolver: Resolvers = {
   Query: {
     post: async (_, { id }, ctx) => {
       // Should be available to the public, users protected by user resolver
-      return ctx.postDataLoader.load(id);
+      const p = await ctx.postDataLoader.load(id);
+      return p;
     },
     posts: async (_, { utskott, includeInactive }) => {
       // Should be available to the public
@@ -18,7 +19,10 @@ const postresolver: Resolvers = {
         const res = await api.getPostsFromUtskott(utskott, includeInactive ?? false);
         return reduce(res, postReduce);
       }
-      return reduce(await api.getPosts(undefined, includeInactive ?? false), postReduce);
+
+      const p = await api.getPosts(undefined, includeInactive ?? false);
+
+      return reduce(p, postReduce);
     },
     groupedPosts: async (_, { includeInactive }, ctx) => {
       // Should be available to the public
@@ -34,7 +38,6 @@ const postresolver: Resolvers = {
         }
 
         const reducedPost = reduce(post, postReduce);
-
         ctx.postDataLoader.prime(reducedPost.id, reducedPost);
 
         // Add the posts to the object by the utskott

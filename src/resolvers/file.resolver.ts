@@ -24,7 +24,8 @@ const filesResolver: Resolvers = {
     },
     file: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.FilesAdmin);
-      return ctx.fileDataLoader.load(id);
+      const f = await ctx.fileDataLoader.load(id);
+      return f;
     },
     fileSystem: async (_, { folder }, ctx) => {
       await hasAccess(ctx, Feature.FilesAdmin);

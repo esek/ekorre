@@ -86,11 +86,13 @@ const userResolver: Resolvers = {
   },
   Query: {
     me: async (_, __, ctx) => {
-      return ctx.userDataLoader.load(ctx.getUsername());
+      const u = await ctx.userDataLoader.load(ctx.getUsername());
+      return u;
     },
     user: async (_, { username }, ctx) => {
       await hasAuthenticated(ctx);
-      return ctx.userDataLoader.load(username);
+      const u = await ctx.userDataLoader.load(username);
+      return u;
     },
     searchUser: async (_, { search }, ctx) => {
       await hasAuthenticated(ctx);
