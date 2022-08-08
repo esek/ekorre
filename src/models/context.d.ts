@@ -1,4 +1,5 @@
 import type { FileResponse } from '@/models/mappers';
+import type { ElectionResponse } from '@/models/mappers';
 import type { Access, Post, User } from '@generated/graphql';
 import type { ExpressContext } from 'apollo-server-express';
 import type DataLoader from 'dataloader';
