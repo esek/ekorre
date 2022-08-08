@@ -4,14 +4,18 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.25.3] - 2022-08-06
+## [0.25.4] - 2022-08-08
 
 ### Ändrat
 - Bytt ut API-anrop mot DataLoaders i flertalet resolvers
+## [0.25.3] - 2022-08-08
+
+### Ändrat
+- Bättre felmeddelande för DataLoaders
 
 ## [0.25.2] - 2022-08-5
 
-### Fixat
+### Ändrat
 - `includeInactive` på `posts` filterar inte ordentligt.
 
 ## [0.25.1] - 2022-08-5

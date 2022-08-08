@@ -23,5 +23,5 @@ export const batchFilesFunction = async (
 
   const files = reduce(apiResponse, fileReduce);
 
-  return sortBatchResult<string, FileResponse>(fileIds, 'id', files, 'File not found');
+  return sortBatchResult<string, FileResponse>(fileIds, 'id', files, 'File not found (DataLoader)');
 };

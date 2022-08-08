@@ -31,6 +31,6 @@ export const batchElectionsFunction = async (
     electionIds,
     'id',
     elections,
-    'Election not found',
+    'Election not found (DataLoader)',
   );
 };
