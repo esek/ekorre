@@ -28,5 +28,5 @@ export const batchPostsFunction = async (
 
   const posts = reduce(apiResponse, postReduce);
 
-  return sortBatchResult<number, Post>(postIds, 'id', posts, 'No result for post');
+  return sortBatchResult<number, Post>(postIds, 'id', posts, 'No result for post (DataLoader)');
 };

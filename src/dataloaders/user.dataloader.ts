@@ -30,5 +30,5 @@ export const batchUsersFunction = async (
 
   const users: Array<User> = reduce(apiResponse, userReduce);
 
-  return sortBatchResult<string, User>(usernames, 'username', users, 'No result for username');
+  return sortBatchResult<string, User>(usernames, 'username', users, 'No result for username (DataLoader)');
 };
