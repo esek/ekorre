@@ -17,7 +17,7 @@ export const sortBatchResult = <T extends K[keyof K], K>(
 ): ArrayLike<K | NotFoundError> => {
   // We have received no values, no need to sort
   if (receivedValues.length === 0) {
-    return new Array<NotFoundError>(expectedKeys.length).fill(new NotFoundError(`For key ${String(comparisonProperty)}' with values ${String(expectedKeys)} (all attempted) | ${errorMsg}`));
+    return new Array<NotFoundError>(expectedKeys.length).fill(new NotFoundError(`For key ${String(comparisonProperty)} with values ${String(expectedKeys)} (all attempted): ${errorMsg}`));
   }
 
   // To get from O(n^2) to O(2n) we first map our values to their
@@ -30,6 +30,6 @@ export const sortBatchResult = <T extends K[keyof K], K>(
   // Then we go through all expected keys. Since get is O(1),
   // we only really ever go through two arrays once each
   return expectedKeys.map((key) => {
-    return mappedValues.get(key) || new NotFoundError(`For key ${String(comparisonProperty)} with value ${String(key)} | ${errorMsg}`);
+    return mappedValues.get(key) || new NotFoundError(`For key ${String(comparisonProperty)} with value ${String(key)}: ${errorMsg}`);
   });
 };
