@@ -299,7 +299,11 @@ class FileAPI {
             in: pathNames,
           },
         },
-        orderBy: defaultOrder,
+        orderBy: {
+          // Since we can't move files or folders, this will make breadcrumbs order correctly
+          // (can't have a subfolder older than the one containing it)
+          createdAt: 'asc',
+        },
       });
 
       // Read files in current directory
