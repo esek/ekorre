@@ -30,15 +30,13 @@ const electionResolver: Resolvers = {
     },
     election: async (_, { electionId }, ctx) => {
       await hasAuthenticated(ctx);
-      return ctx.electionDataLoader.load(electionId);
+      const e = await ctx.electionDataLoader.load(electionId);
+      return e;
     },
     elections: async (_, { electionIds }, ctx) => {
       await hasAuthenticated(ctx);
-      return Promise.all(
-        electionIds.map(async (id) => {
-          return ctx.electionDataLoader.load(id);
-        }),
-      );
+      const e = await Promise.all(electionIds.map((id) => ctx.electionDataLoader.load(id)));
+      return e;
     },
     // Att användas av val-admin om nomineringar är hemliga
     hiddenNominations: async (_, { electionId, answer }, ctx) => {
@@ -137,12 +135,14 @@ const electionResolver: Resolvers = {
     },
     electables: async (model, _, ctx) => {
       // To prevent 0 from giving -1, thx JS very cool
-      const refPosts = await api.getAllElectables(model.id === 0 ? 0 : model.id ?? -1);
-      return Promise.all(
-        refPosts.map(async (e) => {
-          return ctx.postDataLoader.load(e);
+      const postIds = await api.getAllElectables(model.id === 0 ? 0 : model.id ?? -1);
+      const electables = await Promise.all(
+        postIds.map((id) => {
+          return ctx.postDataLoader.load(id);
         }),
       );
+
+      return electables;
     },
     proposals: async (model) => {
       const p = await api.getAllProposals(model.id ?? -1);

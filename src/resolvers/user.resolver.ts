@@ -85,14 +85,14 @@ const userResolver: Resolvers = {
     },
   },
   Query: {
-    me: async (_, __, { getUsername }) => {
-      const user = await api.getSingleUser(getUsername());
-      return reduce(user, userReduce);
+    me: async (_, __, ctx) => {
+      const u = await ctx.userDataLoader.load(ctx.getUsername());
+      return u;
     },
     user: async (_, { username }, ctx) => {
       await hasAuthenticated(ctx);
-      const u = await api.getSingleUser(username);
-      return reduce(u, userReduce);
+      const u = await ctx.userDataLoader.load(username);
+      return u;
     },
     searchUser: async (_, { search }, ctx) => {
       await hasAuthenticated(ctx);
