@@ -35,7 +35,7 @@ const electionResolver: Resolvers = {
     },
     elections: async (_, { electionIds }, ctx) => {
       await hasAuthenticated(ctx);
-      const e = await ctx.electionDataLoader.loadMany(electionIds);
+      const e = await Promise.all(electionIds.map((id) => ctx.electionDataLoader.load(id)));
       return e;
     },
     // Att användas av val-admin om nomineringar är hemliga
