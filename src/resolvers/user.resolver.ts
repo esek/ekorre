@@ -84,8 +84,12 @@ const userResolver: Resolvers = {
       return className;
     },
     photoUrl: ({ photoUrl }, { full }, { request }) => {
+      if (!photoUrl) {
+        return null;
+      }
+
       if (!full) {
-        return photoUrl ?? null;
+        return photoUrl;
       }
 
       return `${request.protocol}://${request.get('host')}${photoUrl}`;
