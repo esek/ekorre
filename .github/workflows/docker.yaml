@@ -168,29 +168,27 @@ jobs:
          mv .env.example .env
          sed -i 's/localhost/postgres/' .env
       - name: install deps
+        id: npmci
         run: npm ci
       - name: lint
-        continue-on-error: true
         run: npm run lint -- --output-file eslint_report.json --format json
       - name: publish lint
-        if: ${{ !env.ACT }}
+        if: ${{ !env.ACT && steps.npmci.outcome == "success" }}
         uses: ataylorme/eslint-annotate-action@v2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           only-pr-files: false
       - name: reset db
+        id: dbreset
         run: npm run prisma:ci
       - name: run test
-        continue-on-error: true
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
-        continue-on-error: true
-        if: ${{ !env.ACT  }}
+        if: ${{ !env.ACT && steps.dbreset.outcome == "success" }}
         uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
-        continue-on-error: true
-        if: ${{ !env.ACT }}
+        if: ${{ !env.ACT && teps.dbreset.outcome == "success" }}
         uses: ArtiomTr/jest-coverage-report-action@v2.0.9
         with:
           skip-step: all
@@ -200,16 +198,14 @@ jobs:
           annotations: failed-tests
       - name: check changelog
         uses: Zomzog/changelog-checker@v1.2.0
-        if: ${{ !env.ACT }}
-        continue-on-error: true
+        if: ${{ !env.ACT && always() }}
         with:
           fileName: CHANGELOG.MD
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: check package.json
-        if: ${{ !env.ACT }}
+        if: ${{ !env.ACT && always() }}
         uses: Zomzog/changelog-checker@v1.2.0
-        continue-on-error: true
         with:
           fileName: package.json
         env:
@@ -310,7 +306,7 @@ jobs:
           env: ${{ steps.deployment.outputs.env }}
           env_url: https://${{ env.DEPLOY_URL }}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
-      - if: ${{ github.event.pull_request && github.event.action == 'opened' && !env.ACT }}
+      - if: ${{ github.event.pull_request && github.event.action == 'opened' || github.event.action == 'reopened' && !env.ACT }}
         name: comment deployment url to pr
         uses: mshick/add-pr-comment@v1
         with:
