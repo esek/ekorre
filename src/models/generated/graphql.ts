@@ -1141,6 +1141,11 @@ export type User = {
 };
 
 
+export type UserPhotoUrlArgs = {
+  full?: Maybe<Scalars['String']>;
+};
+
+
 export type UserPostHistoryArgs = {
   current?: Maybe<Scalars['Boolean']>;
 };
@@ -1645,7 +1650,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   loginProviders?: Resolver<Array<Maybe<ResolversTypes['LoginProvider']>>, ParentType, ContextType>;
   phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  photoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  photoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<UserPhotoUrlArgs, never>>;
   postHistory?: Resolver<Array<ResolversTypes['UserPostHistoryEntry']>, ParentType, ContextType, RequireFields<UserPostHistoryArgs, never>>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

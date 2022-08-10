@@ -29,7 +29,7 @@ type User {
   lastName: String!
   fullName: String!
 
-  photoUrl: String
+  photoUrl(full: Boolean): String
   email: String!
   phone: String
 

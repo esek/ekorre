@@ -83,6 +83,13 @@ const userResolver: Resolvers = {
 
       return className;
     },
+    photoUrl: ({ photoUrl }, { full }, { request }) => {
+      if (!full) {
+        return photoUrl ?? null;
+      }
+
+      return `${request.protocol}://${request.get('host')}${photoUrl}`;
+    },
   },
   Query: {
     me: async (_, __, { getUsername }) => {
