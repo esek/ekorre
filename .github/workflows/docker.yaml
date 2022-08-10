@@ -180,8 +180,10 @@ jobs:
           only-pr-files: false
       - name: reset db
         id: dbreset
+        if: ${{ steps.npmci.outcome == 'success' }}
         run: npm run prisma:ci
       - name: run test
+        if: ${{ steps.dbreset.outcome == 'success' }}
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
         if: ${{ !env.ACT && steps.dbreset.outcome == 'success' }}
