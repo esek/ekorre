@@ -173,7 +173,7 @@ jobs:
       - name: lint
         run: npm run lint -- --output-file eslint_report.json --format json
       - name: publish lint
-        if: ${{ !env.ACT && steps.npmci.outcome == "success" }}
+        if: ${{ !env.ACT && steps.npmci.outcome == 'success' }}
         uses: ataylorme/eslint-annotate-action@v2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
@@ -184,11 +184,11 @@ jobs:
       - name: run test
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
-        if: ${{ !env.ACT && steps.dbreset.outcome == "success" }}
+        if: ${{ !env.ACT && steps.dbreset.outcome == 'success' }}
         uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
-        if: ${{ !env.ACT && teps.dbreset.outcome == "success" }}
+        if: ${{ !env.ACT && steps.dbreset.outcome == 'success' }}
         uses: ArtiomTr/jest-coverage-report-action@v2.0.9
         with:
           skip-step: all
