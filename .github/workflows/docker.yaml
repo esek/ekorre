@@ -171,6 +171,7 @@ jobs:
         id: npmci
         run: npm ci
       - name: lint
+        if: ${{ steps.npmci.outcome == 'success' && always() }}
         run: npm run lint -- --output-file eslint_report.json --format json
       - name: publish lint
         if: ${{ !env.ACT && steps.npmci.outcome == 'success' && always() }}
