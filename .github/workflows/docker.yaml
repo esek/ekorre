@@ -173,24 +173,24 @@ jobs:
       - name: lint
         run: npm run lint -- --output-file eslint_report.json --format json
       - name: publish lint
-        if: ${{ !env.ACT && steps.npmci.outcome == 'success' }}
+        if: ${{ !env.ACT && steps.npmci.outcome == 'success' && always() }}
         uses: ataylorme/eslint-annotate-action@v2
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           only-pr-files: false
       - name: reset db
         id: dbreset
-        if: ${{ steps.npmci.outcome == 'success' }}
+        if: ${{ steps.npmci.outcome == 'success' && always() }}
         run: npm run prisma:ci
       - name: run test
-        if: ${{ steps.dbreset.outcome == 'success' }}
+        if: ${{ steps.dbreset.outcome == 'success' && always() }}
         run: npm run test:prebuild -- --ci --testLocationInResults --json --coverage --outputFile="report.json"
       - name: find pr
-        if: ${{ !env.ACT && steps.dbreset.outcome == 'success' }}
+        if: ${{ !env.ACT && steps.dbreset.outcome == 'success' && always() }}
         uses: jwalton/gh-find-current-pr@v1
         id: findPr
       - name: publish coverage
-        if: ${{ !env.ACT && steps.dbreset.outcome == 'success' }}
+        if: ${{ !env.ACT && steps.dbreset.outcome == 'success' && always() }}
         uses: ArtiomTr/jest-coverage-report-action@v2.0.9
         with:
           skip-step: all
