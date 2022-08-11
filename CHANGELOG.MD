@@ -4,6 +4,15 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.0] - 2022-08-11
+
+### Tillagt
+- Lägger till miljövariabel `POST_ACCESS_COOLDOWN_DAYS` för att indikera hur många dagar efter att en användare gått av sin post som de ska behålla sin access
+
+### Ändrat
+- `PostAPI.getHistoryEntries` har nu parametern `withinAccessCooldown` som returnerar history entries vars access inte gått ut enligt cooldown
+- `AccessAPI.getUserFullAccess` använder nu post access cooldown
+
 ## [0.25.4] - 2022-08-08
 
 ### Ändrat

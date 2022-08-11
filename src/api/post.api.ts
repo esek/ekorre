@@ -1,4 +1,5 @@
 /* eslint-disable class-methods-use-this */
+import config from '@/config';
 import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { StrictObject } from '@/models/base';
@@ -27,7 +28,7 @@ const checkPostTypeAndSpots = (
     case PostType.Ea:
       return -1;
     case PostType.N:
-case PostType.ExactN:
+    case PostType.ExactN:
       if (spots != null && spots >= 0) {
         return spots;
       }
@@ -49,8 +50,8 @@ export class PostAPI {
     devGuard('Cannot remove post in production');
 
     const deleteHistory = prisma.prismaPostHistory.deleteMany({ where: { refPost: postId } });
-    const deletePost  = prisma.prismaPost.delete({ where: { id: postId } });
-    
+    const deletePost = prisma.prismaPost.delete({ where: { id: postId } });
+
     await prisma.$transaction([deleteHistory, deletePost]);
   }
   /**
@@ -380,15 +381,26 @@ export class PostAPI {
    * @param username Username of a user
    * @param postId ID of a post
    * @param onlyCurrent If only entries for current term should be returned
+   * @param withinAccessCooldown Users who has had a Post retains access for it for some time. If true, includes entries within that time
+   * @throws {BadRequestError} If onlyCurrent och withinAccessCooldown are both true
    */
   async getHistoryEntries(
     username?: string,
     postId?: number,
     onlyCurrent = false,
+    withinAccessCooldown = false,
   ): Promise<PrismaPostHistory[]> {
+    if (onlyCurrent && withinAccessCooldown) {
+      throw new BadRequestError('Kan inte returnera inom access cooldown och current samtidigt');
+    }
+
     let or = {};
     if (onlyCurrent) {
       or = { OR: [{ end: null }, { end: { gt: new Date() } }] };
+    } else if (withinAccessCooldown) {
+      const cooldownDate = new Date();
+      cooldownDate.setDate(cooldownDate.getDay() - config.POST_ACCESS_COOLDOWN_DAYS);
+      or = { OR: [{ end: null }, { end: { gt: cooldownDate } }] };
     }
 
     const history = await prisma.prismaPostHistory.findMany({
