@@ -417,6 +417,16 @@ test('set end time of history entry', async () => {
   });
 });
 
+test('get history entry that is not over but define access cooldown', async () => {
+  config.POST_ACCESS_COOLDOWN_DAYS = 30;
+  const start = new Date();
+  const end = new Date();
+  const { id: postId } = await api.createPost(np);
+
+  await api.addUsersToPost([dummyUser.username], postId, start, end);
+  await expect(api.getHistoryEntries(undefined, postId, false, true)).resolves.toHaveLength(1);
+});
+
 test('get history entry that is over, but access cooldown has not ended', async () => {
   config.POST_ACCESS_COOLDOWN_DAYS = 30;
   const start = new Date();
