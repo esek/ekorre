@@ -13,6 +13,8 @@ const api = new PostAPI();
 let dummyUser: NewUser;
 let removeDummyUser: () => Promise<void>;
 
+const originalAccessCooldown = config.POST_ACCESS_COOLDOWN_DAYS;
+
 const np: NewPost = {
   name: getRandomPostname(),
   email: 'spamme@example.com',
@@ -41,6 +43,7 @@ const mp: Omit<ModifyPost, 'id'> = {
 
 beforeEach(async () => {
   jest.useRealTimers();
+  config.POST_ACCESS_COOLDOWN_DAYS = originalAccessCooldown;
   const [createUser, removeUser] = genRandomUser([]);
   const prismaUser = await createUser();
   removeDummyUser = removeUser;
@@ -56,6 +59,8 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  jest.useRealTimers();
+  config.POST_ACCESS_COOLDOWN_DAYS = originalAccessCooldown;
   await api.clearHistoryForUser(dummyUser.username);
   await prisma.prismaPost.deleteMany({
     where: {
@@ -413,21 +418,44 @@ test('set end time of history entry', async () => {
 });
 
 test('get history entry that is over, but access cooldown has not ended', async () => {
+  config.POST_ACCESS_COOLDOWN_DAYS = 30;
   const start = new Date();
   const end = new Date();
   const { id: postId } = await api.createPost(np);
   await api.addUsersToPost([dummyUser.username], postId, start, end);
 
-  // Should be within cooldown (measured in days)
-  await expect(api.getHistoryEntries(undefined, postId, false, true)).resolves.toHaveLength(1);
-
-  // Move time forward out of interval
-  const trueTime = new Date();
+  // Move time forward, but keep it within interval
   const msInADay = 86400000;
+  const trueTime = new Date();
   jest
     .useFakeTimers()
     .setSystemTime(
-      new Date(trueTime.getTime() + config.POST_ACCESS_COOLDOWN_DAYS * msInADay + msInADay * 2),
+      new Date(trueTime.getTime() + (config.POST_ACCESS_COOLDOWN_DAYS * msInADay) / 2),
+    );
+  await expect(api.getHistoryEntries(undefined, postId, false, true)).resolves.toHaveLength(1);
+});
+
+test('get history entry that is over, where access cooldown has ended', async () => {
+  config.POST_ACCESS_COOLDOWN_DAYS = 30;
+  const start = new Date();
+  const end = new Date();
+  const { id: postId } = await api.createPost(np);
+  await api.addUsersToPost([dummyUser.username], postId, start, end);
+
+  const msInADay = 86400000;
+  const trueTime = new Date();
+
+  // Move time forward out of interval
+  jest
+    .useFakeTimers()
+    .setSystemTime(
+      new Date(trueTime.getTime() + config.POST_ACCESS_COOLDOWN_DAYS * msInADay + msInADay * 5),
     );
   await expect(api.getHistoryEntries(undefined, postId, false, true)).resolves.toHaveLength(0);
+});
+
+test('attempting to get current history entries that are also within access coldown fails', async () => {
+  await expect(api.getHistoryEntries(undefined, undefined, true, true)).rejects.toThrowError(
+    BadRequestError,
+  );
 });

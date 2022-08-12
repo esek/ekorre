@@ -398,8 +398,10 @@ export class PostAPI {
     if (onlyCurrent) {
       or = { OR: [{ end: null }, { end: { gt: new Date() } }] };
     } else if (withinAccessCooldown) {
+      // We want to return posts having ended up to POST_ACCESS_COOLDOWN_DAYS
+      // ago
       const lastAccessDate = new Date();
-      lastAccessDate.setDate(lastAccessDate.getDate() + config.POST_ACCESS_COOLDOWN_DAYS);
+      lastAccessDate.setDate(lastAccessDate.getDate() - config.POST_ACCESS_COOLDOWN_DAYS);
       or = { OR: [{ end: null }, { end: { gt: lastAccessDate } }] };
     }
 
