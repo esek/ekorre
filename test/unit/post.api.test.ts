@@ -1,5 +1,6 @@
 import { PostAPI } from '@/api/post.api';
 import prisma from '@/api/prisma';
+import config from '@/config';
 import { BadRequestError } from '@/errors/request.errors';
 import { midnightTimestamp } from '@/util';
 import { ModifyPost, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
@@ -39,6 +40,7 @@ const mp: Omit<ModifyPost, 'id'> = {
 };
 
 beforeEach(async () => {
+  jest.useRealTimers();
   const [createUser, removeUser] = genRandomUser([]);
   const prismaUser = await createUser();
   removeDummyUser = removeUser;
@@ -408,4 +410,24 @@ test('set end time of history entry', async () => {
     start: new Date(midnightTimestamp(start, 'after')),
     end: new Date(midnightTimestamp(end, 'before')),
   });
+});
+
+test('get history entry that is over, but access cooldown has not ended', async () => {
+  const start = new Date();
+  const end = new Date();
+  const { id: postId } = await api.createPost(np);
+  await api.addUsersToPost([dummyUser.username], postId, start, end);
+
+  // Should be within cooldown (measured in days)
+  await expect(api.getHistoryEntries(undefined, postId, false, true)).resolves.toHaveLength(1);
+
+  // Move time forward out of interval
+  const trueTime = new Date();
+  const msInADay = 86400000;
+  jest
+    .useFakeTimers()
+    .setSystemTime(
+      new Date(trueTime.getTime() + config.POST_ACCESS_COOLDOWN_DAYS * msInADay + msInADay * 2),
+    );
+  await expect(api.getHistoryEntries(undefined, postId, false, true)).resolves.toHaveLength(0);
 });
