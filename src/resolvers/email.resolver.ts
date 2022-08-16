@@ -5,7 +5,10 @@ import { sendEmail } from '@service/email';
 const emailResolver: Resolvers = {
   Mutation: {
     sendEmail: async (_, { options }, ctx) => {
-      await hasAccess(ctx, Feature.EmailAdmin);
+      if (!options.to.every((s) => s.endsWith('esek.se'))) {
+        await hasAccess(ctx, Feature.EmailAdmin);
+      }
+
       const resp = await sendEmail(
         options.to,
         options.subject,
