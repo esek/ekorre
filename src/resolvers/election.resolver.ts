@@ -2,12 +2,17 @@ import { useDataLoader } from '@/dataloaders';
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated, notEmpty } from '@/util';
 import { ElectionAPI } from '@api/election';
+import { PostAPI } from '@api/post';
+import { UserAPI } from '@api/user';
 import { Feature, NominationAnswer, Resolvers } from '@generated/graphql';
 import { electionReduce } from '@reducer/election/election';
 import { nominationReduce } from '@reducer/election/nomination';
 import { proposalReduce } from '@reducer/election/proposal';
+import { sendEmail } from '@service/email';
 
 const api = new ElectionAPI();
+const userApi = new UserAPI();
+const postApi = new PostAPI();
 
 const electionResolver: Resolvers = {
   Query: {
@@ -102,7 +107,27 @@ const electionResolver: Resolvers = {
     },
     nominate: async (_, { username, postIds }, ctx) => {
       await hasAuthenticated(ctx);
-      return api.nominate(username, postIds);
+      const user = await userApi.getSingleUser(username);
+
+      if (!user) {
+        return false;
+      }
+
+      const couldNominate = api.nominate(username, postIds);
+
+      if (!couldNominate) {
+        return false;
+      }
+
+      const posts = await postApi.getMultiplePosts(postIds);
+
+      await sendEmail(user.email, 'Du har blivit nominerad!', 'nomination', {
+        firstName: user.firstName,
+        posts: posts.map((p) => p.postname),
+        nominationsLink: 'https://esek.se/member/election/mine',
+      }).catch(() => null);
+
+      return true;
     },
     respondToNomination: async (_, { postId, accepts }, ctx) => {
       return api.respondToNomination(ctx.getUsername(), postId, accepts);
