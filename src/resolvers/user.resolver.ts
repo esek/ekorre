@@ -164,6 +164,12 @@ const userResolver: Resolvers = {
 
       const created = await api.createUser(input);
 
+      await sendEmail(created.email, 'Välkommen till E-Sektionen', 'welcome', {
+        firstName: created.firstName,
+        loginLink: 'https://esek.se/auth/log-in',
+        userEmail: created.email,
+      }).catch(() => null);
+
       return reduce(created, userReduce);
     },
     changePassword: async (_, { oldPassword, newPassword }, { getUsername }) => {
