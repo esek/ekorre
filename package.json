@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "0.27.1",
+  "version": "1.0.0",
   "description": "E-Sektionens backend",
   "main": "src/index.ts",
   "scripts": {
@@ -34,7 +34,11 @@
   "bugs": {
     "email": "macapar@esek.se"
   },
-  "license": "ISC",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/esek/ekorre.git"
+  },
   "prisma": {
     "seed": "ts-node prisma/data/seed.ts"
   },
