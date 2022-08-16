@@ -88,7 +88,7 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
   const path = 'avatars';
 
   const file = files.file instanceof Array ? files.file[0] : files.file;
-  const accessType = AccessType.Authenticated;
+  const accessType = AccessType.Public;
 
   const dbFile = await fileApi.saveFile(file, accessType, path, username);
 
