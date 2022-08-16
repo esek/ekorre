@@ -10,6 +10,11 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Tillagt
 - `AGPL-3.0-only` licens.
 
+## [0.27.1] - 2022-08-16
+
+### Tillagt
+- Skickar email till användaren när man blir nomierad och när man registrerar sig
+
 ## [0.27.0] - 2022-08-12
 
 ### Ändrat
