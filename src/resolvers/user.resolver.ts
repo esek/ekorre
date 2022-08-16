@@ -1,5 +1,6 @@
 import { hashWithSecret } from '@/auth';
 import { BadRequestError } from '@/errors/request.errors';
+import { Logger } from '@/logger';
 import { Context } from '@/models/context';
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated, stripObject } from '@/util';
@@ -12,6 +13,21 @@ import EWiki from '@service/wiki';
 
 const api = new UserAPI();
 const wiki = new EWiki();
+
+const logger = Logger.getLogger('UserResolver');
+
+const sendWelcomeEmail = async (email: string, firstname: string): Promise<void> => {
+  try {
+    await sendEmail(email, 'Välkommen till E-Sektionen', 'welcome', {
+      firstName: firstname,
+      loginLink: 'https://esek.se/auth/log-in',
+      userEmail: email,
+    });
+  } catch (err) {
+    logger.error('Failed to send email to new user');
+    logger.error(err);
+  }
+};
 
 /**
  * Ensures the requester is the `User` requested,
@@ -124,6 +140,8 @@ const userResolver: Resolvers = {
       await hasAccess(ctx, Feature.UserAdmin);
       const user = await api.createUser(input);
 
+      await sendWelcomeEmail(user.email, user.firstName);
+
       return reduce(user, userReduce);
     },
     requestPasswordReset: async (_, { username, resetLink, returnTo }) => {
@@ -170,6 +188,8 @@ const userResolver: Resolvers = {
       }
 
       const created = await api.createUser(input);
+
+      await sendWelcomeEmail(created.email, created.firstName);
 
       return reduce(created, userReduce);
     },

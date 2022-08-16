@@ -21,7 +21,7 @@ export const sendEmail = async (
   to: string[] | string,
   subject: string,
   templateName: string,
-  overrides: Record<string, string>,
+  overrides: Record<string, string | string[]>,
   body?: string,
 ) => {
   try {

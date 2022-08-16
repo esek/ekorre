@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.27.1] - 2022-08-16
+
+### Tillagt
+- Skickar email till användaren när man blir nomierad och när man registrerar sig
+
 ## [0.27.0] - 2022-08-12
 
 ### Ändrat
