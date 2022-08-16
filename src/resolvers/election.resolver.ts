@@ -124,13 +124,16 @@ const electionResolver: Resolvers = {
 
       const posts = await postApi.getMultiplePosts(postIds);
 
-      await sendEmail(user.email, 'Du har blivit nominerad!', 'nomination', {
-        firstName: user.firstName,
-        posts: posts.map((p) => p.postname),
-        nominationsLink: 'https://esek.se/member/election/mine',
-      }).catch((err) => {
-        logger.error(`Failed to send nomination email: ${err}`);
-      });
+      try {
+        await sendEmail(user.email, 'Du har blivit nominerad!', 'nomination', {
+          firstName: user.firstName,
+          posts: posts.map((p) => p.postname),
+          nominationsLink: 'https://esek.se/member/election/mine',
+        });
+      } catch (err) {
+        logger.error(`Failed to send nomination email`);
+        logger.error(err);
+      }
 
       return true;
     },

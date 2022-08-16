@@ -17,13 +17,16 @@ const wiki = new EWiki();
 const logger = Logger.getLogger('UserResolver');
 
 const sendWelcomeEmail = async (email: string, firstname: string): Promise<void> => {
-  await sendEmail(email, 'Välkommen till E-Sektionen', 'welcome', {
-    firstName: firstname,
-    loginLink: 'https://esek.se/auth/log-in',
-    userEmail: email,
-  }).catch((err) => {
-    logger.error(`Failed to send email in casCreateUser: ${err}`);
-  });
+  try {
+    await sendEmail(email, 'Välkommen till E-Sektionen', 'welcome', {
+      firstName: firstname,
+      loginLink: 'https://esek.se/auth/log-in',
+      userEmail: email,
+    });
+  } catch (err) {
+    logger.error('Failed to send email to new user');
+    logger.error(err);
+  }
 };
 
 /**
