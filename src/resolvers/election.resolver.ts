@@ -1,4 +1,5 @@
 import { useDataLoader } from '@/dataloaders';
+import { Logger } from '@/logger';
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated, notEmpty } from '@/util';
 import { ElectionAPI } from '@api/election';
@@ -13,6 +14,8 @@ import { sendEmail } from '@service/email';
 const api = new ElectionAPI();
 const userApi = new UserAPI();
 const postApi = new PostAPI();
+
+const logger = Logger.getLogger('ElectionResolver');
 
 const electionResolver: Resolvers = {
   Query: {
@@ -125,7 +128,9 @@ const electionResolver: Resolvers = {
         firstName: user.firstName,
         posts: posts.map((p) => p.postname),
         nominationsLink: 'https://esek.se/member/election/mine',
-      }).catch(() => null);
+      }).catch((err) => {
+        logger.error(`Failed to send nomination email: ${err}`);
+      });
 
       return true;
     },
