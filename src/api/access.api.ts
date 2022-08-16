@@ -233,7 +233,9 @@ export class AccessAPI {
   }
 
   /**
-   * Gets a users entire access, including inherited access from posts
+   * Gets a users entire access, including inherited access from posts,
+   * and is within post access cooldown (users retains post access some time after
+   * leaving it)
    * @param username The user whose access to get
    * @returns A list of database access objects
    */
@@ -242,12 +244,15 @@ export class AccessAPI {
     const individual = this.getIndividualAccess(username);
 
     // Get the postaccess for that users posts
-    const posts = await postApi.getPostsForUser(username, false);
+    // but also posts within retention period (users
+    // retain post access for some time after they leave)
+    const userPostHistory = await postApi.getHistoryEntries(username, undefined, false, true);
+    const postIds = userPostHistory.map((he) => he.refPost);
 
     const postAccess = prisma.prismaPostAccess.findMany({
       where: {
         refPost: {
-          in: posts.map((p) => p.id),
+          in: postIds,
         },
       },
       orderBy: {

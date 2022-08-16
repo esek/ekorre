@@ -33,8 +33,12 @@ export const checkUserFieldAccess = async (ctx: Context, obj: User) => {
 
 const userResolver: Resolvers = {
   // To hide user fields from the public, add fields here with auth
+  // According to privacy policy as of 2022-08-10, we can share
+  // username, full name and class
   User: {
+    // username, firstName and lastName needs no special handling
     fullName: ({ firstName, lastName }) => `${firstName} ${lastName}`,
+    // photoUrl is OK
     email: async (obj, _, ctx) => {
       // Don't want to leak contact details to the public
       await hasAuthenticated(ctx);
@@ -60,7 +64,18 @@ const userResolver: Resolvers = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return obj.zipCode!;
     },
-    wikiEdits: async ({ username }) => {
+    // website OK
+    class: ({ firstName, class: className }) => {
+      // hide phøsets class
+      if (/ph[øö]s$/.test(firstName.toLowerCase().split(' ')[0])) {
+        return 'XXXX';
+      }
+
+      return className;
+    },
+    wikiEdits: async ({ username }, _, ctx) => {
+      await hasAuthenticated(ctx);
+
       if (!username) {
         return 0;
       }
@@ -74,14 +89,6 @@ const userResolver: Resolvers = {
       const providers = await userApi.getLoginProviders(obj.username);
 
       return providers;
-    },
-    class: ({ firstName, class: className }) => {
-      // hide phøsets class
-      if (/ph[øö]s$/.test(firstName.toLowerCase().split(' ')[0])) {
-        return 'XXXX';
-      }
-
-      return className;
     },
   },
   Query: {

@@ -6,6 +6,7 @@ services:
     extends:
       file: docker-compose.ci.yml
       service: ekorre
+    restart: unless-stopped
     environment:
       - DB_HOST=$DB_HOST
       - NODE_ENV=production

@@ -274,9 +274,9 @@ class FileAPI {
   }
 
   /**
-   * Får mappar och/eller filer i en mapp ordnat efter namn och skapelse
-   * @param folder sökvägen till mappen
-   * @returns en lista på filer och/eller mappar
+   * Retrieves folders and/or files in a folder, ordered by creation date
+   * @param folder path to folder
+   * @returns A list of folders and/or files
    */
   async getFolderData(folder: string): Promise<[PrismaFile[], FileSystemResponsePath[]]> {
     const folderTrimmed = this.trimFolder(folder);
@@ -299,7 +299,11 @@ class FileAPI {
             in: pathNames,
           },
         },
-        orderBy: defaultOrder,
+        orderBy: {
+          // Since we can't move files or folders, this will make breadcrumbs order correctly
+          // (can't have a subfolder older than the one containing it)
+          createdAt: 'asc',
+        },
       });
 
       // Read files in current directory
