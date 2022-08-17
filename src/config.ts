@@ -8,11 +8,15 @@ dotenv.config();
  * Config for file-handling
  * @param {string} ENDPOINT - The endpoint in Ekorre to expose with files (ex. https://api.esek.se/{endpoint})
  * @param {string} ROOT - The root folder to save files in
+ * @param {number} MAX_AVATAR_SIZE_BYTES - Maximum size for users profile pictures (avatars) in bytes
+ * @param {number} MAX_FILE_UPLOAD_SIZE_BYTES - Maximum size for all uploaded files in bytes
  */
-
 const FILES = {
   ENDPOINT: process.env.FILES_ENDPOINT ?? '/files',
   ROOT: `${path.dirname(__dirname)}/public`,
+  MAX_AVATAR_SIZE_BYTES: Number.parseInt(process.env.MAX_AVATAR_SIZE_KB ?? '1000') * 1000, // Default 1 MB
+  MAX_FILE_UPLOAD_SIZE_BYTES:
+    Number.parseInt(process.env.MAX_FILE_UPLOAD_SIZE_MB ?? '20') * 1000000, // Default 20 MB
 };
 
 /**

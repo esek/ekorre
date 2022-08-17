@@ -51,6 +51,14 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   }
 
   const file = files.file instanceof Array ? files.file[0] : files.file;
+
+  // Check file size (file.size is in bytes)
+  if (file.size > config.FILES.MAX_FILE_UPLOAD_SIZE_BYTES) {
+    return res
+      .status(400)
+      .send(`File too big, max is ${config.FILES.MAX_FILE_UPLOAD_SIZE_BYTES / 1000000} MB`);
+  }
+
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
   const dbFile = await fileApi.saveFile(file, accessType, path, res.locals.user.username);
@@ -64,6 +72,18 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
   if (!files?.file) {
     // If no file is provided, send HTTP status 400
     return res.status(400).send('File missing');
+  }
+
+  const file = files.file instanceof Array ? files.file[0] : files.file;
+
+  // Check if file is too big (file.size is in bytes)
+  if (
+    file.size > config.FILES.MAX_AVATAR_SIZE_BYTES ||
+    file.size > config.FILES.MAX_FILE_UPLOAD_SIZE_BYTES
+  ) {
+    return res
+      .status(400)
+      .send(`Avatar too big, max is ${config.FILES.MAX_AVATAR_SIZE_BYTES / 1000} kb`);
   }
 
   const { user } = res.locals;
@@ -87,7 +107,6 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
 
   const path = 'avatars';
 
-  const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = AccessType.Public;
 
   const dbFile = await fileApi.saveFile(file, accessType, path, username);
