@@ -2,7 +2,7 @@ import config from '@/config';
 import RequestError from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { reduce } from '@/reducers';
-import { MB_IN_BYTES } from '@/util';
+import { BYTES_PER_MB } from '@/util';
 import FileAPI from '@api/file';
 import { UserAPI } from '@api/user';
 import { AccessType } from '@generated/graphql';
@@ -58,7 +58,7 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   if (file.size > maxSize) {
     return res
       .status(400)
-      .send(`File too big, max is ${config.FILES.MAX_FILE_UPLOAD_SIZE_BYTES / MB_IN_BYTES} MB`);
+      .send(`File too big, max is ${config.FILES.MAX_FILE_UPLOAD_SIZE_BYTES / BYTES_PER_MB} MB`);
   }
 
   const accessType = body?.accessType ?? AccessType.Public;
@@ -84,7 +84,7 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
   if (file.size > maxAvatarSize || file.size > maxSize) {
     return res
       .status(400)
-      .send(`Avatar too big, max is ${config.FILES.MAX_AVATAR_SIZE_BYTES / MB_IN_BYTES} MB`);
+      .send(`Avatar too big, max is ${config.FILES.MAX_AVATAR_SIZE_BYTES / BYTES_PER_MB} MB`);
   }
 
   const { user } = res.locals;

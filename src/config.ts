@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import { MB_IN_BYTES } from './util';
+import { BYTES_PER_MB } from './util';
 
 // Read dot-env file
 dotenv.config();
@@ -15,9 +15,9 @@ dotenv.config();
 const FILES = {
   ENDPOINT: process.env.FILES_ENDPOINT ?? '/files',
   ROOT: `${path.dirname(__dirname)}/public`,
-  MAX_AVATAR_SIZE_BYTES: Number.parseInt(process.env.MAX_AVATAR_SIZE_MB ?? '1') * MB_IN_BYTES, // Default 1 MB
+  MAX_AVATAR_SIZE_BYTES: Number.parseInt(process.env.MAX_AVATAR_SIZE_MB ?? '1') * BYTES_PER_MB, // Default 1 MB
   MAX_FILE_UPLOAD_SIZE_BYTES:
-    Number.parseInt(process.env.MAX_FILE_UPLOAD_SIZE_MB ?? '20') * MB_IN_BYTES, // Default 20 MB
+    Number.parseInt(process.env.MAX_FILE_UPLOAD_SIZE_MB ?? '20') * BYTES_PER_MB, // Default 20 MB
 };
 
 /**

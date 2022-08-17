@@ -137,4 +137,4 @@ export const devGuard = (message = 'Cannot do that in production'): void => {
 };
 
 // Number of bytes in a megabyte
-export const MB_IN_BYTES = 1e6;
+export const BYTES_PER_MB = 1e6;
