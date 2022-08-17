@@ -56,7 +56,7 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   // Check file size (file.size is in bytes)
   const maxSize = config.FILES.MAX_FILE_UPLOAD_SIZE_BYTES;
   if (file.size > maxSize) {
-    return res.status(400).send(`File too big, max is ${maxSize / BYTES_PER_MB} MB`);
+    return res.status(413).send(`File too big, max is ${maxSize / BYTES_PER_MB} MB`);
   }
 
   const accessType = body?.accessType ?? AccessType.Public;
@@ -81,7 +81,7 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
   const maxSize = config.FILES.MAX_FILE_UPLOAD_SIZE_BYTES;
   const sizeConstraint = Math.min(maxAvatarSize, maxSize);
   if (file.size > sizeConstraint) {
-    return res.status(400).send(`Avatar too big, max is ${sizeConstraint / BYTES_PER_MB} MB`);
+    return res.status(413).send(`Avatar too big, max is ${sizeConstraint / BYTES_PER_MB} MB`);
   }
 
   const { user } = res.locals;
