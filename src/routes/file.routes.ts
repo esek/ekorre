@@ -2,6 +2,7 @@ import config from '@/config';
 import RequestError from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { reduce } from '@/reducers';
+import { BYTES_PER_MB } from '@/util';
 import FileAPI from '@api/file';
 import { UserAPI } from '@api/user';
 import { AccessType } from '@generated/graphql';
@@ -51,6 +52,13 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   }
 
   const file = files.file instanceof Array ? files.file[0] : files.file;
+
+  // Check file size (file.size is in bytes)
+  const maxSize = config.FILES.MAX_FILE_UPLOAD_SIZE_BYTES;
+  if (file.size > maxSize) {
+    return res.status(413).send(`File too big, max is ${maxSize / BYTES_PER_MB} MB`);
+  }
+
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
   const dbFile = await fileApi.saveFile(file, accessType, path, res.locals.user.username);
@@ -64,6 +72,16 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
   if (!files?.file) {
     // If no file is provided, send HTTP status 400
     return res.status(400).send('File missing');
+  }
+
+  const file = files.file instanceof Array ? files.file[0] : files.file;
+
+  // Check if file is too big (file.size is in bytes)
+  const maxAvatarSize = config.FILES.MAX_AVATAR_SIZE_BYTES;
+  const maxSize = config.FILES.MAX_FILE_UPLOAD_SIZE_BYTES;
+  const sizeConstraint = Math.min(maxAvatarSize, maxSize);
+  if (file.size > sizeConstraint) {
+    return res.status(413).send(`Avatar too big, max is ${sizeConstraint / BYTES_PER_MB} MB`);
   }
 
   const { user } = res.locals;
@@ -87,7 +105,6 @@ filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res
 
   const path = 'avatars';
 
-  const file = files.file instanceof Array ? files.file[0] : files.file;
   const accessType = AccessType.Public;
 
   const dbFile = await fileApi.saveFile(file, accessType, path, username);

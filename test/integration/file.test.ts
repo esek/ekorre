@@ -168,7 +168,7 @@ describe('avatars', () => {
     const res = await uploadFile(file1).attach('file', path(file2)).expect(200);
 
     expect(res.body).toMatchObject({
-      accessType: AccessType.Authenticated,
+      accessType: AccessType.Public, // Public by default
       name: file1,
     });
 
