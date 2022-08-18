@@ -69,7 +69,7 @@ export class MeetingAPI {
       where: {
         AND: whereAnd,
       },
-      orderBy: [{ number: 'desc' }, { year: 'desc' }],
+      orderBy: [{ type: 'desc' }, { year: 'desc' }, { number: 'desc' }],
     });
 
     if (m === null) {
@@ -88,7 +88,7 @@ export class MeetingAPI {
       where: {
         type: 'SM',
       },
-      orderBy: [{ number: 'desc' }, { year: 'desc' }],
+      orderBy: [{ type: 'desc' }, { year: 'desc' }, { number: 'desc' }],
       take: limit,
     });
 
@@ -251,10 +251,10 @@ export class MeetingAPI {
    * Attempts to remove a document from a meeting. Returns `true` if the meeting
    * was found and the reference for this document type is guaranteed to be `null` in the
    * database.
-   * 
+   *
    * *Note:* This does not actually remove the file from the file system, only makes it
    * unrelated to this meeting
-   * 
+   *
    * *Trivia:* Also known as *Annas Method*, this method was created specifically
    * because Ordförande 2021 Anna Hollsten loved to upload documents as protocols and
    * vice versa. The old website had no function to remove documents, meaning the poor
