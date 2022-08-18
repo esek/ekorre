@@ -18,7 +18,7 @@ export class MeetingAPI {
    */
   async getAllMeetings(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<PrismaMeeting[]> {
     const m = await prisma.prismaMeeting.findMany({
-      orderBy: [{ year: sortOrder }, { number: sortOrder }],
+      orderBy: [{ type: sortOrder }, { year: sortOrder }, { number: sortOrder }],
       take: limit,
     });
 
@@ -41,7 +41,8 @@ export class MeetingAPI {
   }
 
   /**
-   * Retrieves multiple meetings from the database, with possible specifics
+   * Retrieves multiple meetings from the database, with possible specifics, ordered
+   * by type first, then year and finally number
    * @param year Year of the meeting
    * @param number The number of the meeting, if applicable
    * @param type The type of meeting
@@ -68,6 +69,7 @@ export class MeetingAPI {
       where: {
         AND: whereAnd,
       },
+      orderBy: [{ type: 'desc' }, { year: 'desc' }, { number: 'desc' }],
     });
 
     if (m === null) {
@@ -78,7 +80,8 @@ export class MeetingAPI {
   }
 
   /**
-   * Retrieves the latest board meetings, ordered by number and then year
+   * Retrieves the latest board meetings, ordered
+   * by type first, then year and finally number
    * @param limit The number of board meetings to be returned. If `null`, all board meetings are returned
    */
   async getLatestBoardMeetings(limit?: number): Promise<PrismaMeeting[]> {
@@ -86,7 +89,7 @@ export class MeetingAPI {
       where: {
         type: 'SM',
       },
-      orderBy: [{ number: 'desc' }, { year: 'desc' }],
+      orderBy: [{ type: 'desc' }, { year: 'desc' }, { number: 'desc' }],
       take: limit,
     });
 
@@ -249,10 +252,10 @@ export class MeetingAPI {
    * Attempts to remove a document from a meeting. Returns `true` if the meeting
    * was found and the reference for this document type is guaranteed to be `null` in the
    * database.
-   * 
+   *
    * *Note:* This does not actually remove the file from the file system, only makes it
    * unrelated to this meeting
-   * 
+   *
    * *Trivia:* Also known as *Annas Method*, this method was created specifically
    * because Ordförande 2021 Anna Hollsten loved to upload documents as protocols and
    * vice versa. The old website had no function to remove documents, meaning the poor

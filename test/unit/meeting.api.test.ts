@@ -42,7 +42,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await api.clear();
-  await Promise.all([
+  await Promise.allSettled([
     prisma.prismaFile.delete({ where: { id: DUMMY_FILE.id } }),
     prisma.prismaFile.delete({ where: { id: DUMMY_PRIVATE_FILE.id } }),
     deleteDummyUser(),
