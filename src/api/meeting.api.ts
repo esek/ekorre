@@ -42,7 +42,7 @@ export class MeetingAPI {
 
   /**
    * Retrieves multiple meetings from the database, with possible specifics, ordered
-   * by number first and then year
+   * by type first, then year and finally number
    * @param year Year of the meeting
    * @param number The number of the meeting, if applicable
    * @param type The type of meeting
@@ -80,7 +80,8 @@ export class MeetingAPI {
   }
 
   /**
-   * Retrieves the latest board meetings, ordered by number and then year
+   * Retrieves the latest board meetings, ordered
+   * by type first, then year and finally number
    * @param limit The number of board meetings to be returned. If `null`, all board meetings are returned
    */
   async getLatestBoardMeetings(limit?: number): Promise<PrismaMeeting[]> {
