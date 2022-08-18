@@ -41,7 +41,8 @@ export class MeetingAPI {
   }
 
   /**
-   * Retrieves multiple meetings from the database, with possible specifics
+   * Retrieves multiple meetings from the database, with possible specifics, ordered
+   * by number first and then year
    * @param year Year of the meeting
    * @param number The number of the meeting, if applicable
    * @param type The type of meeting
@@ -68,6 +69,7 @@ export class MeetingAPI {
       where: {
         AND: whereAnd,
       },
+      orderBy: [{ number: 'desc' }, { year: 'desc' }],
     });
 
     if (m === null) {

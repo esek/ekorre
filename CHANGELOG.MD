@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2022-08-18
+
+### Ändrat
+- `getMultipleMeetings` sorterar nu först på nummer och sen på år
+
 ## [1.0.3] - 2022-08-17
 
 ### Ändrat
