@@ -18,7 +18,7 @@ export class MeetingAPI {
    */
   async getAllMeetings(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<PrismaMeeting[]> {
     const m = await prisma.prismaMeeting.findMany({
-      orderBy: [{ year: sortOrder }, { number: sortOrder }],
+      orderBy: [{ type: sortOrder }, { year: sortOrder }, { number: sortOrder }],
       take: limit,
     });
 
