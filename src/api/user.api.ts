@@ -154,6 +154,7 @@ export class UserAPI {
 
       // Only want two numbers lol
       const lastDigits = currentYear - 2000;
+
       const validEndings = [];
       for (let i = 0; i < 5; i -= -1) {
         validEndings.push({
@@ -162,6 +163,7 @@ export class UserAPI {
           },
         });
       }
+      
       const count = await prisma.prismaUser.count({
         where: {
           OR: validEndings,
