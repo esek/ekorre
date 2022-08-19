@@ -435,6 +435,7 @@ export class PostAPI {
     const safeDate = date ?? new Date();
 
     const count = await prisma.prismaPostHistory.count({
+      distinct: ['refUser'],
       where: {
         OR: [
           { end: null },
