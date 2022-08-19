@@ -8,7 +8,7 @@ type Query {
   user(username: String!): User!
   searchUser(search: String!): [User!]!
   me: User!
-  numberOfMembers: Int!
+  numberOfMembers(noAlumni: Boolean): Int!
 }
 
 type Mutation {

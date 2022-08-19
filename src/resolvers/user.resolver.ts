@@ -127,7 +127,7 @@ const userResolver: Resolvers = {
       const users = await api.searchUser(search);
       return reduce(users, userReduce);
     },
-    numberOfMembers: async () => api.getNumberOfMembers(),
+    numberOfMembers: async (_, { noAlumni }) => api.getNumberOfMembers(noAlumni === true),
   },
   Mutation: {
     updateUser: async (_, { input }, { getUsername }) => {
