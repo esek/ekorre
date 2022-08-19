@@ -434,8 +434,12 @@ export class PostAPI {
   async getNumberOfVolunteers(date?: Date): Promise<number> {
     const safeDate = date ?? new Date();
 
-    const count = await prisma.prismaPostHistory.count({
-      distinct: ['refUser'],
+    // Prisma count does not support 'DISTINCT' at time of writing this,
+    // update this when it does (docs says they do but they don't)
+    const count = await prisma.prismaPostHistory.aggregate({
+      _count: {
+        refUser: true,
+      },
       where: {
         OR: [
           { end: null },
@@ -453,7 +457,7 @@ export class PostAPI {
       },
     });
 
-    return count;
+    return count._count.refUser;
   }
 
   /**
