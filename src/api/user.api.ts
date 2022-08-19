@@ -138,6 +138,9 @@ export class UserAPI {
    */
   async getNumberOfMembers(noAlumni = false): Promise<number> {
     if (noAlumni) {
+      // Registration date won't work since migration didn't migrate that,
+      // so if you're reading this after 2027 you can probably just go by that
+
       // End-of-my-lifetime check
       const currentYear = new Date().getFullYear();
       if (currentYear > 2099) {
