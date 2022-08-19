@@ -436,8 +436,8 @@ export class PostAPI {
 
     // Prisma count does not support 'DISTINCT' at time of writing this,
     // update this when it does (docs says they do but they don't)
-    const count = await prisma.prismaPostHistory.aggregate({
-      _count: {
+    const usernames = await prisma.prismaPostHistory.findMany({
+      select: {
         refUser: true,
       },
       where: {
@@ -455,9 +455,10 @@ export class PostAPI {
           },
         },
       },
+      distinct: ['refUser'],
     });
 
-    return count._count.refUser;
+    return usernames.length;
   }
 
   /**
