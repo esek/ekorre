@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2022-08-19
+
+### Tillagt
+- Valbar parameter `noAlumni` för `numberOfMembers` för att bara få de som börjat de senaste fem åren
+
 ## [1.0.4] - 2022-08-18
 
 ### Ändrat

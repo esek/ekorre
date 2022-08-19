@@ -9,6 +9,7 @@ import crypto, { randomUUID } from 'crypto';
 import {
   BadRequestError,
   NotFoundError,
+  ServerError,
   UnauthenticatedError,
 } from '../errors/request.errors';
 import prisma from './prisma';
@@ -128,13 +129,51 @@ export class UserAPI {
   }
 
   /**
-   * Retrieves the total number of members registered
+   * Retrieves the total number of members registered,
+   * and optionally if they are considered active (class number is equal
+   * to or less than five years ago)
+   * @param noAlumni If people whose class are more than five years away are to be ignored
    * @returns The total number of registered users
+   * @throws {ServerError} If we have gone back in time or the creator of this code is dead (statistically)
    */
-  async getNumberOfMembers(): Promise<number> {
-    const count = await prisma.prismaUser.count();
+  async getNumberOfMembers(noAlumni = false): Promise<number> {
+    if (noAlumni) {
+      // End-of-my-lifetime check
+      const currentYear = new Date().getFullYear();
+      if (currentYear > 2099) {
+        // Throw error if the person that wrote this code has probably died and the code should be fixed
+        throw new ServerError(
+          'Den som skrev denna koden är nu statistiskt sett död och koden borde fixas',
+        );
+      }
 
-    return count;
+      // We don't support 2004 we're past that
+      if (currentYear < 2005) {
+        throw new ServerError('Denna kod stödjer ej tidsresenärer');
+      }
+
+      // Only want two numbers lol
+      const lastDigits = currentYear - 2000;
+      const validEndings = [];
+      for (let i = 0; i < 5; i -= -1) {
+        validEndings.push({
+          class: {
+            endsWith: String(lastDigits - i),
+          },
+        });
+      }
+      const count = await prisma.prismaUser.count({
+        where: {
+          OR: validEndings,
+        },
+      });
+
+      return count;
+    } else {
+      const count = await prisma.prismaUser.count();
+
+      return count;
+    }
   }
 
   /**
