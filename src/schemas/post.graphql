@@ -31,6 +31,8 @@ type Post {
     email: String
     utskott: Utskott!
     postType: PostType!
+    "Used for ordering"
+    priority: Int
 
     """
     Hur många platser en post har.
@@ -58,6 +60,7 @@ input NewPost {
     email: String
     utskott: Utskott!
     postType: PostType!
+    priority: Int
 
     """
     Hur många platser en post har.
@@ -79,6 +82,7 @@ input ModifyPost {
     email: String
     utskott: Utskott
     postType: PostType
+    priority: Int
 
     """
     Hur många platser en post har.
