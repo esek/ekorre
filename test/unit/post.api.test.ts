@@ -35,6 +35,7 @@ const p: Omit<PrismaPost, 'id'> = {
   description: 'Är helt underbar',
   active: true,
   interviewRequired: false,
+  priority: 0,
 };
 
 const mp: Omit<ModifyPost, 'id'> = {
