@@ -1,5 +1,7 @@
 # Ekorre
 
+![Mascot logo](./.github/logo.png)
+
 Ekorre är sektionens nya backend driven av Node och GraphQL och
 skriven i TypeScript.
 
