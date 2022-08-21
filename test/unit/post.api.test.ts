@@ -23,6 +23,7 @@ const np: NewPost = {
   spots: 1,
   description: 'Är helt underbar',
   interviewRequired: false,
+  sortPriority: 0,
 };
 
 // ID given by `createPost`
@@ -35,6 +36,7 @@ const p: Omit<PrismaPost, 'id'> = {
   description: 'Är helt underbar',
   active: true,
   interviewRequired: false,
+  sortPriority: 0,
 };
 
 const mp: Omit<ModifyPost, 'id'> = {
@@ -64,7 +66,9 @@ afterEach(async () => {
   await api.clearHistoryForUser(dummyUser.username);
   await prisma.prismaPost.deleteMany({
     where: {
-      postname: np.name,
+      postname: {
+        endsWith: np.name,
+      },
     },
   });
   await removeDummyUser();
@@ -468,4 +472,28 @@ test('attempting to get current history entries that are also within access cold
   await expect(api.getHistoryEntries(undefined, undefined, true, true)).rejects.toThrowError(
     BadRequestError,
   );
+});
+
+test('post priority changes order', async () => {
+  const np1: NewPost = {
+    ...np,
+    name: 'AA' + np.name,
+  };
+
+  const np2: NewPost = {
+    ...np,
+    name: 'ZZ' + np.name,
+    sortPriority: 10,
+  };
+
+  await api.createPost(np1);
+  await api.createPost(np2);
+  const expectedOrder = [np2.name, np1.name];
+
+  const posts = await api.getPostsFromUtskott(np.utskott);
+  const postnames = posts
+    .filter((po) => expectedOrder.includes(po.postname))
+    .map((po) => po.postname);
+
+  expect(postnames).toEqual(expectedOrder);
 });

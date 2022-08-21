@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2022-08-20
+
+### Tillagt
+- Lagt till `Post.sortPriority` så att man kan ändra i vilken ordning poster kommer
+
 ## [1.0.6] - 2022-08-19
 
 ### Ändrat

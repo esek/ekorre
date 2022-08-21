@@ -11,6 +11,12 @@ import prisma from './prisma';
 
 const logger = Logger.getLogger('PostAPI');
 
+const defaultOrder: Prisma.PrismaPostOrderByWithRelationAndSearchRelevanceInput[] = [
+  { utskott: 'asc' },
+  { sortPriority: 'desc' },
+  { postname: 'asc' },
+];
+
 /**
  * Ensures that post type and number of spots defined are
  * compatible. If this is the case, or a default value
@@ -69,9 +75,7 @@ export class PostAPI {
     const posts = await prisma.prismaPost.findMany({
       where,
       take: limit,
-      orderBy: {
-        postname: 'asc',
-      },
+      orderBy: defaultOrder,
     });
 
     return posts;
@@ -114,9 +118,7 @@ export class PostAPI {
 
     const posts = await prisma.prismaPost.findMany({
       where,
-      orderBy: {
-        postname: 'asc',
-      },
+      orderBy: defaultOrder,
     });
 
     return posts;
@@ -153,9 +155,7 @@ export class PostAPI {
           },
         },
       },
-      orderBy: {
-        postname: 'asc',
-      },
+      orderBy: defaultOrder,
     });
 
     return posts;
@@ -177,9 +177,7 @@ export class PostAPI {
 
     const posts = await prisma.prismaPost.findMany({
       where,
-      orderBy: {
-        postname: 'asc',
-      },
+      orderBy: defaultOrder,
     });
 
     return posts;
@@ -236,6 +234,7 @@ export class PostAPI {
    * @param description Description of the post
    * @param interviewRequired If an interview by Valberedningen is required before an election
    * @param active If the post is to be marked as active
+   * @param sortPriority The sorting priority of the post
    * @throws {BadRequestError} If the post already exists, or sposts and postType are incompatible
    */
   async createPost({
@@ -247,6 +246,7 @@ export class PostAPI {
     description,
     interviewRequired,
     active,
+    sortPriority,
   }: NewPost): Promise<PrismaPost> {
     const s = checkPostTypeAndSpots(postType, spots);
 
@@ -272,6 +272,7 @@ export class PostAPI {
         email,
         utskott,
         postType,
+        sortPriority: sortPriority ?? 0,
         spots: s,
         description: description || 'Postbeskrivning saknas :/',
         interviewRequired: interviewRequired ?? false,
@@ -415,11 +416,8 @@ export class PostAPI {
         {
           start: 'desc',
         },
-        {
-          post: {
-            postname: 'asc',
-          },
-        },
+        // Orderby here need to specify that it is post it wants to order
+        ...defaultOrder.map((order) => ({ post: order })),
       ],
     });
 
