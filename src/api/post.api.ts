@@ -234,7 +234,7 @@ export class PostAPI {
    * @param description Description of the post
    * @param interviewRequired If an interview by Valberedningen is required before an election
    * @param active If the post is to be marked as active
-   * @param priority The priority order of the post
+   * @param sortPriority The sorting priority of the post
    * @throws {BadRequestError} If the post already exists, or sposts and postType are incompatible
    */
   async createPost({

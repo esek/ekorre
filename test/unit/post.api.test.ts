@@ -66,7 +66,9 @@ afterEach(async () => {
   await api.clearHistoryForUser(dummyUser.username);
   await prisma.prismaPost.deleteMany({
     where: {
-      postname: np.name,
+      postname: {
+        endsWith: np.name,
+      },
     },
   });
   await removeDummyUser();
@@ -473,20 +475,25 @@ test('attempting to get current history entries that are also within access cold
 });
 
 test('post priority changes order', async () => {
-  const p1: NewPost = { ...np, name: 'AAAA', sortPriority: 1 };
-  const p2: NewPost = { ...np, name: 'ZZZZ', sortPriority: 2 };
+  const np1: NewPost = {
+    ...np,
+    name: 'AA' + np.name,
+  };
 
-  const { id: p1Id } = await api.createPost(p1);
-  const { id: p2Id } = await api.createPost(p2);
+  const np2: NewPost = {
+    ...np,
+    name: 'ZZ' + np.name,
+    sortPriority: 10,
+  };
 
-  const expectedOrder = [p2.name, p1.name];
+  await api.createPost(np1);
+  await api.createPost(np2);
+  const expectedOrder = [np2.name, np1.name];
+
   const posts = await api.getPostsFromUtskott(np.utskott);
   const postnames = posts
     .filter((po) => expectedOrder.includes(po.postname))
     .map((po) => po.postname);
 
   expect(postnames).toEqual(expectedOrder);
-
-  await api.deletePost(p1Id);
-  await api.deletePost(p2Id);
 });
