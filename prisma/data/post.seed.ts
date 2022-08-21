@@ -9,6 +9,7 @@ export const posts = [
     description: 'Informationschefslav',
     active: true,
     interviewRequired: false,
+    sortPriority: 100,
   },
   {
     postname: 'Teknokrat',
@@ -18,6 +19,7 @@ export const posts = [
     description: 'Ljudperson',
     active: true,
     interviewRequired: false,
+    sortPriority: 0,
   },
   {
     postname: 'Cophös',
@@ -27,5 +29,6 @@ export const posts = [
     description: 'Stressad',
     active: true,
     interviewRequired: true,
+    sortPriority: 0,
   },
 ];
