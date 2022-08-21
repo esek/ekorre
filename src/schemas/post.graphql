@@ -31,8 +31,8 @@ type Post {
     email: String
     utskott: Utskott!
     postType: PostType!
-    "Used for ordering"
-    priority: Int
+    "Higher means it will be shown first"
+    sortPriority: Int!
 
     """
     Hur många platser en post har.
@@ -60,7 +60,8 @@ input NewPost {
     email: String
     utskott: Utskott!
     postType: PostType!
-    priority: Int
+    "Higher means it will be shown first"
+    sortPriority: Int
 
     """
     Hur många platser en post har.
@@ -82,7 +83,8 @@ input ModifyPost {
     email: String
     utskott: Utskott
     postType: PostType
-    priority: Int
+    "Higher means it will be shown first"
+    sortPriority: Int
 
     """
     Hur många platser en post har.

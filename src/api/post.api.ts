@@ -13,7 +13,7 @@ const logger = Logger.getLogger('PostAPI');
 
 const defaultOrder: Prisma.PrismaPostOrderByWithRelationAndSearchRelevanceInput[] = [
   { utskott: 'asc' },
-  { priority: 'desc' },
+  { sortPriority: 'desc' },
   { postname: 'asc' },
 ];
 
@@ -246,7 +246,7 @@ export class PostAPI {
     description,
     interviewRequired,
     active,
-    priority,
+    sortPriority,
   }: NewPost): Promise<PrismaPost> {
     const s = checkPostTypeAndSpots(postType, spots);
 
@@ -272,11 +272,11 @@ export class PostAPI {
         email,
         utskott,
         postType,
+        sortPriority: sortPriority ?? 0,
         spots: s,
         description: description || 'Postbeskrivning saknas :/',
         interviewRequired: interviewRequired ?? false,
         active: active ?? true,
-        priority: priority ?? 0,
       },
     });
 

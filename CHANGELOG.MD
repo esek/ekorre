@@ -7,7 +7,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [1.1.0] - 2022-08-20
 
 ### Tillagt
-- Lagt till `Post.priority` så att man kan ändra i vilken ordning poster kommer
+- Lagt till `Post.sortPriority` så att man kan ändra i vilken ordning poster kommer
 
 ## [1.0.6] - 2022-08-19
 

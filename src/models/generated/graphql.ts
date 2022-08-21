@@ -283,7 +283,8 @@ export type ModifyPost = {
   interviewRequired?: Maybe<Scalars['Boolean']>;
   postType?: Maybe<PostType>;
   postname?: Maybe<Scalars['String']>;
-  priority?: Maybe<Scalars['Int']>;
+  /** Higher means it will be shown first */
+  sortPriority?: Maybe<Scalars['Int']>;
   /**
    * Hur många platser en post har.
    * `-1` symboliserar godtyckligt antal
@@ -666,7 +667,8 @@ export type NewPost = {
   interviewRequired?: Maybe<Scalars['Boolean']>;
   name: Scalars['String'];
   postType: PostType;
-  priority?: Maybe<Scalars['Int']>;
+  /** Higher means it will be shown first */
+  sortPriority?: Maybe<Scalars['Int']>;
   /**
    * Hur många platser en post har.
    * `-1` symboliserar godtyckligt antal
@@ -709,8 +711,8 @@ export type Post = {
   interviewRequired?: Maybe<Scalars['Boolean']>;
   postType: PostType;
   postname: Scalars['String'];
-  /** Used for ordering */
-  priority?: Maybe<Scalars['Int']>;
+  /** Higher means it will be shown first */
+  sortPriority: Scalars['Int'];
   /**
    * Hur många platser en post har.
    * `-1` symboliserar godtyckligt antal
@@ -1590,7 +1592,7 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
   interviewRequired?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   postType?: Resolver<ResolversTypes['PostType'], ParentType, ContextType>;
   postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  priority?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  sortPriority?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   spots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
