@@ -10,7 +10,6 @@ generates:
       scalars:
         Object: Record<string, string>
         Date: Date
-        DateTime: Date
       mappers:
         Article: ../mappers#ArticleResponse
         File: ../mappers#FileResponse

@@ -1,10 +1,9 @@
 #import User from 'user.graphql'
 
 scalar Date
-scalar DateTime
 
 type Query {
-  newsentries(author: String, after: DateTime, before: DateTime): [Article!]!
+  newsentries(author: String, after: Date, before: Date): [Article!]!
   latestnews(limit: Int): [Article!]!
   article(id: Int, slug: String): Article!
   articles(id: Int, author: String, type: ArticleType, tags: [String!]): [Article!]!
@@ -26,8 +25,8 @@ type Article {
   lastUpdatedBy: User!
   title: String!
   body: String!
-  createdAt: DateTime!
-  lastUpdatedAt: DateTime!
+  createdAt: Date!
+  lastUpdatedAt: Date!
   signature: String!
   "Limit if special tags should be included. Will default to true"
   tags(includeSpecial: Boolean): [String!]!
