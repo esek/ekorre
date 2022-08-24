@@ -10,8 +10,14 @@
       "request": "launch",
       "name": "Launch Program",
       "program": "${workspaceFolder}/src/app.ts",
-      "args": ["src/app.ts"],
-      "runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
+      "args": [
+        "src/app.ts"
+      ],
+      "runtimeArgs": [
+        "--nolazy",
+        "-r",
+        "ts-node/register"
+      ],
       "cwd": "${workspaceRoot}",
       "smartStep": true,
       "sourceMaps": true,
@@ -24,7 +30,7 @@
       "name": "Attach",
       "port": 9229,
       "request": "attach",
-      "type": "pwa-node",
+      "type": "node",
       "smartStep": true,
       "sourceMaps": true,
       "skipFiles": [
