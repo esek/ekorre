@@ -1,7 +1,6 @@
 #import User from 'user.graphql'
 
 scalar Date
-scalar DateTime
 
 type Query {
   files(type: FileType): [File!]!
@@ -23,7 +22,7 @@ type File {
   folderLocation: String!
   url: String
   accessType: AccessType!
-  createdAt: DateTime!
+  createdAt: Date
   createdBy: User
   size: Int!
 }

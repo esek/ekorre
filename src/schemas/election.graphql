@@ -1,8 +1,7 @@
 # import User from 'user.graphql'
 # import Post from 'post.graphql'
 
-scalar DateTime
-
+scalar Date
 """
 Queries and mutations that relies on an election being open
 does not take an `electionId` parameter.
@@ -46,9 +45,9 @@ type Mutation {
 type Election {
   id: Int!
   creator: User!
-  createdAt: DateTime!
-  openedAt: DateTime
-  closedAt: DateTime
+  createdAt: Date!
+  openedAt: Date
+  closedAt: Date
   open: Boolean!
 
   "Which posts can be elected in the election"

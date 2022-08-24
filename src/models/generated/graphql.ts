@@ -16,7 +16,6 @@ export type Scalars = {
   Int: number;
   Float: number;
   Date: Date;
-  DateTime: any;
   Object: Record<string, string>;
 };
 
@@ -54,9 +53,9 @@ export type Article = {
   articleType: ArticleType;
   author: User;
   body: Scalars['String'];
-  createdAt: Scalars['DateTime'];
+  createdAt: Scalars['Date'];
   id: Scalars['Int'];
-  lastUpdatedAt: Scalars['DateTime'];
+  lastUpdatedAt: Scalars['Date'];
   lastUpdatedBy: User;
   signature: Scalars['String'];
   /** Used in URLs, but Intentification is done using only tail (Int) */
@@ -108,8 +107,8 @@ export type DoorInfo = {
 export type Election = {
   /** Is only available if `nominationsHidden` is `false` */
   acceptedNominations: Array<Nomination>;
-  closedAt?: Maybe<Scalars['DateTime']>;
-  createdAt: Scalars['DateTime'];
+  closedAt?: Maybe<Scalars['Date']>;
+  createdAt: Scalars['Date'];
   creator: User;
   /** Which posts can be elected in the election */
   electables: Array<Post>;
@@ -117,7 +116,7 @@ export type Election = {
   /** Whether accepted nominations are to be hidden */
   nominationsHidden: Scalars['Boolean'];
   open: Scalars['Boolean'];
-  openedAt?: Maybe<Scalars['DateTime']>;
+  openedAt?: Maybe<Scalars['Date']>;
   proposals?: Maybe<Array<Maybe<Proposal>>>;
 };
 
@@ -159,7 +158,7 @@ export type FeatureInfo = {
 
 export type File = {
   accessType: AccessType;
-  createdAt: Scalars['DateTime'];
+  createdAt?: Maybe<Scalars['Date']>;
   createdBy?: Maybe<User>;
   folderLocation: Scalars['String'];
   id: Scalars['ID'];
@@ -997,9 +996,9 @@ export type QueryMyNominationsArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryNewsentriesArgs = {
-  after?: InputMaybe<Scalars['DateTime']>;
+  after?: InputMaybe<Scalars['Date']>;
   author?: InputMaybe<Scalars['String']>;
-  before?: InputMaybe<Scalars['DateTime']>;
+  before?: InputMaybe<Scalars['Date']>;
 };
 
 
@@ -1260,7 +1259,6 @@ export type ResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
-  DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Door: Door;
   DoorInfo: ResolverTypeWrapper<DoorInfo>;
   Election: ResolverTypeWrapper<ElectionResponse>;
@@ -1315,7 +1313,6 @@ export type ResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean'];
   CasLoginResponse: CasLoginResponse;
   Date: Scalars['Date'];
-  DateTime: Scalars['DateTime'];
   DoorInfo: DoorInfo;
   Election: ElectionResponse;
   EmergencyContact: EmergencyContact;
@@ -1369,9 +1366,9 @@ export type ArticleResolvers<ContextType = Context, ParentType extends Resolvers
   articleType?: Resolver<ResolversTypes['ArticleType'], ParentType, ContextType>;
   author?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   body?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  lastUpdatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  lastUpdatedAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   lastUpdatedBy?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   signature?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   slug?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1391,10 +1388,6 @@ export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
   name: 'Date';
 }
 
-export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
-  name: 'DateTime';
-}
-
 export type DoorInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DoorInfo'] = ResolversParentTypes['DoorInfo']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['Door'], ParentType, ContextType>;
@@ -1403,14 +1396,14 @@ export type DoorInfoResolvers<ContextType = Context, ParentType extends Resolver
 
 export type ElectionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Election'] = ResolversParentTypes['Election']> = ResolversObject<{
   acceptedNominations?: Resolver<Array<ResolversTypes['Nomination']>, ParentType, ContextType>;
-  closedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  closedAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   electables?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   nominationsHidden?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   open?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  openedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  openedAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   proposals?: Resolver<Maybe<Array<Maybe<ResolversTypes['Proposal']>>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -1431,7 +1424,7 @@ export type FeatureInfoResolvers<ContextType = Context, ParentType extends Resol
 
 export type FileResolvers<ContextType = Context, ParentType extends ResolversParentTypes['File'] = ResolversParentTypes['File']> = ResolversObject<{
   accessType?: Resolver<ResolversTypes['AccessType'], ParentType, ContextType>;
-  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  createdAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   createdBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   folderLocation?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
@@ -1675,7 +1668,6 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Article?: ArticleResolvers<ContextType>;
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
   Date?: GraphQLScalarType;
-  DateTime?: GraphQLScalarType;
   DoorInfo?: DoorInfoResolvers<ContextType>;
   Election?: ElectionResolvers<ContextType>;
   EmergencyContact?: EmergencyContactResolvers<ContextType>;
