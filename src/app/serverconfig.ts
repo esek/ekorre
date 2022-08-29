@@ -22,7 +22,8 @@ import {
   Config,
 } from 'apollo-server-core';
 import { ExpressContext } from 'apollo-server-express';
-import { typeDefs as scalarTypeDefs, resolvers as scalarResolvers } from 'graphql-scalars';
+// Use scalarTypeDefs and scalarResolvers for more scalar types
+import { DateResolver } from 'graphql-scalars';
 
 // Ladda alla scheman från .graphql filer
 const typeDefs = loadSchemaSync('./src/schemas/*.graphql', {
@@ -34,8 +35,8 @@ const resolvers = Object.entries(Resolvers).map(([_, value]) => value);
 
 // Konstruera root schema. VIKTIGT! Det senaste schemat kommer skugga andra.
 const schema = makeExecutableSchema({
-  typeDefs: [typeDefs, ...scalarTypeDefs],
-  resolvers: [scalarResolvers, ...resolvers],
+  typeDefs: [typeDefs, 'scalar Date'],
+  resolvers: [{ Date: DateResolver }, ...resolvers],
 });
 
 const apolloLogger = Logger.getLogger('Apollo');
