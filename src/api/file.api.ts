@@ -37,16 +37,16 @@ class FileAPI {
     path: string,
     creator: string,
   ): Promise<PrismaFile> {
+    const type = this.getFileType(file.name);
+
+    const hashedName = this.createHashedName(file.name);
+
+    const trimmedPath = this.trimFolder(path);
+
+    const folder = `${ROOT}/${trimmedPath}`;
+    const location = `${folder}${hashedName}`;
+
     try {
-      const type = this.getFileType(file.name);
-
-      const hashedName = this.createHashedName(file.name);
-
-      const trimmedPath = this.trimFolder(path);
-
-      const folder = `${ROOT}/${trimmedPath}`;
-      const location = `${folder}${hashedName}`;
-
       // Create folder(s) if it doesn't exist
       if (!syncFs.existsSync(folder)) {
         await fs.mkdir(folder, { recursive: true });
@@ -71,6 +71,10 @@ class FileAPI {
       return res;
     } catch (err) {
       logger.error(err);
+
+      // We don't care if this fails since we can't do anything about it
+      await fs.rm(location).catch(() => {});
+
       throw new ServerError('Kunde inte spara filen');
     }
   }

@@ -62,6 +62,10 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
 
+  if (Object.values(AccessType).indexOf(accessType) === -1) {
+    return res.status(400).send('Invalid access type');
+  }
+
   try {
     const dbFile = await fileApi.saveFile(file, accessType, path, res.locals.user.username);
     return res.send(reduce(dbFile, fileReduce));
