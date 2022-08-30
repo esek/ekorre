@@ -62,7 +62,7 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
 
-  if (Object.values(AccessType).indexOf(accessType) === -1) {
+  if (!Object.values(AccessType).includes(accessType)) {
     return res.status(400).send('Invalid access type');
   }
 
