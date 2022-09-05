@@ -61,9 +61,18 @@ filesRoute.post('/upload', upload(), verifyAuthenticated, async (req, res) => {
 
   const accessType = body?.accessType ?? AccessType.Public;
   const path = body?.path ?? '/';
-  const dbFile = await fileApi.saveFile(file, accessType, path, res.locals.user.username);
 
-  return res.send(reduce(dbFile, fileReduce));
+  if (!Object.values(AccessType).includes(accessType)) {
+    return res.status(400).send('Invalid access type');
+  }
+
+  try {
+    const dbFile = await fileApi.saveFile(file, accessType, path, res.locals.user.username);
+    return res.send(reduce(dbFile, fileReduce));
+  } catch (e) {
+    logger.error(e);
+    return res.status(500).send(e);
+  }
 });
 
 filesRoute.post('/upload/avatar', upload(), verifyAuthenticated, async (req, res) => {
