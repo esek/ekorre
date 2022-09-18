@@ -80,6 +80,12 @@ const userResolver: Resolvers = {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return obj.zipCode!;
     },
+    luCard: async (obj, _, ctx) => {
+      await checkUserFieldAccess(ctx, obj);
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return obj.luCard!;
+    },
     // website OK
     class: ({ firstName, class: className }) => {
       // hide phøsets class
@@ -115,6 +121,11 @@ const userResolver: Resolvers = {
     user: async (_, { username }, ctx) => {
       await hasAuthenticated(ctx);
       const u = await api.getSingleUser(username);
+      return reduce(u, userReduce);
+    },
+    userByCard: async (_, { luCard }, ctx) => {
+      await hasAuthenticated(ctx);
+      const u = await api.getSingleUserByLuCard(luCard);
       return reduce(u, userReduce);
     },
     searchUser: async (_, { search }, ctx) => {

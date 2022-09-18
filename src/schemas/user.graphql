@@ -6,6 +6,7 @@ scalar Date
 
 type Query {
   user(username: String!): User!
+  userByCard(luCard: String!): User!
   searchUser(search: String!): [User!]!
   me: User!
   numberOfMembers(noAlumni: Boolean): Int!
@@ -36,6 +37,7 @@ type User {
   address: String
   zipCode: String
   website: String
+  luCard: String
 
   class: String!
 
@@ -69,4 +71,5 @@ input UpdateUser {
   address: String
   zipCode: String
   website: String
+  luCard: String
 }

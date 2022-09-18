@@ -795,6 +795,7 @@ export type Query = {
   searchFiles: Array<File>;
   searchUser: Array<User>;
   user: User;
+  userByCard: User;
   utskott: Utskott;
 };
 
@@ -1099,6 +1100,15 @@ export type QueryUserArgs = {
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
  */
+export type QueryUserByCardArgs = {
+  luCard: Scalars['String'];
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryUtskottArgs = {
   name: Scalars['String'];
 };
@@ -1126,6 +1136,7 @@ export type UpdateUser = {
   email?: InputMaybe<Scalars['String']>;
   firstName?: InputMaybe<Scalars['String']>;
   lastName?: InputMaybe<Scalars['String']>;
+  luCard?: InputMaybe<Scalars['String']>;
   phone?: InputMaybe<Scalars['String']>;
   website?: InputMaybe<Scalars['String']>;
   zipCode?: InputMaybe<Scalars['String']>;
@@ -1142,6 +1153,7 @@ export type User = {
   fullName: Scalars['String'];
   lastName: Scalars['String'];
   loginProviders: Array<Maybe<LoginProvider>>;
+  luCard?: Maybe<Scalars['String']>;
   phone?: Maybe<Scalars['String']>;
   photoUrl?: Maybe<Scalars['String']>;
   /** Past and current posts held by this user */
@@ -1625,6 +1637,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   searchFiles?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QuerySearchFilesArgs, 'search'>>;
   searchUser?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySearchUserArgs, 'search'>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
+  userByCard?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserByCardArgs, 'luCard'>>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType, RequireFields<QueryUtskottArgs, 'name'>>;
 }>;
 
@@ -1644,6 +1657,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   fullName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   lastName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   loginProviders?: Resolver<Array<Maybe<ResolversTypes['LoginProvider']>>, ParentType, ContextType>;
+  luCard?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   phone?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   photoUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   postHistory?: Resolver<Array<ResolversTypes['UserPostHistoryEntry']>, ParentType, ContextType, Partial<UserPostHistoryArgs>>;

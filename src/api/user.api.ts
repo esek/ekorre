@@ -80,6 +80,25 @@ export class UserAPI {
   }
 
   /**
+   * Retrieves a user
+   * @param luCard LU Card number in decimal for the user
+   * @throws {NotFoundError} If the user is not found
+   */
+  async getSingleUserByLuCard(luCard: string): Promise<PrismaUser> {
+    const u = await prisma.prismaUser.findFirst({
+      where: {
+        luCard: luCard,
+      },
+    });
+
+    if (u == null) {
+      throw new NotFoundError('Användaren kunde inte hittas');
+    }
+
+    return u;
+  }
+
+  /**
    * Retrieves multiple users ordered after first name, then last name, and finally class
    * @param usernames Usernames to the users to be received
    */
@@ -166,7 +185,7 @@ export class UserAPI {
           },
         });
       }
-      
+
       const count = await prisma.prismaUser.count({
         where: {
           OR: validEndings,
@@ -290,6 +309,21 @@ export class UserAPI {
     return createdUser;
   }
 
+  validLuCard(luCard: string): boolean {
+    // Based on findings about LU cards the first six digits are the same
+    // for all cards and the last ten are the card serial
+    const LU_CARD_START = '002504';
+    if (
+      luCard.startsWith(LU_CARD_START) &&
+      luCard.length === 16 &&
+      /^[0-9]+$/.test(luCard) // Only numbers
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   /**
    * Update a user
    * @param username Username of the user to be updated
@@ -300,6 +334,10 @@ export class UserAPI {
   async updateUser(username: string, partial: Partial<PrismaUser>): Promise<PrismaUser> {
     if (partial.username) {
       throw new BadRequestError('Användarnamn kan inte uppdateras');
+    }
+
+    if (partial.luCard != null && !this.validLuCard(partial.luCard)) {
+      throw new BadRequestError('Ogiltigt LU-kort');
     }
 
     const res = await prisma.prismaUser.update({
