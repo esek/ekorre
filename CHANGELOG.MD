@@ -6,7 +6,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.2.0] - 2022-09-18
 ### Tillagt
-- Lagt till `User.luCard` med regler enligt [egen research](https://github.com/esek/espresso/pull/2#issuecomment-1250238860)
+- Lagt till `User.luCard` med regler enligt [egen research](https://github.com/esek/ekorre/pull/240#issuecomment-1250354632)
 - Nytt fält `PrismaUser.luCard` i databas som tillåter null och därför bakåtkompatibel
 - `userByCard` query
 
