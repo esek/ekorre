@@ -4,6 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2022-09-18
+### Tillagt
+- Lagt till `User.luCard` med regler enligt [egen research](https://github.com/esek/espresso/pull/2#issuecomment-1250238860)
+- Nytt fält `PrismaUser.luCard` i databas som tillåter null och därför bakåtkompatibel
+- `userByCard` query
+
 ## [1.1.3] - 2022-08-30
 - Fixat krash i `/files/upload`
 
