@@ -40,9 +40,7 @@ export const midnightTimestamp = (d: Date, when: 'before' | 'after'): number => 
  * knex operations with `obj`
  * @param obj
  */
-export const stripObject = <E extends StrictObject<string, unknown>, T extends E>(
-  obj: E,
-): Partial<T> => {
+export const stripObject = <E extends StrictObject, T extends E>(obj: E): Partial<T> => {
   // Ts låter en inte indexera nycklar i params med foreach,
   // måste använda `StrictObject`
   const copy: StrictObject = { ...obj };
