@@ -312,16 +312,13 @@ export class UserAPI {
   validLuCard(luCard: string): boolean {
     // Based on findings about LU cards the first six digits are the same
     // for all cards and the last ten are the card serial
+    // https://github.com/esek/ekorre/pull/240#issuecomment-1250354632
     const LU_CARD_START = '002504';
-    if (
-      luCard.startsWith(LU_CARD_START) &&
-      luCard.length === 16 &&
-      /^[0-9]+$/.test(luCard) // Only numbers
-    ) {
-      return true;
-    }
+    const startCorrect = luCard.startsWith(LU_CARD_START);
+    const hasCorrectLength = luCard.length === 16;
+    const hasOnlyNumbers = /^[0-9]+$/.test(luCard);
 
-    return false;
+    return startCorrect && hasCorrectLength && hasOnlyNumbers;
   }
 
   /**
