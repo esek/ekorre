@@ -1,4 +1,6 @@
-export const users = [
+import { Prisma } from '@prisma/client';
+
+export const users: Prisma.PrismaUserCreateInput[] = [
   {
     username: 'aa0000bb-s',
     passwordHash:
@@ -8,6 +10,7 @@ export const users = [
     lastName: 'Blennow',
     class: 'E19',
     email: 'aa0000bb-s@student.lu.se',
+    luCard: '0025040000000001',
   },
   {
     username: 'bb1111cc-s',
@@ -18,6 +21,7 @@ export const users = [
     lastName: 'Persson',
     class: 'E16',
     email: 'bb1111cc-s@student.lu.se',
+    luCard: '0025040000000002',
   },
   {
     username: 'no0000oh-s',
@@ -28,5 +32,6 @@ export const users = [
     lastName: 'Handén',
     class: 'BME19',
     email: 'no0000oh-s@student.lu.se',
+    luCard: '0025040000000003',
   },
 ];

@@ -1,6 +1,6 @@
-import { PrismaUtskott, PrismaPostType } from '@prisma/client';
+import { PrismaUtskott, PrismaPostType, Prisma } from '@prisma/client';
 
-export const posts = [
+export const posts: Prisma.PrismaPostCreateInput[] = [
   {
     postname: 'Macapär',
     utskott: PrismaUtskott.INFU,
