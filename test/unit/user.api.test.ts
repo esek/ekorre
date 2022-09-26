@@ -146,7 +146,7 @@ test('get multiple non-existant users', async () => {
 });
 
 test('updating existing user', async () => {
-  const uu: Partial<PrismaUser> = {
+  let uu: Partial<PrismaUser> = {
     firstName: 'Adolf',
     phone: '1234657890',
     address: 'Kämnärsvägen 22F',
@@ -154,14 +154,31 @@ test('updating existing user', async () => {
     website: 'apkollen.se',
   };
 
-  await api.createUser(mockNewUser1);
-  const dbRes = await api.getSingleUser(mockNewUser1.username);
+  await expect(api.createUser(mockNewUser1)).resolves.not.toThrow();
 
-  expect(dbRes).toMatchObject(dbRes);
+  // Sanity check
+  expect(mockNewUser1.username).not.toEqual(uu.username);
 
   await api.updateUser(mockNewUser1.username, uu);
-  const uDbRes = await api.getSingleUser(mockNewUser1.username);
+  let uDbRes = await api.getSingleUser(mockNewUser1.username);
 
+  expect(uDbRes).toMatchObject(uu);
+
+  // These should all fail
+  await expect(
+    api.updateUser(mockNewUser1.username, { ...uu, luCard: '002504' }),
+  ).rejects.toThrowError(BadRequestError);
+  await expect(
+    api.updateUser(mockNewUser1.username, { ...uu, luCard: '002504000000000A' }),
+  ).rejects.toThrowError(BadRequestError);
+  await expect(api.updateUser(mockNewUser1.username, { ...uu, luCard: '00' })).rejects.toThrowError(
+    BadRequestError,
+  );
+
+  uu = { ...uu, luCard: '0025040000000000' };
+  await expect(api.updateUser(mockNewUser1.username, uu)).resolves.not.toThrow();
+
+  uDbRes = await api.getSingleUser(mockNewUser1.username);
   expect(uDbRes).toMatchObject(uu);
 });
 
@@ -200,11 +217,11 @@ test('search for user by name that exists', async () => {
 });
 
 test('search for non-existant user', async () => {
-  await expect(api.searchUser('Albert')).resolves.toHaveLength(0);
+  // Elon Musk's child is not a user
+  await expect(api.searchUser('X Æ A-12')).resolves.toHaveLength(0);
 });
 
 // Test för att återställa password
-
 test('changing password for non-existing user', async () => {
   await expect(api.changePassword('Not a user', 'hunter2', 'hunter3')).rejects.toThrowError(
     NotFoundError,

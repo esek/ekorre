@@ -44,6 +44,7 @@ model PrismaUser {
   address           String?
   zipCode           String?                  @map("zip_code")
   website           String?
+  luCard            String?                  @unique
   dateJoined        DateTime                 @default(now()) @map("date_joined")
 
   @@index([firstName, lastName])

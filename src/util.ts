@@ -40,7 +40,7 @@ export const midnightTimestamp = (d: Date, when: 'before' | 'after'): number => 
  * knex operations with `obj`
  * @param obj
  */
-export const stripObject = <E, T extends E>(obj: E): Partial<T> => {
+export const stripObject = <E extends StrictObject, T extends E>(obj: E): Partial<T> => {
   // Ts låter en inte indexera nycklar i params med foreach,
   // måste använda `StrictObject`
   const copy: StrictObject = { ...obj };
@@ -75,7 +75,7 @@ export const slugify = (str: string) =>
 
 /**
  * Fetches the last number from a string, ex: `article-with-long-123-slug-7`, gives `7`
- * (last part of slug is ID) 
+ * (last part of slug is ID)
  */
 export const parseSlug = (slug: string): number | undefined => {
   let dbId: number;
