@@ -345,16 +345,17 @@ enum PrismaPostType {
 
 enum PrismaUtskott {
   CM
-  KM
-  INFU
   E6
-  NOJU
-  NOLLU
-  SRE
   ENU
   FVU
-  STYRELSEN
+  INFU
+  KM
+  NOJU
+  NOLLU
   OTHER
+  PENGU
+  SRE
+  STYRELSEN
 
   @@map("utskott")
 }
