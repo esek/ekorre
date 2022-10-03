@@ -1187,6 +1187,7 @@ export enum Utskott {
   Noju = 'NOJU',
   Nollu = 'NOLLU',
   Other = 'OTHER',
+  Pengu = 'PENGU',
   Sre = 'SRE',
   Styrelsen = 'STYRELSEN'
 }
