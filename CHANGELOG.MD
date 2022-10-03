@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2022-10-03
+
+### Tillagt
+- `PengU` utskottet tillagt i [`utskott.graphql`](./src/schemas/utskott.graphql)
+
 ## [1.2.0] - 2022-09-18
 ### Tillagt
 - Lagt till `User.luCard` med regler enligt [egen research](https://github.com/esek/ekorre/pull/240#issuecomment-1250354632)
