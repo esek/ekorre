@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2022-11-03
+
+### Ändrat
+- `getLatestElections` fungerar som tänkt
+
 ## [1.2.1] - 2022-10-03
 
 ### Tillagt

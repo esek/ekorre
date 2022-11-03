@@ -50,6 +50,12 @@ test('finding latest elections without limit', async () => {
   expect(elections.length).toEqual(5);
 });
 
+test('finding latest elections with limit, including hidden nominations and not including unopened', async () => {
+  await addDummyElections('aa0000bb-s', true, 5);
+  const elections = await api.getLatestElections(10, false, true);
+  expect(elections.length).toEqual(5);
+});
+
 test('finding latest elections with limit', async () => {
   await addDummyElections('aa0000bb-s', true, 5);
 

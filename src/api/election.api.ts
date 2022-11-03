@@ -4,6 +4,7 @@ import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { NominationAnswer } from '@generated/graphql';
 import {
+  Prisma,
   PrismaElection,
   PrismaNomination,
   PrismaNominationAnswer,
@@ -18,15 +19,35 @@ export class ElectionAPI {
   /**
    * Retrieves elections ordered by creation date
    * @param limit Number of elections to be returned; `null` means all meetings
+   * @param includeUnopened If unopened elections should be included
+   * @param includeHiddenNominations If elections with hidden nominations should be included
    */
   async getLatestElections(
     limit?: number,
     includeUnopened = true,
     includeHiddenNominations = true,
   ): Promise<PrismaElection[]> {
+    const unopenedWhere: Prisma.PrismaElectionWhereInput = {};
+
+    if (!includeUnopened) {
+    // Either it has been opened and is then closed, or it is currently open
+      unopenedWhere.OR = [
+          {
+            // It is currently opened
+            open: true,
+          },
+          {
+            // It has been opened before, and is now closed
+            NOT: {
+              closedAt: null,
+            },
+          },
+        ]
+      };
+
     const e = await prisma.prismaElection.findMany({
       where: {
-        open: includeUnopened ? undefined : true,
+        ...unopenedWhere,
         nominationsHidden: includeHiddenNominations ? undefined : false,
       },
       orderBy: {
@@ -585,22 +606,18 @@ export class ElectionAPI {
           createdAt: 'asc',
         },
       });
-      
-      if (openElectionRes  == null) {
+
+      if (openElectionRes == null) {
         throw new NotFoundError('Det finns inget öppet val');
       }
-      
+
       const electablePostIds = openElectionRes.electables.map((e) => e.refPost);
 
       if (electablePostIds.length === 0) {
-        throw new BadRequestError(
-          'Det öppna valet inga valbara poster',
-        );
+        throw new BadRequestError('Det öppna valet inga valbara poster');
       }
 
-      const filteredPostIds = postIds.filter((e) =>
-        electablePostIds.includes(e),
-      );
+      const filteredPostIds = postIds.filter((e) => electablePostIds.includes(e));
 
       if (filteredPostIds.length === 0) {
         throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
