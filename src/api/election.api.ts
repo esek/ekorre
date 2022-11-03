@@ -4,6 +4,7 @@ import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { NominationAnswer } from '@generated/graphql';
 import {
+  Prisma,
   PrismaElection,
   PrismaNomination,
   PrismaNominationAnswer,
@@ -26,12 +27,11 @@ export class ElectionAPI {
     includeUnopened = true,
     includeHiddenNominations = true,
   ): Promise<PrismaElection[]> {
-    let unopenedWhere = {};
+    const unopenedWhere: Prisma.PrismaElectionWhereInput = {};
 
     if (!includeUnopened) {
     // Either it has been opened and is then closed, or it is currently open
-      unopenedWhere = {
-        OR: [
+      unopenedWhere.OR = [
           {
             // It is currently opened
             open: true,
@@ -44,7 +44,6 @@ export class ElectionAPI {
           },
         ]
       };
-    }
 
     const e = await prisma.prismaElection.findMany({
       where: {
