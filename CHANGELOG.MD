@@ -4,6 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2022-12-16
+
+### Ändrat
+- `getHistoryEntries` returnerar inte längre poster innan folk gått på dem då `onlyCurrent` eller `withinAccessCooldown` är `true`
+
+
 ## [1.2.2] - 2022-11-03
 
 ### Ändrat
