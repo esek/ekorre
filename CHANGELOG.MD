@@ -8,6 +8,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - `getHistoryEntries` returnerar inte längre poster innan folk gått på dem då `onlyCurrent` eller `withinAccessCooldown` är `true`
+- Lagt till unit-tester för ovanstående
 
 
 ## [1.2.2] - 2022-11-03
