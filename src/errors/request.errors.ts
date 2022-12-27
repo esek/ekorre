@@ -21,7 +21,7 @@ abstract class RequestError extends ApolloError {
       errorType: this.name,
       statusCode: this.code,
       message: this.message,
-      stack: stack ?? this.stack
+      stack: stack ?? this.stack,
     };
   }
 

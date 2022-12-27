@@ -30,20 +30,20 @@ export class ElectionAPI {
     const unopenedWhere: Prisma.PrismaElectionWhereInput = {};
 
     if (!includeUnopened) {
-    // Either it has been opened and is then closed, or it is currently open
+      // Either it has been opened and is then closed, or it is currently open
       unopenedWhere.OR = [
-          {
-            // It is currently opened
-            open: true,
+        {
+          // It is currently opened
+          open: true,
+        },
+        {
+          // It has been opened before, and is now closed
+          NOT: {
+            closedAt: null,
           },
-          {
-            // It has been opened before, and is now closed
-            NOT: {
-              closedAt: null,
-            },
-          },
-        ]
-      };
+        },
+      ];
+    }
 
     const e = await prisma.prismaElection.findMany({
       where: {
