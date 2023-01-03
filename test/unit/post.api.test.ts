@@ -384,9 +384,7 @@ test('get current post history before start of post using onlyCurrent', async ()
   // Now turn back time
   jest.useFakeTimers().setSystemTime(new Date('1700-03-13'));
 
-  await expect(api.getHistoryEntries(undefined, postId, true, false)).rejects.toThrowError(
-    NotFoundError,
-  );
+  await expect(api.getHistoryEntries(undefined, postId, true, false)).resolves.toHaveLength(0);
 });
 
 test('get current post history before start of post using withinAccessCooldown', async () => {
@@ -396,9 +394,7 @@ test('get current post history before start of post using withinAccessCooldown',
   // Now turn back time
   jest.useFakeTimers().setSystemTime(new Date('1700-03-13'));
 
-  await expect(api.getHistoryEntries(undefined, postId, false, true)).rejects.toThrowError(
-    NotFoundError,
-  );
+  await expect(api.getHistoryEntries(undefined, postId, false, true)).resolves.toHaveLength(0);
 });
 
 test('get number of volunteers in year 1700', async () => {
