@@ -397,13 +397,24 @@ export class PostAPI {
 
     let or = {};
     if (onlyCurrent) {
-      or = { OR: [{ end: null }, { end: { gt: new Date() } }] };
+      const currentDate = new Date();
+      or = {
+        AND: [
+          { OR: [{ end: null }, { end: { gt: currentDate } }] }, // Must not have passed
+          { start: { lt: currentDate } }, // Must have started
+        ],
+      };
     } else if (withinAccessCooldown) {
       // We want to return posts having ended up to POST_ACCESS_COOLDOWN_DAYS
       // ago
       const lastAccessDate = new Date();
       lastAccessDate.setDate(lastAccessDate.getDate() - config.POST_ACCESS_COOLDOWN_DAYS);
-      or = { OR: [{ end: null }, { end: { gt: lastAccessDate } }] };
+      or = {
+        AND: [
+          { OR: [{ end: null }, { end: { gt: lastAccessDate } }] },
+          { start: { lt: new Date() } }, // Must have started
+        ],
+      };
     }
 
     const history = await prisma.prismaPostHistory.findMany({

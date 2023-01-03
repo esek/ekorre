@@ -21,19 +21,11 @@ beforeEach(() => {
 
 beforeAll(async () => {
   // Insert fake users
-  mockPostIds = (await Promise.all([
-    createPost0(),
-    createPost1(),
-    createPost2(),
-  ])).map((p) => p.id);
+  mockPostIds = (await Promise.all([createPost0(), createPost1(), createPost2()])).map((p) => p.id);
 });
 
 afterAll(async () => {
-  await Promise.all([
-    deletePost0(),
-    deletePost1(),
-    deletePost2(),
-  ]);
+  await Promise.all([deletePost0(), deletePost1(), deletePost2()]);
 });
 
 test('load single post', async () => {

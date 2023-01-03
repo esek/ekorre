@@ -61,7 +61,7 @@ export const getRandomPostname = (): string => {
   if (usedPostnames.has(attemptedPostname)) {
     return getRandomPostname();
   }
-  
+
   usedPostnames.add(attemptedPostname);
   return attemptedPostname;
 };
@@ -89,7 +89,9 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
  *
  * Jag ville göra detta till en klass men Blennow o Foobar klagade --Emil
  */
-export const genRandomUser = (access: Feature[] = []): [() => Promise<PrismaUser>, NOOP, string] => {
+export const genRandomUser = (
+  access: Feature[] = [],
+): [() => Promise<PrismaUser>, NOOP, string] => {
   let triesLeft = 10; // Recursion protection
 
   const ru: NewUser = {

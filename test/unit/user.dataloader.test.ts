@@ -1,9 +1,9 @@
 import { createDataLoader } from '@/dataloaders';
 import { batchUsersFunction, userApi } from '@/dataloaders/user.dataloader';
 import { NotFoundError } from '@/errors/request.errors';
-import { PrismaUser } from '@prisma/client';
 import { reduce } from '@/reducers';
 import { userReduce } from '@/reducers/user.reducer';
+import { PrismaUser } from '@prisma/client';
 import { genRandomUser } from '@test/utils/utils';
 
 const [createUser0, deleteUser0] = genRandomUser([]);
@@ -22,19 +22,11 @@ beforeEach(() => {
 
 beforeAll(async () => {
   // Insert fake users
-  mockUsers = await Promise.all([
-    createUser0(),
-    createUser1(),
-    createUser2(),
-  ]);
+  mockUsers = await Promise.all([createUser0(), createUser1(), createUser2()]);
 });
 
 afterAll(async () => {
-  await Promise.all([
-    deleteUser0(),
-    deleteUser1(),
-    deleteUser2(),
-  ]);
+  await Promise.all([deleteUser0(), deleteUser1(), deleteUser2()]);
 });
 
 test('load single user', async () => {
@@ -42,7 +34,7 @@ test('load single user', async () => {
 
   const dl = createDataLoader(batchUsersFunction);
   const user = await dl.load(mockUser0.username);
-  
+
   expect(user).toMatchObject(mockUser0);
   expect(apiSpy).toHaveBeenCalledTimes(1);
 });

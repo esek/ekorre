@@ -1,7 +1,7 @@
 import { PostAPI } from '@/api/post.api';
 import prisma from '@/api/prisma';
 import config from '@/config';
-import { BadRequestError } from '@/errors/request.errors';
+import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { midnightTimestamp } from '@/util';
 import { ModifyPost, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
 import { PrismaPost } from '@prisma/client';
@@ -375,6 +375,26 @@ test('get current number of volunteers', async () => {
 
   // Vår dummy-db innehåller några också
   expect(await api.getNumberOfVolunteers()).toBeGreaterThanOrEqual(1);
+});
+
+test('get current post history before start of post using onlyCurrent', async () => {
+  const { id: postId } = await api.createPost(np);
+  await api.addUsersToPost([dummyUser.username], postId);
+
+  // Now turn back time
+  jest.useFakeTimers().setSystemTime(new Date('1700-03-13'));
+
+  await expect(api.getHistoryEntries(undefined, postId, true, false)).resolves.toHaveLength(0);
+});
+
+test('get current post history before start of post using withinAccessCooldown', async () => {
+  const { id: postId } = await api.createPost(np);
+  await api.addUsersToPost([dummyUser.username], postId);
+
+  // Now turn back time
+  jest.useFakeTimers().setSystemTime(new Date('1700-03-13'));
+
+  await expect(api.getHistoryEntries(undefined, postId, false, true)).resolves.toHaveLength(0);
 });
 
 test('get number of volunteers in year 1700', async () => {

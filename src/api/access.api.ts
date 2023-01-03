@@ -75,10 +75,10 @@ export class AccessAPI {
 
     return access;
   }
-  
+
   /**
    * Set the individual access for an user
-   * 
+   *
    * **IMPORTANT**: Access is immutable, which means that the provided access object
    * must contain all individual access desired for the user
    * @param username Username for the user
@@ -130,7 +130,7 @@ export class AccessAPI {
 
   /**
    * Set the access for an API key
-   * 
+   *
    * **IMPORTANT**: Access is immutable, which means that the provided access object
    * must contain all access desired for the API key
    * @param key The API key for which access is to be changed
@@ -182,7 +182,7 @@ export class AccessAPI {
 
   /**
    * Set the access for a post
-   * 
+   *
    * **IMPORTANT**: Access is immutable, which means that the provided access object
    * must contain all access desired for the post
    * @param postId The ID for the user for which acces is to be changed
