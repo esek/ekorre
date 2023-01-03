@@ -15,6 +15,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - `getLatestElections` fungerar som tänkt
+- `interactiveTransactions` borttagen som `previewFeature` i `schema.prisma`
 
 ## [1.2.1] - 2022-10-03
 
