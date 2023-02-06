@@ -192,6 +192,10 @@ test('updating lu card', async () => {
 
   await expect(api.updateUser(mockNewUser1.username, withLuCard)).resolves.not.toThrow();
   await expect(api.getSingleUser(mockNewUser1.username)).resolves.toMatchObject(withLuCard);
+  await expect(api.updateUser(mockNewUser1.username, { ...u })).resolves.not.toThrow();
+
+  // not setting the LU card should not delete it
+  await expect(api.getSingleUser(mockNewUser1.username)).resolves.toMatchObject(withLuCard);
 
   const deleteLuCard = {
     ...u,
