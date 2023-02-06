@@ -310,6 +310,11 @@ export class UserAPI {
   }
 
   validLuCard(luCard: string): boolean {
+    // we allow empty LU cards
+    if (luCard === '') {
+      return true;
+    }
+
     // Based on findings about LU cards the first six digits are the same
     // for all cards and the last ten are the card serial
     // https://github.com/esek/ekorre/pull/240#issuecomment-1250354632
@@ -333,7 +338,7 @@ export class UserAPI {
       throw new BadRequestError('Användarnamn kan inte uppdateras');
     }
 
-    if (partial.luCard != null && !this.validLuCard(partial.luCard)) {
+    if (partial.luCard !== null && !this.validLuCard(partial.luCard ?? '')) {
       throw new BadRequestError('Ogiltigt LU-kort');
     }
 
