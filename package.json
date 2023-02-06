@@ -1,6 +1,6 @@
 {
   "name": "ekorre-ts",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "E-Sektionens backend",
   "main": "src/index.ts",
   "scripts": {
