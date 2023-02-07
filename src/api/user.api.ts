@@ -333,7 +333,8 @@ export class UserAPI {
       throw new BadRequestError('Användarnamn kan inte uppdateras');
     }
 
-    if (partial.luCard != null && !this.validLuCard(partial.luCard)) {
+    // check if we are trying to update the LU card, and that it's not an empty string or null
+    if ('luCard' in partial && partial.luCard && !this.validLuCard(partial.luCard)) {
       throw new BadRequestError('Ogiltigt LU-kort');
     }
 

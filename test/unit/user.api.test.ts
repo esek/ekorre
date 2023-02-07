@@ -146,7 +146,7 @@ test('get multiple non-existant users', async () => {
 });
 
 test('updating existing user', async () => {
-  let uu: Partial<PrismaUser> = {
+  const uu: Partial<PrismaUser> = {
     firstName: 'Adolf',
     phone: '1234657890',
     address: 'Kämnärsvägen 22F',
@@ -160,26 +160,50 @@ test('updating existing user', async () => {
   expect(mockNewUser1.username).not.toEqual(uu.username);
 
   await api.updateUser(mockNewUser1.username, uu);
-  let uDbRes = await api.getSingleUser(mockNewUser1.username);
+  const uDbRes = await api.getSingleUser(mockNewUser1.username);
 
   expect(uDbRes).toMatchObject(uu);
+});
 
-  // These should all fail
+test('updating lu card', async () => {
+  const u: Partial<PrismaUser> = {
+    address: 'test',
+    zipCode: 'test',
+    phone: 'test',
+    email: 'testuser@test.se',
+  };
+
+  await api.createUser(mockNewUser1);
+
   await expect(
-    api.updateUser(mockNewUser1.username, { ...uu, luCard: '002504' }),
+    api.updateUser(mockNewUser1.username, { ...u, luCard: '002504' }),
   ).rejects.toThrowError(BadRequestError);
   await expect(
-    api.updateUser(mockNewUser1.username, { ...uu, luCard: '002504000000000A' }),
+    api.updateUser(mockNewUser1.username, { ...u, luCard: '002504000000000A' }),
   ).rejects.toThrowError(BadRequestError);
-  await expect(api.updateUser(mockNewUser1.username, { ...uu, luCard: '00' })).rejects.toThrowError(
+  await expect(api.updateUser(mockNewUser1.username, { ...u, luCard: '00' })).rejects.toThrowError(
     BadRequestError,
   );
 
-  uu = { ...uu, luCard: '0025040000000000' };
-  await expect(api.updateUser(mockNewUser1.username, uu)).resolves.not.toThrow();
+  const withLuCard = {
+    ...u,
+    luCard: '0025040000000000',
+  };
 
-  uDbRes = await api.getSingleUser(mockNewUser1.username);
-  expect(uDbRes).toMatchObject(uu);
+  await expect(api.updateUser(mockNewUser1.username, withLuCard)).resolves.not.toThrow();
+  await expect(api.getSingleUser(mockNewUser1.username)).resolves.toMatchObject(withLuCard);
+  await expect(api.updateUser(mockNewUser1.username, { ...u })).resolves.not.toThrow();
+
+  // not setting the LU card should not delete it
+  await expect(api.getSingleUser(mockNewUser1.username)).resolves.toMatchObject(withLuCard);
+
+  const deleteLuCard = {
+    ...u,
+    luCard: '',
+  };
+
+  await expect(api.updateUser(mockNewUser1.username, deleteLuCard)).resolves.not.toThrow();
+  await expect(api.getSingleUser(mockNewUser1.username)).resolves.toMatchObject(deleteLuCard);
 });
 
 test('updating username', async () => {
