@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2023-02-10
+
+### Ändrat
+- Uppdaterat alla dependencies
+
 ## [1.2.4] - 2023-02-06
 
 ### Tillagt
