@@ -1,0 +1,31 @@
+#import User from 'user.graphql'
+
+scalar Date
+
+type Query {
+  eventEntries(limit: Int!): [Event!]!
+}
+
+type Mutation {
+  addEvent(entry: NewEvent!): Event
+}
+
+type Event {
+  id: Int,
+  startDate: Date,
+  endDate: Date,
+  title: String,
+  description: String
+}
+
+input NewEvent {
+  startDate: Date!
+  endDate: Date!
+  title: String!
+  description: String!
+}
+
+ #id: string,
+  #  dateRange: DateRange;
+  #  title: string;
+  #  description: string;
