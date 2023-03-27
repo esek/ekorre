@@ -44,6 +44,10 @@ const WIKI = {
   PASSWORD: process.env.WIKI_PASSWORD ?? '',
 };
 
+const ORBI = {
+  KEY: process.env.ORBI_API_KEY ?? ''
+};
+
 const JWT = {
   SECRET: (process.env.JWT_SECRET as string) ?? '',
 };
@@ -60,6 +64,7 @@ const config = {
   LU,
   WIKI,
   JWT,
+  ORBI,
 };
 
 export default config;
