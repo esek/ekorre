@@ -293,6 +293,15 @@ model PrismaLoginProvider {
   @@map("login_providers")
 }
 
+model PrismaEvent {
+  id  Int @id @default(autoincrement())
+  startDate DateTime @map("start_date")
+  endDate DateTime @map("end_date")
+  title String
+  description String
+  @@map("event")
+}
+
 enum PrismaResourceType {
   door
   feature

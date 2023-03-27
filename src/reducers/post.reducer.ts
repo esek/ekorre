@@ -3,7 +3,6 @@ import { PrismaPost } from '@prisma/client';
 
 export function postReduce(post: PrismaPost): Post {
   const { postType, utskott, ...reduced } = post;
-
   const access: Access = {
     doors: [],
     features: [],
