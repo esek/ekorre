@@ -1,0 +1,31 @@
+type Query{
+    getActivities(year: Int!, month: Int!, count: Int!, department: Utskott!) : [Activity!]! 
+    getDepartment(department: Utskott!) : UtskottInfo!
+}
+
+type Activity{
+    key: String!
+    department: Utskott!
+    title: String!
+    description: String!
+    imageURL: String!
+    start: Int!
+    end: Int!
+    location: String!
+    #Add ticket information.
+}
+
+type UtskottInfo{
+    key: String!
+    about: String!
+    imageURL: String!
+    socials: Socials!
+}
+
+type Socials{
+    facebook: String!
+    instagram: String!
+    twitter: String!
+    website: String!
+    youtube: String!
+}
