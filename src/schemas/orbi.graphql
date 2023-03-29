@@ -1,6 +1,6 @@
 type Query{
-    getActivities(year: Int!, month: Int!, count: Int!, department: Utskott!) : [Activity!]! 
-    getDepartment(department: Utskott!) : UtskottInfo!
+    getActivities(year: Int!, month: Int!, departments: [Utskott]) : [Activity!]! 
+    getDepartments(departments: [Utskott]) : [UtskottInfo!]
 }
 
 type Activity{
@@ -9,23 +9,23 @@ type Activity{
     title: String!
     description: String!
     imageURL: String!
-    start: Int!
-    end: Int!
+    start: Date!
+    end: Date!
     location: String!
     #Add ticket information.
 }
 
 type UtskottInfo{
-    key: String!
-    about: String!
-    imageURL: String!
+    name: String!
+    about: String
+    imageURL: String
     socials: Socials!
 }
 
 type Socials{
-    facebook: String!
-    instagram: String!
-    twitter: String!
-    website: String!
-    youtube: String!
+    facebook: String
+    instagram: String
+    twitter: String
+    website: String
+    youtube: String
 }

@@ -44,11 +44,11 @@ export enum AccessType {
 export type Activity = {
   department: Utskott;
   description: Scalars['String'];
-  end: Scalars['Int'];
+  end: Scalars['Date'];
   imageURL: Scalars['String'];
   key: Scalars['String'];
   location: Scalars['String'];
-  start: Scalars['Int'];
+  start: Scalars['Date'];
   title: Scalars['String'];
 };
 
@@ -397,10 +397,11 @@ export type MutationAddEmergencyContactArgs = {
 };
 
 
-
 export type MutationAddEventArgs = {
   entry: NewEvent;
 };
+
+
 export type MutationAddFileToMeetingArgs = {
   fileId: Scalars['String'];
   fileType: MeetingDocumentType;
@@ -795,13 +796,13 @@ export type Query = {
   doors: Array<DoorInfo>;
   election: Election;
   elections: Array<Election>;
-  eventEntries?: Maybe<Array<Event>>;
+  eventEntries: Array<Event>;
   features: Array<FeatureInfo>;
   file: File;
   fileSystem: FileSystemResponse;
   files: Array<File>;
   getActivities: Array<Activity>;
-  getDepartment: UtskottInfo;
+  getDepartments?: Maybe<Array<UtskottInfo>>;
   groupedPosts: Array<GroupedPost>;
   hehe: Hehe;
   hehes: Array<Hehe>;
@@ -890,6 +891,8 @@ export type QueryElectionsArgs = {
 export type QueryEventEntriesArgs = {
   limit: Scalars['Int'];
 };
+
+
 /**
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
@@ -916,13 +919,13 @@ export type QueryFilesArgs = {
   type?: InputMaybe<FileType>;
 };
 
+
 /**
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
  */
 export type QueryGetActivitiesArgs = {
-  count: Scalars['Int'];
-  department: Utskott;
+  departments?: InputMaybe<Array<InputMaybe<Utskott>>>;
   month: Scalars['Int'];
   year: Scalars['Int'];
 };
@@ -932,9 +935,11 @@ export type QueryGetActivitiesArgs = {
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
  */
-export type QueryGetDepartmentArgs = {
-  department: Utskott;
+export type QueryGetDepartmentsArgs = {
+  departments?: InputMaybe<Array<InputMaybe<Utskott>>>;
 };
+
+
 /**
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
@@ -1181,11 +1186,11 @@ export type SendEmailOptions = {
 };
 
 export type Socials = {
-  facebook: Scalars['String'];
-  instagram: Scalars['String'];
-  twitter: Scalars['String'];
-  website: Scalars['String'];
-  youtube: Scalars['String'];
+  facebook?: Maybe<Scalars['String']>;
+  instagram?: Maybe<Scalars['String']>;
+  twitter?: Maybe<Scalars['String']>;
+  website?: Maybe<Scalars['String']>;
+  youtube?: Maybe<Scalars['String']>;
 };
 
 export enum SortOrder {
@@ -1256,15 +1261,13 @@ export enum Utskott {
   Other = 'OTHER',
   Pengu = 'PENGU',
   Sre = 'SRE',
-  Styrelsen = 'STYRELSEN',
-  Valberedningen = 'VALBEREDNINGEN'
   Styrelsen = 'STYRELSEN'
 }
 
 export type UtskottInfo = {
-  about: Scalars['String'];
-  imageURL: Scalars['String'];
-  key: Scalars['String'];
+  about?: Maybe<Scalars['String']>;
+  imageURL?: Maybe<Scalars['String']>;
+  name: Scalars['String'];
   socials: Socials;
 };
 
@@ -1452,17 +1455,19 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
   features?: Resolver<Array<ResolversTypes['Feature']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
+
 export type ActivityResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Activity'] = ResolversParentTypes['Activity']> = ResolversObject<{
   department?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  end?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  end?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   imageURL?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   location?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  start?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
+
 export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ApiKey'] = ResolversParentTypes['ApiKey']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
   creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
@@ -1533,6 +1538,7 @@ export type EventResolvers<ContextType = Context, ParentType extends ResolversPa
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
+
 export type FeatureInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FeatureInfo'] = ResolversParentTypes['FeatureInfo']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['Feature'], ParentType, ContextType>;
@@ -1714,13 +1720,13 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   doors?: Resolver<Array<ResolversTypes['DoorInfo']>, ParentType, ContextType>;
   election?: Resolver<ResolversTypes['Election'], ParentType, ContextType, RequireFields<QueryElectionArgs, 'electionId'>>;
   elections?: Resolver<Array<ResolversTypes['Election']>, ParentType, ContextType, RequireFields<QueryElectionsArgs, 'electionIds'>>;
-  eventEntries?: Resolver<Maybe<Array<ResolversTypes['Event']>>, ParentType, ContextType, RequireFields<QueryEventEntriesArgs, 'limit'>>;
+  eventEntries?: Resolver<Array<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<QueryEventEntriesArgs, 'limit'>>;
   features?: Resolver<Array<ResolversTypes['FeatureInfo']>, ParentType, ContextType>;
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, Partial<QueryFilesArgs>>;
-  getActivities?: Resolver<Array<ResolversTypes['Activity']>, ParentType, ContextType, RequireFields<QueryGetActivitiesArgs, 'count' | 'department' | 'month' | 'year'>>;
-  getDepartment?: Resolver<ResolversTypes['UtskottInfo'], ParentType, ContextType, RequireFields<QueryGetDepartmentArgs, 'department'>>;
+  getActivities?: Resolver<Array<ResolversTypes['Activity']>, ParentType, ContextType, RequireFields<QueryGetActivitiesArgs, 'month' | 'year'>>;
+  getDepartments?: Resolver<Maybe<Array<ResolversTypes['UtskottInfo']>>, ParentType, ContextType, Partial<QueryGetDepartmentsArgs>>;
   groupedPosts?: Resolver<Array<ResolversTypes['GroupedPost']>, ParentType, ContextType, Partial<QueryGroupedPostsArgs>>;
   hehe?: Resolver<ResolversTypes['Hehe'], ParentType, ContextType, RequireFields<QueryHeheArgs, 'number' | 'year'>>;
   hehes?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType, RequireFields<QueryHehesArgs, 'year'>>;
@@ -1751,13 +1757,14 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
 }>;
 
 export type SocialsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Socials'] = ResolversParentTypes['Socials']> = ResolversObject<{
-  facebook?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  instagram?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  twitter?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  website?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  youtube?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  facebook?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  instagram?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  twitter?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  youtube?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
+
 export type TokenResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TokenResponse'] = ResolversParentTypes['TokenResponse']> = ResolversObject<{
   accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   refreshToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1794,9 +1801,9 @@ export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType exte
 }>;
 
 export type UtskottInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UtskottInfo'] = ResolversParentTypes['UtskottInfo']> = ResolversObject<{
-  about?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  imageURL?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  about?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  imageURL?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   socials?: Resolver<ResolversTypes['Socials'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

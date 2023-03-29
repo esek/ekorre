@@ -18,5 +18,4 @@ enum Utskott {
     PENGU
     SRE
     STYRELSEN
-    VALBEREDNINGEN
 }
