@@ -108,7 +108,11 @@ const latestOrganizationTree: OrgTree = {
   timestamp: 0,
 };
 
-//
+//the ultimate time complexity beast. It's blazingly fast.
+//monthHash points to each utskott Map with the set of activity keys
+//that utskott has in that month. Iterate over them and u got what
+//you asked for real quick. This might be stupid.
+//const s = new Map<number, Map<Utskott, Set<string>>>();
 
 const departmentKeytoTagMap: Map<string, Utskott> = new Map<string, Utskott>();
 
@@ -133,12 +137,7 @@ export class OrbiAPI {
     month: number,
     departments: Utskott[],
   ): Promise<OrbiActivityData[]> {
-    await this.updateActivities();
-    //In reality we do not need to await...
-    //No one would be the unfortunate
-    //bastard who needs to wait the extra
-    //second for the page to load that
-    //one time every 20 minutes.
+    await this.updateActivities(); //we do not need to await...
     const tSet = latestActivityResponse.tEvents.get(year * 12 + month);
     const send: OrbiActivityData[] = [];
     tSet?.forEach((value) => {
@@ -174,8 +173,8 @@ export class OrbiAPI {
       return JSON.parse(String(res.data)) as OrbiActivityResponse;
     };
 
-    const data = Promise.all([f(-1), f(0), f(1), f(2)]);
-    const flattened = (await data).flat(1);
+    const data = await Promise.all([f(-1), f(0), f(1), f(2)]);
+    const flattened = data.flat(1);
     flattened.forEach((value) => {
       //Add and update activities in the cache
       //Hashed between activity key and event data

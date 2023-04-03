@@ -18,10 +18,14 @@ const api = new OrbiAPI();
 //   console.log(res);
 // }, 15000);
 
-test('getting orbi E-sektionen org tree', async () => {
-  const res = await api.getOrganizationNodeTree();
-  const dep = await api.getDepartmentInfo([Utskott.Noju]);
-  console.log(dep);
+test('getting orbi E-sektionen org tree', () => {
+  //console.log(new Date(new Date().setMonth(new Date().getMonth())));
+  for (let i = 0; i < 12; i++) {
+    console.log(new Date(new Date().getFullYear(), new Date().getMonth(), 2, 0, 0, 0, 0));
+  }
+  //const res = await api.getOrganizationNodeTree();
+  //const dep = await api.getDepartmentInfo([Utskott.Noju]);
+  //console.log(dep);
   //console.log(res);
 
   //console.log(res.departments.find((v) => v.name === 'E-sektionen')?.social);

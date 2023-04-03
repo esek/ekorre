@@ -11,11 +11,9 @@ export const orbiActivityReduce = (activity: OrbiActivityData): Activity => {
     startDate,
     endDate,
     location,
-    ...reduced
   } = activity;
 
   return {
-    ...reduced,
     department: departmentKey,
     description: description,
     end: new Date(endDate),
@@ -28,9 +26,8 @@ export const orbiActivityReduce = (activity: OrbiActivityData): Activity => {
 };
 
 export const orbiDepartmentReduce = (department: OrbiDepartment): UtskottInfo => {
-  const { name, social, about, shortlivedLogoUrl, ...reduced } = department;
+  const { name, social, about, shortlivedLogoUrl } = department;
   return {
-    ...reduced,
     name: name,
     about: about,
     imageURL: shortlivedLogoUrl,
