@@ -125,8 +125,10 @@ const userResolver: Resolvers = {
     },
     users: async (_, { usernames }, ctx) => {
       await hasAuthenticated(ctx);
-      const u = await api.getMultipleUsersUnordered(usernames);
-      return reduce(u, userReduce);
+      const uns = usernames.map((un) => un.toLowerCase());
+      const u = await ctx.userDataLoader.loadMany(uns);
+      const fu = u.filter((item) => !(item instanceof Error)) as User[];
+      return fu;
     },
     userByCard: async (_, { luCard }, ctx) => {
       await hasAuthenticated(ctx);

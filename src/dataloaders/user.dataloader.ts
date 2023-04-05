@@ -24,7 +24,7 @@ export const batchUsersFunction = async (
    * @param usernames
    */
 
-  const apiResponse = await userApi.getMultipleUsersOrdered(usernames as string[]);
+  const apiResponse = await userApi.getMultipleUsers(usernames as string[]);
   if (apiResponse === null)
     return new Array<Error>(usernames.length).fill(new Error('User not found'));
 

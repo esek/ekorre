@@ -122,22 +122,11 @@ test('get one user', async () => {
   expect(await api.getSingleUser(mockNewUser0.username)).toMatchObject(expectedResult);
 });
 
-test('get multiple users ordered', async () => {
+test('get multiple users', async () => {
   await api.createUser(mockNewUser1);
-  expect(
-    (await api.getMultipleUsersOrdered([mockNewUser0.username, mockNewUser1.username])).length,
-  ).toBe(2);
-});
-
-test('get multiple users unordered', async () => {
-  await api.createUser(mockNewUser1);
-  const u0 = mockNewUser0.username;
-  const u1 = mockNewUser1.username;
-  const usernames = u1 > u0 ? [u1, u0] : [u0, u1];
-  expect(await api.getMultipleUsersUnordered(usernames)).toEqual([
-    await api.getSingleUser(usernames[0]),
-    await api.getSingleUser(usernames[1]),
-  ]);
+  expect((await api.getMultipleUsers([mockNewUser0.username, mockNewUser1.username])).length).toBe(
+    2,
+  );
 });
 
 test('get all users', async () => {
@@ -152,7 +141,7 @@ test('get non-existat user', async () => {
 
 test('get multiple non-existant users', async () => {
   await expect(
-    api.getMultipleUsersOrdered(['fake as shit username', 'and another one here']),
+    api.getMultipleUsers(['fake as shit username', 'and another one here']),
   ).resolves.toHaveLength(0);
 });
 
