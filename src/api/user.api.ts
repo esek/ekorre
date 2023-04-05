@@ -116,24 +116,23 @@ export class UserAPI {
   }
 
   /**
-   * Retrieves multiple users ordered in the same order as inputed
+   * Retrieves multiple users ordered in the same order as inputted
    * @param usernames Usernames to the users to be received
    */
   async getMultipleUsersUnordered(usernames: string[]): Promise<PrismaUser[]> {
-    console.log(usernames);
+    const uns = usernames.map((un) => un.toLowerCase()); // Convert to lowercase before querying and sorting
 
     const u = await prisma.prismaUser.findMany({
       where: {
         username: {
-          in: usernames,
-          mode: 'insensitive',
+          in: uns,
         },
       },
     });
 
     // Sort the PrismaUser list in the same order as the usernames list
     u.sort((a, b) => {
-      return usernames.indexOf(a.username) - usernames.indexOf(b.username);
+      return uns.indexOf(a.username) - uns.indexOf(b.username);
     });
 
     return u;
