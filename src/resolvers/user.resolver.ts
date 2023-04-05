@@ -123,6 +123,11 @@ const userResolver: Resolvers = {
       const u = await api.getSingleUser(username);
       return reduce(u, userReduce);
     },
+    users: async (_, { usernames }, ctx) => {
+      await hasAuthenticated(ctx);
+      const u = await api.getMultipleUsersUnordered(usernames);
+      return reduce(u, userReduce);
+    },
     userByCard: async (_, { luCard }, ctx) => {
       await hasAuthenticated(ctx);
       const u = await api.getSingleUserByLuCard(luCard);

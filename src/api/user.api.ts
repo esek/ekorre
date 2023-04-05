@@ -102,7 +102,7 @@ export class UserAPI {
    * Retrieves multiple users ordered after first name, then last name, and finally class
    * @param usernames Usernames to the users to be received
    */
-  async getMultipleUsers(usernames: string[]): Promise<PrismaUser[]> {
+  async getMultipleUsersOrdered(usernames: string[]): Promise<PrismaUser[]> {
     const u = await prisma.prismaUser.findMany({
       where: {
         username: {
@@ -110,6 +110,30 @@ export class UserAPI {
         },
       },
       orderBy: defaultOrder,
+    });
+
+    return u;
+  }
+
+  /**
+   * Retrieves multiple users ordered in the same order as inputed
+   * @param usernames Usernames to the users to be received
+   */
+  async getMultipleUsersUnordered(usernames: string[]): Promise<PrismaUser[]> {
+    console.log(usernames);
+
+    const u = await prisma.prismaUser.findMany({
+      where: {
+        username: {
+          in: usernames,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    // Sort the PrismaUser list in the same order as the usernames list
+    u.sort((a, b) => {
+      return usernames.indexOf(a.username) - usernames.indexOf(b.username);
     });
 
     return u;
