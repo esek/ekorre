@@ -126,14 +126,15 @@ const userResolver: Resolvers = {
     users: async (_, { usernames }, ctx) => {
       await hasAuthenticated(ctx);
       const usernamesLowerCase = usernames.map((un) => un.toLowerCase());
-      const receivedUsers = await ctx.userDataLoader.loadMany(usernamesLowerCase);
+      const received = await ctx.userDataLoader.loadMany(usernamesLowerCase);
+      const error = received.find((e) => e instanceof Error);
 
-      if (receivedUsers.some((e) => e instanceof Error)) {
-        throw new NotFoundError('En användare kunde inte hittas');
+      // Making sure an Error is only thrown if it exists
+      if (error instanceof Error) {
+        throw error;
       }
 
-      const filteredUsers = receivedUsers.filter((item) => !(item instanceof Error)) as User[];
-      return filteredUsers;
+      return received as User[];
     },
     userByCard: async (_, { luCard }, ctx) => {
       await hasAuthenticated(ctx);
