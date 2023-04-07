@@ -125,14 +125,14 @@ const userResolver: Resolvers = {
     },
     users: async (_, { usernames }, ctx) => {
       await hasAuthenticated(ctx);
-      const uns = usernames.map((un) => un.toLowerCase());
-      const usersLowerCase = await ctx.userDataLoader.loadMany(uns);
+      const usernamesLowerCase = usernames.map((un) => un.toLowerCase());
+      const receivedUsers = await ctx.userDataLoader.loadMany(usernamesLowerCase);
 
-      if (usersLowerCase.find((e) => e instanceof Error)) {
+      if (receivedUsers.some((e) => e instanceof Error)) {
         throw new NotFoundError('En användare kunde inte hittas');
       }
 
-      const filteredUsers = usersLowerCase.filter((item) => !(item instanceof Error)) as User[];
+      const filteredUsers = receivedUsers.filter((item) => !(item instanceof Error)) as User[];
       return filteredUsers;
     },
     userByCard: async (_, { luCard }, ctx) => {
