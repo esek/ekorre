@@ -1,5 +1,5 @@
 import { hashWithSecret } from '@/auth';
-import { BadRequestError } from '@/errors/request.errors';
+import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { Context } from '@/models/context';
 import { reduce } from '@/reducers';
@@ -126,9 +126,14 @@ const userResolver: Resolvers = {
     users: async (_, { usernames }, ctx) => {
       await hasAuthenticated(ctx);
       const uns = usernames.map((un) => un.toLowerCase());
-      const u = await ctx.userDataLoader.loadMany(uns);
-      const fu = u.filter((item) => !(item instanceof Error)) as User[];
-      return fu;
+      const usersLowerCase = await ctx.userDataLoader.loadMany(uns);
+
+      if (usersLowerCase.find((e) => e instanceof Error)) {
+        throw new NotFoundError('En användare kunde inte hittas');
+      }
+
+      const filteredUsers = usersLowerCase.filter((item) => !(item instanceof Error)) as User[];
+      return filteredUsers;
     },
     userByCard: async (_, { luCard }, ctx) => {
       await hasAuthenticated(ctx);
