@@ -125,16 +125,16 @@ const userResolver: Resolvers = {
     },
     users: async (_, { usernames }, ctx) => {
       await hasAuthenticated(ctx);
-      const usernamesLowerCase = usernames.map((un) => un.toLowerCase());
-      const received = await ctx.userDataLoader.loadMany(usernamesLowerCase);
-      const error = received.find((e) => e instanceof Error);
+      const usernamesLowerCase = usernames.map((username) => username.toLowerCase());
+      const users = await ctx.userDataLoader.loadMany(usernamesLowerCase);
+      const error = users.find((e) => e instanceof Error);
 
       // Making sure an Error is only thrown if it exists
       if (error instanceof Error) {
         throw error;
       }
 
-      return received as User[];
+      return users as User[];
     },
     userByCard: async (_, { luCard }, ctx) => {
       await hasAuthenticated(ctx);
