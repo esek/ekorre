@@ -1,5 +1,5 @@
 import { hashWithSecret } from '@/auth';
-import { BadRequestError, NotFoundError } from '@/errors/request.errors';
+import { BadRequestError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { Context } from '@/models/context';
 import { reduce } from '@/reducers';
