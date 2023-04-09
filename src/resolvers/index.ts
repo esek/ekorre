@@ -9,5 +9,4 @@ export { default as hehe } from './hehe.resolver';
 export { default as meeting } from './meeting.resolver';
 export { default as post } from './post.resolver';
 export { default as user } from './user.resolver';
-export { default as event } from './event.resolver';
 export { default as activity } from './activity.resolver';

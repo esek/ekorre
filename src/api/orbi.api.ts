@@ -1,7 +1,7 @@
 import config from '@/config';
 import { OrbiActivityResponse, OrbiOrgTreeResponse } from '@/models/orbi';
 import { Utskott } from '@generated/graphql';
-import { Prisma, PrismaDepartmentInfo, PrismaEvent } from '@prisma/client';
+import { Prisma, PrismaDepartmentInfo, PrismaActivity } from '@prisma/client';
 import { Axios } from 'axios';
 
 import prisma from './prisma';
@@ -13,7 +13,7 @@ const axios = new Axios({
   },
 });
 
-const defaultOrder: Prisma.PrismaEventOrderByWithRelationAndSearchRelevanceInput[] = [
+const defaultOrder: Prisma.PrismaActivityOrderByWithRelationAndSearchRelevanceInput[] = [
   { startDate: 'desc' },
   { title: 'asc' },
 ];
@@ -53,10 +53,10 @@ export class OrbiAPI {
    * @param utskott the departments to query. If null, queries all departments
    * @returns orbi activity data from the queried departments
    */
-  async getActivities(from: Date, to: Date, utskott: Utskott[]): Promise<PrismaEvent[]> {
+  async getActivities(from: Date, to: Date, utskott: Utskott[]): Promise<PrismaActivity[]> {
     await this.updateActivities();
     if (!utskott) utskott = Object.values(Utskott);
-    const a = await prisma.prismaEvent.findMany({
+    const a = await prisma.prismaActivity.findMany({
       where: {
         startDate: {
           gte: from,
@@ -103,7 +103,7 @@ export class OrbiAPI {
 
     //To update the list of Orbi based events:
     //delete all future Orbi events currently in DB...
-    await prisma.prismaEvent.deleteMany({
+    await prisma.prismaActivity.deleteMany({
       where: {
         startDate: {
           //Note: only future events (events scheduled
@@ -118,7 +118,7 @@ export class OrbiAPI {
     if (activities.length == 0) return;
 
     //... and create all the new Orbi events in DB
-    await prisma.prismaEvent.createMany({
+    await prisma.prismaActivity.createMany({
       data: activities.map((a) => {
         return {
           startDate: new Date(a.startDate),

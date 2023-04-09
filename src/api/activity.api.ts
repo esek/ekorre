@@ -1,14 +1,14 @@
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { NewActivity, Utskott } from '@generated/graphql';
-import { Prisma, PrismaEvent } from '@prisma/client';
+import { Prisma, PrismaActivity } from '@prisma/client';
 
 import { OrbiAPI } from './orbi.api';
 import prisma from './prisma';
 
 const logger = Logger.getLogger('ActivityAPI');
 
-const defaultOrder: Prisma.PrismaEventOrderByWithRelationAndSearchRelevanceInput[] = [
+const defaultOrder: Prisma.PrismaActivityOrderByWithRelationAndSearchRelevanceInput[] = [
   {
     startDate: 'desc',
   },
@@ -20,10 +20,10 @@ const defaultOrder: Prisma.PrismaEventOrderByWithRelationAndSearchRelevanceInput
 const orbiApi = new OrbiAPI();
 
 export class ActivityAPI {
-  async getActivites(from: Date, to: Date, utskott: Utskott[]): Promise<PrismaEvent[]> {
+  async getActivites(from: Date, to: Date, utskott: Utskott[]): Promise<PrismaActivity[]> {
     if (!utskott) utskott = Object.values(Utskott);
     orbiApi.updateActivities();
-    const a = await prisma.prismaEvent.findMany({
+    const a = await prisma.prismaActivity.findMany({
       where: {
         startDate: {
           gte: from,
@@ -36,8 +36,8 @@ export class ActivityAPI {
     return a;
   }
 
-  async getAllActivities(): Promise<PrismaEvent[]> {
-    const a = await prisma.prismaEvent.findMany({
+  async getAllActivities(): Promise<PrismaActivity[]> {
+    const a = await prisma.prismaActivity.findMany({
       orderBy: defaultOrder,
     });
     return a;
@@ -46,7 +46,7 @@ export class ActivityAPI {
   // prettier-ignore
   async addActivity({ title, description, startDate, endDate, utskott, location }: NewActivity): Promise<boolean> {
     try{
-      await prisma.prismaEvent.create({
+      await prisma.prismaActivity.create({
         data: {
           title,
           description,
@@ -71,7 +71,7 @@ export class ActivityAPI {
 
   async removeActivity(id: string): Promise<boolean> {
     try {
-      await prisma.prismaEvent.delete({
+      await prisma.prismaActivity.delete({
         where: {
           refKey: id,
         },
@@ -84,6 +84,6 @@ export class ActivityAPI {
   }
 
   async clear() {
-    await prisma.prismaEvent.deleteMany();
+    await prisma.prismaActivity.deleteMany();
   }
 }

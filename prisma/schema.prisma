@@ -293,7 +293,7 @@ model PrismaLoginProvider {
   @@map("login_providers")
 }
 
-model PrismaEvent {
+model PrismaActivity {
   id          Int           @id @default(autoincrement())
   startDate   DateTime      @map("start_date")
   endDate     DateTime      @map("end_date")
@@ -308,6 +308,7 @@ model PrismaEvent {
   @@map("event")
 }
 
+//Very temporary, am aware of issue #255
 model PrismaDepartmentInfo {
   id           Int           @id @default(autoincrement())
   utskott      PrismaUtskott

@@ -147,15 +147,6 @@ export enum EmergencyContactType {
   Sister = 'SISTER'
 }
 
-export type Event = {
-  description?: Maybe<Scalars['String']>;
-  endDate?: Maybe<Scalars['Date']>;
-  id?: Maybe<Scalars['Int']>;
-  startDate?: Maybe<Scalars['Date']>;
-  title?: Maybe<Scalars['String']>;
-  utskott?: Maybe<Utskott>;
-};
-
 /** Features are used for mapping access to a feature (ex article or election) for user or a post. This is not limited to efterphest */
 export enum Feature {
   AccessAdmin = 'access_admin',
@@ -319,7 +310,6 @@ export type Mutation = {
   addArticle: Article;
   addElectables: Scalars['Boolean'];
   addEmergencyContact: EmergencyContact;
-  addEvent?: Maybe<Event>;
   addFileToMeeting: Scalars['Boolean'];
   addHehe: Scalars['Boolean'];
   addMeeting: Meeting;
@@ -402,11 +392,6 @@ export type MutationAddEmergencyContactArgs = {
   name: Scalars['String'];
   phone: Scalars['String'];
   type: EmergencyContactType;
-};
-
-
-export type MutationAddEventArgs = {
-  entry: NewEvent;
 };
 
 
@@ -706,14 +691,6 @@ export type NewArticle = {
   title: Scalars['String'];
 };
 
-export type NewEvent = {
-  description: Scalars['String'];
-  endDate: Scalars['Date'];
-  startDate: Scalars['Date'];
-  title: Scalars['String'];
-  utskott: Utskott;
-};
-
 export type NewPost = {
   active?: InputMaybe<Scalars['Boolean']>;
   description?: InputMaybe<Scalars['String']>;
@@ -820,7 +797,6 @@ export type Query = {
   doors: Array<DoorInfo>;
   election: Election;
   elections: Array<Election>;
-  eventEntries: Array<Event>;
   features: Array<FeatureInfo>;
   file: File;
   fileSystem: FileSystemResponse;
@@ -915,15 +891,6 @@ export type QueryElectionArgs = {
  */
 export type QueryElectionsArgs = {
   electionIds: Array<Scalars['Int']>;
-};
-
-
-/**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
- */
-export type QueryEventEntriesArgs = {
-  limit: Scalars['Int'];
 };
 
 
@@ -1380,7 +1347,6 @@ export type ResolversTypes = ResolversObject<{
   Election: ResolverTypeWrapper<ElectionResponse>;
   EmergencyContact: ResolverTypeWrapper<EmergencyContact>;
   EmergencyContactType: EmergencyContactType;
-  Event: ResolverTypeWrapper<Event>;
   Feature: Feature;
   FeatureInfo: ResolverTypeWrapper<FeatureInfo>;
   File: ResolverTypeWrapper<FileResponse>;
@@ -1402,7 +1368,6 @@ export type ResolversTypes = ResolversObject<{
   Mutation: ResolverTypeWrapper<{}>;
   NewActivity: NewActivity;
   NewArticle: NewArticle;
-  NewEvent: NewEvent;
   NewPost: NewPost;
   NewUser: NewUser;
   Nomination: ResolverTypeWrapper<NominationResponse>;
@@ -1438,7 +1403,6 @@ export type ResolversParentTypes = ResolversObject<{
   DoorInfo: DoorInfo;
   Election: ElectionResponse;
   EmergencyContact: EmergencyContact;
-  Event: Event;
   FeatureInfo: FeatureInfo;
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
@@ -1456,7 +1420,6 @@ export type ResolversParentTypes = ResolversObject<{
   Mutation: {};
   NewActivity: NewActivity;
   NewArticle: NewArticle;
-  NewEvent: NewEvent;
   NewPost: NewPost;
   NewUser: NewUser;
   Nomination: NominationResponse;
@@ -1555,16 +1518,6 @@ export type EmergencyContactResolvers<ContextType = Context, ParentType extends 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type EventResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Event'] = ResolversParentTypes['Event']> = ResolversObject<{
-  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  endDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
-  id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  startDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
-  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
 export type FeatureInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FeatureInfo'] = ResolversParentTypes['FeatureInfo']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['Feature'], ParentType, ContextType>;
@@ -1653,7 +1606,6 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addArticle?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddElectablesArgs, 'electionId' | 'postIds'>>;
   addEmergencyContact?: Resolver<ResolversTypes['EmergencyContact'], ParentType, ContextType, RequireFields<MutationAddEmergencyContactArgs, 'name' | 'phone' | 'type'>>;
-  addEvent?: Resolver<Maybe<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<MutationAddEventArgs, 'entry'>>;
   addFileToMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddFileToMeetingArgs, 'fileId' | 'fileType' | 'meetingId'>>;
   addHehe?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddHeheArgs, 'fileId' | 'number' | 'year'>>;
   addMeeting?: Resolver<ResolversTypes['Meeting'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
@@ -1749,7 +1701,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   doors?: Resolver<Array<ResolversTypes['DoorInfo']>, ParentType, ContextType>;
   election?: Resolver<ResolversTypes['Election'], ParentType, ContextType, RequireFields<QueryElectionArgs, 'electionId'>>;
   elections?: Resolver<Array<ResolversTypes['Election']>, ParentType, ContextType, RequireFields<QueryElectionsArgs, 'electionIds'>>;
-  eventEntries?: Resolver<Array<ResolversTypes['Event']>, ParentType, ContextType, RequireFields<QueryEventEntriesArgs, 'limit'>>;
   features?: Resolver<Array<ResolversTypes['FeatureInfo']>, ParentType, ContextType>;
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
@@ -1846,7 +1797,6 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   DoorInfo?: DoorInfoResolvers<ContextType>;
   Election?: ElectionResolvers<ContextType>;
   EmergencyContact?: EmergencyContactResolvers<ContextType>;
-  Event?: EventResolvers<ContextType>;
   FeatureInfo?: FeatureInfoResolvers<ContextType>;
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
