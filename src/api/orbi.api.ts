@@ -1,6 +1,10 @@
 import config from '@/config';
+import { OrbiActivityResponse, OrbiOrgTreeResponse } from '@/models/orbi';
 import { Utskott } from '@generated/graphql';
+import { Prisma, PrismaDepartmentInfo, PrismaEvent } from '@prisma/client';
 import { Axios } from 'axios';
+
+import prisma from './prisma';
 
 const axios = new Axios({
   headers: {
@@ -8,161 +12,84 @@ const axios = new Axios({
     'x-api-key': config.ORBI.KEY,
   },
 });
-const activitiesEndpoint = 'https://apis.orbiapp.io/v1/departments/activities';
-const OrgNodeEndpoint = 'https://apis.orbiapp.io/v1/departments/org-nodes/tree';
 
-export type OrbiActivityResponse = [OrbiActivityData];
-
-export type OrbiActivityData = {
-  activityKey: string;
-  departmentKey: Utskott;
-  title: string;
-  description: string;
-  shortlivedCoverImageUrl: string;
-  startDate: number;
-  endDate: number;
-  location: {
-    label: string;
-    description: string;
-    coordinates: {
-      latitude: number;
-      longitude: number;
-    };
-    link: string;
-  };
-  ticketData: [
-    {
-      ticketTypeKey: string;
-      ticketTypeName: string;
-      totalTicketCount: number;
-      price: number;
-      currency: string;
-    },
-  ];
-};
-
-export type OrbiOrgTreeResponse = [OrbiOrgTreeData];
-
-export type OrbiOrgTreeData = {
-  orgNodeKey: string;
-  name: string;
-  type: string;
-  parentKey: string;
-  departments: [OrbiDepartment];
-};
-
-export type OrbiDepartment = {
-  departmentKey: Utskott;
-  name: string;
-  about: string;
-  orgNodeKey: string;
-  shortlivedLogoUrl: string;
-  social: {
-    facebookUrl: string;
-    instagramUrl: string;
-    twitterUrl: string;
-    websiteUrl: string;
-    youtubeUrl: string;
-  };
-};
-
-export type ActivityList = {
-  aEvents: Map<string, OrbiActivityData>;
-  tEvents: Map<number, Set<string>>;
-  timestamp: number;
-};
-
-export type OrgTree = {
-  node: OrbiOrgTreeData;
-  timestamp: number;
-};
-
-const latestActivityResponse: ActivityList = {
-  aEvents: new Map<string, OrbiActivityData>(), //
-  tEvents: new Map<number, Set<string>>(),
-  timestamp: 0,
-};
-const latestOrganizationTree: OrgTree = {
-  node: {
-    orgNodeKey: '',
-    name: '',
-    type: '',
-    parentKey: '',
-    departments: [
-      {
-        departmentKey: Utskott.Other,
-        name: '',
-        about: '',
-        orgNodeKey: '',
-        shortlivedLogoUrl: '',
-        social: {
-          facebookUrl: '',
-          instagramUrl: '',
-          twitterUrl: '',
-          websiteUrl: '',
-          youtubeUrl: '',
-        },
-      },
-    ],
-  },
-  timestamp: 0,
-};
-
-//the ultimate time complexity beast. It's blazingly fast.
-//monthHash points to each utskott Map with the set of activity keys
-//that utskott has in that month. Iterate over them and u got what
-//you asked for real quick. This might be stupid.
-//const s = new Map<number, Map<Utskott, Set<string>>>();
+const defaultOrder: Prisma.PrismaEventOrderByWithRelationAndSearchRelevanceInput[] = [
+  { startDate: 'desc' },
+  { title: 'asc' },
+];
 
 const departmentKeytoTagMap: Map<string, Utskott> = new Map<string, Utskott>();
 
+//Time (in milliseconds) since last activity call to the orbi API
+let activityFetchTimestamp: number;
+let departmentFetchTimestamp: number;
+
 //(minimum) number of milliseconds between each call to the orbi API
 const activityFetchCycle: number = 20 * 60 * 1000; //20 minutes
-const orgTreeFetchCycle: number = 60 * 60 * 1000; //1 hour
+const departmentFetchCycle: number = 60 * 60 * 1000; //1 hour
+
+const activitiesEndpoint = 'https://apis.orbiapp.io/v1/departments/activities';
+const OrgNodeEndpoint = 'https://apis.orbiapp.io/v1/departments/org-nodes/tree';
 
 export class OrbiAPI {
+  constructor() {
+    activityFetchTimestamp = Date.now() - activityFetchCycle;
+    departmentFetchTimestamp = Date.now() - departmentFetchCycle;
+  }
+
   private getDepartmentFromKey(departmentKey: string): Utskott {
     const dep = departmentKeytoTagMap.get(departmentKey);
-    return dep ? dep : Utskott.Other;
+    return dep ?? Utskott.Other;
   }
 
   /**
-   * Retrieves all scheduled activites on Orbi
-   * from the year, month and departments (in that month)
-   * specified. If no department is specified, activities
-   * from all departments (in that month) will be returned.
+   * Get activities from Orbi between the dates of **from** and **to**
+   * that the specified utskott have published. This is similar to
+   * calling updateActivities() and querying prismaEvent.findMany(),
+   * filtering on **startDate** between **from** and **to**, utskott
+   * in **utskott** and fromOrbi set to true.
+   * @param from activities start date lower bound
+   * @param to activities start date upper bound
+   * @param utskott the departments to query. If null, queries all departments
+   * @returns orbi activity data from the queried departments
    */
-  async getActivities(
-    year: number,
-    month: number,
-    departments: Utskott[],
-  ): Promise<OrbiActivityData[]> {
-    await this.updateActivities(); //we do not need to await...
-    const tSet = latestActivityResponse.tEvents.get(year * 12 + month);
-    const send: OrbiActivityData[] = [];
-    tSet?.forEach((value) => {
-      const activity = latestActivityResponse.aEvents.get(value);
-      if (activity && departments.includes(activity.departmentKey)) {
-        send.push(activity);
-      }
+  async getActivities(from: Date, to: Date, utskott: Utskott[]): Promise<PrismaEvent[]> {
+    await this.updateActivities();
+    if (!utskott) utskott = Object.values(Utskott);
+    const a = await prisma.prismaEvent.findMany({
+      where: {
+        startDate: {
+          gte: from,
+          lte: to,
+        },
+        utskott: { in: utskott },
+        fromOrbi: true,
+      },
+      orderBy: defaultOrder,
     });
-    return send;
+    return a;
   }
 
   /**
-   * Updates the activity list with all events ranging from last month
-   * to three months forward by calling the Orbi API directly. These
-   * are added to the local activity list and also updates existing events.
-   * WARNING: Slow. You see that sloth over there? Speedy Gonzales compared to this.
+   * Retrieves activity data from orbi for the
+   * coming three months, adding them to PrismaEvent
+   * with fromOrbi = true
    */
-  private async updateActivities() {
-    if (Date.now() - latestActivityResponse.timestamp < activityFetchCycle) return;
-    latestActivityResponse.timestamp = Date.now();
+  async updateActivities() {
+    if (Date.now() - activityFetchTimestamp < activityFetchCycle) return;
+    const oldTimestamp = activityFetchTimestamp;
+    activityFetchTimestamp = Date.now();
+    await this.updateDepartmentInfo();
+    const dateLastCall = new Date(oldTimestamp);
+    const callTimes = [0, 1, 2].map((offset) =>
+      new Date(oldTimestamp).setMonth(dateLastCall.getMonth() + offset),
+    );
 
-    const f = async function (n: number) {
+    //the api call to orbi with error handling
+    const getOrbiActs = async function (n: number) {
       const res = await axios.get(activitiesEndpoint, {
         params: {
-          from: new Date().setMonth(new Date().getMonth() + n),
+          from: n,
           interval: 'month',
         },
       });
@@ -172,54 +99,72 @@ export class OrbiAPI {
       }
       return JSON.parse(String(res.data)) as OrbiActivityResponse;
     };
+    const activities = (await Promise.all(callTimes.map((time) => getOrbiActs(time)))).flat(1);
 
-    const data = await Promise.all([f(-1), f(0), f(1), f(2)]);
-    const flattened = data.flat(1);
-    flattened.forEach((value) => {
-      //Add and update activities in the cache
-      //Hashed between activity key and event data
-      value.departmentKey = this.getDepartmentFromKey(value.departmentKey);
-      latestActivityResponse.aEvents.set(value.activityKey, value);
-
-      //Add and update activity keys hashed on
-      //month (and year) of the activity dates.
-      const dateRef = (n: number) => {
-        const date = new Date(n);
-        const dateHash = date.getFullYear() * 12 + date.getMonth();
-        const dateSet = latestActivityResponse.tEvents.get(dateHash);
-        latestActivityResponse.tEvents.set(
-          dateHash,
-          dateSet ? dateSet.add(value.activityKey) : new Set(value.activityKey),
-        );
-      };
-      //Once for startDate and once for endDate
-      //in case they are in different months
-      dateRef(value.startDate);
-      dateRef(value.endDate);
+    //To update the list of Orbi based events:
+    //delete all future Orbi events currently in DB...
+    await prisma.prismaEvent.deleteMany({
+      where: {
+        startDate: {
+          //Note: only future events (events scheduled
+          //after the last orbi API call) are deleted
+          //as only future events are being queried anew
+          gte: new Date(oldTimestamp),
+        },
+        fromOrbi: true,
+      },
     });
+
+    if (activities.length == 0) return;
+
+    //... and create all the new Orbi events in DB
+    await prisma.prismaEvent.createMany({
+      data: activities.map((a) => {
+        return {
+          startDate: new Date(a.startDate),
+          endDate: new Date(a.endDate),
+          title: a.title,
+          description: a.description,
+          fromOrbi: true,
+          utskott: this.getDepartmentFromKey(a.departmentKey),
+          refKey: a.activityKey,
+          location: a.location.label,
+        };
+      }),
+    });
+
+    //This is done instead of updateMany as to delete
+    //activities that have been removed from orbi.
   }
 
-  async getDepartmentInfo(departments: Utskott[]): Promise<OrbiDepartment[]> {
-    const orgTree = await this.getOrganizationNodeTree();
-    return orgTree.departments.filter((d) => departments.includes(d.departmentKey));
-  }
   /**
-   * Retrieves the guild's organization tree from Orbi. Contains
-   * descriptions of each utskott (department) and links to each
-   * department's social medias.
+   * Get department info from Orbi from the specified utskott.
+   * This is similar to calling updateDepartmentInfo() and
+   * querying prismaDepartmentInfo.findMany(), filtering on
+   * utskott in utskott.
+   * @param departments the departments to query. If null, queries all departments
+   * @returns orbi based information about the queried departments
    */
-  async getOrganizationNodeTree(): Promise<OrbiOrgTreeData> {
-    await this.updateOrganizationNodeTree();
-    return latestOrganizationTree.node;
+  async getDepartmentInfo(departments: Utskott[]): Promise<PrismaDepartmentInfo[]> {
+    await this.updateDepartmentInfo();
+    if (!departments) departments = Object.values(Utskott);
+    const d = await prisma.prismaDepartmentInfo.findMany({
+      where: {
+        utskott: {
+          in: departments,
+        },
+      },
+    });
+    return d;
   }
 
   /**
-   * updates the orgTree by call to Orbi directly. WARNING: Slow. Real slow.
+   * Retrieves department data from orbi,
+   * adding them to PrismaDepartmentInfo
    */
-  private async updateOrganizationNodeTree() {
-    if (Date.now() - latestOrganizationTree.timestamp < orgTreeFetchCycle) return;
-    latestOrganizationTree.timestamp = Date.now();
-
+  async updateDepartmentInfo() {
+    if (Date.now() - departmentFetchTimestamp < departmentFetchCycle) return;
+    departmentFetchTimestamp = Date.now();
     const res = await axios.get(OrgNodeEndpoint);
     if (res.status !== 200) {
       //Kolla med pros om det går att dynamiskt kasta rätt errortyp baserat på f.status
@@ -229,17 +174,34 @@ export class OrbiAPI {
     //and all departments within key: "departments". Possibly multiple OrgTrees can exist
     //in this structure. We only choose the first because no more elements exist currently.
     //This might need revision should the guild rework its Orbi workspace.
-    latestOrganizationTree.node = (JSON.parse(String(res.data)) as [OrbiOrgTreeData])[0];
-    latestOrganizationTree.node.departments.forEach((value) => {
-      //Translating between the department name on orbi
-      //and the enum Utskott is pretty nasty and not at
-      //all robust. DO NOT mess with the name property
-      //of departments on Orbi. I do not believe it can be
-      //done dynamically so do not change them!
+    const node = (JSON.parse(String(res.data)) as OrbiOrgTreeResponse)[0];
+
+    //Update departmentKey to tag (Utskott enum) map.
+    node.departments.forEach((value) => {
+      //Works for now. If utskott are reworked, this will have to change
       const ref = value.name.toUpperCase().replace('Ö', 'O') as Utskott;
       const tag = Object.values(Utskott).includes(ref) ? ref : Utskott.Other;
       departmentKeytoTagMap.set(value.departmentKey, tag);
       value.departmentKey = tag;
+    });
+
+    const map = node.departments.map((d) => {
+      return {
+        utskott: d.departmentKey,
+        name: d.name,
+        about: d.about,
+        logo: d.shortlivedLogoUrl,
+        facebookURL: d.social.facebookUrl,
+        instagramURL: d.social.instagramUrl,
+        twitterURL: d.social.twitterUrl,
+        websiteURL: d.social.websiteUrl,
+        youtubeURL: d.social.youtubeUrl,
+      };
+    });
+
+    await prisma.prismaDepartmentInfo.deleteMany();
+    await prisma.prismaDepartmentInfo.createMany({
+      data: map,
     });
   }
 }

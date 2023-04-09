@@ -41,15 +41,15 @@ export enum AccessType {
   Public = 'PUBLIC'
 }
 
-export type Activity = {
-  department: Utskott;
+export type ActivityResponse = {
   description: Scalars['String'];
-  end: Scalars['Date'];
-  imageURL: Scalars['String'];
-  key: Scalars['String'];
+  endDate: Scalars['Date'];
+  id: Scalars['String'];
+  imageURL?: Maybe<Scalars['String']>;
   location: Scalars['String'];
-  start: Scalars['Date'];
+  startDate: Scalars['Date'];
   title: Scalars['String'];
+  utskott: Utskott;
 };
 
 export type ApiKey = {
@@ -153,6 +153,7 @@ export type Event = {
   id?: Maybe<Scalars['Int']>;
   startDate?: Maybe<Scalars['Date']>;
   title?: Maybe<Scalars['String']>;
+  utskott?: Maybe<Utskott>;
 };
 
 /** Features are used for mapping access to a feature (ex article or election) for user or a post. This is not limited to efterphest */
@@ -314,6 +315,7 @@ export type ModifyPost = {
 
 export type Mutation = {
   activatePost: Scalars['Boolean'];
+  addActivity?: Maybe<Scalars['Boolean']>;
   addArticle: Article;
   addElectables: Scalars['Boolean'];
   addEmergencyContact: EmergencyContact;
@@ -348,6 +350,7 @@ export type Mutation = {
   propose: Scalars['Boolean'];
   providerLogin: LoginResponse;
   refresh: TokenResponse;
+  removeActivity?: Maybe<Scalars['Boolean']>;
   removeArticle: Scalars['Boolean'];
   removeElectables: Scalars['Boolean'];
   removeEmergencyContact: Scalars['Boolean'];
@@ -376,6 +379,11 @@ export type Mutation = {
 
 export type MutationActivatePostArgs = {
   id: Scalars['Int'];
+};
+
+
+export type MutationAddActivityArgs = {
+  activity: NewActivity;
 };
 
 
@@ -550,6 +558,11 @@ export type MutationRefreshArgs = {
 };
 
 
+export type MutationRemoveActivityArgs = {
+  id: Scalars['String'];
+};
+
+
 export type MutationRemoveArticleArgs = {
   articleId: Scalars['Int'];
 };
@@ -676,6 +689,15 @@ export type MutationValidateTokenArgs = {
   token: Scalars['String'];
 };
 
+export type NewActivity = {
+  description: Scalars['String'];
+  endDate: Scalars['Date'];
+  location: Scalars['String'];
+  startDate: Scalars['Date'];
+  title: Scalars['String'];
+  utskott: Utskott;
+};
+
 export type NewArticle = {
   articleType: ArticleType;
   body: Scalars['String'];
@@ -689,6 +711,7 @@ export type NewEvent = {
   endDate: Scalars['Date'];
   startDate: Scalars['Date'];
   title: Scalars['String'];
+  utskott: Utskott;
 };
 
 export type NewPost = {
@@ -789,6 +812,7 @@ export type ProviderOptions = {
  * does not take an `electionId` parameter.
  */
 export type Query = {
+  activities: Array<ActivityResponse>;
   apiKey: ApiKey;
   apiKeys: Array<ApiKey>;
   article: Article;
@@ -801,8 +825,6 @@ export type Query = {
   file: File;
   fileSystem: FileSystemResponse;
   files: Array<File>;
-  getActivities: Array<Activity>;
-  getDepartments?: Maybe<Array<UtskottInfo>>;
   groupedPosts: Array<GroupedPost>;
   hehe: Hehe;
   hehes: Array<Hehe>;
@@ -832,6 +854,18 @@ export type Query = {
   user: User;
   userByCard: User;
   utskott: Utskott;
+  utskottInfo: UtskottInfo;
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryActivitiesArgs = {
+  from: Scalars['Date'];
+  to: Scalars['Date'];
+  utskott?: InputMaybe<Array<InputMaybe<Utskott>>>;
 };
 
 
@@ -917,26 +951,6 @@ export type QueryFileSystemArgs = {
  */
 export type QueryFilesArgs = {
   type?: InputMaybe<FileType>;
-};
-
-
-/**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
- */
-export type QueryGetActivitiesArgs = {
-  departments?: InputMaybe<Array<InputMaybe<Utskott>>>;
-  month: Scalars['Int'];
-  year: Scalars['Int'];
-};
-
-
-/**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
- */
-export type QueryGetDepartmentsArgs = {
-  departments?: InputMaybe<Array<InputMaybe<Utskott>>>;
 };
 
 
@@ -1177,6 +1191,15 @@ export type QueryUtskottArgs = {
   name: Scalars['String'];
 };
 
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryUtskottInfoArgs = {
+  utskott: Utskott;
+};
+
 export type SendEmailOptions = {
   body?: InputMaybe<Scalars['String']>;
   overrides?: InputMaybe<Scalars['Object']>;
@@ -1345,7 +1368,7 @@ export type ResolversTypes = ResolversObject<{
   AccessInput: AccessInput;
   AccessResourceType: AccessResourceType;
   AccessType: AccessType;
-  Activity: ResolverTypeWrapper<Activity>;
+  ActivityResponse: ResolverTypeWrapper<ActivityResponse>;
   ApiKey: ResolverTypeWrapper<ApiKeyResponse>;
   Article: ResolverTypeWrapper<ArticleResponse>;
   ArticleType: ArticleType;
@@ -1377,6 +1400,7 @@ export type ResolversTypes = ResolversObject<{
   ModifyArticle: ModifyArticle;
   ModifyPost: ModifyPost;
   Mutation: ResolverTypeWrapper<{}>;
+  NewActivity: NewActivity;
   NewArticle: NewArticle;
   NewEvent: NewEvent;
   NewPost: NewPost;
@@ -1405,7 +1429,7 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Access: Access;
   AccessInput: AccessInput;
-  Activity: Activity;
+  ActivityResponse: ActivityResponse;
   ApiKey: ApiKeyResponse;
   Article: ArticleResponse;
   Boolean: Scalars['Boolean'];
@@ -1430,6 +1454,7 @@ export type ResolversParentTypes = ResolversObject<{
   ModifyArticle: ModifyArticle;
   ModifyPost: ModifyPost;
   Mutation: {};
+  NewActivity: NewActivity;
   NewArticle: NewArticle;
   NewEvent: NewEvent;
   NewPost: NewPost;
@@ -1456,15 +1481,15 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ActivityResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Activity'] = ResolversParentTypes['Activity']> = ResolversObject<{
-  department?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
+export type ActivityResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ActivityResponse'] = ResolversParentTypes['ActivityResponse']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  end?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
-  imageURL?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  endDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  imageURL?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   location?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  start?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  startDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1536,6 +1561,7 @@ export type EventResolvers<ContextType = Context, ParentType extends ResolversPa
   id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   startDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1623,6 +1649,7 @@ export type MeetingResolvers<ContextType = Context, ParentType extends Resolvers
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   activatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationActivatePostArgs, 'id'>>;
+  addActivity?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationAddActivityArgs, 'activity'>>;
   addArticle?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddElectablesArgs, 'electionId' | 'postIds'>>;
   addEmergencyContact?: Resolver<ResolversTypes['EmergencyContact'], ParentType, ContextType, RequireFields<MutationAddEmergencyContactArgs, 'name' | 'phone' | 'type'>>;
@@ -1655,6 +1682,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postId' | 'username'>>;
   providerLogin?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationProviderLoginArgs, 'input'>>;
   refresh?: Resolver<ResolversTypes['TokenResponse'], ParentType, ContextType, RequireFields<MutationRefreshArgs, 'refreshToken'>>;
+  removeActivity?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationRemoveActivityArgs, 'id'>>;
   removeArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveArticleArgs, 'articleId'>>;
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId' | 'postIds'>>;
   removeEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveEmergencyContactArgs, 'id'>>;
@@ -1713,6 +1741,7 @@ export type ProposalResolvers<ContextType = Context, ParentType extends Resolver
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
+  activities?: Resolver<Array<ResolversTypes['ActivityResponse']>, ParentType, ContextType, RequireFields<QueryActivitiesArgs, 'from' | 'to'>>;
   apiKey?: Resolver<ResolversTypes['ApiKey'], ParentType, ContextType, RequireFields<QueryApiKeyArgs, 'key'>>;
   apiKeys?: Resolver<Array<ResolversTypes['ApiKey']>, ParentType, ContextType>;
   article?: Resolver<ResolversTypes['Article'], ParentType, ContextType, Partial<QueryArticleArgs>>;
@@ -1725,8 +1754,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<QueryFileArgs, 'id'>>;
   fileSystem?: Resolver<ResolversTypes['FileSystemResponse'], ParentType, ContextType, RequireFields<QueryFileSystemArgs, 'folder'>>;
   files?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, Partial<QueryFilesArgs>>;
-  getActivities?: Resolver<Array<ResolversTypes['Activity']>, ParentType, ContextType, RequireFields<QueryGetActivitiesArgs, 'month' | 'year'>>;
-  getDepartments?: Resolver<Maybe<Array<ResolversTypes['UtskottInfo']>>, ParentType, ContextType, Partial<QueryGetDepartmentsArgs>>;
   groupedPosts?: Resolver<Array<ResolversTypes['GroupedPost']>, ParentType, ContextType, Partial<QueryGroupedPostsArgs>>;
   hehe?: Resolver<ResolversTypes['Hehe'], ParentType, ContextType, RequireFields<QueryHeheArgs, 'number' | 'year'>>;
   hehes?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType, RequireFields<QueryHehesArgs, 'year'>>;
@@ -1754,6 +1781,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   userByCard?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserByCardArgs, 'luCard'>>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType, RequireFields<QueryUtskottArgs, 'name'>>;
+  utskottInfo?: Resolver<ResolversTypes['UtskottInfo'], ParentType, ContextType, RequireFields<QueryUtskottInfoArgs, 'utskott'>>;
 }>;
 
 export type SocialsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Socials'] = ResolversParentTypes['Socials']> = ResolversObject<{
@@ -1810,7 +1838,7 @@ export type UtskottInfoResolvers<ContextType = Context, ParentType extends Resol
 
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Access?: AccessResolvers<ContextType>;
-  Activity?: ActivityResolvers<ContextType>;
+  ActivityResponse?: ActivityResponseResolvers<ContextType>;
   ApiKey?: ApiKeyResolvers<ContextType>;
   Article?: ArticleResolvers<ContextType>;
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;

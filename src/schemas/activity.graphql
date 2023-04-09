@@ -1,0 +1,34 @@
+# import Utskott from 'utskott.graphql'
+# import Date from 'user.graphql'
+
+type Query{
+    activities(from: Date!, to: Date!, utskott: [Utskott]) : [ActivityResponse!]! 
+}
+
+type Mutation{
+    addActivity(activity: NewActivity!) : Boolean
+    removeActivity(id: String!) : Boolean
+}
+
+type ActivityResponse{
+    id: String!
+    utskott: Utskott!
+    title: String!
+    description: String!
+    imageURL: String
+    startDate: Date!
+    endDate: Date!
+    location: String!
+    #Add ticket information.
+}
+
+input NewActivity{
+    startDate: Date!
+    endDate: Date!
+    title: String!
+    description: String!
+    location: String!
+    utskott: Utskott!
+    #Add possible ticket information.
+    #Add possible image information.
+}

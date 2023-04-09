@@ -3,6 +3,7 @@
 
 type Query {
     utskott(name: String!): Utskott!
+    utskottInfo(utskott: Utskott!) : UtskottInfo!
 }
 
 enum Utskott {
@@ -18,4 +19,20 @@ enum Utskott {
     PENGU
     SRE
     STYRELSEN
+}
+
+#rework for UtskottResponse
+type UtskottInfo{
+    name: String!
+    about: String
+    imageURL: String
+    socials: Socials!
+}
+
+type Socials{
+    facebook: String
+    instagram: String
+    twitter: String
+    website: String
+    youtube: String
 }
