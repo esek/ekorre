@@ -150,6 +150,7 @@ export enum EmergencyContactType {
 /** Features are used for mapping access to a feature (ex article or election) for user or a post. This is not limited to efterphest */
 export enum Feature {
   AccessAdmin = 'access_admin',
+  ActivityAdmin = 'activity_admin',
   ArticleEditor = 'article_editor',
   ElectionAdmin = 'election_admin',
   EmailAdmin = 'email_admin',
@@ -830,7 +831,6 @@ export type Query = {
   user: User;
   userByCard: User;
   utskott: Utskott;
-  utskottInfo: UtskottInfo;
 };
 
 
@@ -1158,29 +1158,12 @@ export type QueryUtskottArgs = {
   name: Scalars['String'];
 };
 
-
-/**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
- */
-export type QueryUtskottInfoArgs = {
-  utskott: Utskott;
-};
-
 export type SendEmailOptions = {
   body?: InputMaybe<Scalars['String']>;
   overrides?: InputMaybe<Scalars['Object']>;
   subject: Scalars['String'];
   template?: InputMaybe<Scalars['String']>;
   to: Array<Scalars['String']>;
-};
-
-export type Socials = {
-  facebook?: Maybe<Scalars['String']>;
-  instagram?: Maybe<Scalars['String']>;
-  twitter?: Maybe<Scalars['String']>;
-  website?: Maybe<Scalars['String']>;
-  youtube?: Maybe<Scalars['String']>;
 };
 
 export enum SortOrder {
@@ -1253,13 +1236,6 @@ export enum Utskott {
   Sre = 'SRE',
   Styrelsen = 'STYRELSEN'
 }
-
-export type UtskottInfo = {
-  about?: Maybe<Scalars['String']>;
-  imageURL?: Maybe<Scalars['String']>;
-  name: Scalars['String'];
-  socials: Socials;
-};
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
 export type ResolversObject<TObject> = WithIndex<TObject>;
@@ -1379,7 +1355,6 @@ export type ResolversTypes = ResolversObject<{
   ProviderOptions: ProviderOptions;
   Query: ResolverTypeWrapper<{}>;
   SendEmailOptions: SendEmailOptions;
-  Socials: ResolverTypeWrapper<Socials>;
   SortOrder: SortOrder;
   String: ResolverTypeWrapper<Scalars['String']>;
   TokenResponse: ResolverTypeWrapper<TokenResponse>;
@@ -1387,7 +1362,6 @@ export type ResolversTypes = ResolversObject<{
   User: ResolverTypeWrapper<User>;
   UserPostHistoryEntry: ResolverTypeWrapper<UserPostHistoryEntry>;
   Utskott: Utskott;
-  UtskottInfo: ResolverTypeWrapper<UtskottInfo>;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -1429,13 +1403,11 @@ export type ResolversParentTypes = ResolversObject<{
   ProviderOptions: ProviderOptions;
   Query: {};
   SendEmailOptions: SendEmailOptions;
-  Socials: Socials;
   String: Scalars['String'];
   TokenResponse: TokenResponse;
   UpdateUser: UpdateUser;
   User: User;
   UserPostHistoryEntry: UserPostHistoryEntry;
-  UtskottInfo: UtskottInfo;
 }>;
 
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
@@ -1732,16 +1704,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   userByCard?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserByCardArgs, 'luCard'>>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType, RequireFields<QueryUtskottArgs, 'name'>>;
-  utskottInfo?: Resolver<ResolversTypes['UtskottInfo'], ParentType, ContextType, RequireFields<QueryUtskottInfoArgs, 'utskott'>>;
-}>;
-
-export type SocialsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Socials'] = ResolversParentTypes['Socials']> = ResolversObject<{
-  facebook?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  instagram?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  twitter?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  youtube?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type TokenResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TokenResponse'] = ResolversParentTypes['TokenResponse']> = ResolversObject<{
@@ -1779,14 +1741,6 @@ export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType exte
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type UtskottInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['UtskottInfo'] = ResolversParentTypes['UtskottInfo']> = ResolversObject<{
-  about?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  imageURL?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  socials?: Resolver<ResolversTypes['Socials'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Access?: AccessResolvers<ContextType>;
   ActivityResponse?: ActivityResponseResolvers<ContextType>;
@@ -1813,10 +1767,8 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Post?: PostResolvers<ContextType>;
   Proposal?: ProposalResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  Socials?: SocialsResolvers<ContextType>;
   TokenResponse?: TokenResponseResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserPostHistoryEntry?: UserPostHistoryEntryResolvers<ContextType>;
-  UtskottInfo?: UtskottInfoResolvers<ContextType>;
 }>;
 

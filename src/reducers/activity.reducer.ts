@@ -2,10 +2,9 @@ import { ActivityResponse, Utskott } from '@generated/graphql';
 import { PrismaActivity } from '@prisma/client';
 
 export const activityReduce = (dbActivity: PrismaActivity): ActivityResponse => {
-  const { utskott, title, description, imageURL, startDate, endDate, refKey, location } =
-    dbActivity;
+  const { utskott, title, description, imageURL, startDate, endDate, id, location } = dbActivity;
   return {
-    id: refKey,
+    id: id,
     utskott: utskott as Utskott,
     title: title,
     description: description,

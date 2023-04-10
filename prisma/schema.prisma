@@ -294,7 +294,7 @@ model PrismaLoginProvider {
 }
 
 model PrismaActivity {
-  id          Int           @id @default(autoincrement())
+  id          String        @id @default(cuid())
   startDate   DateTime      @map("start_date")
   endDate     DateTime      @map("end_date")
   title       String
@@ -302,24 +302,9 @@ model PrismaActivity {
   imageURL    String?
   fromOrbi    Boolean       @default(false)
   utskott     PrismaUtskott @default(OTHER)
-  refKey      String        @unique @default(cuid())
   location    String
 
-  @@map("event")
-}
-
-//Very temporary, am aware of issue #255
-model PrismaDepartmentInfo {
-  id           Int           @id @default(autoincrement())
-  utskott      PrismaUtskott
-  name         String
-  about        String?
-  logo         String?
-  facebookURL  String?
-  instagramURL String?
-  twitterURL   String?
-  websiteURL   String?
-  youtubeURL   String?
+  @@map("activity")
 }
 
 enum PrismaResourceType {

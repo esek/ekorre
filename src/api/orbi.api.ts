@@ -1,7 +1,8 @@
 import config from '@/config';
+import { ServerError } from '@/errors/request.errors';
 import { OrbiActivityResponse, OrbiOrgTreeResponse } from '@/models/orbi';
 import { Utskott } from '@generated/graphql';
-import { Prisma, PrismaDepartmentInfo, PrismaActivity } from '@prisma/client';
+import { Prisma, PrismaActivity } from '@prisma/client';
 import { Axios } from 'axios';
 
 import prisma from './prisma';
@@ -39,7 +40,10 @@ export class OrbiAPI {
 
   private getDepartmentFromKey(departmentKey: string): Utskott {
     const dep = departmentKeytoTagMap.get(departmentKey);
-    return dep ?? Utskott.Other;
+    if (!dep) {
+      throw new ServerError(`Kunde inte hitta utskottet med nyckeln ${departmentKey} från orbi`);
+    }
+    return dep;
   }
 
   /**
@@ -72,14 +76,15 @@ export class OrbiAPI {
 
   /**
    * Retrieves activity data from orbi for the
-   * coming three months, adding them to PrismaEvent
+   * coming three months, adding them to PrismaActivity
    * with fromOrbi = true
    */
   async updateActivities() {
     if (Date.now() - activityFetchTimestamp < activityFetchCycle) return;
+    if (departmentKeytoTagMap.size == 0) await this.updateDepartmentInfo();
     const oldTimestamp = activityFetchTimestamp;
     activityFetchTimestamp = Date.now();
-    await this.updateDepartmentInfo();
+
     const dateLastCall = new Date(oldTimestamp);
     const callTimes = [0, 1, 2].map((offset) =>
       new Date(oldTimestamp).setMonth(dateLastCall.getMonth() + offset),
@@ -127,7 +132,7 @@ export class OrbiAPI {
           description: a.description,
           fromOrbi: true,
           utskott: this.getDepartmentFromKey(a.departmentKey),
-          refKey: a.activityKey,
+          id: a.activityKey,
           location: a.location.label,
         };
       }),
@@ -135,27 +140,6 @@ export class OrbiAPI {
 
     //This is done instead of updateMany as to delete
     //activities that have been removed from orbi.
-  }
-
-  /**
-   * Get department info from Orbi from the specified utskott.
-   * This is similar to calling updateDepartmentInfo() and
-   * querying prismaDepartmentInfo.findMany(), filtering on
-   * utskott in utskott.
-   * @param departments the departments to query. If null, queries all departments
-   * @returns orbi based information about the queried departments
-   */
-  async getDepartmentInfo(departments: Utskott[]): Promise<PrismaDepartmentInfo[]> {
-    await this.updateDepartmentInfo();
-    if (!departments) departments = Object.values(Utskott);
-    const d = await prisma.prismaDepartmentInfo.findMany({
-      where: {
-        utskott: {
-          in: departments,
-        },
-      },
-    });
-    return d;
   }
 
   /**
@@ -183,25 +167,6 @@ export class OrbiAPI {
       const tag = Object.values(Utskott).includes(ref) ? ref : Utskott.Other;
       departmentKeytoTagMap.set(value.departmentKey, tag);
       value.departmentKey = tag;
-    });
-
-    const map = node.departments.map((d) => {
-      return {
-        utskott: d.departmentKey,
-        name: d.name,
-        about: d.about,
-        logo: d.shortlivedLogoUrl,
-        facebookURL: d.social.facebookUrl,
-        instagramURL: d.social.instagramUrl,
-        twitterURL: d.social.twitterUrl,
-        websiteURL: d.social.websiteUrl,
-        youtubeURL: d.social.youtubeUrl,
-      };
-    });
-
-    await prisma.prismaDepartmentInfo.deleteMany();
-    await prisma.prismaDepartmentInfo.createMany({
-      data: map,
     });
   }
 }

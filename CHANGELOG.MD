@@ -4,6 +4,20 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.5] - 2023-04-10
+
+### Tillagt
+- `PrismaActivity` för att lagra evenemang skapadae i Orbi och från hemsidan i samma DB-table/struktur.
+- `orbi.api.ts` interface för all aktivitetsinformation från orbi till DB (formaterad som PrismaActivity).
+Begränsar också antalet anrop till Orbi API som görs till tre gånger i timmen. 
+- `activity.api.ts` logik för att skapa, radera och hämta aktiviteter skapade från hemsidan och/eller orbi.
+- Tester för ovan (via `activity.api.test.ts`).
+- `Feature.ActivityAdmin` access att skapa och radera evenemang.
+- `activity.graphql/resolver/reducer`
+- `orbi.d.ts` types som definierar datafromatet på Orbis API-svar.
+- `ORBI_API_KEY` i .env för att kunna göra anrop till Orbis API.
+ 
+
 ## [1.2.4] - 2023-02-06
 
 ### Tillagt

@@ -20,7 +20,7 @@ const defaultOrder: Prisma.PrismaActivityOrderByWithRelationAndSearchRelevanceIn
 const orbiApi = new OrbiAPI();
 
 export class ActivityAPI {
-  async getActivites(from: Date, to: Date, utskott: Utskott[]): Promise<PrismaActivity[]> {
+  async getActivities(from: Date, to: Date, utskott: Utskott[]): Promise<PrismaActivity[]> {
     if (!utskott) utskott = Object.values(Utskott);
     orbiApi.updateActivities();
     const a = await prisma.prismaActivity.findMany({
@@ -37,6 +37,7 @@ export class ActivityAPI {
   }
 
   async getAllActivities(): Promise<PrismaActivity[]> {
+    orbiApi.updateActivities();
     const a = await prisma.prismaActivity.findMany({
       orderBy: defaultOrder,
     });
@@ -73,7 +74,7 @@ export class ActivityAPI {
     try {
       await prisma.prismaActivity.delete({
         where: {
-          refKey: id,
+          id: id,
         },
       });
       return true;
