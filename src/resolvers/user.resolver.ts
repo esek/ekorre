@@ -127,14 +127,7 @@ const userResolver: Resolvers = {
       await hasAuthenticated(ctx);
       const usernamesLowerCase = usernames.map((username) => username.toLowerCase());
       const users = await ctx.userDataLoader.loadMany(usernamesLowerCase);
-      const error = users.find((e) => e instanceof Error);
-
-      // Making sure an Error is only thrown if it exists
-      if (error instanceof Error) {
-        throw error;
-      }
-
-      return users as User[];
+      return users as User[]; // Error handling is done in user.dataloader.ts
     },
     userByCard: async (_, { luCard }, ctx) => {
       await hasAuthenticated(ctx);
