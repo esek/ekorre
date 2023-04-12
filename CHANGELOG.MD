@@ -4,6 +4,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2023-04-05
+
+### Tillagt
+- Lagt till en `users` query i `User`-resolver för att kunna hämta användare från en lista av användarnamn
+- Lagt till ett testfall för ovanstående
+
 ## [1.2.4] - 2023-02-06
 
 ### Tillagt

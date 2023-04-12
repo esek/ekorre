@@ -753,6 +753,7 @@ export type Query = {
   searchUser: Array<User>;
   user: User;
   userByCard: User;
+  users: Array<User>;
   utskott: Utskott;
 };
 
@@ -1027,6 +1028,14 @@ export type QueryUserArgs = {
  */
 export type QueryUserByCardArgs = {
   luCard: Scalars['String'];
+};
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryUsersArgs = {
+  usernames: Array<Scalars['String']>;
 };
 
 /**
@@ -2063,6 +2072,12 @@ export type QueryResolvers<
     ParentType,
     ContextType,
     RequireFields<QueryUserByCardArgs, 'luCard'>
+  >;
+  users?: Resolver<
+    Array<ResolversTypes['User']>,
+    ParentType,
+    ContextType,
+    RequireFields<QueryUsersArgs, 'usernames'>
   >;
   utskott?: Resolver<
     ResolversTypes['Utskott'],
