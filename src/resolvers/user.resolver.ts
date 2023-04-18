@@ -123,6 +123,12 @@ const userResolver: Resolvers = {
       const u = await api.getSingleUser(username);
       return reduce(u, userReduce);
     },
+    users: async (_, { usernames }, ctx) => {
+      await hasAuthenticated(ctx);
+      const usernamesLowerCase = usernames.map((username) => username.toLowerCase());
+      const users = await ctx.userDataLoader.loadMany(usernamesLowerCase);
+      return users as User[]; // Error handling is done in user.dataloader.ts
+    },
     userByCard: async (_, { luCard }, ctx) => {
       await hasAuthenticated(ctx);
       const u = await api.getSingleUserByLuCard(luCard);

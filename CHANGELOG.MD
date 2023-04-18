@@ -18,6 +18,11 @@ Begränsar också antalet anrop till Orbi API som görs till tre gånger i timme
 - `ORBI_API_KEY` i .env för att kunna göra anrop till Orbis API.
 - Fucka up med changelogen så fick pusha en ny version sorry
  
+## [1.3.0] - 2023-04-05
+
+### Tillagt
+- Lagt till en `users` query i `User`-resolver för att kunna hämta användare från en lista av användarnamn
+- Lagt till ett testfall för ovanstående
 
 ## [1.2.4] - 2023-02-06
 
