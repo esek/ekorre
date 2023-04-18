@@ -1159,6 +1159,7 @@ export type QueryUsersArgs = {
   usernames: Array<Scalars['String']>;
 };
 
+
 /**
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
@@ -1712,44 +1713,8 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   searchUser?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySearchUserArgs, 'search'>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   userByCard?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserByCardArgs, 'luCard'>>;
+  users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUsersArgs, 'usernames'>>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType, RequireFields<QueryUtskottArgs, 'name'>>;
-
-  searchFiles?: Resolver<
-    Array<ResolversTypes['File']>,
-    ParentType,
-    ContextType,
-    RequireFields<QuerySearchFilesArgs, 'search'>
-  >;
-  searchUser?: Resolver<
-    Array<ResolversTypes['User']>,
-    ParentType,
-    ContextType,
-    RequireFields<QuerySearchUserArgs, 'search'>
-  >;
-  user?: Resolver<
-    ResolversTypes['User'],
-    ParentType,
-    ContextType,
-    RequireFields<QueryUserArgs, 'username'>
-  >;
-  userByCard?: Resolver<
-    ResolversTypes['User'],
-    ParentType,
-    ContextType,
-    RequireFields<QueryUserByCardArgs, 'luCard'>
-  >;
-  users?: Resolver<
-    Array<ResolversTypes['User']>,
-    ParentType,
-    ContextType,
-    RequireFields<QueryUsersArgs, 'usernames'>
-  >;
-  utskott?: Resolver<
-    ResolversTypes['Utskott'],
-    ParentType,
-    ContextType,
-    RequireFields<QueryUtskottArgs, 'name'>
-  >;
 }>;
 
 export type TokenResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TokenResponse'] = ResolversParentTypes['TokenResponse']> = ResolversObject<{
