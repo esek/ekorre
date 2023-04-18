@@ -4,7 +4,7 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.5] - 2023-04-18
+## [1.3.1] - 2023-04-18
 
 ### Tillagt
 - `PrismaActivity` för att lagra evenemang skapadae i Orbi och från hemsidan i samma DB-table/struktur.
@@ -17,6 +17,11 @@ Begränsar också antalet anrop till Orbi API som görs till tre gånger i timme
 - `orbi.d.ts` types som definierar datafromatet på Orbis API-svar.
 - `ORBI_API_KEY` i .env för att kunna göra anrop till Orbis API.
  
+## [1.3.0] - 2023-04-05
+
+### Tillagt
+- Lagt till en `users` query i `User`-resolver för att kunna hämta användare från en lista av användarnamn
+- Lagt till ett testfall för ovanstående
 
 ## [1.2.4] - 2023-02-06
 
