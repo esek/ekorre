@@ -1,5 +1,4 @@
 import config from '@/config';
-import { ServerError } from '@/errors/request.errors';
 import { OrbiActivityResponse, OrbiOrgTreeResponse } from '@/models/orbi';
 import { Utskott } from '@generated/graphql';
 import { Prisma, PrismaActivity } from '@prisma/client';
@@ -19,31 +18,18 @@ const defaultOrder: Prisma.PrismaActivityOrderByWithRelationAndSearchRelevanceIn
   { title: 'asc' },
 ];
 
-const departmentKeytoTagMap: Map<string, Utskott> = new Map<string, Utskott>();
-
-//Time (in milliseconds) since last activity call to the orbi API
-let activityFetchTimestamp: number;
-let departmentFetchTimestamp: number;
+//Time (in milliseconds) since last call to the orbi API
+let lastFetch: number;
 
 //(minimum) number of milliseconds between each call to the orbi API
-const activityFetchCycle: number = 20 * 60 * 1000; //20 minutes
-const departmentFetchCycle: number = 60 * 60 * 1000; //1 hour
+const fetchCycle: number = 20 * 60 * 1000; //20 minutes
 
 const activitiesEndpoint = 'https://apis.orbiapp.io/v1/departments/activities';
 const OrgNodeEndpoint = 'https://apis.orbiapp.io/v1/departments/org-nodes/tree';
 
 export class OrbiAPI {
   constructor() {
-    activityFetchTimestamp = Date.now() - activityFetchCycle;
-    departmentFetchTimestamp = Date.now() - departmentFetchCycle;
-  }
-
-  private getDepartmentFromKey(departmentKey: string): Utskott {
-    const dep = departmentKeytoTagMap.get(departmentKey);
-    if (!dep) {
-      throw new ServerError(`Kunde inte hitta utskottet med nyckeln ${departmentKey} från orbi`);
-    }
-    return dep;
+    lastFetch = Date.now() - fetchCycle;
   }
 
   /**
@@ -80,10 +66,10 @@ export class OrbiAPI {
    * with fromOrbi = true
    */
   async updateActivities() {
-    if (Date.now() - activityFetchTimestamp < activityFetchCycle) return;
-    if (departmentKeytoTagMap.size == 0) await this.updateDepartmentInfo();
-    const oldTimestamp = activityFetchTimestamp;
-    activityFetchTimestamp = Date.now();
+    if (Date.now() - lastFetch < fetchCycle) return;
+    const map = await this.getDepartmentKeyTagMap();
+    const oldTimestamp = lastFetch;
+    lastFetch = Date.now();
 
     const dateLastCall = new Date(oldTimestamp);
     const callTimes = [0, 1, 2].map((offset) =>
@@ -131,7 +117,7 @@ export class OrbiAPI {
           title: a.title,
           description: a.description,
           fromOrbi: true,
-          utskott: this.getDepartmentFromKey(a.departmentKey),
+          utskott: map.get(a.departmentKey.toString()),
           id: a.activityKey,
           location: a.location.label,
         };
@@ -146,9 +132,7 @@ export class OrbiAPI {
    * Retrieves department data from orbi,
    * adding them to PrismaDepartmentInfo
    */
-  async updateDepartmentInfo() {
-    if (Date.now() - departmentFetchTimestamp < departmentFetchCycle) return;
-    departmentFetchTimestamp = Date.now();
+  async getDepartmentKeyTagMap(): Promise<Map<string, Utskott>> {
     const res = await axios.get(OrgNodeEndpoint);
     if (res.status !== 200) {
       //Kolla med pros om det går att dynamiskt kasta rätt errortyp baserat på f.status
@@ -160,6 +144,7 @@ export class OrbiAPI {
     //This might need revision should the guild rework its Orbi workspace.
     const node = (JSON.parse(String(res.data)) as OrbiOrgTreeResponse)[0];
 
+    const departmentKeytoTagMap: Map<string, Utskott> = new Map<string, Utskott>();
     //Update departmentKey to tag (Utskott enum) map.
     node.departments.forEach((value) => {
       //Works for now. If utskott are reworked, this will have to change
@@ -168,5 +153,7 @@ export class OrbiAPI {
       departmentKeytoTagMap.set(value.departmentKey, tag);
       value.departmentKey = tag;
     });
+
+    return departmentKeytoTagMap;
   }
 }

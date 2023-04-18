@@ -4,7 +4,7 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.5] - 2023-04-10
+## [1.2.5] - 2023-04-18
 
 ### Tillagt
 - `PrismaActivity` för att lagra evenemang skapadae i Orbi och från hemsidan i samma DB-table/struktur.

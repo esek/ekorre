@@ -9,7 +9,7 @@ const api = new ActivityAPI();
 const activityResolver: Resolvers = {
   Query: {
     activities: async (_, { from, to, utskott }, ctx) => {
-      hasAuthenticated(ctx);
+      await hasAuthenticated(ctx);
       const a = await api.getActivities(from, to, utskott as Utskott[]);
       return reduce(a, activityReduce);
     },
@@ -17,12 +17,12 @@ const activityResolver: Resolvers = {
 
   Mutation: {
     addActivity: async (_, { activity }, ctx) => {
-      await hasAccess(ctx, Feature.ActivityAdmin); //add EventAdmin Feature
+      await hasAccess(ctx, Feature.ActivityAdmin);
       return api.addActivity(activity);
     },
 
     removeActivity: async (_, { id }, ctx) => {
-      await hasAccess(ctx, Feature.ActivityAdmin); //add EventAdmin Feature
+      await hasAccess(ctx, Feature.ActivityAdmin);
       return api.removeActivity(id);
     },
   },
