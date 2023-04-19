@@ -34,6 +34,11 @@ const heheResolver: Resolvers = {
       const h = await api.getAllHehes(limit ?? undefined, sortOrder ?? undefined);
       return reduce(h, heheReduce);
     },
+    allHehes: async (_, { sortOrder }, ctx) => {
+      await hasAuthenticated(ctx);
+      const h = await api.getAllHehes(undefined, sortOrder ?? undefined);
+      return reduce(h, heheReduce);
+    },
   },
   Mutation: {
     addHehe: async (_, { fileId, number, year }, ctx) => {

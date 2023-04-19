@@ -4,6 +4,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2023-04-19
+
+### Tillagt
+- Lagt till en `allHehes` query i `hehe`-resolver/graph för att kunna hämt alla hehes.
+
 ## [1.3.0] - 2023-04-05
 
 ### Tillagt
