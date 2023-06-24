@@ -109,6 +109,7 @@ test('creating two concurrent board meetings', async () => {
     number: 5,
     year: 2021,
     refSummons: null,
+    refAgenda: null,
     refDocuments: null,
     refLateDocuments: null,
     refProtocol: null,
