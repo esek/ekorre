@@ -1,7 +1,7 @@
 import { PostAPI } from '@/api/post.api';
 import prisma from '@/api/prisma';
 import config from '@/config';
-import { BadRequestError, NotFoundError } from '@/errors/request.errors';
+import { BadRequestError } from '@/errors/request.errors';
 import { midnightTimestamp } from '@/util';
 import { ModifyPost, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
 import { PrismaPost } from '@prisma/client';
