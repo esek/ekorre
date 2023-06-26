@@ -9,6 +9,7 @@ const dummyDbMeeting: PrismaMeeting = {
   number: 3,
   year: 1817,
   refSummons: 'a valid file id',
+  refAgenda: 'a valid file id',
   refLateDocuments: 'another valid file id',
   refAppendix: 'yet another valid file id',
   refDocuments: 'a valid file id',
@@ -35,6 +36,9 @@ const expected: MeetingResponse = {
   },
   summons: {
     id: dummyDbMeeting.refSummons ?? undefined,
+  },
+  agenda: {
+    id: dummyDbMeeting.refAgenda ?? undefined,
   },
 };
 
