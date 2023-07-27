@@ -302,6 +302,11 @@ export class MeetingAPI {
           refSummons: content,
         };
         break;
+      case MeetingDocumentType.Agenda:
+        data = {
+          refAgenda: content,
+        };
+        break;
       case MeetingDocumentType.Documents:
         data = {
           refDocuments: content,

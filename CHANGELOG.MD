@@ -4,7 +4,7 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.0] - 2023-06-24
+## [1.4.0] - 2023-07-27
 
 ### Tillagt
 - Dagordning kan nu bifogas till ett möte separat/för sig själv.
