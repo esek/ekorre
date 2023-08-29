@@ -29,6 +29,9 @@ type Meeting {
   "Kallelse"
   summons: File
 
+  "Dagordning"
+  agenda: File
+
   "Handlingar"
   documents: File
   lateDocuments: File
@@ -59,6 +62,9 @@ enum MeetingType {
 enum MeetingDocumentType {
   "Kallelse"
   summons
+
+  "Dagordning"
+  agenda
 
   "Handlingar"
   documents

@@ -18,6 +18,12 @@ const meetingResolver: Resolvers = {
       }
       return null;
     },
+    agenda: async ({ agenda }, _, ctx) => {
+      if (agenda?.id != null) {
+        return ctx.fileDataLoader.load(agenda.id);
+      }
+      return null;
+    },
     documents: async ({ documents }, _, ctx) => {
       if (documents?.id != null) {
         return ctx.fileDataLoader.load(documents.id);
