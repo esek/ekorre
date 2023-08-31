@@ -19,11 +19,11 @@ const addIfRefNotNull = (
 
 export function meetingReduce(meeting: PrismaMeeting): MeetingResponse {
   let name: string;
-
-  if (meeting.type === MeetingType.Sm || meeting.type === MeetingType.Extra) {
-    name = `${meeting.type}${zeroPad(meeting.number, 2)}`;
-  } else {
+  const guildMeetings = [MeetingType.Htm, MeetingType.Vtm, MeetingType.Vm, MeetingType.Extra];
+  if (guildMeetings.some((m) => m == meeting.type)) {
     name = `${meeting.type} ${meeting.year}`;
+  } else {
+    name = `${meeting.type}${zeroPad(meeting.number, 2)}`;
   }
 
   // If a reference is missing, the documents is not to be added to response

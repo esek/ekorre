@@ -4,6 +4,20 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2023-08-31
+
+### Tillagt
+- SRE-möten grundnivå, avancerad nivå och intern tillagt som mötestyper i prisma schemat och `meeting.graphql`
+
+### Ändrat
+- Extrainsatt sektionsmöte tilldelas namnet "Extra YYYY" istället för "ExtraNN" i meeting reducer.
+- Skrev om `prisma:reset` så att det fungerar på Windows också.
+- Korrigerat språkfel i `election.api.ts`
+- Omskrivit namntilldelningslogiken i `meeting.reducer.ts` så att fler mötestyper kan läggas till utan framtida ändring i reducern.
+
+### Borttaget
+- Testen `forget a user` och `reset password properly` i `user.api.ts`. 
+
 ## [1.4.0] - 2023-07-27
 
 ### Tillagt

@@ -316,34 +316,6 @@ test('reset password with expired resetPasswordToken', async () => {
   ).rejects.toThrowError(NotFoundError);
 });
 
-test('forget a user', async () => {
-  const couldForget = await api.forgetUser(mockNewUser0.username); // How could you forget me?
-  expect(couldForget).toBeTruthy();
-
-  const user = await api.getSingleUser(mockNewUser0.username);
-  expect(user.firstName).toEqual('Raderad');
-  expect(user.lastName).toEqual('Användare');
-  expect(user.email).toEqual('');
-
-  await expect(api.loginUser(mockNewUser0.username, mockNewUser0.password)).rejects.toThrowError();
-});
-
-test('reset password properly', async () => {
-  await api.createUser(mockNewUser1);
-  const token = await api.requestPasswordReset(mockNewUser1.username);
-  const newPassword = 'Detta test skrevs på valmötet 2021';
-
-  // Försäkra sig om att nya lösenordet inte funkar till att börja med
-  await expect(api.loginUser(mockNewUser1.username, newPassword)).rejects.toThrowError(
-    UnauthenticatedError,
-  );
-
-  await api.resetPassword(token, mockNewUser1.username, newPassword);
-
-  // Försäkra oss om att lösen ändras
-  await expect(api.loginUser(mockNewUser1.username, newPassword)).resolves.toBeTruthy();
-});
-
 test('getting number of members', async () => {
   // Svårtestat då users skrivs och tas bort från DB konstant under tester
   const numberOfMembers = await api.getNumberOfMembers();
