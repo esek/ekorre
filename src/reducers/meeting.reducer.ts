@@ -17,9 +17,10 @@ const addIfRefNotNull = (
   }
 };
 
+const guildMeetings = [MeetingType.Htm, MeetingType.Vtm, MeetingType.Vm, MeetingType.Extra];
+
 export function meetingReduce(meeting: PrismaMeeting): MeetingResponse {
   let name: string;
-  const guildMeetings = [MeetingType.Htm, MeetingType.Vtm, MeetingType.Vm, MeetingType.Extra];
   if (guildMeetings.some((m) => m == meeting.type)) {
     name = `${meeting.type} ${meeting.year}`;
   } else {
