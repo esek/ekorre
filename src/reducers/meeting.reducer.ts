@@ -27,8 +27,16 @@ export function meetingReduce(meeting: PrismaMeeting): MeetingResponse {
   }
 
   // If a reference is missing, the documents is not to be added to response
-  const { refSummons, refDocuments, refLateDocuments, refProtocol, refAppendix, type, ...reduced } =
-    meeting;
+  const {
+    refSummons,
+    refAgenda,
+    refDocuments,
+    refLateDocuments,
+    refProtocol,
+    refAppendix,
+    type,
+    ...reduced
+  } = meeting;
 
   const m = {
     ...reduced,
@@ -38,6 +46,7 @@ export function meetingReduce(meeting: PrismaMeeting): MeetingResponse {
 
   // Add stubs to be resolved by file resolver
   addIfRefNotNull(m, MeetingDocumentType.Summons, refSummons);
+  addIfRefNotNull(m, MeetingDocumentType.Agenda, refAgenda);
   addIfRefNotNull(m, MeetingDocumentType.Documents, refDocuments);
   addIfRefNotNull(m, MeetingDocumentType.LateDocuments, refLateDocuments);
   addIfRefNotNull(m, MeetingDocumentType.Protocol, refProtocol);

@@ -201,6 +201,7 @@ model PrismaFile {
   refUploader          String           @map("ref_uploader")
   heHe                 PrismaHehe?      @relation(name: "PrismaFileToPrismaHehe")
   meetingSummons       PrismaMeeting?   @relation(name: "MeetingSummons")
+  meetingAgenda        PrismaMeeting?   @relation(name: "MeetingAgenda")
   meetingDocuments     PrismaMeeting?   @relation(name: "MeetingDocuments")
   meetingLateDocuments PrismaMeeting?   @relation(name: "MeetingLateDocuments")
   meetingProtocols     PrismaMeeting?   @relation(name: "MeetingProtocols")
@@ -232,6 +233,8 @@ model PrismaMeeting {
   year             Int
   summons          PrismaFile?       @relation(name: "MeetingSummons", fields: [refSummons], references: [id])
   refSummons       String?           @unique @map("ref_summons")
+  agenda           PrismaFile?       @relation(name: "MeetingAgenda", fields: [refAgenda], references: [id])
+  refAgenda        String?           @unique @map("ref_agenda")
   documents        PrismaFile?       @relation(name: "MeetingDocuments", fields: [refDocuments], references: [id])
   refDocuments     String?           @unique @map("ref_documents")
   lateDocuments    PrismaFile?       @relation(name: "MeetingLateDocuments", fields: [refLateDocuments], references: [id])

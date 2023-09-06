@@ -232,6 +232,8 @@ export type LoginResponse = {
 };
 
 export type Meeting = {
+  /** Dagordning */
+  agenda?: Maybe<File>;
   /** Bilaga */
   appendix?: Maybe<File>;
   /** Handlingar */
@@ -253,6 +255,8 @@ export type Meeting = {
 };
 
 export enum MeetingDocumentType {
+  /** Dagordning */
+  Agenda = 'agenda',
   /** Bilaga */
   Appendix = 'appendix',
   /** Handlingar */
@@ -1507,6 +1511,7 @@ export type MeetingResolvers<
   ContextType = Context,
   ParentType extends ResolversParentTypes['Meeting'] = ResolversParentTypes['Meeting'],
 > = ResolversObject<{
+  agenda?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   appendix?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   documents?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;

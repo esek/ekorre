@@ -1,4 +1,4 @@
-# Ekorre
+# Ekorre 
 
 ![Mascot logo](./.github/logo.png)
 

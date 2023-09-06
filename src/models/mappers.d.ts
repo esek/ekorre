@@ -32,9 +32,10 @@ export type FileResponse = Partial<Omit<File, 'createdBy'>> & {
 };
 
 // prettier-ignore
-export type MeetingResponse = Partial<Omit<Meeting, 'summons' | 'documents' | 'lateDocuments' | 'protocol' | 'appendix'>
+export type MeetingResponse = Partial<Omit<Meeting, 'summons' | 'agenda' | 'documents' | 'lateDocuments' | 'protocol' | 'appendix'>
 > & {
   summons?: Partial<File>;
+  agenda?: Partial<File>;
   documents?: Partial<File>;
   lateDocuments?: Partial<File>;
   protocol?: Partial<File>;
