@@ -1,4 +1,4 @@
-ARG NODE_VERSION=16-alpine
+ARG NODE_VERSION=18-alpine
 ARG PROJECT=ekorre
 ARG WORKING_DIR=/srv/app
 

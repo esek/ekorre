@@ -455,7 +455,7 @@ export class ElectionAPI {
         prisma.prismaElectable.deleteMany({
           where: {
             refElection: {
-              in: electionId,
+              in: [electionId],
             },
           },
         }),
