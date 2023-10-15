@@ -10,6 +10,7 @@ import {
   PrismaIndividualAccess,
   PrismaPostAccess,
   PrismaResourceType,
+  PrismaUser,
 } from '@prisma/client';
 
 import prisma from './prisma';
@@ -41,6 +42,20 @@ export class AccessAPI {
 
     return access;
   }
+  
+  /**
+   * 
+   * @param door target door which you want to get all individual access for
+   */
+  async getIndividualAccessForDoor(door: Door): Promise<PrismaIndividualAccess[]> {
+    const usersWithAccess = await prisma.prismaIndividualAccess.findMany({
+      where: {
+        resource: door,
+      }
+    })
+    return usersWithAccess;
+  }
+  
 
   /**
    * Get access for a post in alphabetical order
