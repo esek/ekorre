@@ -1,7 +1,10 @@
+import { Context } from '@/models/context';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { AccessAPI } from '@api/access';
 import { Door, Feature, Resolvers } from '@generated/graphql';
+import { PrismaUser } from '@prisma/client';
 import { accessReducer, doorReducer, featureReducer } from '@reducer/access';
+import { userReduce} from '@reducer/user';
 
 const accessApi = new AccessAPI();
 
@@ -12,6 +15,11 @@ const accessresolver: Resolvers = {
       const access = await accessApi.getIndividualAccess(username);
 
       return accessReducer(access);
+    },
+    individualAccessForDoor: async (_: any, { door }: { door: Door }, ctx: Context) => {
+      await hasAuthenticated(ctx);
+      const users: PrismaUser[] = (await accessApi.getIndividualAccessForDoor(door));
+      return users.map(userReduce);
     },
     postAccess: async (_, { postId }, ctx) => {
       await hasAuthenticated(ctx);

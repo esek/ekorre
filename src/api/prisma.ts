@@ -17,6 +17,7 @@ if (config.DEV) {
     logger.debug(`Query ${params.model ?? ''}.${params.action} took ${after - before}ms`);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result;
+    
   });
 }
 

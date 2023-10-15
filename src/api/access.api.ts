@@ -47,10 +47,17 @@ export class AccessAPI {
    * 
    * @param door target door which you want to get all individual access for
    */
-  async getIndividualAccessForDoor(door: Door): Promise<PrismaIndividualAccess[]> {
-    const usersWithAccess = await prisma.prismaIndividualAccess.findMany({
+  async getIndividualAccessForDoor(door: Door): Promise<PrismaUser[]> {
+    const usersWithAccess = await prisma.prismaUser.findMany({
       where: {
-        resource: door,
+        access: {
+          some: {
+            resource: door,
+          }
+        }
+      },
+      include: {
+        access: true,
       }
     })
     return usersWithAccess;
