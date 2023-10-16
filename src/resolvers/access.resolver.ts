@@ -16,11 +16,6 @@ const accessresolver: Resolvers = {
 
       return accessReducer(access);
     },
-    individualAccessForDoor: async (_: unknown, { door }: { door: Door }, ctx: Context) => {
-      await hasAuthenticated(ctx);
-      const users: PrismaUser[] = await accessApi.getIndividualAccessForDoor(door);
-      return users.map(userReduce);
-    },
     postAccess: async (_, { postId }, ctx) => {
       await hasAuthenticated(ctx);
       const access = await accessApi.getPostAccess(postId);
