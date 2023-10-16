@@ -4,7 +4,7 @@
 type Query {
     individualAccess(username: String!): Access!
     postAccess(postId: Int!): Access!
-    individualAccessForDoor(door: Door!): [User!]
+    individualAccessForDoor(door: Door!): [User!]!
     features: [FeatureInfo!]!
     doors: [DoorInfo!]!
 }

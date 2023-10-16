@@ -200,6 +200,20 @@ export class UserAPI {
     }
   }
 
+  async getUsersWithIndividualAccess(): Promise<PrismaUser[]> {
+    const users = await prisma.prismaUser.findMany({
+      where: {
+        access: {
+          some: {},
+        },
+      },
+      include: {
+        access: true,
+      },
+    });
+    return users;
+  }
+
   /**
    * Ensures a login is correct, and if so returns the user
    * @param username Username for the user
