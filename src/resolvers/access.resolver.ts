@@ -4,7 +4,7 @@ import { AccessAPI } from '@api/access';
 import { Door, Feature, Resolvers } from '@generated/graphql';
 import { PrismaUser } from '@prisma/client';
 import { accessReducer, doorReducer, featureReducer } from '@reducer/access';
-import { userReduce} from '@reducer/user';
+import { userReduce } from '@reducer/user';
 
 const accessApi = new AccessAPI();
 

@@ -42,9 +42,9 @@ export class AccessAPI {
 
     return access;
   }
-  
+
   /**
-   * 
+   *
    * @param door target door which you want to get all users with access to
    */
   async getIndividualAccessForDoor(door: Door): Promise<PrismaUser[]> {
@@ -53,16 +53,15 @@ export class AccessAPI {
         access: {
           some: {
             resource: door,
-          }
-        }
+          },
+        },
       },
       include: {
         access: true,
-      }
-    })
+      },
+    });
     return usersWithAccess;
   }
-  
 
   async getAllIndividualAccess(): Promise<PrismaIndividualAccess[]> {
     const access = await prisma.prismaIndividualAccess.findMany({

@@ -201,7 +201,7 @@ export class UserAPI {
   }
 
   /**
-   * 
+   *
    * @returns All users with individual access
    */
   async getUsersWithIndividualAccess(): Promise<PrismaUser[]> {

@@ -149,7 +149,7 @@ const userResolver: Resolvers = {
       await hasAuthenticated(ctx);
       const users = await api.getUsersWithIndividualAccess();
       return reduce(users, userReduce);
-    }
+    },
   },
   Mutation: {
     updateUser: async (_, { input }, { getUsername }) => {
