@@ -200,6 +200,10 @@ export class UserAPI {
     }
   }
 
+  /**
+   * 
+   * @returns All users with individual access
+   */
   async getUsersWithIndividualAccess(): Promise<PrismaUser[]> {
     const users = await prisma.prismaUser.findMany({
       where: {
