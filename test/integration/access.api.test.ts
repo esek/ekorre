@@ -178,7 +178,7 @@ describe('setting/getting access for user', () => {
     () =>
       accessApi.setIndividualAccess(username, input);
   const getAccess = (username = username0) => accessApi.getIndividualAccess(username);
-
+  const getAllIndividualAccessUsers = () => userApi.getUsersWithIndividualAccess();
   it('setting single access', async () => {
     const expectedAccess = mapUserAccess(expectedAccessSingleInput);
 
@@ -195,6 +195,19 @@ describe('setting/getting access for user', () => {
     const expectedAccess = mapUserAccess(expectedAccessMultipleInput);
 
     await setGetTest(setAccess(accessMultipleInput), getAccess, expectedAccess);
+  });
+
+  //This seems kinda iffy
+  it('getting all access users', async () => {
+    const accessUsers = await getAllIndividualAccessUsers();
+  
+    const usernamesToCheck = ['aa0000bb-s', username0]; // Add usernames to check
+  
+    expect(accessUsers).toEqual(
+      expect.arrayContaining(
+        usernamesToCheck.map((username) => expect.objectContaining({ username }))
+      )
+    );
   });
 
   it('removing access', async () => {
