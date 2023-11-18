@@ -10,7 +10,6 @@ import {
   PrismaIndividualAccess,
   PrismaPostAccess,
   PrismaResourceType,
-  PrismaUser,
 } from '@prisma/client';
 
 import prisma from './prisma';
