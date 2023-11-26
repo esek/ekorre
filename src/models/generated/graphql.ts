@@ -103,6 +103,7 @@ export enum Door {
   Hk = 'hk',
   Km = 'km',
   Led = 'led',
+  LedToa = 'led toa',
   Pa = 'pa',
   Pump = 'pump',
   Sikrit = 'sikrit',
