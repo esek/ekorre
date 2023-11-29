@@ -84,6 +84,7 @@ const doorDescriptions: Record<Door, string> = {
   [Door.Hk]: 'Hongkong',
   [Door.Km]: 'Källarmästeriets källare',
   [Door.Led]: 'Ledningskontoret',
+  [Door.LedToa]: 'Toalett för arbetare i LED',
   [Door.Pa]: 'Påsken',
   [Door.Pump]: 'Pumpen',
   [Door.Sikrit]: 'Sikritet',
