@@ -8,7 +8,6 @@ import {
   PrismaIndividualAccess,
   PrismaLoginProvider,
   PrismaPasswordReset,
-  PrismaPostAccess,
   PrismaUser,
 } from '@prisma/client';
 import crypto, { randomUUID } from 'crypto';
