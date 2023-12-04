@@ -214,6 +214,7 @@ export class UserAPI {
     (PrismaUser & { access: PrismaIndividualAccess[] })[]
   > {
     const users = await prisma.prismaUser.findMany({
+      //filters out users with empty access
       where: {
         access: {
           some: {},
