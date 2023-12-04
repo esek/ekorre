@@ -3,7 +3,14 @@ import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
-import { Prisma, PrismaLoginProvider, PrismaPasswordReset, PrismaUser } from '@prisma/client';
+import {
+  Prisma,
+  PrismaIndividualAccess,
+  PrismaLoginProvider,
+  PrismaPasswordReset,
+  PrismaPostAccess,
+  PrismaUser,
+} from '@prisma/client';
 import crypto, { randomUUID } from 'crypto';
 
 import {
@@ -204,7 +211,9 @@ export class UserAPI {
    *
    * @returns All users with individual access
    */
-  async getUsersWithIndividualAccess(): Promise<PrismaUser[]> {
+  async getUsersWithIndividualAccess(): Promise<
+    (PrismaUser & { access: PrismaIndividualAccess[] })[]
+  > {
     const users = await prisma.prismaUser.findMany({
       where: {
         access: {
@@ -215,7 +224,7 @@ export class UserAPI {
         access: true,
       },
     });
-    return users;
+    return users as unknown as (PrismaUser & { access: PrismaIndividualAccess[] })[];
   }
 
   /**
