@@ -224,7 +224,7 @@ export class UserAPI {
         access: true,
       },
     });
-    return users as unknown as (PrismaUser & { access: PrismaIndividualAccess[] })[];
+    return users as (PrismaUser & { access: PrismaIndividualAccess[] })[];
   }
 
   /**
