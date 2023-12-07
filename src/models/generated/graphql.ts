@@ -93,7 +93,7 @@ export enum Door {
   Hk = 'hk',
   Km = 'km',
   Led = 'led',
-  LedToa = 'ledtoa',
+  Ledtoa = 'ledtoa',
   Pa = 'pa',
   Pump = 'pump',
   Sikrit = 'sikrit',
@@ -140,6 +140,7 @@ export enum EmergencyContactType {
 /** Features are used for mapping access to a feature (ex article or election) for user or a post. This is not limited to efterphest */
 export enum Feature {
   AccessAdmin = 'access_admin',
+  AhsAdmin = 'ahs_admin',
   ArticleEditor = 'article_editor',
   ElectionAdmin = 'election_admin',
   EmailAdmin = 'email_admin',
