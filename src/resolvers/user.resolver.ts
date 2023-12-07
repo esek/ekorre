@@ -145,7 +145,7 @@ const userResolver: Resolvers = {
       return reduce(users, userReduce);
     },
     numberOfMembers: async (_, { noAlumni }) => api.getNumberOfMembers(noAlumni === true),
-    usersWithIndividualAccess: async (_: unknown, __: unknown, ctx: Context) => {
+    usersWithIndividualAccess: async (_, __, ctx: Context) => {
       await hasAuthenticated(ctx);
       const users = await api.getUsersWithIndividualAccess();
       return reduce(users, userReduce);
