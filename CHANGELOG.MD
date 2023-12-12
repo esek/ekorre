@@ -7,6 +7,9 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [1.6.0] - 2023-12-04
 la till ny gql metod: allUsersWithIndividualAccess
 
+## [1.5.0] - 2023-11-26
+Adds ledtoa as a door
+
 ## [1.4.1] - 2023-08-06
 
 ### Ändrat

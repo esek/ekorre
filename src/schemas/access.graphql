@@ -57,6 +57,7 @@ enum Door {
     hk,
     km
     led,
+    ledtoa,
     pa,
     pump,
     sikrit,
