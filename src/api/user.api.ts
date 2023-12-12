@@ -14,6 +14,12 @@ import {
 } from '../errors/request.errors';
 import prisma from './prisma';
 
+type UserWithAccess = Prisma.PrismaUserGetPayload<{
+  include: {
+    access: true;
+  };
+}>;
+
 const logger = Logger.getLogger('UserAPI');
 const defaultOrder: Prisma.PrismaUserOrderByWithRelationAndSearchRelevanceInput[] = [
   {
@@ -198,6 +204,24 @@ export class UserAPI {
 
       return count;
     }
+  }
+  /**
+   *
+   * @returns All users with individual access
+   */
+  async getUsersWithIndividualAccess(): Promise<UserWithAccess[]> {
+    const users = await prisma.prismaUser.findMany({
+      //filters out users with empty access
+      where: {
+        access: {
+          some: {},
+        },
+      },
+      include: {
+        access: true,
+      },
+    });
+    return users;
   }
 
   /**
