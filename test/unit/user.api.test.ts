@@ -175,13 +175,13 @@ test('updating lu card', async () => {
 
   await api.createUser(mockNewUser1);
 
-  await expect(
-    api.updateUser(mockNewUser1.username, { ...u, luCard: '002504' }),
-  ).rejects.toThrowError(BadRequestError);
+  await expect(api.updateUser(mockNewUser1.username, { ...u, luCard: '002504' })).rejects.toThrow(
+    BadRequestError,
+  );
   await expect(
     api.updateUser(mockNewUser1.username, { ...u, luCard: '002504000000000A' }),
-  ).rejects.toThrowError(BadRequestError);
-  await expect(api.updateUser(mockNewUser1.username, { ...u, luCard: '00' })).rejects.toThrowError(
+  ).rejects.toThrow(BadRequestError);
+  await expect(api.updateUser(mockNewUser1.username, { ...u, luCard: '00' })).rejects.toThrow(
     BadRequestError,
   );
 
@@ -203,7 +203,10 @@ test('updating lu card', async () => {
   };
 
   await expect(api.updateUser(mockNewUser1.username, deleteLuCard)).resolves.not.toThrow();
-  await expect(api.getSingleUser(mockNewUser1.username)).resolves.toMatchObject(deleteLuCard);
+  await expect(api.getSingleUser(mockNewUser1.username)).resolves.toMatchObject({
+    ...u,
+    luCard: null,
+  });
 });
 
 test('updating username', async () => {
@@ -314,6 +317,38 @@ test('reset password with expired resetPasswordToken', async () => {
   await expect(
     api.resetPassword(mockNewUser1.username, token, 'drr password'),
   ).rejects.toThrowError(NotFoundError);
+});
+
+test('forget a user', async () => {
+  // idk why this works but it does
+  // https://github.com/prisma/prisma/issues/19542#issuecomment-1686102323
+  jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
+
+  const couldForget = await api.forgetUser(mockNewUser0.username); // How could you forget me?
+  expect(couldForget).toBeTruthy();
+
+  const user = await api.getSingleUser(mockNewUser0.username);
+  expect(user.firstName).toEqual('Raderad');
+  expect(user.lastName).toEqual('Användare');
+  expect(user.email).toEqual('');
+
+  await expect(api.loginUser(mockNewUser0.username, mockNewUser0.password)).rejects.toThrow();
+});
+
+test('reset password properly', async () => {
+  await api.createUser(mockNewUser1);
+  const token = await api.requestPasswordReset(mockNewUser1.username);
+  const newPassword = 'Detta test skrevs på valmötet 2021';
+
+  // Försäkra sig om att nya lösenordet inte funkar till att börja med
+  await expect(api.loginUser(mockNewUser1.username, newPassword)).rejects.toThrowError(
+    UnauthenticatedError,
+  );
+
+  await api.resetPassword(token, mockNewUser1.username, newPassword);
+
+  // Försäkra oss om att lösen ändras
+  await expect(api.loginUser(mockNewUser1.username, newPassword)).resolves.toBeTruthy();
 });
 
 test('getting number of members', async () => {
