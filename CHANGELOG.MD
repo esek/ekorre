@@ -5,6 +5,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.1] - 2024-01-24
+
+### Ändrat
+
+- Update the `updateUser` function so that it corectly updates the `luCard` field and sets it to null if the input is an empty string.
+
 ## [1.7.0] - 2023-08-31
 
 ### Tillagt
@@ -18,16 +24,22 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Borttaget
 - Testen `forget a user` och `reset password properly` i `user.api.ts`. 
-- 
+
 ## [1.6.1] - 2023-12-14
+
+### Tillagt
 
 Adds the `ahs_admin` feature access type
 
 ## [1.6.0] - 2023-12-04
 
+### Tillagt
+
 la till ny gql metod: allUsersWithIndividualAccess
 
 ## [1.5.0] - 2023-11-26
+
+### Tillagt
 
 Adds ledtoa as a door
 
