@@ -93,6 +93,7 @@ export enum Door {
   Hk = 'hk',
   Km = 'km',
   Led = 'led',
+  Ledtoa = 'ledtoa',
   Pa = 'pa',
   Pump = 'pump',
   Sikrit = 'sikrit',
@@ -139,6 +140,7 @@ export enum EmergencyContactType {
 /** Features are used for mapping access to a feature (ex article or election) for user or a post. This is not limited to efterphest */
 export enum Feature {
   AccessAdmin = 'access_admin',
+  AhsAdmin = 'ahs_admin',
   ArticleEditor = 'article_editor',
   ElectionAdmin = 'election_admin',
   EmailAdmin = 'email_admin',
@@ -807,6 +809,7 @@ export type Query = {
   user: User;
   userByCard: User;
   users: Array<User>;
+  usersWithIndividualAccess: Array<User>;
   utskott: Utskott;
 };
 
@@ -1661,6 +1664,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   userByCard?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserByCardArgs, 'luCard'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUsersArgs, 'usernames'>>;
+  usersWithIndividualAccess?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType, RequireFields<QueryUtskottArgs, 'name'>>;
 }>;
 

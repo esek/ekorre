@@ -57,6 +57,7 @@ enum Door {
     hk,
     km
     led,
+    ledtoa,
     pa,
     pump,
     sikrit,
@@ -75,5 +76,6 @@ enum Feature {
     news_editor,
     post_admin,
     user_admin,
-    email_admin
+    email_admin,
+    ahs_admin,
 }

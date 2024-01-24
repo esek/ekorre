@@ -172,13 +172,52 @@ const mapPostAccess = (access: Partial<UnionPrismaAccess>[], refPost: number = p
 const mapApiKeyAccess = (access: Partial<UnionPrismaAccess>[], refApiKey: string = apiKey) =>
   access.map((a) => ({ ...a, refApiKey }));
 
+function mapIndividualAccessToSingleInput(access: PrismaIndividualAccess[]): AccessInput {
+  return access.reduce(
+    (accum: AccessInput, currentValue: PrismaIndividualAccess) => {
+      if (currentValue.resourceType == 'door') {
+        accum.doors.push(currentValue.resource as Door);
+      } else {
+        accum.features.push(currentValue.resource as Feature);
+      }
+      return accum;
+    },
+    {
+      doors: [],
+      features: [],
+    },
+  );
+}
+
+async function addUserWithAccessThenCheckAllUsersWithAccess() {
+  const usernameTest = 'po7853sj-s';
+  await userApi.createUser({
+    username: usernameTest,
+    password: 'supersecretpassword',
+    firstName: 'Pontus',
+    lastName: 'SjöSjöstedt',
+    class: 'E21',
+  });
+  await accessApi.setIndividualAccess(usernameTest, accessSingleInput);
+  const users = await userApi.getUsersWithIndividualAccess();
+  const testUser = users.find((user) => user.username == usernameTest);
+  await userApi.deleteUser(usernameTest);
+  expect(
+    mapIndividualAccessToSingleInput(testUser?.access as PrismaIndividualAccess[]),
+  ).toStrictEqual(accessSingleInput);
+}
+
+test(
+  'Try creating user and seeing that their access is properly returned',
+  addUserWithAccessThenCheckAllUsersWithAccess,
+);
+
 describe('setting/getting access for user', () => {
   const setAccess =
     (input: AccessInput, username = username0) =>
     () =>
       accessApi.setIndividualAccess(username, input);
   const getAccess = (username = username0) => accessApi.getIndividualAccess(username);
-
   it('setting single access', async () => {
     const expectedAccess = mapUserAccess(expectedAccessSingleInput);
 

@@ -9,6 +9,7 @@ type Query {
   users(usernames: [String!]!): [User!]!
   userByCard(luCard: String!): User!
   searchUser(search: String!): [User!]!
+  usersWithIndividualAccess: [User!]!
   me: User!
   numberOfMembers(noAlumni: Boolean): Int!
 }
