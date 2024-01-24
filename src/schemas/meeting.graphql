@@ -46,6 +46,15 @@ enum MeetingType {
   "Styrelsemöte"
   SM
 
+  "Studierådsmöten grundnivå"
+  SRG
+
+  "Studierådsmöten avancerad nivå"
+  SRA
+
+  "Studierådsmöten intern"
+  SRI
+
   "Höstterminsmöte"
   HTM
 

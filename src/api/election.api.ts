@@ -614,7 +614,7 @@ export class ElectionAPI {
       const electablePostIds = openElectionRes.electables.map((e) => e.refPost);
 
       if (electablePostIds.length === 0) {
-        throw new BadRequestError('Det öppna valet inga valbara poster');
+        throw new BadRequestError('Det öppna valet har inga valbara poster');
       }
 
       const filteredPostIds = postIds.filter((e) => electablePostIds.includes(e));

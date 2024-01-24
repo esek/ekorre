@@ -266,6 +266,12 @@ export enum MeetingType {
   Htm = 'HTM',
   /** Styrelsemöte */
   Sm = 'SM',
+  /** Studierådsmöten avancerad nivå */
+  Sra = 'SRA',
+  /** Studierådsmöten grundnivå */
+  Srg = 'SRG',
+  /** Studierådsmöten intern */
+  Sri = 'SRI',
   /** Valmöte */
   Vm = 'VM',
   /** Vårterminsmöte */
