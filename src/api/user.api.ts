@@ -357,6 +357,12 @@ export class UserAPI {
       throw new BadRequestError('Användarnamn kan inte uppdateras');
     }
 
+    // If we are trying to set the LU card to an empty string, set it to null
+    // we can't have empty strings in the database because if unique constraints
+    if (partial.luCard === '') {
+      partial.luCard = null;
+    }
+
     // check if we are trying to update the LU card, and that it's not an empty string or null
     if ('luCard' in partial && partial.luCard && !this.validLuCard(partial.luCard)) {
       throw new BadRequestError('Ogiltigt LU-kort');
