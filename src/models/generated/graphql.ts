@@ -89,6 +89,7 @@ export enum Door {
   Bd = 'bd',
   Biljard = 'biljard',
   Cm = 'cm',
+  Edekvata = 'edekvata',
   Ekea = 'ekea',
   Hk = 'hk',
   Km = 'km',

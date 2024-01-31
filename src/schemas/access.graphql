@@ -53,6 +53,7 @@ enum Door {
     bd,
     biljard,
     cm,
+    edekvata,
     ekea,
     hk,
     km
