@@ -81,6 +81,7 @@ const doorDescriptions: Record<Door, string> = {
   [Door.Bd]: 'Den blåa dörren i Edekvata',
   [Door.Biljard]: 'Skåpet i biljard',
   [Door.Cm]: 'Där all läsk finns',
+  [Door.Edekvata]: 'Idèt för E:are',
   [Door.Ekea]: 'Där all skräp finns',
   [Door.Hk]: 'Hongkong',
   [Door.Km]: 'Källarmästeriets källare',
