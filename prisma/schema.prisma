@@ -178,6 +178,30 @@ model PrismaNomination {
   @@map("nominations")
 }
 
+model PrismaActivity {
+  id            String               @id @default(cuid())
+  source        PrismaActivitySource
+  title         String
+  description   String?
+  startDate     DateTime             @map("start_date")
+  endDate       DateTime?            @map("end_date")
+  utskott       PrismaUtskott?
+  imageUrl      String?              @map("image_url")
+  locationTitle String?              @map("location_title")
+  locationLink  String?              @map("location_link")
+  tickets       PrismaTicket[]
+}
+
+model PrismaTicket {
+  id         String          @id @default(cuid())
+  name       String
+  count      Int?
+  price      Int?
+  currency   String?
+  activity   PrismaActivity? @relation(fields: [activityID], references: [id])
+  activityID String?
+}
+
 model PrismaProposal {
   user        PrismaUser     @relation(name: "PrismaProposalToPrismaUser", fields: [refUser], references: [username])
   refUser     String         @map("ref_user")
@@ -344,6 +368,14 @@ enum PrismaMeetingType {
   Extra
 
   @@map("meeting_types")
+}
+
+enum PrismaActivitySource {
+  WEBSITE
+  ORBI
+  OTHER
+
+  @@map("activity_source")
 }
 
 enum PrismaPostType {

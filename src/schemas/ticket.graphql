@@ -1,0 +1,37 @@
+
+type Query{
+    ticket(id: String!) : Ticket!
+    tickets(activityID: String) : [Ticket]!
+}
+
+
+type Mutation{
+    addTicket(ticket: NewTicket!) : Ticket!
+    modifyTicket(id: String!, mod: ModifiedTicket!) : Ticket!
+    removeTicket(id: String!) : Boolean!
+}
+
+type Ticket{
+    id: String!
+    name: String!
+    count: Int
+    price: Int
+    currency: String
+    activityID: String
+}
+
+input ModifiedTicket{
+    name: String
+    count: Int
+    price: Int
+    currency: String
+    activityID: String
+}
+
+input NewTicket{
+    name: String!
+    count: Int
+    price: Int
+    currency: String
+    activityID: String
+}

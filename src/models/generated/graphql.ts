@@ -41,6 +41,24 @@ export enum AccessType {
   Public = 'PUBLIC'
 }
 
+export type Activity = {
+  description?: Maybe<Scalars['String']>;
+  endDate?: Maybe<Scalars['Date']>;
+  id: Scalars['String'];
+  imageUrl?: Maybe<Scalars['String']>;
+  location?: Maybe<Location>;
+  source: ActivitySource;
+  startDate: Scalars['Date'];
+  title: Scalars['String'];
+  utskott?: Maybe<Scalars['String']>;
+};
+
+export enum ActivitySource {
+  Orbi = 'ORBI',
+  Other = 'OTHER',
+  Website = 'WEBSITE'
+}
+
 export type ApiKey = {
   access: Access;
   creator: User;
@@ -211,6 +229,11 @@ export type HistoryEntry = {
   start: Scalars['Date'];
 };
 
+export type Location = {
+  link?: Maybe<Scalars['String']>;
+  title: Scalars['String'];
+};
+
 export type LoginProvider = {
   email?: Maybe<Scalars['String']>;
   id: Scalars['Int'];
@@ -279,6 +302,24 @@ export enum MeetingType {
   Vtm = 'VTM'
 }
 
+export type ModifiedActivity = {
+  description?: InputMaybe<Scalars['String']>;
+  endDate?: InputMaybe<Scalars['Date']>;
+  imageUrl?: InputMaybe<Scalars['String']>;
+  location?: InputMaybe<NewLocation>;
+  startDate?: InputMaybe<Scalars['Date']>;
+  title?: InputMaybe<Scalars['String']>;
+  utskott?: InputMaybe<Scalars['String']>;
+};
+
+export type ModifiedTicket = {
+  activityID?: InputMaybe<Scalars['String']>;
+  count?: InputMaybe<Scalars['Int']>;
+  currency?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  price?: InputMaybe<Scalars['Int']>;
+};
+
 /** We don't need every part; It should already exist */
 export type ModifyArticle = {
   articleType?: InputMaybe<ArticleType>;
@@ -308,6 +349,7 @@ export type ModifyPost = {
 
 export type Mutation = {
   activatePost: Scalars['Boolean'];
+  addActivity: Activity;
   addArticle: Article;
   addElectables: Scalars['Boolean'];
   addEmergencyContact: EmergencyContact;
@@ -315,6 +357,7 @@ export type Mutation = {
   addHehe: Scalars['Boolean'];
   addMeeting: Meeting;
   addPost: Post;
+  addTicket: Ticket;
   addUsersToPost: Post;
   casCreateUser: User;
   casLogin: CasLoginResponse;
@@ -333,14 +376,17 @@ export type Mutation = {
   /** Test user credentials and if valid get a jwt token */
   login: LoginResponse;
   logout: Scalars['Boolean'];
+  modifyActivity: Activity;
   modifyArticle: Article;
   modifyPost: Scalars['Boolean'];
+  modifyTicket: Ticket;
   /** Only possible during open election, so electionId is known */
   nominate: Scalars['Boolean'];
   openElection: Scalars['Boolean'];
   propose: Scalars['Boolean'];
   providerLogin: LoginResponse;
   refresh: TokenResponse;
+  removeActivity: Scalars['Boolean'];
   removeArticle: Scalars['Boolean'];
   removeElectables: Scalars['Boolean'];
   removeEmergencyContact: Scalars['Boolean'];
@@ -349,6 +395,7 @@ export type Mutation = {
   removeHistoryEntry: Scalars['Boolean'];
   removeMeeting: Scalars['Boolean'];
   removeProposal: Scalars['Boolean'];
+  removeTicket: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
   /** Only possible during open election, so electionId is known */
@@ -369,6 +416,11 @@ export type Mutation = {
 
 export type MutationActivatePostArgs = {
   id: Scalars['Int'];
+};
+
+
+export type MutationAddActivityArgs = {
+  activity: NewActivity;
 };
 
 
@@ -413,6 +465,11 @@ export type MutationAddMeetingArgs = {
 
 export type MutationAddPostArgs = {
   info: NewPost;
+};
+
+
+export type MutationAddTicketArgs = {
+  ticket: NewTicket;
 };
 
 
@@ -499,6 +556,12 @@ export type MutationLoginArgs = {
 };
 
 
+export type MutationModifyActivityArgs = {
+  id: Scalars['String'];
+  mod: ModifiedActivity;
+};
+
+
 export type MutationModifyArticleArgs = {
   articleId: Scalars['Int'];
   entry: ModifyArticle;
@@ -507,6 +570,12 @@ export type MutationModifyArticleArgs = {
 
 export type MutationModifyPostArgs = {
   info: ModifyPost;
+};
+
+
+export type MutationModifyTicketArgs = {
+  id: Scalars['String'];
+  mod: ModifiedTicket;
 };
 
 
@@ -535,6 +604,11 @@ export type MutationProviderLoginArgs = {
 
 export type MutationRefreshArgs = {
   refreshToken: Scalars['String'];
+};
+
+
+export type MutationRemoveActivityArgs = {
+  id: Scalars['String'];
 };
 
 
@@ -580,6 +654,11 @@ export type MutationRemoveProposalArgs = {
   electionId: Scalars['Int'];
   postId: Scalars['Int'];
   username: Scalars['String'];
+};
+
+
+export type MutationRemoveTicketArgs = {
+  id: Scalars['String'];
 };
 
 
@@ -664,11 +743,26 @@ export type MutationValidateTokenArgs = {
   token: Scalars['String'];
 };
 
+export type NewActivity = {
+  description?: InputMaybe<Scalars['String']>;
+  endDate?: InputMaybe<Scalars['Date']>;
+  imageUrl?: InputMaybe<Scalars['String']>;
+  location?: InputMaybe<NewLocation>;
+  startDate: Scalars['Date'];
+  title: Scalars['String'];
+  utskott?: InputMaybe<Scalars['String']>;
+};
+
 export type NewArticle = {
   articleType: ArticleType;
   body: Scalars['String'];
   signature: Scalars['String'];
   tags: Array<Scalars['String']>;
+  title: Scalars['String'];
+};
+
+export type NewLocation = {
+  link?: InputMaybe<Scalars['String']>;
   title: Scalars['String'];
 };
 
@@ -688,6 +782,14 @@ export type NewPost = {
    */
   spots?: InputMaybe<Scalars['Int']>;
   utskott: Utskott;
+};
+
+export type NewTicket = {
+  activityID?: InputMaybe<Scalars['String']>;
+  count?: InputMaybe<Scalars['Int']>;
+  currency?: InputMaybe<Scalars['String']>;
+  name: Scalars['String'];
+  price?: InputMaybe<Scalars['Int']>;
 };
 
 export type NewUser = {
@@ -770,6 +872,8 @@ export type ProviderOptions = {
  * does not take an `electionId` parameter.
  */
 export type Query = {
+  activities: Array<Activity>;
+  activity: Activity;
   apiKey: ApiKey;
   apiKeys: Array<ApiKey>;
   article: Article;
@@ -807,11 +911,33 @@ export type Query = {
   posts: Array<Post>;
   searchFiles: Array<File>;
   searchUser: Array<User>;
+  ticket: Ticket;
+  tickets: Array<Maybe<Ticket>>;
   user: User;
   userByCard: User;
   users: Array<User>;
   usersWithIndividualAccess: Array<User>;
   utskott: Utskott;
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryActivitiesArgs = {
+  from: Scalars['Date'];
+  to: Scalars['Date'];
+  utskott?: InputMaybe<Array<Utskott>>;
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryActivityArgs = {
+  id: Scalars['String'];
 };
 
 
@@ -1106,6 +1232,24 @@ export type QuerySearchUserArgs = {
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
  */
+export type QueryTicketArgs = {
+  id: Scalars['String'];
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryTicketsArgs = {
+  activityID?: InputMaybe<Scalars['String']>;
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryUserArgs = {
   username: Scalars['String'];
 };
@@ -1149,6 +1293,15 @@ export enum SortOrder {
   Asc = 'asc',
   Desc = 'desc'
 }
+
+export type Ticket = {
+  activityID?: Maybe<Scalars['String']>;
+  count?: Maybe<Scalars['Int']>;
+  currency?: Maybe<Scalars['String']>;
+  id: Scalars['String'];
+  name: Scalars['String'];
+  price?: Maybe<Scalars['Int']>;
+};
 
 export type TokenResponse = {
   accessToken: Scalars['String'];
@@ -1290,6 +1443,8 @@ export type ResolversTypes = ResolversObject<{
   AccessInput: AccessInput;
   AccessResourceType: AccessResourceType;
   AccessType: AccessType;
+  Activity: ResolverTypeWrapper<Activity>;
+  ActivitySource: ActivitySource;
   ApiKey: ResolverTypeWrapper<ApiKeyResponse>;
   Article: ResolverTypeWrapper<ArticleResponse>;
   ArticleType: ArticleType;
@@ -1312,16 +1467,22 @@ export type ResolversTypes = ResolversObject<{
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
+  Location: ResolverTypeWrapper<Location>;
   LoginProvider: ResolverTypeWrapper<LoginProvider>;
   LoginResponse: ResolverTypeWrapper<LoginResponse>;
   Meeting: ResolverTypeWrapper<MeetingResponse>;
   MeetingDocumentType: MeetingDocumentType;
   MeetingType: MeetingType;
+  ModifiedActivity: ModifiedActivity;
+  ModifiedTicket: ModifiedTicket;
   ModifyArticle: ModifyArticle;
   ModifyPost: ModifyPost;
   Mutation: ResolverTypeWrapper<{}>;
+  NewActivity: NewActivity;
   NewArticle: NewArticle;
+  NewLocation: NewLocation;
   NewPost: NewPost;
+  NewTicket: NewTicket;
   NewUser: NewUser;
   Nomination: ResolverTypeWrapper<NominationResponse>;
   NominationAnswer: NominationAnswer;
@@ -1334,6 +1495,7 @@ export type ResolversTypes = ResolversObject<{
   SendEmailOptions: SendEmailOptions;
   SortOrder: SortOrder;
   String: ResolverTypeWrapper<Scalars['String']>;
+  Ticket: ResolverTypeWrapper<Ticket>;
   TokenResponse: ResolverTypeWrapper<TokenResponse>;
   UpdateUser: UpdateUser;
   User: ResolverTypeWrapper<User>;
@@ -1345,6 +1507,7 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Access: Access;
   AccessInput: AccessInput;
+  Activity: Activity;
   ApiKey: ApiKeyResponse;
   Article: ArticleResponse;
   Boolean: Scalars['Boolean'];
@@ -1362,14 +1525,20 @@ export type ResolversParentTypes = ResolversObject<{
   HistoryEntry: HistoryEntry;
   ID: Scalars['ID'];
   Int: Scalars['Int'];
+  Location: Location;
   LoginProvider: LoginProvider;
   LoginResponse: LoginResponse;
   Meeting: MeetingResponse;
+  ModifiedActivity: ModifiedActivity;
+  ModifiedTicket: ModifiedTicket;
   ModifyArticle: ModifyArticle;
   ModifyPost: ModifyPost;
   Mutation: {};
+  NewActivity: NewActivity;
   NewArticle: NewArticle;
+  NewLocation: NewLocation;
   NewPost: NewPost;
+  NewTicket: NewTicket;
   NewUser: NewUser;
   Nomination: NominationResponse;
   Object: Scalars['Object'];
@@ -1379,6 +1548,7 @@ export type ResolversParentTypes = ResolversObject<{
   Query: {};
   SendEmailOptions: SendEmailOptions;
   String: Scalars['String'];
+  Ticket: Ticket;
   TokenResponse: TokenResponse;
   UpdateUser: UpdateUser;
   User: User;
@@ -1388,6 +1558,19 @@ export type ResolversParentTypes = ResolversObject<{
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
   doors?: Resolver<Array<ResolversTypes['Door']>, ParentType, ContextType>;
   features?: Resolver<Array<ResolversTypes['Feature']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ActivityResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Activity'] = ResolversParentTypes['Activity']> = ResolversObject<{
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  endDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  location?: Resolver<Maybe<ResolversTypes['Location']>, ParentType, ContextType>;
+  source?: Resolver<ResolversTypes['ActivitySource'], ParentType, ContextType>;
+  startDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  utskott?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1506,6 +1689,12 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type LocationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Location'] = ResolversParentTypes['Location']> = ResolversObject<{
+  link?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type LoginProviderResolvers<ContextType = Context, ParentType extends ResolversParentTypes['LoginProvider'] = ResolversParentTypes['LoginProvider']> = ResolversObject<{
   email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1538,6 +1727,7 @@ export type MeetingResolvers<ContextType = Context, ParentType extends Resolvers
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   activatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationActivatePostArgs, 'id'>>;
+  addActivity?: Resolver<ResolversTypes['Activity'], ParentType, ContextType, RequireFields<MutationAddActivityArgs, 'activity'>>;
   addArticle?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<MutationAddArticleArgs, 'entry'>>;
   addElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddElectablesArgs, 'electionId' | 'postIds'>>;
   addEmergencyContact?: Resolver<ResolversTypes['EmergencyContact'], ParentType, ContextType, RequireFields<MutationAddEmergencyContactArgs, 'name' | 'phone' | 'type'>>;
@@ -1545,6 +1735,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addHehe?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationAddHeheArgs, 'fileId' | 'number' | 'year'>>;
   addMeeting?: Resolver<ResolversTypes['Meeting'], ParentType, ContextType, RequireFields<MutationAddMeetingArgs, 'type'>>;
   addPost?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
+  addTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationAddTicketArgs, 'ticket'>>;
   addUsersToPost?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'id' | 'usernames'>>;
   casCreateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
@@ -1562,13 +1753,16 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   linkLoginProvider?: Resolver<ResolversTypes['LoginProvider'], ParentType, ContextType, RequireFields<MutationLinkLoginProviderArgs, 'input'>>;
   login?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
   logout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  modifyActivity?: Resolver<ResolversTypes['Activity'], ParentType, ContextType, RequireFields<MutationModifyActivityArgs, 'id' | 'mod'>>;
   modifyArticle?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
+  modifyTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationModifyTicketArgs, 'id' | 'mod'>>;
   nominate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationNominateArgs, 'postIds' | 'username'>>;
   openElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenElectionArgs, 'electionId'>>;
   propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postId' | 'username'>>;
   providerLogin?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationProviderLoginArgs, 'input'>>;
   refresh?: Resolver<ResolversTypes['TokenResponse'], ParentType, ContextType, RequireFields<MutationRefreshArgs, 'refreshToken'>>;
+  removeActivity?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveActivityArgs, 'id'>>;
   removeArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveArticleArgs, 'articleId'>>;
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId' | 'postIds'>>;
   removeEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveEmergencyContactArgs, 'id'>>;
@@ -1577,6 +1771,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeHistoryEntry?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHistoryEntryArgs, 'id'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
   removeProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProposalArgs, 'electionId' | 'postId' | 'username'>>;
+  removeTicket?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveTicketArgs, 'id'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'resetLink' | 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
   respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postId'>>;
@@ -1627,6 +1822,8 @@ export type ProposalResolvers<ContextType = Context, ParentType extends Resolver
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
+  activities?: Resolver<Array<ResolversTypes['Activity']>, ParentType, ContextType, RequireFields<QueryActivitiesArgs, 'from' | 'to'>>;
+  activity?: Resolver<ResolversTypes['Activity'], ParentType, ContextType, RequireFields<QueryActivityArgs, 'id'>>;
   apiKey?: Resolver<ResolversTypes['ApiKey'], ParentType, ContextType, RequireFields<QueryApiKeyArgs, 'key'>>;
   apiKeys?: Resolver<Array<ResolversTypes['ApiKey']>, ParentType, ContextType>;
   article?: Resolver<ResolversTypes['Article'], ParentType, ContextType, Partial<QueryArticleArgs>>;
@@ -1662,11 +1859,23 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType, Partial<QueryPostsArgs>>;
   searchFiles?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QuerySearchFilesArgs, 'search'>>;
   searchUser?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySearchUserArgs, 'search'>>;
+  ticket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<QueryTicketArgs, 'id'>>;
+  tickets?: Resolver<Array<Maybe<ResolversTypes['Ticket']>>, ParentType, ContextType, Partial<QueryTicketsArgs>>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserArgs, 'username'>>;
   userByCard?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryUserByCardArgs, 'luCard'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUsersArgs, 'usernames'>>;
   usersWithIndividualAccess?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType, RequireFields<QueryUtskottArgs, 'name'>>;
+}>;
+
+export type TicketResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Ticket'] = ResolversParentTypes['Ticket']> = ResolversObject<{
+  activityID?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  count?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  currency?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  price?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type TokenResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TokenResponse'] = ResolversParentTypes['TokenResponse']> = ResolversObject<{
@@ -1706,6 +1915,7 @@ export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType exte
 
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Access?: AccessResolvers<ContextType>;
+  Activity?: ActivityResolvers<ContextType>;
   ApiKey?: ApiKeyResolvers<ContextType>;
   Article?: ArticleResolvers<ContextType>;
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
@@ -1720,6 +1930,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   GroupedPost?: GroupedPostResolvers<ContextType>;
   Hehe?: HeheResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
+  Location?: LocationResolvers<ContextType>;
   LoginProvider?: LoginProviderResolvers<ContextType>;
   LoginResponse?: LoginResponseResolvers<ContextType>;
   Meeting?: MeetingResolvers<ContextType>;
@@ -1729,6 +1940,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Post?: PostResolvers<ContextType>;
   Proposal?: ProposalResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  Ticket?: TicketResolvers<ContextType>;
   TokenResponse?: TokenResponseResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserPostHistoryEntry?: UserPostHistoryEntryResolvers<ContextType>;
