@@ -5,6 +5,13 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2024-03-10
+
+### Tillagt
+- Prisma and graphql feature for activities (events) and tickets  (to an separate from activities).
+- Tests for activity reducer and API.
+- Test for ticket API.
+  
 ## [1.8.0] - 2024-01-31
 
 ### Tillagt
