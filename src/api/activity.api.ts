@@ -1,19 +1,16 @@
-import { NotFoundError, ServerError } from '@/errors/request.errors';
-import { Logger } from '@/logger';
+import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
-import { stripObject } from '@/util';
+import { devGuard, stripObject } from '@/util';
 import { ModifiedActivity, NewActivity, Utskott } from '@generated/graphql';
 import { Prisma, PrismaActivity, PrismaActivitySource } from '@prisma/client';
 
 import prisma from './prisma';
 
-const logger = Logger.getLogger('ActivityAPI');
-
 export class ActivityAPI {
   async getActivity(id: string): Promise<PrismaActivity> {
     const a = await prisma.prismaActivity.findFirst({
       where: {
-        id: id,
+        id,
       },
     });
 
@@ -55,6 +52,10 @@ export class ActivityAPI {
   }
 
   async addActivity(activity: NewActivity): Promise<PrismaActivity> {
+    if (activity.endDate && activity.endDate.getTime() - activity.startDate.getTime() < 0) {
+      throw new BadRequestError('Sluttid för aktivitet är före starttid!');
+    }
+
     const res = await prisma.prismaActivity.create({
       data: {
         source: PrismaActivitySource.WEBSITE,
@@ -72,27 +73,51 @@ export class ActivityAPI {
     return res;
   }
   async modifyActivity(id: string, mod: ModifiedActivity): Promise<PrismaActivity> {
-    const { ...rest } = mod;
+    const a = await this.getActivity(id);
+    if (mod.endDate) {
+      if (mod.startDate && mod.endDate.getTime() - mod.startDate.getTime() < 0) {
+        throw new BadRequestError('Modifierad sluttid för aktivitet är före modifierad starttid!');
+      } else if (!mod.startDate && mod.endDate.getTime() - a.startDate.getTime() < 0) {
+        throw new BadRequestError('Modifierad sluttid för aktivitet är före starttiden!');
+      }
+    }
+    if (a.source !== PrismaActivitySource.WEBSITE) {
+      throw new BadRequestError(
+        'Ej tillåtet att ändra i evenemang som inte är skapade på hemsidan!',
+      );
+    }
 
-    const update: StrictObject = stripObject(rest);
+    const { location, ...reduced } = mod;
 
-    const res = prisma.prismaActivity.update({
+    const refact = {
+      ...reduced,
+      locationTitle: mod.location?.title,
+      locationLink: mod.location?.link,
+    };
+
+    const update: StrictObject = stripObject(refact);
+
+    const res = await prisma.prismaActivity.update({
       data: { ...update },
-      where: { id: id },
+      where: { id },
     });
-
     return res;
   }
 
   async removeActivity(id: string): Promise<boolean> {
-    try {
-      await prisma.prismaActivity.delete({ where: { id: id } });
-      return true;
-    } catch {
-      logger.debug(`Could not delete activity with ID ${id}`);
-      throw new ServerError(
-        'Kunde inte radera aktiviteten, vilket kan bero på att den inte finns.',
+    const a = await this.getActivity(id);
+    if (a.source !== PrismaActivitySource.WEBSITE) {
+      throw new BadRequestError(
+        'Ej tillåtet att ta bort evenemang som inte är skapade på hemsidan!',
       );
     }
+    await prisma.prismaActivity.delete({ where: { id } });
+    return true;
+  }
+
+  async clear() {
+    devGuard('Cannot clear activities in production');
+
+    await prisma.prismaActivity.deleteMany();
   }
 }
