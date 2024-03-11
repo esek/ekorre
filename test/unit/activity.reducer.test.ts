@@ -1,4 +1,4 @@
-import { Activity, ActivitySource } from '@generated/graphql';
+import { Activity, ActivitySource, Utskott } from '@generated/graphql';
 import { PrismaActivity, PrismaActivitySource, PrismaUtskott } from '@prisma/client';
 import { activityReducer } from '@reducer/activity';
 
@@ -23,7 +23,7 @@ test('reducing valid DatabaseActivity', () => {
     description: 'TestDescription',
     startDate: new Date('2024-02-03'),
     endDate: null,
-    utskott: PrismaUtskott.E6,
+    utskott: Utskott.E6,
     imageUrl: null,
     location: {
       title: 'LocationTestTitle',

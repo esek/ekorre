@@ -24,17 +24,17 @@ const activityresolver: Resolvers = {
   },
   Mutation: {
     addActivity: async (_, { activity }, ctx) => {
-      await hasAccess(ctx, Feature.Superadmin);
+      await hasAccess(ctx, Feature.ActivityAdmin);
       const a = await activityApi.addActivity(activity);
       return activityReducer(a);
     },
     modifyActivity: async (_, { id, mod }, ctx) => {
-      await hasAccess(ctx, Feature.Superadmin);
+      await hasAccess(ctx, Feature.ActivityAdmin);
       const a = await activityApi.modifyActivity(id, mod);
       return activityReducer(a);
     },
     removeActivity: async (_, { id }, ctx) => {
-      await hasAccess(ctx, Feature.Superadmin);
+      await hasAccess(ctx, Feature.ActivityAdmin);
       const res = activityApi.removeActivity(id);
       return res;
     },

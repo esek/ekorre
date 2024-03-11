@@ -24,19 +24,19 @@ const ticketResolver: Resolvers = {
   },
   Mutation: {
     addTicket: async (_, { ticket }, ctx) => {
-      await hasAccess(ctx, Feature.Superadmin);
+      await hasAccess(ctx, Feature.ActivityAdmin);
       const t = await tikcketApi.addTicket(ticket);
       return ticketReducer(t);
     },
 
     modifyTicket: async (_, { id, mod }, ctx) => {
-      await hasAccess(ctx, Feature.Superadmin);
+      await hasAccess(ctx, Feature.ActivityAdmin);
       const t = await tikcketApi.modifyTicket(id, mod);
       return ticketReducer(t);
     },
 
     removeTicket: async (_, { id }, ctx) => {
-      await hasAccess(ctx, Feature.Superadmin);
+      await hasAccess(ctx, Feature.ActivityAdmin);
       const res = await tikcketApi.removeTicket(id);
       return res;
     },

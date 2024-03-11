@@ -1,7 +1,7 @@
 import prisma from '@/api/prisma';
 import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { ActivityAPI } from '@api/activity';
-import { ModifiedActivity, NewActivity } from '@generated/graphql';
+import { ModifiedActivity, NewActivity, Utskott } from '@generated/graphql';
 import { PrismaActivity, PrismaActivitySource, PrismaUtskott } from '@prisma/client';
 
 const activityApi = new ActivityAPI();
@@ -26,7 +26,7 @@ const DUMMY_NEWACTIVITY: NewActivity = {
   description: 'TestDescription',
   startDate: new Date('2024-02-03'),
   endDate: null,
-  utskott: PrismaUtskott.E6,
+  utskott: Utskott.E6,
   imageUrl: null,
   location: {
     title: 'LocationTestTitle',
@@ -39,7 +39,7 @@ const DUMMY_MODACTIVITY: ModifiedActivity = {
   description: 'TestDescription',
   startDate: new Date('2024-02-03'),
   endDate: null,
-  utskott: PrismaUtskott.E6,
+  utskott: Utskott.E6,
   imageUrl: null,
   location: {
     title: 'LocationTestTitle',
@@ -90,17 +90,17 @@ test('Getting activities', async () => {
   });
   expect(orbiAct).toBeTruthy();
 
-  await activityApi.addActivity(generatePrismaActivity({})); //in range
-  await activityApi.addActivity(generatePrismaActivity({ startDate: new Date('2024-02-01') })); //in range
+  await activityApi.addActivity(generateNewActivity({})); //in range
+  await activityApi.addActivity(generateNewActivity({ startDate: new Date('2024-02-01') })); //in range
   await activityApi.addActivity(
-    generatePrismaActivity({ startDate: new Date('2024-01-10'), endDate: new Date('2024-02-10') }), //endDate in range
+    generateNewActivity({ startDate: new Date('2024-01-10'), endDate: new Date('2024-02-10') }), //endDate in range
   );
-  await activityApi.addActivity(generatePrismaActivity({ startDate: new Date('2024-05-01') })); //not in range
+  await activityApi.addActivity(generateNewActivity({ startDate: new Date('2024-05-01') })); //not in range
   await activityApi.addActivity(
-    generatePrismaActivity({ startDate: new Date('2024-01-01'), endDate: new Date('2024-03-10') }), //in range
+    generateNewActivity({ startDate: new Date('2024-01-01'), endDate: new Date('2024-03-10') }), //in range
   );
   await activityApi.addActivity(
-    generatePrismaActivity({ startDate: new Date('2024-02-10'), endDate: new Date('2024-03-10') }), //startDate in range
+    generateNewActivity({ startDate: new Date('2024-02-10'), endDate: new Date('2024-03-10') }), //startDate in range
   );
 
   const acts = await activityApi.getActivities(

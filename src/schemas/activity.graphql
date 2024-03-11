@@ -21,7 +21,7 @@ type Activity{
     description: String
     startDate: Date!
     endDate: Date
-    utskott: String
+    utskott: Utskott
     imageUrl: String
     location: Location
 }
@@ -41,7 +41,7 @@ input NewActivity{
     description: String
     startDate: Date!
     endDate: Date
-    utskott: String
+    utskott: Utskott
     imageUrl: String
     location: NewLocation
 }
@@ -51,7 +51,7 @@ input ModifiedActivity{
     description: String
     startDate: Date
     endDate: Date
-    utskott: String
+    utskott: Utskott
     imageUrl: String
     location: NewLocation
 }

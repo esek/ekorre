@@ -50,7 +50,7 @@ export type Activity = {
   source: ActivitySource;
   startDate: Scalars['Date'];
   title: Scalars['String'];
-  utskott?: Maybe<Scalars['String']>;
+  utskott?: Maybe<Utskott>;
 };
 
 export enum ActivitySource {
@@ -159,6 +159,7 @@ export enum EmergencyContactType {
 /** Features are used for mapping access to a feature (ex article or election) for user or a post. This is not limited to efterphest */
 export enum Feature {
   AccessAdmin = 'access_admin',
+  ActivityAdmin = 'activity_admin',
   AhsAdmin = 'ahs_admin',
   ArticleEditor = 'article_editor',
   ElectionAdmin = 'election_admin',
@@ -309,7 +310,7 @@ export type ModifiedActivity = {
   location?: InputMaybe<NewLocation>;
   startDate?: InputMaybe<Scalars['Date']>;
   title?: InputMaybe<Scalars['String']>;
-  utskott?: InputMaybe<Scalars['String']>;
+  utskott?: InputMaybe<Utskott>;
 };
 
 export type ModifiedTicket = {
@@ -750,7 +751,7 @@ export type NewActivity = {
   location?: InputMaybe<NewLocation>;
   startDate: Scalars['Date'];
   title: Scalars['String'];
-  utskott?: InputMaybe<Scalars['String']>;
+  utskott?: InputMaybe<Utskott>;
 };
 
 export type NewArticle = {
@@ -1570,7 +1571,7 @@ export type ActivityResolvers<ContextType = Context, ParentType extends Resolver
   source?: Resolver<ResolversTypes['ActivitySource'], ParentType, ContextType>;
   startDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  utskott?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

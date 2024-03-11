@@ -60,6 +60,7 @@ const featureDescriptions: Record<Feature, string> = {
   [Feature.FilesAdmin]: 'För att kunna administrera filer',
   [Feature.EmailAdmin]: 'För att kunna skicka mejl',
   [Feature.AhsAdmin]: 'För att kunna administrera AHS',
+  [Feature.ActivityAdmin]: 'För att kunna administrera aktiviteter',
 };
 
 export const featureReducer = (features: Feature[]): FeatureInfo[] => {
