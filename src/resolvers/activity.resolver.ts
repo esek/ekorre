@@ -1,8 +1,7 @@
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { ActivityAPI } from '@api/activity';
-import { Feature } from '@esek/auth-server';
-import { Resolvers } from '@generated/graphql';
+import { Feature, Resolvers } from '@generated/graphql';
 import { activityReducer } from '@reducer/activity';
 
 const activityApi = new ActivityAPI();

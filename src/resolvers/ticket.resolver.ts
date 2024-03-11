@@ -1,8 +1,7 @@
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { TicketAPI } from '@api/ticket';
-import { Feature } from '@esek/auth-server';
-import { Resolvers } from '@generated/graphql';
+import { Feature, Resolvers } from '@generated/graphql';
 import { ticketReducer } from '@reducer/ticket';
 
 const tikcketApi = new TicketAPI();
