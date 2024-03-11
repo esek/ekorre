@@ -46,6 +46,7 @@ export class ActivityAPI {
         ],
         AND: whereAnd,
       },
+      orderBy: { startDate: 'asc' },
     });
 
     return a;
