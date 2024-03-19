@@ -7,8 +7,8 @@ type Query{
 
 type Mutation{
     addTicket(ticket: NewTicket!) : Ticket!
-    modifyTicket(id: String!, mod: ModifiedTicket!) : Ticket!
-    removeTicket(id: String!) : Boolean!
+    modifyTicket(id: String!, entry: ModifiedTicket!) : Ticket!
+    removeTicket(id: String!) : Ticket!
 }
 
 type Ticket{

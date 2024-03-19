@@ -185,12 +185,13 @@ model PrismaActivity {
   description   String?
   startDate     DateTime             @map("start_date")
   endDate       DateTime?            @map("end_date")
-  utskott       PrismaUtskott?
+  utskott       PrismaUtskott
   imageUrl      String?              @map("image_url")
   locationTitle String?              @map("location_title")
   locationLink  String?              @map("location_link")
   tickets       PrismaTicket[]
 }
+//sourceUrl for link to event from other apps/websites.
 
 model PrismaTicket {
   id         String          @id @default(cuid())

@@ -106,7 +106,7 @@ test('Getting activities', async () => {
   const acts = await activityApi.getActivities(
     new Date('2024-01-30'),
     new Date('2024-02-28'),
-    null,
+    Object.entries(Utskott).map((u) => u[1]),
   );
 
   expect(acts.length).toBe(6);
@@ -127,7 +127,7 @@ test('Adding and removing activities', async () => {
   const added = await activityApi.addActivity(newAct);
   expect(added).toBeTruthy();
 
-  const removed = activityApi.removeActivity(added.id);
+  const removed = await activityApi.removeActivity(added.id);
   expect(removed).toBeTruthy();
 
   await expect(activityApi.removeActivity(orbiAct.id)).rejects.toThrowError(BadRequestError); //Not allowed to remove non website activity

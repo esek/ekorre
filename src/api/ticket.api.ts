@@ -35,15 +35,15 @@ export class TicketAPI {
   }
 
   async addTicket(ticket: NewTicket): Promise<PrismaTicket> {
-    if (ticket.activityID != null) {
-      try {
-        await activityApi.getActivity(ticket.activityID);
-      } catch {
-        throw new BadRequestError(
-          'Biljett kunde inte skapas! Specifierad activityID tillhörde inte någon activity.',
-        );
-      }
-    }
+    // if (ticket.activityID != null) {
+    //   try {
+    //     await activityApi.getActivity(ticket.activityID);
+    //   } catch {
+    //     throw new BadRequestError(
+    //       'Biljett kunde inte skapas! Specifierad activityID tillhörde inte någon activity.',
+    //     );
+    //   }
+    // }
 
     const t = await prisma.prismaTicket.create({
       data: {
@@ -58,20 +58,20 @@ export class TicketAPI {
     return t;
   }
 
-  async modifyTicket(id: string, mod: ModifiedTicket): Promise<PrismaTicket> {
+  async modifyTicket(id: string, entry: ModifiedTicket): Promise<PrismaTicket> {
     await this.getTicket(id);
 
-    if (mod.activityID != null) {
-      try {
-        await activityApi.getActivity(mod.activityID);
-      } catch {
-        throw new BadRequestError(
-          'Biljett kunde inte modifieras! Modifierad activityID tillhörde inte någon activity.',
-        );
-      }
-    }
+    // if (mod.activityID != null) {
+    //   try {
+    //     await activityApi.getActivity(mod.activityID);
+    //   } catch {
+    //     throw new BadRequestError(
+    //       'Biljett kunde inte modifieras! Modifierad activityID tillhörde inte någon activity.',
+    //     );
+    //   }
+    // }
 
-    const { ...rest } = mod;
+    const { ...rest } = entry;
     const update: StrictObject = stripObject(rest);
 
     const t = prisma.prismaTicket.update({
@@ -82,11 +82,11 @@ export class TicketAPI {
     return t;
   }
 
-  async removeTicket(id: string): Promise<boolean> {
+  async removeTicket(id: string): Promise<PrismaTicket> {
     await this.getTicket(id);
 
-    await prisma.prismaTicket.delete({ where: { id } });
-    return true;
+    const t = await prisma.prismaTicket.delete({ where: { id } });
+    return t;
   }
 
   async clear() {

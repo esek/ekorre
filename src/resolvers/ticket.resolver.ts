@@ -28,16 +28,16 @@ const ticketResolver: Resolvers = {
       return ticketReducer(t);
     },
 
-    modifyTicket: async (_, { id, mod }, ctx) => {
+    modifyTicket: async (_, { id, entry }, ctx) => {
       await hasAccess(ctx, Feature.ActivityAdmin);
-      const t = await tikcketApi.modifyTicket(id, mod);
+      const t = await tikcketApi.modifyTicket(id, entry);
       return ticketReducer(t);
     },
 
     removeTicket: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.ActivityAdmin);
-      const res = await tikcketApi.removeTicket(id);
-      return res;
+      const t = await tikcketApi.removeTicket(id);
+      return ticketReducer(t);
     },
   },
 };

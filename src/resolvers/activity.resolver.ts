@@ -27,15 +27,15 @@ const activityresolver: Resolvers = {
       const a = await activityApi.addActivity(activity);
       return activityReducer(a);
     },
-    modifyActivity: async (_, { id, mod }, ctx) => {
+    modifyActivity: async (_, { id, entry }, ctx) => {
       await hasAccess(ctx, Feature.ActivityAdmin);
-      const a = await activityApi.modifyActivity(id, mod);
+      const a = await activityApi.modifyActivity(id, entry);
       return activityReducer(a);
     },
     removeActivity: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.ActivityAdmin);
-      const res = activityApi.removeActivity(id);
-      return res;
+      const a = await activityApi.removeActivity(id);
+      return activityReducer(a);
     },
   },
 };

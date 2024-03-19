@@ -5,13 +5,13 @@ scalar Date
 
 type Query{
     activity(id: String!) : Activity! 
-    activities(from: Date!, to: Date!, utskott: [Utskott!]) : [Activity!]! 
+    activities(from: Date!, to: Date!, utskott: [Utskott!]!) : [Activity!]! 
 }
 
 type Mutation{
     addActivity(activity: NewActivity!) : Activity!
-    modifyActivity(id: String!, mod: ModifiedActivity!) : Activity!
-    removeActivity(id: String!) : Boolean!
+    modifyActivity(id: String!, entry: ModifiedActivity!) : Activity!
+    removeActivity(id: String!) : Activity!
 }
 
 type Activity{
@@ -21,7 +21,7 @@ type Activity{
     description: String
     startDate: Date!
     endDate: Date
-    utskott: Utskott
+    utskott: Utskott!
     imageUrl: String
     location: Location
 }
@@ -41,7 +41,7 @@ input NewActivity{
     description: String
     startDate: Date!
     endDate: Date
-    utskott: Utskott
+    utskott: Utskott!
     imageUrl: String
     location: NewLocation
 }

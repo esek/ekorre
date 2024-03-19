@@ -50,7 +50,7 @@ export type Activity = {
   source: ActivitySource;
   startDate: Scalars['Date'];
   title: Scalars['String'];
-  utskott?: Maybe<Utskott>;
+  utskott: Utskott;
 };
 
 export enum ActivitySource {
@@ -387,7 +387,7 @@ export type Mutation = {
   propose: Scalars['Boolean'];
   providerLogin: LoginResponse;
   refresh: TokenResponse;
-  removeActivity: Scalars['Boolean'];
+  removeActivity: Activity;
   removeArticle: Scalars['Boolean'];
   removeElectables: Scalars['Boolean'];
   removeEmergencyContact: Scalars['Boolean'];
@@ -396,7 +396,7 @@ export type Mutation = {
   removeHistoryEntry: Scalars['Boolean'];
   removeMeeting: Scalars['Boolean'];
   removeProposal: Scalars['Boolean'];
-  removeTicket: Scalars['Boolean'];
+  removeTicket: Ticket;
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
   /** Only possible during open election, so electionId is known */
@@ -558,8 +558,8 @@ export type MutationLoginArgs = {
 
 
 export type MutationModifyActivityArgs = {
+  entry: ModifiedActivity;
   id: Scalars['String'];
-  mod: ModifiedActivity;
 };
 
 
@@ -575,8 +575,8 @@ export type MutationModifyPostArgs = {
 
 
 export type MutationModifyTicketArgs = {
+  entry: ModifiedTicket;
   id: Scalars['String'];
-  mod: ModifiedTicket;
 };
 
 
@@ -751,7 +751,7 @@ export type NewActivity = {
   location?: InputMaybe<NewLocation>;
   startDate: Scalars['Date'];
   title: Scalars['String'];
-  utskott?: InputMaybe<Utskott>;
+  utskott: Utskott;
 };
 
 export type NewArticle = {
@@ -929,7 +929,7 @@ export type Query = {
 export type QueryActivitiesArgs = {
   from: Scalars['Date'];
   to: Scalars['Date'];
-  utskott?: InputMaybe<Array<Utskott>>;
+  utskott: Array<Utskott>;
 };
 
 
@@ -1571,7 +1571,7 @@ export type ActivityResolvers<ContextType = Context, ParentType extends Resolver
   source?: Resolver<ResolversTypes['ActivitySource'], ParentType, ContextType>;
   startDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  utskott?: Resolver<Maybe<ResolversTypes['Utskott']>, ParentType, ContextType>;
+  utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1754,16 +1754,16 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   linkLoginProvider?: Resolver<ResolversTypes['LoginProvider'], ParentType, ContextType, RequireFields<MutationLinkLoginProviderArgs, 'input'>>;
   login?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'password' | 'username'>>;
   logout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  modifyActivity?: Resolver<ResolversTypes['Activity'], ParentType, ContextType, RequireFields<MutationModifyActivityArgs, 'id' | 'mod'>>;
+  modifyActivity?: Resolver<ResolversTypes['Activity'], ParentType, ContextType, RequireFields<MutationModifyActivityArgs, 'entry' | 'id'>>;
   modifyArticle?: Resolver<ResolversTypes['Article'], ParentType, ContextType, RequireFields<MutationModifyArticleArgs, 'articleId' | 'entry'>>;
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
-  modifyTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationModifyTicketArgs, 'id' | 'mod'>>;
+  modifyTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationModifyTicketArgs, 'entry' | 'id'>>;
   nominate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationNominateArgs, 'postIds' | 'username'>>;
   openElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenElectionArgs, 'electionId'>>;
   propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postId' | 'username'>>;
   providerLogin?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationProviderLoginArgs, 'input'>>;
   refresh?: Resolver<ResolversTypes['TokenResponse'], ParentType, ContextType, RequireFields<MutationRefreshArgs, 'refreshToken'>>;
-  removeActivity?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveActivityArgs, 'id'>>;
+  removeActivity?: Resolver<ResolversTypes['Activity'], ParentType, ContextType, RequireFields<MutationRemoveActivityArgs, 'id'>>;
   removeArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveArticleArgs, 'articleId'>>;
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId' | 'postIds'>>;
   removeEmergencyContact?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveEmergencyContactArgs, 'id'>>;
@@ -1772,7 +1772,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeHistoryEntry?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHistoryEntryArgs, 'id'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
   removeProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProposalArgs, 'electionId' | 'postId' | 'username'>>;
-  removeTicket?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveTicketArgs, 'id'>>;
+  removeTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationRemoveTicketArgs, 'id'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'resetLink' | 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
   respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postId'>>;
@@ -1823,7 +1823,7 @@ export type ProposalResolvers<ContextType = Context, ParentType extends Resolver
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  activities?: Resolver<Array<ResolversTypes['Activity']>, ParentType, ContextType, RequireFields<QueryActivitiesArgs, 'from' | 'to'>>;
+  activities?: Resolver<Array<ResolversTypes['Activity']>, ParentType, ContextType, RequireFields<QueryActivitiesArgs, 'from' | 'to' | 'utskott'>>;
   activity?: Resolver<ResolversTypes['Activity'], ParentType, ContextType, RequireFields<QueryActivityArgs, 'id'>>;
   apiKey?: Resolver<ResolversTypes['ApiKey'], ParentType, ContextType, RequireFields<QueryApiKeyArgs, 'key'>>;
   apiKeys?: Resolver<Array<ResolversTypes['ApiKey']>, ParentType, ContextType>;
