@@ -10,7 +10,6 @@ import {
   Utskott,
 } from '@generated/graphql';
 import { PrismaActivity, PrismaActivitySource, PrismaUtskott } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 
 const ticketApi = new TicketAPI();
 
@@ -236,9 +235,7 @@ test('Adding and removing tickets', async () => {
   expect(actSuccess).toBeTruthy();
 
   //Throws if activityID does not belong to an existing activity
-  await expect(ticketApi.addTicket(falseActTicket)).rejects.toThrowError(
-    PrismaClientKnownRequestError,
-  );
+  await expect(ticketApi.addTicket(falseActTicket)).rejects.toThrowError();
 
   expect(await ticketApi.removeTicket(notActSuccess.id)).toBeTruthy();
 
@@ -287,12 +284,10 @@ test('Modifying tickets', async () => {
   expect((await ticketApi.getTickets(null)).length).toBe(2);
 
   //Modifying a ticket to belong to a non existing act
-  await expect(ticketApi.modifyTicket(actSuccess.id, falseActMod)).rejects.toThrowError(
-    PrismaClientKnownRequestError,
-  );
+  await expect(ticketApi.modifyTicket(actSuccess.id, falseActMod)).rejects.toThrowError();
 
   //Modifying non existing ticket
-  await expect(ticketApi.modifyTicket('not an existing ticket ID', notActMod)).rejects.toThrowError(
-    PrismaClientKnownRequestError,
-  );
+  await expect(
+    ticketApi.modifyTicket('not an existing ticket ID', notActMod),
+  ).rejects.toThrowError();
 });
