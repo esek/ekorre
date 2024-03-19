@@ -1,13 +1,10 @@
-import { BadRequestError, NotFoundError } from '@/errors/request.errors';
+import { NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { devGuard, stripObject } from '@/util';
 import { ModifiedTicket, NewTicket } from '@generated/graphql';
 import { Prisma, PrismaTicket } from '@prisma/client';
 
-import { ActivityAPI } from './activity.api';
 import prisma from './prisma';
-
-const activityApi = new ActivityAPI();
 
 export class TicketAPI {
   async getTicket(id: string): Promise<PrismaTicket> {
@@ -35,16 +32,6 @@ export class TicketAPI {
   }
 
   async addTicket(ticket: NewTicket): Promise<PrismaTicket> {
-    // if (ticket.activityID != null) {
-    //   try {
-    //     await activityApi.getActivity(ticket.activityID);
-    //   } catch {
-    //     throw new BadRequestError(
-    //       'Biljett kunde inte skapas! Specifierad activityID tillhörde inte någon activity.',
-    //     );
-    //   }
-    // }
-
     const t = await prisma.prismaTicket.create({
       data: {
         name: ticket.name,
@@ -59,18 +46,6 @@ export class TicketAPI {
   }
 
   async modifyTicket(id: string, entry: ModifiedTicket): Promise<PrismaTicket> {
-    await this.getTicket(id);
-
-    // if (mod.activityID != null) {
-    //   try {
-    //     await activityApi.getActivity(mod.activityID);
-    //   } catch {
-    //     throw new BadRequestError(
-    //       'Biljett kunde inte modifieras! Modifierad activityID tillhörde inte någon activity.',
-    //     );
-    //   }
-    // }
-
     const { ...rest } = entry;
     const update: StrictObject = stripObject(rest);
 
@@ -83,8 +58,6 @@ export class TicketAPI {
   }
 
   async removeTicket(id: string): Promise<PrismaTicket> {
-    await this.getTicket(id);
-
     const t = await prisma.prismaTicket.delete({ where: { id } });
     return t;
   }
