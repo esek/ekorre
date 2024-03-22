@@ -79,4 +79,5 @@ enum Feature {
     user_admin,
     email_admin,
     ahs_admin,
+    decibel_admin,
 }

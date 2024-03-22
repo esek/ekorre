@@ -143,6 +143,7 @@ export enum Feature {
   AccessAdmin = 'access_admin',
   AhsAdmin = 'ahs_admin',
   ArticleEditor = 'article_editor',
+  DecibelAdmin = 'decibel_admin',
   ElectionAdmin = 'election_admin',
   EmailAdmin = 'email_admin',
   FilesAdmin = 'files_admin',
