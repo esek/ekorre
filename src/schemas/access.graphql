@@ -80,4 +80,5 @@ enum Feature {
     email_admin,
     ahs_admin,
     activity_admin
+    decibel_admin,
 }
