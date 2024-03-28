@@ -11,6 +11,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Prisma and graphql feature for activities (events) and tickets  (to an separate from activities).
 - Tests for activity reducer and API.
 - Test for ticket API.
+- DateTime scalar for graphql.
   
 ## [1.8.0] - 2024-01-31
 

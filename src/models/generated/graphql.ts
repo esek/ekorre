@@ -16,6 +16,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   Date: Date;
+  DateTime: Date;
   Object: Record<string, string>;
 };
 
@@ -43,12 +44,12 @@ export enum AccessType {
 
 export type Activity = {
   description?: Maybe<Scalars['String']>;
-  endDate?: Maybe<Scalars['Date']>;
+  endDate?: Maybe<Scalars['DateTime']>;
   id: Scalars['String'];
   imageUrl?: Maybe<Scalars['String']>;
   location?: Maybe<Location>;
   source: ActivitySource;
-  startDate: Scalars['Date'];
+  startDate: Scalars['DateTime'];
   title: Scalars['String'];
   utskott: Utskott;
 };
@@ -305,10 +306,10 @@ export enum MeetingType {
 
 export type ModifiedActivity = {
   description?: InputMaybe<Scalars['String']>;
-  endDate?: InputMaybe<Scalars['Date']>;
+  endDate?: InputMaybe<Scalars['DateTime']>;
   imageUrl?: InputMaybe<Scalars['String']>;
   location?: InputMaybe<NewLocation>;
-  startDate?: InputMaybe<Scalars['Date']>;
+  startDate?: InputMaybe<Scalars['DateTime']>;
   title?: InputMaybe<Scalars['String']>;
   utskott?: InputMaybe<Utskott>;
 };
@@ -746,10 +747,10 @@ export type MutationValidateTokenArgs = {
 
 export type NewActivity = {
   description?: InputMaybe<Scalars['String']>;
-  endDate?: InputMaybe<Scalars['Date']>;
+  endDate?: InputMaybe<Scalars['DateTime']>;
   imageUrl?: InputMaybe<Scalars['String']>;
   location?: InputMaybe<NewLocation>;
-  startDate: Scalars['Date'];
+  startDate: Scalars['DateTime'];
   title: Scalars['String'];
   utskott: Utskott;
 };
@@ -927,8 +928,8 @@ export type Query = {
  * does not take an `electionId` parameter.
  */
 export type QueryActivitiesArgs = {
-  from: Scalars['Date'];
-  to: Scalars['Date'];
+  from: Scalars['DateTime'];
+  to: Scalars['DateTime'];
   utskott: Array<Utskott>;
 };
 
@@ -1452,6 +1453,7 @@ export type ResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
+  DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Door: Door;
   DoorInfo: ResolverTypeWrapper<DoorInfo>;
   Election: ResolverTypeWrapper<ElectionResponse>;
@@ -1514,6 +1516,7 @@ export type ResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean'];
   CasLoginResponse: CasLoginResponse;
   Date: Scalars['Date'];
+  DateTime: Scalars['DateTime'];
   DoorInfo: DoorInfo;
   Election: ElectionResponse;
   EmergencyContact: EmergencyContact;
@@ -1564,12 +1567,12 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
 
 export type ActivityResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Activity'] = ResolversParentTypes['Activity']> = ResolversObject<{
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  endDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  endDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   imageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   location?: Resolver<Maybe<ResolversTypes['Location']>, ParentType, ContextType>;
   source?: Resolver<ResolversTypes['ActivitySource'], ParentType, ContextType>;
-  startDate?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  startDate?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -1607,6 +1610,10 @@ export type CasLoginResponseResolvers<ContextType = Context, ParentType extends 
 
 export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
   name: 'Date';
+}
+
+export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
+  name: 'DateTime';
 }
 
 export type DoorInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DoorInfo'] = ResolversParentTypes['DoorInfo']> = ResolversObject<{
@@ -1921,6 +1928,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Article?: ArticleResolvers<ContextType>;
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
   Date?: GraphQLScalarType;
+  DateTime?: GraphQLScalarType;
   DoorInfo?: DoorInfoResolvers<ContextType>;
   Election?: ElectionResolvers<ContextType>;
   EmergencyContact?: EmergencyContactResolvers<ContextType>;

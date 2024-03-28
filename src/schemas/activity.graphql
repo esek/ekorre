@@ -1,11 +1,10 @@
 # import Utskott from 'utskott.graphql'
-# import Date from 'user.graphql'
 
-scalar Date
+scalar DateTime
 
 type Query{
     activity(id: String!) : Activity! 
-    activities(from: Date!, to: Date!, utskott: [Utskott!]!) : [Activity!]! 
+    activities(from: DateTime!, to: DateTime!, utskott: [Utskott!]!) : [Activity!]! 
 }
 
 type Mutation{
@@ -19,8 +18,8 @@ type Activity{
     source: ActivitySource!
     title: String!
     description: String
-    startDate: Date!
-    endDate: Date
+    startDate: DateTime!
+    endDate: DateTime
     utskott: Utskott!
     imageUrl: String
     location: Location
@@ -39,8 +38,8 @@ input NewLocation{
 input NewActivity{
     title: String!
     description: String
-    startDate: Date!
-    endDate: Date
+    startDate: DateTime!
+    endDate: DateTime
     utskott: Utskott!
     imageUrl: String
     location: NewLocation
@@ -49,8 +48,8 @@ input NewActivity{
 input ModifiedActivity{
     title: String
     description: String
-    startDate: Date
-    endDate: Date
+    startDate: DateTime
+    endDate: DateTime
     utskott: Utskott
     imageUrl: String
     location: NewLocation
