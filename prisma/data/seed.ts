@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
 import { apiKeyAccess, apiKeys, individualAccess, postAccess } from './access.seed';
+import { activities } from './activity.seed';
 import { posts } from './post.seed';
 import { users } from './user.seed';
 
@@ -19,6 +20,8 @@ const run = async () => {
     prisma.prismaPostAccess.createMany({ data: postAccess, skipDuplicates: true }),
     prisma.prismaApiKeyAccess.createMany({ data: apiKeyAccess, skipDuplicates: true }),
   ]);
+
+  await prisma.prismaActivity.createMany({ data: activities, skipDuplicates: true });
 };
 
 run()

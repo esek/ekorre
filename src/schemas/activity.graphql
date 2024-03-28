@@ -1,0 +1,62 @@
+# import Utskott from 'utskott.graphql'
+
+scalar DateTime
+
+type Query{
+    activity(id: String!) : Activity! 
+    activities(from: DateTime!, to: DateTime!, utskott: [Utskott!]!) : [Activity!]! 
+}
+
+type Mutation{
+    addActivity(activity: NewActivity!) : Activity!
+    modifyActivity(id: String!, entry: ModifiedActivity!) : Activity!
+    removeActivity(id: String!) : Activity!
+}
+
+type Activity{
+    id: String!
+    source: ActivitySource!
+    title: String!
+    description: String
+    startDate: DateTime!
+    endDate: DateTime
+    utskott: Utskott!
+    imageUrl: String
+    location: Location
+}
+
+type Location{
+    title: String!
+    link: String
+}
+
+input NewLocation{
+    title: String!
+    link: String
+}
+
+input NewActivity{
+    title: String!
+    description: String
+    startDate: DateTime!
+    endDate: DateTime
+    utskott: Utskott!
+    imageUrl: String
+    location: NewLocation
+}
+
+input ModifiedActivity{
+    title: String
+    description: String
+    startDate: DateTime
+    endDate: DateTime
+    utskott: Utskott
+    imageUrl: String
+    location: NewLocation
+}
+
+enum ActivitySource{
+  WEBSITE
+  ORBI
+  OTHER
+}
