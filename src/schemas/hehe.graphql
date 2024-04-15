@@ -1,3 +1,5 @@
+scalar DateTime
+
 type Query {
   hehe(number: Int!, year: Int!): Hehe!
   hehes(year: Int!): [Hehe!]!
@@ -12,7 +14,8 @@ type Mutation {
 type Hehe {
   number: Int!
   year: Int!
-  uploader: User!,
+  uploadedAt: DateTime!
+  uploader: User!
   file: File!
 }
 
