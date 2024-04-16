@@ -18,6 +18,7 @@ const DUMMY_HEHE: Omit<PrismaHehe, 'refUploader'> = {
   year: 1658,
   refFile: '',
   uploadedAt: new Date(),
+  photoUrl: '',
 };
 
 const generateDummyHehe = async (

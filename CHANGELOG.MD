@@ -5,6 +5,19 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2024-04-16
+
+### Tillagt
+
+- Lagt till `photoUrl` för `Hehe`, där en bild för tidningens framsida genereras automatiskt utifrån PDFen. Då används paketet `pdf-to-png-converter`
+- Exponerat `uploadedAt` för `Hehe`, vilket är en `DateTime` för när Hehen laddades upp
+- `DateTime` som en ny `Scalar`
+
+### Ändrat
+
+- `addHehe`-APIn så att denna dessutom skapar framsidan för tidningen och sparar motsvarande `photoUrl`
+- Enhetstester för `Hehe` så att dessa är kompatibla med tilläggen ovan
+
 ## [1.8.0] - 2024-01-31
 
 ### Tillagt

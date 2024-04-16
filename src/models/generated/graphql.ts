@@ -16,6 +16,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   Date: Date;
+  DateTime: any;
   Object: Record<string, string>;
 };
 
@@ -200,6 +201,8 @@ export type GroupedPost = {
 export type Hehe = {
   file: File;
   number: Scalars['Int'];
+  photoUrl: Scalars['String'];
+  uploadedAt: Scalars['DateTime'];
   uploader: User;
   year: Scalars['Int'];
 };
@@ -1296,6 +1299,7 @@ export type ResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
+  DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Door: Door;
   DoorInfo: ResolverTypeWrapper<DoorInfo>;
   Election: ResolverTypeWrapper<ElectionResponse>;
@@ -1350,6 +1354,7 @@ export type ResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean'];
   CasLoginResponse: CasLoginResponse;
   Date: Scalars['Date'];
+  DateTime: Scalars['DateTime'];
   DoorInfo: DoorInfo;
   Election: ElectionResponse;
   EmergencyContact: EmergencyContact;
@@ -1425,6 +1430,10 @@ export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
   name: 'Date';
 }
 
+export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
+  name: 'DateTime';
+}
+
 export type DoorInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DoorInfo'] = ResolversParentTypes['DoorInfo']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['Door'], ParentType, ContextType>;
@@ -1493,6 +1502,8 @@ export type GroupedPostResolvers<ContextType = Context, ParentType extends Resol
 export type HeheResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Hehe'] = ResolversParentTypes['Hehe']> = ResolversObject<{
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType>;
   number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  photoUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  uploadedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   uploader?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -1710,6 +1721,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Article?: ArticleResolvers<ContextType>;
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
   Date?: GraphQLScalarType;
+  DateTime?: GraphQLScalarType;
   DoorInfo?: DoorInfoResolvers<ContextType>;
   Election?: ElectionResolvers<ContextType>;
   EmergencyContact?: EmergencyContactResolvers<ContextType>;

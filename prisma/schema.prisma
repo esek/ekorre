@@ -220,6 +220,7 @@ model PrismaHehe {
   refUploader String     @map("ref_uploader")
   file        PrismaFile @relation(name: "PrismaFileToPrismaHehe", fields: [refFile], references: [id])
   refFile     String     @unique @map("ref_file")
+  photoUrl    String     @map("photo_url")
 
   // Year has more queries than number
   @@id([year, number])

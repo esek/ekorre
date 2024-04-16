@@ -1,9 +1,22 @@
+import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
+import { AccessType } from '@generated/graphql';
 import { PrismaHehe } from '@prisma/client';
+import { UploadedFile } from 'express-fileupload';
+import fs from 'fs/promises';
+import { pdfToPng } from 'pdf-to-png-converter';
 
+import FileAPI from './file.api';
 import prisma from './prisma';
+
+const {
+  FILES: { ROOT },
+} = config;
+
+// TODO: Should an instance of FileAPI really be used in this API?
+const fileApi = new FileAPI();
 
 const logger = Logger.getLogger('HeheAPI');
 
@@ -61,6 +74,7 @@ export class HeheAPI {
 
   /**
    * Adds a new edition/paper of HeHE
+   * @param uploaderUsername Username of the uploader
    * @param fileId ID of the file containing this paper
    * @param number Number of the paper
    * @param year What year the paper was published
@@ -71,11 +85,44 @@ export class HeheAPI {
     number: number,
     year: number,
   ): Promise<boolean> {
+    const file = await fileApi.getFileData(fileId);
+
+    // If no file is provided
+    if (!file) {
+      logger.debug(`File ${fileId} can not be found`);
+      return false;
+    }
+
+    // Convert the cover of the PDF to a PNG
+    const pdfPath = `${ROOT}/${file.folderLocation}`;
+    const pages = await pdfToPng(pdfPath, {
+      pagesToProcess: [1], // Only process the first page
+    });
+
+    // If no pages are found
+    if (pages.length === 0) {
+      logger.debug('PDF appears to have no pages');
+      return false;
+    }
+
+    // Creates the image as an UploadedFile and then saves it to the database
+    const imageFile = await this.createUploadedFile(
+      pages[0].content,
+      `${year}-${number}.png`,
+      'image/png',
+    );
+
+    const path = 'hehe-covers';
+    const accessType = AccessType.Public;
+    // TODO: Can this be done more effectively?
+    const dbFile = await fileApi.saveFile(imageFile, accessType, path, uploaderUsername);
+
     try {
       await prisma.prismaHehe.create({
         data: {
           refUploader: uploaderUsername,
           refFile: fileId,
+          photoUrl: `/files/${dbFile.folderLocation}`, // TODO: Why is /files needed here? It is not needed in the avatar upload
           number,
           year,
         },
@@ -127,5 +174,38 @@ export class HeheAPI {
     devGuard('Tried to clear accesses in production!');
 
     await prisma.prismaHehe.deleteMany();
+  }
+
+  /**
+   * Creates an UploadedFile object from a buffer, for use with the file API
+   *
+   * @param data Buffer with the file's data
+   * @param name Name of the file
+   * @param type MIME type
+   * @returns
+   */
+  private async createUploadedFile(
+    data: Buffer,
+    name: string,
+    type: string,
+  ): Promise<UploadedFile> {
+    const file: UploadedFile = {
+      name,
+      data,
+      size: data.byteLength,
+      encoding: '7bit',
+      tempFilePath: '',
+      truncated: false,
+      mimetype: type,
+      md5: '',
+      mv: (newPath: string) => {
+        return new Promise<void>((resolve, reject) => {
+          fs.writeFile(newPath, data);
+          resolve();
+        });
+      },
+    };
+
+    return file;
   }
 }
