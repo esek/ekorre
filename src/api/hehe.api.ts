@@ -106,7 +106,7 @@ export class HeheAPI {
     }
 
     // Creates the image as an UploadedFile and then saves it to the database
-    const imageFile = await this.createUploadedFile(
+    const imageFile = this.createUploadedFile(
       pages[0].content,
       `${year}-${number}.png`,
       'image/png',
@@ -184,11 +184,7 @@ export class HeheAPI {
    * @param type MIME type
    * @returns
    */
-  private async createUploadedFile(
-    data: Buffer,
-    name: string,
-    type: string,
-  ): Promise<UploadedFile> {
+  private createUploadedFile(data: Buffer, name: string, type: string): UploadedFile {
     const file: UploadedFile = {
       name,
       data,
@@ -199,7 +195,7 @@ export class HeheAPI {
       mimetype: type,
       md5: '',
       mv: (newPath: string) => {
-        return new Promise<void>((resolve, reject) => {
+        return new Promise<void>((resolve, _) => {
           fs.writeFile(newPath, data);
           resolve();
         });
