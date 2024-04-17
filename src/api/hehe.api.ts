@@ -93,6 +93,11 @@ export class HeheAPI {
       return false;
     }
 
+    if (file.type !== 'PDF') {
+      logger.debug('File is not a PDF');
+      return false;
+    }
+
     // Convert the cover of the PDF to a PNG
     const pdfPath = `${ROOT}/${file.folderLocation}`;
     const pages = await pdfToPng(pdfPath, {
@@ -194,11 +199,8 @@ export class HeheAPI {
       truncated: false,
       mimetype: type,
       md5: '',
-      mv: (newPath: string) => {
-        return new Promise<void>((resolve, _) => {
-          fs.writeFile(newPath, data);
-          resolve();
-        });
+      mv: async (newPath: string): Promise<void> => {
+        return fs.writeFile(newPath, data);
       },
     };
 
