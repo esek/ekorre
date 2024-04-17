@@ -12,10 +12,9 @@ import FileAPI from './file.api';
 import prisma from './prisma';
 
 const {
-  FILES: { ROOT },
+  FILES: { ENDPOINT, ROOT },
 } = config;
 
-// TODO: Should an instance of FileAPI really be used in this API?
 const fileApi = new FileAPI();
 
 const logger = Logger.getLogger('HeheAPI');
@@ -119,7 +118,6 @@ export class HeheAPI {
 
     const path = 'hehe-covers';
     const accessType = AccessType.Public;
-    // TODO: Can this be done more effectively?
     const dbFile = await fileApi.saveFile(imageFile, accessType, path, uploaderUsername);
 
     try {
@@ -127,7 +125,7 @@ export class HeheAPI {
         data: {
           refUploader: uploaderUsername,
           refFile: fileId,
-          photoUrl: `/files/${dbFile.folderLocation}`, // TODO: Why is /files needed here? It is not needed in the avatar upload
+          photoUrl: `${ENDPOINT}${dbFile.folderLocation}`,
           number,
           year,
         },
