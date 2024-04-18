@@ -2,7 +2,7 @@ import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
-import { AccessType } from '@generated/graphql';
+import { AccessType, FileType } from '@generated/graphql';
 import { PrismaHehe } from '@prisma/client';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs/promises';
@@ -92,7 +92,7 @@ export class HeheAPI {
       return false;
     }
 
-    if (file.type !== 'PDF') {
+    if (file.type !== FileType.Pdf) {
       logger.debug('File is not a PDF');
       return false;
     }
