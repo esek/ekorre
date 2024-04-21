@@ -3,6 +3,7 @@ import { hasAccess, hasAuthenticated } from '@/util';
 import { ActivityAPI } from '@api/activity';
 import { Feature, Resolvers } from '@generated/graphql';
 import { activityReducer } from '@reducer/activity';
+import { updateOrbiActivities } from '@service/orbi';
 
 const activityApi = new ActivityAPI();
 
@@ -16,6 +17,9 @@ const activityresolver: Resolvers = {
     },
     activities: async (_, { from, to, utskott }, ctx) => {
       await hasAuthenticated(ctx);
+      //async call to update orbi because it is
+      //painfully slow
+      updateOrbiActivities();
       const a = await activityApi.getActivities(from, to, utskott);
 
       return reduce(a, activityReducer);
