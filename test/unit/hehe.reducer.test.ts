@@ -12,7 +12,8 @@ test('reducing valid DatabaseHehe', () => {
     refUploader: dummyUploader,
     refFile: dummyFile,
     uploadedAt: dummyUploadedAt,
-    photoUrl: '',
+    coverEndpoint: '',
+    coverId: '',
   };
 
   const expected: HeheResponse = {
@@ -25,7 +26,8 @@ test('reducing valid DatabaseHehe', () => {
       id: dummyFile,
     },
     uploadedAt: dummyUploadedAt,
-    photoUrl: '',
+    coverEndpoint: '',
+    coverId: '',
   };
 
   expect(heheReduce(dbHehe)).toMatchObject(expected);

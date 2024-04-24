@@ -379,6 +379,7 @@ describe('reading files', () => {
     return file;
   };
 
+  // TODO: fuckar också med hehe testerna ibland
   it('can read a public file', async () => {
     const file = await getFile(AccessType.Public);
     const res: { headers: StrictObject<string, string> } = await r

@@ -200,9 +200,10 @@ export type GroupedPost = {
 };
 
 export type Hehe = {
+  coverEndpoint: Scalars['String'];
+  coverId: Scalars['String'];
   file: File;
   number: Scalars['Int'];
-  photoUrl: Scalars['String'];
   uploadedAt: Scalars['DateTime'];
   uploader: User;
   year: Scalars['Int'];
@@ -1501,9 +1502,10 @@ export type GroupedPostResolvers<ContextType = Context, ParentType extends Resol
 }>;
 
 export type HeheResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Hehe'] = ResolversParentTypes['Hehe']> = ResolversObject<{
+  coverEndpoint?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  coverId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   file?: Resolver<ResolversTypes['File'], ParentType, ContextType>;
   number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  photoUrl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   uploadedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   uploader?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;

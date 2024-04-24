@@ -17,7 +17,8 @@ type Hehe {
   uploadedAt: DateTime!
   uploader: User!
   file: File!
-  photoUrl: String!
+  coverEndpoint: String!
+  coverId: String!
 }
 
 enum SortOrder {

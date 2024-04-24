@@ -1,7 +1,7 @@
 import { HeheAPI } from '@/api/hehe.api';
 import prisma from '@/api/prisma';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
-import { Feature } from '@generated/graphql';
+import { Feature, FileType } from '@generated/graphql';
 import { PrismaHehe } from '@prisma/client';
 import { genRandomUser } from '@test/utils/utils';
 
@@ -18,20 +18,22 @@ const DUMMY_HEHE: Omit<PrismaHehe, 'refUploader'> = {
   year: 1658,
   refFile: '',
   uploadedAt: new Date(),
-  photoUrl: '',
+  coverEndpoint: '/files/hehe-covers/',
+  coverId: '',
 };
 
 const generateDummyHehe = async (
   uploaderUsername: string,
   overrides: Partial<PrismaHehe> = {},
+  fileType: FileType = FileType.Pdf,
 ): Promise<PrismaHehe> => {
   ctr += 1;
   const { id } = await prisma.prismaFile.create({
     data: {
       refUploader: USERNAME0,
       name: `heheFile${ctr}`,
-      folderLocation: 'heheApiTestFile',
-      type: 'dummy',
+      folderLocation: '',
+      type: fileType,
       accessType: 'PUBLIC',
     },
   });
@@ -154,7 +156,7 @@ test('adding HeHE', async () => {
 
   await expect(api.getAllHehes()).resolves.toHaveLength(0);
   await expect(
-    api.addHehe(dummy.refUploader, dummy.refFile, dummy.number, dummy.year),
+    api.addHehe(dummy.refUploader, dummy.refFile, dummy.coverId, dummy.number, dummy.year),
   ).resolves.toBeTruthy();
 
   // Skippa datum
@@ -167,15 +169,24 @@ test('adding duplicate HeHE', async () => {
   const dummy = await generateDummyHehe(USERNAME0);
   await expect(api.getAllHehes()).resolves.toHaveLength(0);
   await expect(
-    api.addHehe(dummy.refUploader, dummy.refFile, dummy.number, dummy.year),
+    api.addHehe(dummy.refUploader, dummy.refFile, dummy.coverId, dummy.number, dummy.year),
   ).resolves.toBeTruthy();
   await expect(
-    api.addHehe(dummy.refUploader, dummy.refFile, dummy.number, dummy.year),
+    api.addHehe(dummy.refUploader, dummy.refFile, dummy.coverId, dummy.number, dummy.year),
   ).rejects.toThrowError(ServerError);
   // Skippa datum
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { uploadedAt, ...rest } = dummy;
   await expect(api.getAllHehes()).resolves.toMatchObject([rest]);
+});
+
+test('adding HeHE with incorrect file type', async () => {
+  const dummy = await generateDummyHehe(USERNAME0, {}, FileType.Image);
+  await expect(api.getAllHehes()).resolves.toHaveLength(0);
+  await expect(
+    api.addHehe(dummy.refUploader, dummy.refFile, dummy.coverId, dummy.number, dummy.year),
+  ).rejects.toThrowError(ServerError);
+  await expect(api.getAllHehes()).resolves.toHaveLength(0);
 });
 
 test('removing HeHE', async () => {
@@ -190,3 +201,14 @@ test('removing HeHE', async () => {
 test('removing non-existant HeHE', async () => {
   await expect(api.removeHehe(0, 1999)).rejects.toThrowError(ServerError);
 });
+
+// test('creating HeHE cover page is successful', async () => {
+//   const dummy = await generateDummyHehe(USERNAME0);
+
+//   // await expect(api.getAllHehes()).resolves.toHaveLength(0);
+//   await expect(
+//     api.createHeheCover(dummy.refUploader, dummy.refFile, dummy.number, dummy.year),
+//   ).resolves.toBeTruthy();
+//   // const hehe = await api.getHehe(dummy.number, dummy.year);
+//   // expect(hehe.coverId).not.toBe('');
+// });

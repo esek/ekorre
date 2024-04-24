@@ -15,6 +15,8 @@ const {
   FILES: { ENDPOINT, ROOT },
 } = config;
 
+const COVER_FOLDER = `hehe-covers`;
+
 const fileApi = new FileAPI();
 
 const logger = Logger.getLogger('HeheAPI');
@@ -72,41 +74,45 @@ export class HeheAPI {
   }
 
   /**
-   * Adds a new edition/paper of HeHE
+   * Creates a cover image for a HeHE edition from a PDF
    * @param uploaderUsername Username of the uploader
-   * @param fileId ID of the file containing this paper
+   * @param fileId ID of the file containing the PDF
    * @param number Number of the paper
    * @param year What year the paper was published
+   * @returns ID of the created cover image
    */
-  async addHehe(
+  async createHeheCover(
     uploaderUsername: string,
     fileId: string,
     number: number,
     year: number,
-  ): Promise<boolean> {
+  ): Promise<string> {
     const file = await fileApi.getFileData(fileId);
 
     // If no file is provided
     if (!file) {
       logger.debug(`File ${fileId} can not be found`);
-      return false;
+      throw new NotFoundError('Filen kunde inte hittas, vilket kan bero på att den inte finns');
     }
 
     if (file.type !== FileType.Pdf) {
       logger.debug('File is not a PDF');
-      return false;
+      throw new ServerError('Filen är inte en PDF');
     }
 
     // Convert the cover of the PDF to a PNG
     const pdfPath = `${ROOT}/${file.folderLocation}`;
     const pages = await pdfToPng(pdfPath, {
       pagesToProcess: [1], // Only process the first page
+    }).catch((err) => {
+      logger.error(err);
+      throw new ServerError('Kunde inte konvertera PDFen till en bild');
     });
 
     // If no pages are found
     if (pages.length === 0) {
       logger.debug('PDF appears to have no pages');
-      return false;
+      throw new ServerError('Den uppladdade PDFen verkar inte ha några sidor');
     }
 
     // Creates the image as an UploadedFile and then saves it to the database
@@ -115,17 +121,47 @@ export class HeheAPI {
       `${year}-${number}.png`,
       'image/png',
     );
-
-    const path = 'hehe-covers';
     const accessType = AccessType.Public;
-    const dbFile = await fileApi.saveFile(imageFile, accessType, path, uploaderUsername);
+    const dbFile = await fileApi.saveFile(imageFile, accessType, COVER_FOLDER, uploaderUsername);
+
+    return dbFile.id;
+  }
+
+  /**
+   * Adds a new edition/paper of HeHE
+   * @param uploaderUsername Username of the uploader
+   * @param fileId ID of the file containing this paper
+   * @param coverId ID of the file containing the cover image of this paper
+   * @param number Number of the paper
+   * @param year What year the paper was published
+   */
+  async addHehe(
+    uploaderUsername: string,
+    fileId: string,
+    coverId: string,
+    number: number,
+    year: number,
+  ): Promise<boolean> {
+    const file = await fileApi.getFileData(fileId);
+
+    // If no file is provided
+    if (!file) {
+      logger.debug(`File ${fileId} can not be found`);
+      throw new NotFoundError('Filen kunde inte hittas, vilket kan bero på att den inte finns');
+    }
+
+    if (file.type !== FileType.Pdf) {
+      logger.debug('File is not a PDF');
+      throw new ServerError('Filen är inte en PDF');
+    }
 
     try {
       await prisma.prismaHehe.create({
         data: {
           refUploader: uploaderUsername,
           refFile: fileId,
-          photoUrl: `${ENDPOINT}${dbFile.folderLocation}`,
+          coverEndpoint: `${ENDPOINT}/${COVER_FOLDER}/`,
+          coverId,
           number,
           year,
         },
@@ -149,6 +185,31 @@ export class HeheAPI {
    * @param year What year the paper was published
    */
   async removeHehe(number: number, year: number): Promise<boolean> {
+    const hehe = await prisma.prismaHehe.findFirst({
+      where: {
+        year,
+        number,
+      },
+    });
+
+    if (!hehe) {
+      logger.debug(`Could not find HeHE number ${number} for year ${year}`);
+      throw new ServerError(
+        'Kunde inte hitta upplagan av HeHE, vilket kan bero på att den inte finns',
+      );
+    }
+
+    // Try to remove the cover image
+    try {
+      await fileApi.deleteFile(hehe.coverId);
+      logger.info(`Deleted cover image for HeHE number ${number} for year ${year}`);
+    } catch (err) {
+      logger.error(err);
+      logger.error(
+        `Failed to remove existing cover image for HeHE number ${number} for year ${year}`,
+      );
+    }
+
     try {
       await prisma.prismaHehe.delete({
         where: {
@@ -166,17 +227,6 @@ export class HeheAPI {
         'Kunde inte radera upplagan av HeHE, vilket kan bero på att den inte finns',
       );
     }
-  }
-
-  /**
-   * Removes all HeHEs from the database.
-   *
-   * Not callable in a production environment
-   */
-  async clear() {
-    devGuard('Tried to clear accesses in production!');
-
-    await prisma.prismaHehe.deleteMany();
   }
 
   /**
@@ -203,5 +253,16 @@ export class HeheAPI {
     };
 
     return file;
+  }
+
+  /**
+   * Removes all HeHEs from the database.
+   *
+   * Not callable in a production environment
+   */
+  async clear() {
+    devGuard('Tried to clear accesses in production!');
+
+    await prisma.prismaHehe.deleteMany();
   }
 }
