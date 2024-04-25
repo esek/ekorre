@@ -46,6 +46,7 @@ model PrismaUser {
   website           String?
   luCard            String?                  @unique
   dateJoined        DateTime                 @default(now()) @map("date_joined")
+  dateVerified      DateTime?                @map("date_verified")
 
   @@index([firstName, lastName])
   @@map("users")
