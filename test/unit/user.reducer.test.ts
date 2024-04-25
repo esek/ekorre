@@ -19,6 +19,7 @@ const dummyDbUser: PrismaUser = {
   photoUrl: null,
   website: null,
   luCard: null,
+  dateVerified: null,
 };
 
 test('that password is reduced properly', () => {
@@ -44,6 +45,7 @@ test('that password is reduced properly', () => {
     emergencyContacts: [],
     loginProviders: [],
     luCard: null,
+    dateVerified: null,
   };
 
   expect(userReduce(dummyDbUser)).toStrictEqual(compare);
