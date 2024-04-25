@@ -76,6 +76,7 @@ model PrismaPost {
   postType          PrismaPostType      @map("post_type")
   active            Boolean             @default(true)
   interviewRequired Boolean             @default(false) @map("interview_required")
+  formLink          String?
 
   // Posts are either searched by name or by utskott,
   // name handled by primare key (@id)

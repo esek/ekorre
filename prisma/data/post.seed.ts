@@ -20,6 +20,7 @@ export const posts: Prisma.PrismaPostCreateInput[] = [
     active: true,
     interviewRequired: false,
     sortPriority: 0,
+    formLink: "test@mail.se"
   },
   {
     postname: 'Cophös',

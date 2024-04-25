@@ -42,6 +42,7 @@ type Post {
     description: String!
     active: Boolean!
     access: Access!
+    formLink: String
 
     """
     Om sökande valbereds och kallas till intervju
@@ -97,6 +98,7 @@ input ModifyPost {
     Om sökande valbereds och kallas till intervju
     """
     interviewRequired: Boolean
+    formLink: String
 }
 
 type HistoryEntry {
