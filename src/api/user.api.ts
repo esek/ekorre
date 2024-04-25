@@ -45,6 +45,10 @@ export class UserAPI {
     return equal;
   }
 
+  private verifySSNUser(username: string, ssn: string): Promise<PrismaUser> {
+    return this.getSingleUser(username);
+  }
+
   /**
    * Hashes a password with the given salt
    * @param password The password to hash
