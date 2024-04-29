@@ -12,13 +12,14 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Lagt till `coverEndpoint` och `coverId` för `Hehe`, där en bild för tidningens framsida genereras automatiskt utifrån PDFen. Då används paketet `pdf-to-img`
 - Exponerat `uploadedAt` för `Hehe`, vilket är en `DateTime` för när Hehen laddades upp
 - `DateTime` som en ny `Scalar`
+- Enhetstest för `Hehe` som kontrollerar att en felaktig filtyp inte kan laddas upp
 - Integrationstest för `Hehe` som kontrollerar att en bild kan skapas från en PDF
 - Lagt till testfilen `test-hehe.pdf` som används i integrationstestet ovan
 
 ### Ändrat
 
 - `addHehe`-APIn så att denna dessutom skapar framsidan för tidningen och sparar motsvarande `coverId`
-- Enhetstester för `Hehe` så att dessa är kompatibla med tilläggen ovan
+- Enhetstester och `reducer`-tester för `Hehe` så att dessa är kompatibla med tilläggen ovan
 - Abstraherat ut uppladdning av filer i integrationstester till filen `fileUpload.ts`
 
 ## [1.9.0] - 2024-03-22
