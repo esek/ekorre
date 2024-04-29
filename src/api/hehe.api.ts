@@ -6,16 +6,16 @@ import { AccessType, FileType } from '@generated/graphql';
 import { PrismaHehe } from '@prisma/client';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs/promises';
-import { pdfToPng } from 'pdf-to-png-converter';
+import path from 'path';
+import { pdf } from 'pdf-to-img';
 
 import FileAPI from './file.api';
 import prisma from './prisma';
 
 const {
   FILES: { ENDPOINT, ROOT },
+  HEHES: { COVER_FOLDER },
 } = config;
-
-const COVER_FOLDER = `hehe-covers`;
 
 const fileApi = new FileAPI();
 
@@ -79,7 +79,7 @@ export class HeheAPI {
    * @param fileId ID of the file containing the PDF
    * @param number Number of the paper
    * @param year What year the paper was published
-   * @returns ID of the created cover image
+   * @returns ID of the created cover image file
    */
   async createHeheCover(
     uploaderUsername: string,
@@ -100,31 +100,40 @@ export class HeheAPI {
       throw new ServerError('Filen är inte en PDF');
     }
 
-    // Convert the cover of the PDF to a PNG
+    // Get the PDF to convert to a PNG
     const pdfPath = `${ROOT}/${file.folderLocation}`;
-    const pages = await pdfToPng(pdfPath, {
-      pagesToProcess: [1], // Only process the first page
-    }).catch((err) => {
-      logger.error(err);
-      throw new ServerError('Kunde inte konvertera PDFen till en bild');
-    });
+    const document = await pdf(pdfPath);
 
     // If no pages are found
-    if (pages.length === 0) {
+    if (document.length === 0) {
       logger.debug('PDF appears to have no pages');
       throw new ServerError('Den uppladdade PDFen verkar inte ha några sidor');
     }
 
-    // Creates the image as an UploadedFile and then saves it to the database
-    const imageFile = this.createUploadedFile(
-      pages[0].content,
-      `${year}-${number}.png`,
-      'image/png',
-    );
+    const coverName = `${path.parse(file.name).name}.png`; // Parses the HeHE file name to get the cover name
     const accessType = AccessType.Public;
-    const dbFile = await fileApi.saveFile(imageFile, accessType, COVER_FOLDER, uploaderUsername);
+    let coverId = '';
 
-    return dbFile.id;
+    // Creates the cover image as an UploadedFile and then saves it to the database
+    for await (const page of document) {
+      const uploadedFile = this.createUploadedFile(page, coverName, 'image/png');
+      const coverFile = await fileApi.saveFile(
+        uploadedFile,
+        accessType,
+        COVER_FOLDER,
+        uploaderUsername,
+      );
+      coverId = coverFile.id;
+
+      break; // Only creates an image from the first page of the PDF
+    }
+
+    if (coverId === '') {
+      logger.debug('Could not create cover image');
+      throw new ServerError('Kunde inte skapa omslagsbild');
+    }
+
+    return coverId;
   }
 
   /**
@@ -231,7 +240,6 @@ export class HeheAPI {
 
   /**
    * Creates an UploadedFile object from a buffer, for use with the file API
-   *
    * @param data Buffer with the file's data
    * @param name Name of the file
    * @param type MIME type
