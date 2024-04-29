@@ -1,19 +1,19 @@
 import { app } from '@/app/app';
 import tokenProvider from '@/auth';
-import config from '@/config';
 import { StrictObject } from '@/models/base';
 import FileAPI from '@api/file';
 import { UserAPI } from '@api/user';
 import { AccessType, Feature, File, FileType, NewUser } from '@generated/graphql';
+import {
+  path,
+  baseURL,
+  baseUploadFile,
+  UploadFileOptions,
+  removeUploadedFiles,
+} from '@test/utils/fileUpload';
 import requestWithAuth from '@test/utils/requestWithAuth';
 import { genUserWithAccess } from '@test/utils/utils';
-import { resolve } from 'path';
 import request from 'supertest';
-
-type UploadFileOptions = {
-  withFile?: boolean;
-  withAuth?: boolean;
-};
 
 const fileApi = new FileAPI();
 const userApi = new UserAPI();
@@ -27,13 +27,10 @@ const testUser: NewUser = {
   class: 'E69',
 };
 
-const path = (fileName: string) => resolve(__dirname, '../data', fileName);
 const [createUser, teardown] = genUserWithAccess(testUser, [Feature.FilesAdmin]);
-const baseURL = (endpoint: string) => `${config.FILES.ENDPOINT}/${endpoint}`;
 
 const removeCreatedFiles = async () => {
-  const removes = await fileApi.searchFiles('test');
-  return Promise.all(removes.map((f) => fileApi.deleteFile(f.id)));
+  await removeUploadedFiles(fileApi);
 };
 
 beforeAll(async () => {
@@ -46,32 +43,11 @@ afterAll(async () => {
 
 const r = request(app);
 
-const baseUploadFile = (
-  accessToken: string,
-  endpoint: string,
-  filename: string,
-  opts: UploadFileOptions,
-) => {
-  const req = r.post(baseURL(endpoint)).field('name', filename);
-  const { withFile = true, withAuth = true } = opts;
-  const token = tokenProvider.issueToken(testUser.username, 'access_token');
-
-  if (withFile) {
-    req.attach('file', path(filename));
-  }
-
-  if (withAuth) {
-    req.set({ Authorization: `Bearer ${token}` });
-  }
-
-  return req;
-};
-
 describe('uploading files', () => {
   const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');
 
   const uploadFile = (filename: string, opts: UploadFileOptions = {}) => {
-    return baseUploadFile(accessToken, 'upload', filename, opts);
+    return baseUploadFile(accessToken, 'upload', filename, r, opts);
   };
 
   afterEach(async () => {
@@ -148,7 +124,7 @@ describe('avatars', () => {
   const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');
 
   const uploadFile = (filename: string, opts: UploadFileOptions = {}) => {
-    return baseUploadFile(accessToken, 'upload/avatar', filename, opts);
+    return baseUploadFile(accessToken, 'upload/avatar', filename, r, opts);
   };
 
   afterEach(async () => {
@@ -195,13 +171,13 @@ describe('fetching files', () => {
   beforeAll(async () => {
     await Promise.all([
       removeCreatedFiles(),
-      baseUploadFile(accessToken, 'upload', testFiles[0], {})
+      baseUploadFile(accessToken, 'upload', testFiles[0], r, {})
         .field('accessType', AccessType.Public)
         .expect(200),
-      baseUploadFile(accessToken, 'upload', testFiles[1], {})
+      baseUploadFile(accessToken, 'upload', testFiles[1], r, {})
         .field('accessType', AccessType.Authenticated)
         .expect(200),
-      baseUploadFile(accessToken, 'upload', testFiles[2], {})
+      baseUploadFile(accessToken, 'upload', testFiles[2], r, {})
         .field('accessType', AccessType.Admin)
         .expect(200),
     ]);
@@ -346,13 +322,13 @@ describe('reading files', () => {
   beforeAll(async () => {
     await Promise.all([
       removeCreatedFiles(),
-      baseUploadFile(accessToken, 'upload', testFiles[0], {})
+      baseUploadFile(accessToken, 'upload', testFiles[0], r, {})
         .field('accessType', AccessType.Public)
         .expect(200),
-      baseUploadFile(accessToken, 'upload', testFiles[1], {})
+      baseUploadFile(accessToken, 'upload', testFiles[1], r, {})
         .field('accessType', AccessType.Authenticated)
         .expect(200),
-      baseUploadFile(accessToken, 'upload', testFiles[2], {})
+      baseUploadFile(accessToken, 'upload', testFiles[2], r, {})
         .field('accessType', AccessType.Admin)
         .expect(200),
     ]);

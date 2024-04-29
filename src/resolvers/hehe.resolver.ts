@@ -5,7 +5,7 @@ import { HeheAPI } from '@api/hehe';
 import { Feature, Resolvers } from '@generated/graphql';
 import { heheReduce } from '@reducer/hehe';
 
-const api = new HeheAPI();
+const heheApi = new HeheAPI();
 
 const heheResolver: Resolvers = {
   Hehe: {
@@ -21,29 +21,29 @@ const heheResolver: Resolvers = {
   Query: {
     hehe: async (_, { number, year }, ctx) => {
       await hasAuthenticated(ctx);
-      const h = await api.getHehe(number, year);
+      const h = await heheApi.getHehe(number, year);
       return reduce(h, heheReduce);
     },
     hehes: async (_, { year }, ctx) => {
       await hasAuthenticated(ctx);
-      const h = await api.getHehesByYear(year);
+      const h = await heheApi.getHehesByYear(year);
       return reduce(h, heheReduce);
     },
     latestHehe: async (_, { limit, sortOrder }, ctx) => {
       await hasAuthenticated(ctx);
-      const h = await api.getAllHehes(limit ?? undefined, sortOrder ?? undefined);
+      const h = await heheApi.getAllHehes(limit ?? undefined, sortOrder ?? undefined);
       return reduce(h, heheReduce);
     },
   },
   Mutation: {
     addHehe: async (_, { fileId, number, year }, ctx) => {
       await hasAccess(ctx, Feature.HeheAdmin);
-      const coverId = await api.createHeheCover(ctx.getUsername(), fileId, number, year);
-      return api.addHehe(ctx.getUsername(), fileId, coverId, number, year);
+      const coverId = await heheApi.createHeheCover(ctx.getUsername(), fileId, number, year);
+      return heheApi.addHehe(ctx.getUsername(), fileId, coverId, number, year);
     },
     removeHehe: async (_, { number, year }, ctx) => {
       await hasAccess(ctx, Feature.HeheAdmin);
-      return api.removeHehe(number, year);
+      return heheApi.removeHehe(number, year);
     },
   },
 };
