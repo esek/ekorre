@@ -38,7 +38,7 @@ const heheResolver: Resolvers = {
   Mutation: {
     addHehe: async (_, { fileId, number, year }, ctx) => {
       await hasAccess(ctx, Feature.HeheAdmin);
-      const coverId = await heheApi.createHeheCover(ctx.getUsername(), fileId, number, year);
+      const coverId = await heheApi.createHeheCover(ctx.getUsername(), fileId);
       return heheApi.addHehe(ctx.getUsername(), fileId, coverId, number, year);
     },
     removeHehe: async (_, { number, year }, ctx) => {

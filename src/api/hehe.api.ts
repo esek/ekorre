@@ -81,12 +81,7 @@ export class HeheAPI {
    * @param year What year the paper was published
    * @returns ID of the created cover image file
    */
-  async createHeheCover(
-    uploaderUsername: string,
-    fileId: string,
-    number: number,
-    year: number,
-  ): Promise<string> {
+  async createHeheCover(uploaderUsername: string, fileId: string): Promise<string> {
     const file = await fileApi.getFileData(fileId);
 
     // If no file is provided

@@ -55,7 +55,7 @@ test('create HeHE cover image from PDF', async () => {
   });
 
   // Create HeHE cover page
-  const coverId = await heheApi.createHeheCover(USERNAME0, res.body.id, 1, 2024);
+  const coverId = await heheApi.createHeheCover(USERNAME0, res.body.id);
   const dbFile = await fileApi.getFileData(coverId);
 
   // Check if cover page is created
