@@ -4,6 +4,7 @@ type Query {
   hehe(number: Int!, year: Int!): Hehe!
   hehes(year: Int!): [Hehe!]!
   latestHehe(limit: Int, sortOrder: SortOrder): [Hehe!]!
+  paginatedHehes(limit: Int!, offset: Int, sortOrder: SortOrder): [Hehe!]!
 }
 
 type Mutation {

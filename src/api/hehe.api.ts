@@ -74,6 +74,26 @@ export class HeheAPI {
   }
 
   /**
+   * Retrieves HeHEs by pagination, ordered by year and then number (in the inverted order)
+   * @param limit The number of HeHEs to be returned
+   * @param offset The offset of the HeHEs to be returned
+   * @param sortOrder Ordering of returned HeHEs
+   */
+  async getHehesByPagination(
+    limit: number,
+    offset = 0,
+    sortOrder: 'desc' | 'asc' = 'desc',
+  ): Promise<PrismaHehe[]> {
+    const h = await prisma.prismaHehe.findMany({
+      skip: offset,
+      take: limit,
+      orderBy: [{ year: sortOrder }, { number: sortOrder === 'desc' ? 'asc' : 'desc' }],
+    });
+
+    return h;
+  }
+
+  /**
    * Creates a cover image for a HeHE edition from a PDF
    * @param uploaderUsername Username of the uploader
    * @param fileId ID of the file containing the PDF

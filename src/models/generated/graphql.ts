@@ -807,6 +807,7 @@ export type Query = {
   numberOfProposals: Scalars['Int'];
   numberOfVolunteers: Scalars['Int'];
   openElection: Election;
+  paginatedHehes: Array<Hehe>;
   post: Post;
   postAccess: Access;
   posts: Array<Post>;
@@ -1058,6 +1059,17 @@ export type QueryNumberOfProposalsArgs = {
  */
 export type QueryNumberOfVolunteersArgs = {
   date?: InputMaybe<Scalars['Date']>;
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryPaginatedHehesArgs = {
+  limit: Scalars['Int'];
+  offset?: InputMaybe<Scalars['Int']>;
+  sortOrder?: InputMaybe<SortOrder>;
 };
 
 
@@ -1671,6 +1683,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   numberOfProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfProposalsArgs, 'electionId'>>;
   numberOfVolunteers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, Partial<QueryNumberOfVolunteersArgs>>;
   openElection?: Resolver<ResolversTypes['Election'], ParentType, ContextType>;
+  paginatedHehes?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType, RequireFields<QueryPaginatedHehesArgs, 'limit'>>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<QueryPostArgs, 'id'>>;
   postAccess?: Resolver<ResolversTypes['Access'], ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postId'>>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType, Partial<QueryPostsArgs>>;

@@ -151,6 +151,62 @@ test('getting multiple HeHEs by year when none exists', async () => {
   await expect(heheApi.getHehesByYear(1999)).resolves.toHaveLength(0);
 });
 
+test('getting multiple HeHEs by pagination', async () => {
+  const hehes = await generateDummyHehes(USERNAME0);
+
+  const [localHehe0, localHehe1, localHehe2] = hehes;
+
+  // Lägg till våra HeHE
+  await prisma.prismaHehe.createMany({ data: hehes });
+
+  await expect(heheApi.getHehesByPagination(hehes.length)).resolves.toEqual([
+    localHehe0,
+    localHehe1,
+    localHehe2,
+  ]);
+});
+
+test('getting multiple HeHEs by pagination with offset', async () => {
+  const hehes = await generateDummyHehes(USERNAME0);
+
+  const [localHehe0, localHehe1, localHehe2] = hehes;
+
+  // Lägg till våra HeHE
+  await prisma.prismaHehe.createMany({ data: hehes });
+
+  await expect(heheApi.getHehesByPagination(1)).resolves.toEqual([localHehe0]);
+  await expect(heheApi.getHehesByPagination(2, 1)).resolves.toEqual([localHehe1, localHehe2]);
+  await expect(heheApi.getHehesByPagination(1, hehes.length)).resolves.toHaveLength(0);
+});
+
+test('getting multiple HeHEs by pagination when none exists', async () => {
+  await expect(heheApi.getHehesByPagination(1)).resolves.toHaveLength(0);
+});
+
+test('getting multiple HeHEs by pagination with no limit', async () => {
+  const hehes = await generateDummyHehes(USERNAME0);
+
+  // Lägg till våra HeHE
+  await prisma.prismaHehe.createMany({ data: hehes });
+
+  await expect(heheApi.getHehesByPagination(0)).resolves.toHaveLength(0);
+});
+
+test('getting multiple HeHEs by pagination in ascending order', async () => {
+  const hehes = await generateDummyHehes(USERNAME0);
+
+  const [localHehe0, localHehe1, localHehe2] = hehes;
+
+  // Lägg till våra HeHE
+  await prisma.prismaHehe.createMany({ data: hehes });
+
+  await expect(heheApi.getHehesByPagination(hehes.length, undefined, 'asc')).resolves.toEqual([
+    localHehe2,
+    localHehe1,
+    localHehe0,
+  ]);
+});
+
 test('adding HeHE', async () => {
   const dummy = await generateDummyHehe(USERNAME0);
 

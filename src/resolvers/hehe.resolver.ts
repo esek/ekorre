@@ -34,6 +34,15 @@ const heheResolver: Resolvers = {
       const h = await heheApi.getAllHehes(limit ?? undefined, sortOrder ?? undefined);
       return reduce(h, heheReduce);
     },
+    paginatedHehes: async (_, { limit, offset, sortOrder }, ctx) => {
+      await hasAuthenticated(ctx);
+      const h = await heheApi.getHehesByPagination(
+        limit,
+        offset ?? undefined,
+        sortOrder ?? undefined,
+      );
+      return reduce(h, heheReduce);
+    },
   },
   Mutation: {
     addHehe: async (_, { fileId, number, year }, ctx) => {
