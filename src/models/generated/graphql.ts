@@ -366,6 +366,7 @@ export type Mutation = {
   updateUser: User;
   validatePasswordResetToken: Scalars['Boolean'];
   validateToken: Scalars['Boolean'];
+  verifySSN: User;
 };
 
 
@@ -666,6 +667,12 @@ export type MutationValidateTokenArgs = {
   token: Scalars['String'];
 };
 
+
+export type MutationVerifySsnArgs = {
+  ssn: Scalars['String'];
+  username: Scalars['String'];
+};
+
 export type NewArticle = {
   articleType: ArticleType;
   body: Scalars['String'];
@@ -814,7 +821,6 @@ export type Query = {
   users: Array<User>;
   usersWithIndividualAccess: Array<User>;
   utskott: Utskott;
-  verify: User;
 };
 
 
@@ -1138,15 +1144,6 @@ export type QueryUsersArgs = {
  */
 export type QueryUtskottArgs = {
   name: Scalars['String'];
-};
-
-
-/**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
- */
-export type QueryVerifyArgs = {
-  ssn: Scalars['String'];
 };
 
 export type SendEmailOptions = {
@@ -1610,6 +1607,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   updateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
   validateToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidateTokenArgs, 'token'>>;
+  verifySSN?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationVerifySsnArgs, 'ssn' | 'username'>>;
 }>;
 
 export type NominationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Nomination'] = ResolversParentTypes['Nomination']> = ResolversObject<{
@@ -1686,7 +1684,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUsersArgs, 'usernames'>>;
   usersWithIndividualAccess?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType, RequireFields<QueryUtskottArgs, 'name'>>;
-  verify?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<QueryVerifyArgs, 'ssn'>>;
 }>;
 
 export type TokenResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TokenResponse'] = ResolversParentTypes['TokenResponse']> = ResolversObject<{

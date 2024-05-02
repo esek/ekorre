@@ -13,7 +13,6 @@ type Query {
   usersWithIndividualAccess: [User!]!
   me: User!
   numberOfMembers(noAlumni: Boolean): Int!
-  verify(ssn: String!): User!
 }
 
 type Mutation {
@@ -25,6 +24,7 @@ type Mutation {
   resetPassword(username: String!, token: String!, password: String!): Boolean!
   changePassword(oldPassword: String!, newPassword: String!): Boolean!
   casCreateUser(input: NewUser!, hash: String!): User!
+  verifySSN(ssn: String!, username: String!): User!
 }
 
 type User { 

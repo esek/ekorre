@@ -1,9 +1,11 @@
 /* eslint-disable class-methods-use-this */
+import config from '@/config';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
 import { Prisma, PrismaLoginProvider, PrismaPasswordReset, PrismaUser } from '@prisma/client';
+import axios, { AxiosInstance } from 'axios';
 import crypto, { randomUUID } from 'crypto';
 
 import {
@@ -34,6 +36,14 @@ const defaultOrder: Prisma.PrismaUserOrderByWithRelationAndSearchRelevanceInput[
 ];
 
 export class UserAPI {
+  private axios: AxiosInstance;
+  constructor() {
+    // Create axios instance
+    this.axios = axios.create({
+      baseURL: config.VERIFY_SSN.URL,
+    });
+  }
+
   /**
    * Verifies if the given password is correct
    * @param input The password
@@ -45,8 +55,14 @@ export class UserAPI {
     return equal;
   }
 
-  private verifySSNUser(username: string, ssn: string): Promise<PrismaUser> {
-    return this.getSingleUser(username);
+  async verifySSNUser(username: string, ssn: string): Promise<boolean> {
+    try {
+      const res = await this.axios.post('/', { ssn: ssn });
+      console.log(res.status);
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   /**

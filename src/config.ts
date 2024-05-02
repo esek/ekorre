@@ -38,6 +38,13 @@ const LU = {
   CAS: (process.env.LU_CAS as string) ?? 'https://idpv4.lu.se',
 };
 
+/** Verify SSN Options
+ *  @param {string} CAS - The base URL for verify
+ */
+const VERIFY_SSN = {
+  URL: process.env.VERIFY_SSN_URL ?? 'https://verify.esek.se',
+};
+
 const WIKI = {
   URL: process.env.WIKI_BASE_URL ?? '',
   USERNAME: process.env.WIKI_USERNAME ?? '',
@@ -60,6 +67,7 @@ const config = {
   LU,
   WIKI,
   JWT,
+  VERIFY_SSN,
 };
 
 export default config;

@@ -152,12 +152,20 @@ const userResolver: Resolvers = {
     },
   },
   Mutation: {
+    verifySSN: async (_, { ssn }, ctx: Context) => {
+      await hasAuthenticated(ctx);
+      const validated = await userApi.verifySSNUser(ctx.getUsername(), ssn);
+      console.log('validated: ', validated);
+      const u = await api.getSingleUser(username);
+      return reduce(u, userReduce);
+    },
     updateUser: async (_, { input }, { getUsername }) => {
       const username = getUsername();
       const updatedUser = await api.updateUser(username, stripObject(input));
 
       return reduce(updatedUser, userReduce);
     },
+
     createUser: async (_, { input }, ctx) => {
       await hasAccess(ctx, Feature.UserAdmin);
       const user = await api.createUser(input);
