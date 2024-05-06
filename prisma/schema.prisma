@@ -190,7 +190,10 @@ model PrismaActivity {
   locationTitle String?              @map("location_title")
   locationLink  String?              @map("location_link")
   tickets       PrismaTicket[]
+
+  @@map("activities")
 }
+
 //sourceUrl for link to event from other apps/websites.
 
 model PrismaTicket {
@@ -200,7 +203,9 @@ model PrismaTicket {
   price      Int?
   currency   String?
   activity   PrismaActivity? @relation(fields: [activityID], references: [id])
-  activityID String?
+  activityID String?         @map("activity_id")
+
+  @@map("tickets")
 }
 
 model PrismaProposal {

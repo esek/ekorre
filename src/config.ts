@@ -48,16 +48,6 @@ const JWT = {
   SECRET: (process.env.JWT_SECRET as string) ?? '',
 };
 
-/**
- * Config for Orbi - our orbi API service
- * @param {string} URL - The base URL for the Orbi API
- * @param {string} API_TOKEN - The API token set as an env-variable in Orbi
- */
-const ORBI = {
-  URL: process.env.ORBI ?? 'https://localhost:6970',
-  API_TOKEN: process.env.ORBI_API_TOKEN,
-};
-
 const config = {
   PORT: parseInt(process.env.PORT ?? '3000', 10),
   HOST: process.env.HOST ?? '0.0.0.0',
@@ -70,7 +60,6 @@ const config = {
   LU,
   WIKI,
   JWT,
-  ORBI,
 };
 
 export default config;

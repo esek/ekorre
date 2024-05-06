@@ -16,28 +16,28 @@ const ticketResolver: Resolvers = {
     },
     tickets: async (_, { activityID }, ctx) => {
       await hasAuthenticated(ctx);
-      const t = await tikcketApi.getTickets(activityID);
+      const tickets = await tikcketApi.getTickets(activityID);
 
-      return reduce(t, ticketReducer);
+      return reduce(tickets, ticketReducer);
     },
   },
   Mutation: {
     addTicket: async (_, { ticket }, ctx) => {
       await hasAccess(ctx, Feature.ActivityAdmin);
-      const t = await tikcketApi.addTicket(ticket);
-      return ticketReducer(t);
+      const addedTicket = await tikcketApi.addTicket(ticket);
+      return ticketReducer(addedTicket);
     },
 
     modifyTicket: async (_, { id, entry }, ctx) => {
       await hasAccess(ctx, Feature.ActivityAdmin);
-      const t = await tikcketApi.modifyTicket(id, entry);
-      return ticketReducer(t);
+      const modifiedTicket = await tikcketApi.modifyTicket(id, entry);
+      return ticketReducer(modifiedTicket);
     },
 
     removeTicket: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.ActivityAdmin);
-      const t = await tikcketApi.removeTicket(id);
-      return ticketReducer(t);
+      const removedTicket = await tikcketApi.removeTicket(id);
+      return ticketReducer(removedTicket);
     },
   },
 };

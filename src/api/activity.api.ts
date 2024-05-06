@@ -8,24 +8,24 @@ import prisma from './prisma';
 
 export class ActivityAPI {
   async getActivity(id: string): Promise<PrismaActivity> {
-    const a = await prisma.prismaActivity.findFirst({
+    const activity = await prisma.prismaActivity.findFirst({
       where: {
         id,
       },
     });
 
-    if (a == null) {
+    if (activity == null) {
       throw new NotFoundError('Kunde inte hitta denna aktivitet!');
     }
 
-    return a;
+    return activity;
   }
   async getActivities(
     from: Date,
     to: Date,
     utskott: Utskott[] = [Utskott.Other],
   ): Promise<PrismaActivity[]> {
-    const a = await prisma.prismaActivity.findMany({
+    const activities = await prisma.prismaActivity.findMany({
       where: {
         startDate: {
           lte: to,
@@ -43,7 +43,7 @@ export class ActivityAPI {
       orderBy: { startDate: 'asc' },
     });
 
-    return a;
+    return activities;
   }
 
   async addActivity(activity: NewActivity): Promise<PrismaActivity> {
@@ -61,7 +61,7 @@ export class ActivityAPI {
       throw new BadRequestError('Sluttid för aktivitet är före starttid!');
     }
 
-    const res = await prisma.prismaActivity.create({
+    const addedActivity = await prisma.prismaActivity.create({
       data: {
         source: PrismaActivitySource.WEBSITE,
         title: activity.title,
@@ -75,10 +75,10 @@ export class ActivityAPI {
       },
     });
 
-    return res;
+    return addedActivity;
   }
   async modifyActivity(id: string, entry: ModifiedActivity): Promise<PrismaActivity> {
-    const a = await this.getActivity(id);
+    const activity = await this.getActivity(id);
 
     const isAcceptableTime = () => {
       const { startDate, endDate } = entry;
@@ -87,12 +87,12 @@ export class ActivityAPI {
         if (startDate) {
           return endDate.getTime() - startDate.getTime() >= 0;
         }
-        return endDate.getTime() - a.startDate.getTime() >= 0;
+        return endDate.getTime() - activity.startDate.getTime() >= 0;
       } else if (startDate) {
-        if (!a.endDate) {
+        if (!activity.endDate) {
           return true;
         }
-        return a.endDate.getTime() - startDate.getTime() >= 0;
+        return activity.endDate.getTime() - startDate.getTime() >= 0;
       }
 
       return true;
@@ -102,7 +102,7 @@ export class ActivityAPI {
       throw new BadRequestError('Ny slut- och starttid för aktivitet är omöjlig!');
     }
 
-    if (a.source !== PrismaActivitySource.WEBSITE) {
+    if (activity.source !== PrismaActivitySource.WEBSITE) {
       throw new BadRequestError(
         'Ej tillåtet att ändra i evenemang som inte är skapade på hemsidan!',
       );
@@ -118,23 +118,23 @@ export class ActivityAPI {
 
     const update: StrictObject = stripObject(refact);
 
-    const res = await prisma.prismaActivity.update({
+    const modifiedActivity = await prisma.prismaActivity.update({
       data: { ...update },
       where: { id },
     });
-    return res;
+    return modifiedActivity;
   }
 
   async removeActivity(id: string): Promise<PrismaActivity> {
-    const a = await this.getActivity(id);
-    if (a.source !== PrismaActivitySource.WEBSITE) {
+    const activity = await this.getActivity(id);
+    if (activity.source !== PrismaActivitySource.WEBSITE) {
       throw new BadRequestError(
         'Ej tillåtet att ta bort evenemang som inte är skapade på hemsidan!',
       );
     }
-    const res = await prisma.prismaActivity.delete({ where: { id } });
+    const removedActivity = await prisma.prismaActivity.delete({ where: { id } });
 
-    return res;
+    return removedActivity;
   }
 
   async clear() {

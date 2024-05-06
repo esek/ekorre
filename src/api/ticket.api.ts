@@ -8,13 +8,13 @@ import prisma from './prisma';
 
 export class TicketAPI {
   async getTicket(id: string): Promise<PrismaTicket> {
-    const t = await prisma.prismaTicket.findFirst({ where: { id } });
+    const ticket = await prisma.prismaTicket.findFirst({ where: { id } });
 
-    if (t == null) {
+    if (ticket == null) {
       throw new NotFoundError('Kunde inte hitta den biljetten!');
     }
 
-    return t;
+    return ticket;
   }
 
   async getTickets(activityID: string | null | undefined): Promise<PrismaTicket[]> {
@@ -22,17 +22,17 @@ export class TicketAPI {
     if (activityID != null) {
       whereAnd.push({ activityID: activityID });
     }
-    const t = await prisma.prismaTicket.findMany({
+    const tickets = await prisma.prismaTicket.findMany({
       where: {
         AND: whereAnd,
       },
     });
 
-    return t;
+    return tickets;
   }
 
   async addTicket(ticket: NewTicket): Promise<PrismaTicket> {
-    const t = await prisma.prismaTicket.create({
+    const addedTicket = await prisma.prismaTicket.create({
       data: {
         name: ticket.name,
         count: ticket.count,
@@ -42,24 +42,24 @@ export class TicketAPI {
       },
     });
 
-    return t;
+    return addedTicket;
   }
 
   async modifyTicket(id: string, entry: ModifiedTicket): Promise<PrismaTicket> {
     const { ...rest } = entry;
     const update: StrictObject = stripObject(rest);
 
-    const t = prisma.prismaTicket.update({
+    const modifiedTicket = prisma.prismaTicket.update({
       data: { ...update },
       where: { id },
     });
 
-    return t;
+    return modifiedTicket;
   }
 
   async removeTicket(id: string): Promise<PrismaTicket> {
-    const t = await prisma.prismaTicket.delete({ where: { id } });
-    return t;
+    const removedTicket = await prisma.prismaTicket.delete({ where: { id } });
+    return removedTicket;
   }
 
   async clear() {
