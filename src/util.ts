@@ -1,6 +1,6 @@
 import { ForbiddenError, ServerError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
-import { Feature } from '@generated/graphql';
+import { Feature, PageInfo } from '@generated/graphql';
 
 import config from './config';
 import { Context } from './models/context';
@@ -138,3 +138,28 @@ export const devGuard = (message = 'Cannot do that in production'): void => {
 
 // Number of bytes in a megabyte
 export const BYTES_PER_MB = 1e6;
+
+// Default page size for pagination
+export const DEFAULT_PAGE_SIZE = 20;
+
+/**
+ * Creates a PageInfo object for pagination
+ * @param page The current page, first page is 1
+ * @param pageSize Number of items per page
+ * @param total Total number of items
+ * @returns PageInfo object
+ */
+export const createPageInfo = (page: number, pageSize: number, total: number): PageInfo => {
+  let lastPage = Math.ceil(total / pageSize);
+  if (lastPage < 1) {
+    lastPage = 1;
+  }
+
+  return {
+    hasNextPage: page < lastPage,
+    hasPreviousPage: page > 1,
+    firstPage: 1,
+    lastPage: lastPage,
+    totalCount: total,
+  };
+};

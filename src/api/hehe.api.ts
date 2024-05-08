@@ -1,8 +1,8 @@
 import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { devGuard } from '@/util';
-import { AccessType, FileType } from '@generated/graphql';
+import { DEFAULT_PAGE_SIZE, createPageInfo, devGuard } from '@/util';
+import { AccessType, FileType, Order, PageInfo, PaginationParams } from '@generated/graphql';
 import { PrismaHehe } from '@prisma/client';
 import { UploadedFile } from 'express-fileupload';
 import fs from 'fs/promises';
@@ -75,22 +75,30 @@ export class HeheAPI {
 
   /**
    * Retrieves HeHEs by pagination, ordered by year and then number (in the inverted order)
-   * @param limit The number of HeHEs to be returned
-   * @param offset The offset of the HeHEs to be returned
-   * @param sortOrder Ordering of returned HeHEs
+   * @param pagination The pagination parameters
+   * @returns A list containing the PageInfo and the PrismaHehe objects, which can then be reduced
    */
-  async getHehesByPagination(
-    limit: number,
-    offset = 0,
-    sortOrder: 'desc' | 'asc' = 'desc',
-  ): Promise<PrismaHehe[]> {
-    const h = await prisma.prismaHehe.findMany({
-      skip: offset,
-      take: limit,
-      orderBy: [{ year: sortOrder }, { number: sortOrder === 'desc' ? 'asc' : 'desc' }],
-    });
+  async getHehesByPagination(pagination?: PaginationParams): Promise<[PageInfo, PrismaHehe[]]> {
+    const page = pagination?.page ?? 1;
+    const pageSize = pagination?.pageSize ?? DEFAULT_PAGE_SIZE;
+    const order = pagination?.order ?? Order.Desc;
 
-    return h;
+    if (page < 1 || pageSize < 1) {
+      throw new ServerError('Sidnummer och HeHEs per sida måste vara större än 0');
+    }
+
+    const [count, hehes] = await prisma.$transaction([
+      prisma.prismaHehe.count(),
+      prisma.prismaHehe.findMany({
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: [{ year: order }, { number: order === Order.Desc ? Order.Asc : Order.Desc }],
+      }),
+    ]);
+
+    const pageInfo = createPageInfo(page, pageSize, count);
+
+    return [pageInfo, hehes];
   }
 
   /**

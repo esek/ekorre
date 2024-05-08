@@ -12,11 +12,13 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Attributen `coverEndpoint` och `coverId` för Hehe, där en bild för tidningens framsida genereras automatiskt utifrån PDFen med paketet `pdf-to-img`
 - Exponerat attributet `uploadedAt` för Hehe, vilket är en `DateTime` för när Hehen laddades upp
 - `DateTime` som en ny `Scalar`
+- Schemas för pagination och paginerade Hehes
 - Querien `paginatedHehes` för att hämta Hehes med paginering
-- Enhetstest för Hehe som kontrollerar att en felaktig filtyp inte kan laddas upp
-- Enhetstester för `paginatedHehes`
+- Utils-funktionen `createPageInfo` som skapar ett `PageInfo`-objekt för paginering
 - Integrationstest för Hehe som kontrollerar att en bild kan skapas från en PDF
 - Lagt till testfilen `test-hehe.pdf` som används i integrationstestet
+- Enhetstest för Hehe som kontrollerar att en felaktig filtyp inte kan laddas upp
+- Enhetstester för `paginatedHehes`
 
 ### Ändrat
 

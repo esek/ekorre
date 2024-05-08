@@ -1,7 +1,8 @@
 import { HeheAPI } from '@/api/hehe.api';
 import prisma from '@/api/prisma';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
-import { Feature, FileType } from '@generated/graphql';
+import { DEFAULT_PAGE_SIZE, createPageInfo } from '@/util';
+import { Feature, FileType, Order } from '@generated/graphql';
 import { PrismaHehe } from '@prisma/client';
 import { genRandomUser } from '@test/utils/utils';
 
@@ -159,37 +160,59 @@ test('getting multiple HeHEs by pagination', async () => {
   // Lägg till våra HeHE
   await prisma.prismaHehe.createMany({ data: hehes });
 
-  await expect(heheApi.getHehesByPagination(hehes.length)).resolves.toEqual([
-    localHehe0,
-    localHehe1,
-    localHehe2,
+  const pageSize = hehes.length;
+
+  await expect(heheApi.getHehesByPagination({ pageSize })).resolves.toEqual([
+    createPageInfo(1, pageSize, pageSize),
+    [localHehe0, localHehe1, localHehe2],
   ]);
 });
 
-test('getting multiple HeHEs by pagination with offset', async () => {
+test('getting multiple HeHEs by pagination with pages', async () => {
   const hehes = await generateDummyHehes(USERNAME0);
-
-  const [localHehe0, localHehe1, localHehe2] = hehes;
 
   // Lägg till våra HeHE
   await prisma.prismaHehe.createMany({ data: hehes });
 
-  await expect(heheApi.getHehesByPagination(1)).resolves.toEqual([localHehe0]);
-  await expect(heheApi.getHehesByPagination(2, 1)).resolves.toEqual([localHehe1, localHehe2]);
-  await expect(heheApi.getHehesByPagination(1, hehes.length)).resolves.toHaveLength(0);
+  const pageSize = 1;
+
+  for (let i = 0; i < hehes.length; i += 1) {
+    await expect(heheApi.getHehesByPagination({ page: i + 1, pageSize })).resolves.toEqual([
+      createPageInfo(i + 1, pageSize, hehes.length),
+      [hehes[i]],
+    ]);
+  }
+
+  await expect(heheApi.getHehesByPagination({ page: hehes.length + 1, pageSize })).resolves.toEqual(
+    [createPageInfo(hehes.length + 1, pageSize, hehes.length), []],
+  );
 });
 
 test('getting multiple HeHEs by pagination when none exists', async () => {
-  await expect(heheApi.getHehesByPagination(1)).resolves.toHaveLength(0);
+  await expect(heheApi.getHehesByPagination()).resolves.toEqual([
+    createPageInfo(1, DEFAULT_PAGE_SIZE, 0),
+    [],
+  ]);
 });
 
-test('getting multiple HeHEs by pagination with no limit', async () => {
+test('getting multiple HeHEs by pagination with invalid page', async () => {
   const hehes = await generateDummyHehes(USERNAME0);
 
   // Lägg till våra HeHE
   await prisma.prismaHehe.createMany({ data: hehes });
 
-  await expect(heheApi.getHehesByPagination(0)).resolves.toHaveLength(0);
+  await expect(heheApi.getHehesByPagination({ page: -1 })).rejects.toThrowError(ServerError);
+  await expect(heheApi.getHehesByPagination({ page: 0 })).rejects.toThrowError(ServerError);
+});
+
+test('getting multiple HeHEs by pagination with invalid pageSize', async () => {
+  const hehes = await generateDummyHehes(USERNAME0);
+
+  // Lägg till våra HeHE
+  await prisma.prismaHehe.createMany({ data: hehes });
+
+  await expect(heheApi.getHehesByPagination({ pageSize: -1 })).rejects.toThrowError(ServerError);
+  await expect(heheApi.getHehesByPagination({ pageSize: 0 })).rejects.toThrowError(ServerError);
 });
 
 test('getting multiple HeHEs by pagination in ascending order', async () => {
@@ -200,10 +223,11 @@ test('getting multiple HeHEs by pagination in ascending order', async () => {
   // Lägg till våra HeHE
   await prisma.prismaHehe.createMany({ data: hehes });
 
-  await expect(heheApi.getHehesByPagination(hehes.length, undefined, 'asc')).resolves.toEqual([
-    localHehe2,
-    localHehe1,
-    localHehe0,
+  const pageSize = hehes.length;
+
+  await expect(heheApi.getHehesByPagination({ pageSize, order: Order.Asc })).resolves.toEqual([
+    createPageInfo(1, pageSize, pageSize),
+    [localHehe2, localHehe1, localHehe0],
   ]);
 });
 

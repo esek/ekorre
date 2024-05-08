@@ -716,6 +716,34 @@ export enum NominationAnswer {
   Yes = 'YES'
 }
 
+export enum Order {
+  Asc = 'asc',
+  Desc = 'desc'
+}
+
+export type PageInfo = {
+  firstPage: Scalars['Int'];
+  hasNextPage: Scalars['Boolean'];
+  hasPreviousPage: Scalars['Boolean'];
+  lastPage: Scalars['Int'];
+  totalCount: Scalars['Int'];
+};
+
+export type PaginatedHehes = Pagination & {
+  pageInfo: PageInfo;
+  values: Array<Hehe>;
+};
+
+export type Pagination = {
+  pageInfo: PageInfo;
+};
+
+export type PaginationParams = {
+  order?: InputMaybe<Order>;
+  page?: InputMaybe<Scalars['Int']>;
+  pageSize?: InputMaybe<Scalars['Int']>;
+};
+
 export type Post = {
   access: Access;
   active: Scalars['Boolean'];
@@ -807,7 +835,7 @@ export type Query = {
   numberOfProposals: Scalars['Int'];
   numberOfVolunteers: Scalars['Int'];
   openElection: Election;
-  paginatedHehes: Array<Hehe>;
+  paginatedHehes: PaginatedHehes;
   post: Post;
   postAccess: Access;
   posts: Array<Post>;
@@ -1067,9 +1095,7 @@ export type QueryNumberOfVolunteersArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryPaginatedHehesArgs = {
-  limit: Scalars['Int'];
-  offset?: InputMaybe<Scalars['Int']>;
-  sortOrder?: InputMaybe<SortOrder>;
+  pagination?: InputMaybe<PaginationParams>;
 };
 
 
@@ -1344,6 +1370,11 @@ export type ResolversTypes = ResolversObject<{
   Nomination: ResolverTypeWrapper<NominationResponse>;
   NominationAnswer: NominationAnswer;
   Object: ResolverTypeWrapper<Scalars['Object']>;
+  Order: Order;
+  PageInfo: ResolverTypeWrapper<PageInfo>;
+  PaginatedHehes: ResolverTypeWrapper<Omit<PaginatedHehes, 'values'> & { values: Array<ResolversTypes['Hehe']> }>;
+  Pagination: ResolversTypes['PaginatedHehes'];
+  PaginationParams: PaginationParams;
   Post: ResolverTypeWrapper<Post>;
   PostType: PostType;
   Proposal: ResolverTypeWrapper<ProposalResponse>;
@@ -1392,6 +1423,10 @@ export type ResolversParentTypes = ResolversObject<{
   NewUser: NewUser;
   Nomination: NominationResponse;
   Object: Scalars['Object'];
+  PageInfo: PageInfo;
+  PaginatedHehes: Omit<PaginatedHehes, 'values'> & { values: Array<ResolversParentTypes['Hehe']> };
+  Pagination: ResolversParentTypes['PaginatedHehes'];
+  PaginationParams: PaginationParams;
   Post: Post;
   Proposal: ProposalResponse;
   ProviderOptions: ProviderOptions;
@@ -1630,6 +1665,26 @@ export interface ObjectScalarConfig extends GraphQLScalarTypeConfig<ResolversTyp
   name: 'Object';
 }
 
+export type PageInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PageInfo'] = ResolversParentTypes['PageInfo']> = ResolversObject<{
+  firstPage?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  hasNextPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  hasPreviousPage?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  lastPage?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type PaginatedHehesResolvers<ContextType = Context, ParentType extends ResolversParentTypes['PaginatedHehes'] = ResolversParentTypes['PaginatedHehes']> = ResolversObject<{
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+  values?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type PaginationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Pagination'] = ResolversParentTypes['Pagination']> = ResolversObject<{
+  __resolveType: TypeResolveFn<'PaginatedHehes', ParentType, ContextType>;
+  pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
+}>;
+
 export type PostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Post'] = ResolversParentTypes['Post']> = ResolversObject<{
   access?: Resolver<ResolversTypes['Access'], ParentType, ContextType>;
   active?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -1683,7 +1738,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   numberOfProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfProposalsArgs, 'electionId'>>;
   numberOfVolunteers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, Partial<QueryNumberOfVolunteersArgs>>;
   openElection?: Resolver<ResolversTypes['Election'], ParentType, ContextType>;
-  paginatedHehes?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType, RequireFields<QueryPaginatedHehesArgs, 'limit'>>;
+  paginatedHehes?: Resolver<ResolversTypes['PaginatedHehes'], ParentType, ContextType, Partial<QueryPaginatedHehesArgs>>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<QueryPostArgs, 'id'>>;
   postAccess?: Resolver<ResolversTypes['Access'], ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postId'>>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType, Partial<QueryPostsArgs>>;
@@ -1754,6 +1809,9 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Mutation?: MutationResolvers<ContextType>;
   Nomination?: NominationResolvers<ContextType>;
   Object?: GraphQLScalarType;
+  PageInfo?: PageInfoResolvers<ContextType>;
+  PaginatedHehes?: PaginatedHehesResolvers<ContextType>;
+  Pagination?: PaginationResolvers<ContextType>;
   Post?: PostResolvers<ContextType>;
   Proposal?: ProposalResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;

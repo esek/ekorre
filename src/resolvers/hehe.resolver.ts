@@ -21,27 +21,26 @@ const heheResolver: Resolvers = {
   Query: {
     hehe: async (_, { number, year }, ctx) => {
       await hasAuthenticated(ctx);
-      const h = await heheApi.getHehe(number, year);
-      return reduce(h, heheReduce);
+      const hehes = await heheApi.getHehe(number, year);
+      return reduce(hehes, heheReduce);
     },
     hehes: async (_, { year }, ctx) => {
       await hasAuthenticated(ctx);
-      const h = await heheApi.getHehesByYear(year);
-      return reduce(h, heheReduce);
+      const hehes = await heheApi.getHehesByYear(year);
+      return reduce(hehes, heheReduce);
     },
     latestHehe: async (_, { limit, sortOrder }, ctx) => {
       await hasAuthenticated(ctx);
-      const h = await heheApi.getAllHehes(limit ?? undefined, sortOrder ?? undefined);
-      return reduce(h, heheReduce);
+      const hehes = await heheApi.getAllHehes(limit ?? undefined, sortOrder ?? undefined);
+      return reduce(hehes, heheReduce);
     },
-    paginatedHehes: async (_, { limit, offset, sortOrder }, ctx) => {
+    paginatedHehes: async (_, { pagination }, ctx) => {
       await hasAuthenticated(ctx);
-      const h = await heheApi.getHehesByPagination(
-        limit,
-        offset ?? undefined,
-        sortOrder ?? undefined,
-      );
-      return reduce(h, heheReduce);
+      const [pageInfo, hehes] = await heheApi.getHehesByPagination(pagination ?? undefined);
+      return {
+        pageInfo,
+        values: reduce(hehes, heheReduce),
+      };
     },
   },
   Mutation: {
