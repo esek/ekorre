@@ -19,6 +19,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Lagt till testfilen `test-hehe.pdf` som används i integrationstestet
 - Enhetstest för Hehe som kontrollerar att en felaktig filtyp inte kan laddas upp
 - Enhetstester för `paginatedHehes`
+- Enhetstester för `createPageInfo`
 
 ### Ändrat
 

@@ -139,8 +139,9 @@ export const devGuard = (message = 'Cannot do that in production'): void => {
 // Number of bytes in a megabyte
 export const BYTES_PER_MB = 1e6;
 
-// Default page size for pagination
+// Default and max page sizes for pagination
 export const DEFAULT_PAGE_SIZE = 20;
+export const MAX_PAGE_SIZE = 200;
 
 /**
  * Creates a PageInfo object for pagination

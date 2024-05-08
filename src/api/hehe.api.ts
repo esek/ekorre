@@ -1,7 +1,7 @@
 import config from '@/config';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { DEFAULT_PAGE_SIZE, createPageInfo, devGuard } from '@/util';
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, createPageInfo, devGuard } from '@/util';
 import { AccessType, FileType, Order, PageInfo, PaginationParams } from '@generated/graphql';
 import { PrismaHehe } from '@prisma/client';
 import { UploadedFile } from 'express-fileupload';
@@ -85,6 +85,10 @@ export class HeheAPI {
 
     if (page < 1 || pageSize < 1) {
       throw new ServerError('Sidnummer och HeHEs per sida måste vara större än 0');
+    }
+
+    if (pageSize > MAX_PAGE_SIZE) {
+      throw new ServerError('Kan inte hämta fler än 200 HeHEs per sida');
     }
 
     const [count, hehes] = await prisma.$transaction([

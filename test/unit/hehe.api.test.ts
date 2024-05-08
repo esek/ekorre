@@ -1,7 +1,7 @@
 import { HeheAPI } from '@/api/hehe.api';
 import prisma from '@/api/prisma';
 import { NotFoundError, ServerError } from '@/errors/request.errors';
-import { DEFAULT_PAGE_SIZE, createPageInfo } from '@/util';
+import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, createPageInfo } from '@/util';
 import { Feature, FileType, Order } from '@generated/graphql';
 import { PrismaHehe } from '@prisma/client';
 import { genRandomUser } from '@test/utils/utils';
@@ -213,6 +213,9 @@ test('getting multiple HeHEs by pagination with invalid pageSize', async () => {
 
   await expect(heheApi.getHehesByPagination({ pageSize: -1 })).rejects.toThrowError(ServerError);
   await expect(heheApi.getHehesByPagination({ pageSize: 0 })).rejects.toThrowError(ServerError);
+  await expect(heheApi.getHehesByPagination({ pageSize: MAX_PAGE_SIZE + 1 })).rejects.toThrowError(
+    ServerError,
+  );
 });
 
 test('getting multiple HeHEs by pagination in ascending order', async () => {
