@@ -88,7 +88,7 @@ export class HeheAPI {
     }
 
     if (pageSize > MAX_PAGE_SIZE) {
-      throw new ServerError('Kan inte hämta fler än 200 HeHEs per sida');
+      throw new ServerError(`Kan inte hämta fler än ${MAX_PAGE_SIZE} HeHEs per sida`);
     }
 
     const [count, hehes] = await prisma.$transaction([
