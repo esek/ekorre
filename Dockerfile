@@ -1,4 +1,4 @@
-ARG NODE_VERSION=18-alpine
+ARG NODE_VERSION=18
 ARG PROJECT=ekorre
 ARG WORKING_DIR=/srv/app
 
@@ -34,7 +34,7 @@ RUN mkdir public
 ##
 ## Create runtime image
 ##
-FROM node:${NODE_VERSION}
+FROM node:${NODE_VERSION}-alpine
 
 ARG WORKING_DIR
 ARG PROJECT
