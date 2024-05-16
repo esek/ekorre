@@ -296,6 +296,22 @@ model PrismaLoginProvider {
   @@map("login_providers")
 }
 
+model PrismaAccessHistory {
+  id         Int                      @id @default(autoincrement())
+  refUser    String                   @map("ref_user")
+  historyKind  PrismaAccessHistoryKind  @map("history_kind")
+  info       String
+  timestamp  DateTime
+  @@map("access_log")
+}
+
+enum PrismaAccessHistoryKind {
+  modifyPost  @map("modify_post")
+  setPost     @map("set_post")
+  setAccess   @map("set_access")
+  @@map("access_log_type")
+}
+
 enum PrismaResourceType {
   door
   feature

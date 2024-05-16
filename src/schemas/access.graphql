@@ -1,5 +1,6 @@
-
+scalar DateTime
 #import User from './user.graphql'
+
 
 type Query {
     individualAccess(username: String!): Access!
@@ -40,6 +41,20 @@ type FeatureInfo {
 type DoorInfo {
     name: Door!
     description: String!
+}
+
+type AccessHistory {
+    id: Int!
+    refUser: String!
+    historyKind: AccessHistoryKind!
+    info: String
+    timestamp: DateTime!
+}
+
+enum AccessHistoryKind {
+    modifyPost,
+    setPost,
+    setAccess
 }
 
 enum AccessResourceType {
