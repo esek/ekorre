@@ -26,7 +26,6 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `addHehe`-APIn så att denna dessutom skapar framsidan för tidningen och sparar motsvarande `coverId`
 - Enhetstester och reducer-tester för Hehe så att dessa är kompatibla med tilläggen ovan
 - Abstraherat ut uppladdning av filer i integrationstester till filen `fileUpload.ts`
-- Bytt från node 18-alpine till node 18 i Dockerfilen
 
 ## [1.9.0] - 2024-03-22
 ### Tillagt
