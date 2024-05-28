@@ -52,6 +52,14 @@ const WIKI = {
   PASSWORD: process.env.WIKI_PASSWORD ?? '',
 };
 
+/**
+ * Config for PDF to PNG conversion
+ * @param {string} CONVERT_URL - The URL for the PDF to PNG convert endpoint
+ */
+const PDF_TO_PNG = {
+  CONVERT_URL: process.env.PDF_TO_PNG_URL ?? '',
+};
+
 const JWT = {
   SECRET: (process.env.JWT_SECRET as string) ?? '',
 };
@@ -68,6 +76,7 @@ const config = {
   EBREV,
   LU,
   WIKI,
+  PDF_TO_PNG,
   JWT,
 };
 

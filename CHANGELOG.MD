@@ -9,7 +9,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Tillagt
 
-- Attributen `coverEndpoint` och `coverId` för Hehe, där en bild för tidningens framsida genereras automatiskt utifrån PDFen med paketet `pdf-to-img`
+- Attributen `coverEndpoint` och `coverId` för Hehe, där en bild för tidningens framsida genereras automatiskt utifrån PDFen med microservicen `pdf-to-png.esek.se`
 - Exponerat attributet `uploadedAt` för Hehe, vilket är en `DateTime` för när Hehen laddades upp
 - `DateTime` som en ny `Scalar`
 - Schemas för pagination och paginerade Hehes

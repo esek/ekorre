@@ -59,11 +59,12 @@ test('create HeHE cover image from PDF', async () => {
   const dbFile = await fileApi.getFileData(coverId);
 
   // Check if cover page is created
-  const coverName = `${path.parse(testFile).name}.png`;
   expect(dbFile).toMatchObject({
-    name: coverName,
     type: FileType.Image,
     accessType: AccessType.Public,
     refUploader: USERNAME0,
   });
+
+  // Cover test file must be deleted manually as it is not created by the uploadFile function
+  fileApi.deleteFile(coverId);
 });

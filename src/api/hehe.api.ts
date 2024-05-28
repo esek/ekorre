@@ -4,10 +4,12 @@ import { Logger } from '@/logger';
 import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, createPageInfo, devGuard } from '@/util';
 import { AccessType, FileType, Order, PageInfo, PaginationParams } from '@generated/graphql';
 import { PrismaHehe } from '@prisma/client';
+import axios from 'axios';
 import { UploadedFile } from 'express-fileupload';
-import fs from 'fs/promises';
+import FormData from 'form-data';
+import { createReadStream } from 'fs';
+import { writeFile } from 'fs/promises';
 import path from 'path';
-import { pdf } from 'pdf-to-img';
 
 import FileAPI from './file.api';
 import prisma from './prisma';
@@ -15,6 +17,7 @@ import prisma from './prisma';
 const {
   FILES: { ENDPOINT, ROOT },
   HEHES: { COVER_FOLDER },
+  PDF_TO_PNG: { CONVERT_URL },
 } = config;
 
 const fileApi = new FileAPI();
@@ -109,8 +112,6 @@ export class HeheAPI {
    * Creates a cover image for a HeHE edition from a PDF
    * @param uploaderUsername Username of the uploader
    * @param fileId ID of the file containing the PDF
-   * @param number Number of the paper
-   * @param year What year the paper was published
    * @returns ID of the created cover image file
    */
   async createHeheCover(uploaderUsername: string, fileId: string): Promise<string> {
@@ -127,33 +128,42 @@ export class HeheAPI {
       throw new ServerError('Filen är inte en PDF');
     }
 
-    // Get the PDF to convert to a PNG
+    // Get the PDF to convert
     const pdfPath = `${ROOT}/${file.folderLocation}`;
-    const document = await pdf(pdfPath);
+    const pdfStream = createReadStream(pdfPath);
 
-    // If no pages are found
-    if (document.length === 0) {
-      logger.debug('PDF appears to have no pages');
-      throw new ServerError('Den uppladdade PDFen verkar inte ha några sidor');
+    // Add the PDF as a form-data object
+    const form = new FormData();
+    form.append('file', pdfStream);
+
+    // Convert the PDF to a PNG
+    const response = await axios
+      .create({
+        headers: form.getHeaders(),
+        responseEncoding: 'binary',
+      })
+      .post<ResponseType>(CONVERT_URL, form);
+
+    if (response.status !== 201) {
+      logger.debug('Could not convert PDF to image');
+      throw new ServerError('Kunde inte konvertera PDFen till en bild');
     }
 
-    const coverName = `${path.parse(file.name).name}.png`; // Parses the HeHE file name to get the cover name
+    // Prepare values for the cover image
+    const pngBuffer = Buffer.from(response.data, 'binary');
+    const coverPath = `${path.parse(pdfPath).name}.png`;
     const accessType = AccessType.Public;
-    let coverId = '';
 
     // Creates the cover image as an UploadedFile and then saves it to the database
-    for await (const page of document) {
-      const uploadedFile = this.createUploadedFile(page, coverName, 'image/png');
-      const coverFile = await fileApi.saveFile(
-        uploadedFile,
-        accessType,
-        COVER_FOLDER,
-        uploaderUsername,
-      );
-      coverId = coverFile.id;
+    const uploadedFile = this.createUploadedFile(pngBuffer, coverPath, 'image/png');
+    const coverFile = await fileApi.saveFile(
+      uploadedFile,
+      accessType,
+      COVER_FOLDER,
+      uploaderUsername,
+    );
 
-      break; // Only creates an image from the first page of the PDF
-    }
+    const coverId = coverFile.id;
 
     if (coverId === '') {
       logger.debug('Could not create cover image');
@@ -283,7 +293,7 @@ export class HeheAPI {
       mimetype: type,
       md5: '',
       mv: async (newPath: string): Promise<void> => {
-        return fs.writeFile(newPath, data);
+        return writeFile(newPath, data);
       },
     };
 

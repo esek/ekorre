@@ -62,7 +62,6 @@
         "graphql-scalars": "^1.20.1",
         "jsdom": "^20.0.3",
         "jsonwebtoken": "^9.0.0",
-        "pdf-to-img": "^2.1.2",
         "regenerator-runtime": "^0.13.11",
         "set-cookie-parser": "^2.5.1",
         "ts-node": "^10.9.1",
