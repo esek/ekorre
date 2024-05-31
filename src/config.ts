@@ -54,10 +54,10 @@ const WIKI = {
 
 /**
  * Config for PDF to PNG conversion
- * @param {string} CONVERT_URL - The URL for the PDF to PNG convert endpoint
+ * @param {string} URL - The base URL for the PDF to PNG microservice
  */
 const PDF_TO_PNG = {
-  CONVERT_URL: process.env.PDF_TO_PNG_URL ?? '',
+  URL: process.env.PDF_TO_PNG_BASE_URL ?? '',
 };
 
 const JWT = {

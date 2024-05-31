@@ -17,7 +17,7 @@ import prisma from './prisma';
 const {
   FILES: { ENDPOINT, ROOT },
   HEHES: { COVER_FOLDER },
-  PDF_TO_PNG: { CONVERT_URL },
+  PDF_TO_PNG,
 } = config;
 
 const fileApi = new FileAPI();
@@ -137,6 +137,7 @@ export class HeheAPI {
     form.append('file', pdfStream);
 
     // Convert the PDF to a PNG
+    const CONVERT_URL = PDF_TO_PNG.URL + '/convert';
     const response = await axios
       .create({
         headers: form.getHeaders(),
