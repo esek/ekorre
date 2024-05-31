@@ -20,6 +20,7 @@ services:
     labels:
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ekorre.rule=Host(`$DEPLOY_URL`)"
       - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-ekorre.middlewares=cors@file"
+    restart: unless-stopped
 
   postgres:
     image: postgres:alpine
