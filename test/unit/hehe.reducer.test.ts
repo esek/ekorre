@@ -5,12 +5,15 @@ import { PrismaHehe } from '@prisma/client';
 test('reducing valid DatabaseHehe', () => {
   const dummyUploader = 'em5184er-s';
   const dummyFile = 'somefcknfileId';
+  const dummyUploadedAt = new Date();
   const dbHehe: PrismaHehe = {
     number: 5,
     year: 2019,
     refUploader: dummyUploader,
     refFile: dummyFile,
-    uploadedAt: new Date(),
+    uploadedAt: dummyUploadedAt,
+    coverEndpoint: '',
+    coverId: '',
   };
 
   const expected: HeheResponse = {
@@ -22,6 +25,9 @@ test('reducing valid DatabaseHehe', () => {
     file: {
       id: dummyFile,
     },
+    uploadedAt: dummyUploadedAt,
+    coverEndpoint: '',
+    coverId: '',
   };
 
   expect(heheReduce(dbHehe)).toMatchObject(expected);
