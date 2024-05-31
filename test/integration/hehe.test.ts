@@ -5,7 +5,6 @@ import { HeheAPI } from '@api/hehe';
 import { AccessType, Feature, File, FileType } from '@generated/graphql';
 import { removeUploadedFiles, UploadFileOptions, baseUploadFile } from '@test/utils/fileUpload';
 import { genRandomUser } from '@test/utils/utils';
-import path from 'path';
 import request from 'supertest';
 
 const heheApi = new HeheAPI();
@@ -66,5 +65,5 @@ test('create HeHE cover image from PDF', async () => {
   });
 
   // Cover test file must be deleted manually as it is not created by the uploadFile function
-  fileApi.deleteFile(coverId);
+  await fileApi.deleteFile(coverId);
 });

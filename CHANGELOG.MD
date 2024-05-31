@@ -5,7 +5,7 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.10.0] - 2024-04-29
+## [1.10.0] - 2024-05-31
 
 ### Tillagt
 
@@ -20,6 +20,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Enhetstest för Hehe som kontrollerar att en felaktig filtyp inte kan laddas upp
 - Enhetstester för `paginatedHehes`
 - Enhetstester för `createPageInfo`
+- Environment-variabeln `PDF_TO_PNG_BASE_URL`
 
 ### Ändrat
 

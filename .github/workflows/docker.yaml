@@ -242,6 +242,7 @@ jobs:
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} JWT_SECRET;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} EBREV;
             kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} EBREV_API_TOKEN;
+            kv/data/${{ needs.env-vars.outputs.basename }}/${{ needs.env-vars.outputs.env }} PDF_TO_PNG_BASE_URL;
       - name: set variables
         run: |
           echo "IMAGE_NAME=${{ needs.env-vars.outputs.image_name }}" >> $GITHUB_ENV
