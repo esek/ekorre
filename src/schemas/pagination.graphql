@@ -1,0 +1,22 @@
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  firstPage: Int!
+  lastPage: Int!
+  totalCount: Int!
+}
+
+input PaginationParams {
+  page: Int
+  pageSize: Int
+  order: Order
+}
+
+enum Order {
+  asc,
+  desc
+}
+
+interface Pagination {
+  pageInfo: PageInfo!
+}

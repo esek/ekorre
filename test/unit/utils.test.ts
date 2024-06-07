@@ -1,4 +1,11 @@
-import { devGuard, midnightTimestamp, stripObject, toUTC } from '@/util';
+import {
+  devGuard,
+  midnightTimestamp,
+  stripObject,
+  toUTC,
+  createPageInfo,
+  DEFAULT_PAGE_SIZE,
+} from '@/util';
 
 test('Check time conversion Malmö to UTC', () => {
   const greatDay = new Date('March 13, 1999 17:48 UTC+1');
@@ -54,4 +61,26 @@ test('getting after midnight timestamp', () => {
 
 test('running devGuard in development environment', () => {
   expect(devGuard('Test')).toBeUndefined();
+});
+
+test('create PageInfo for pagination with only one page', () => {
+  const pageInfo = createPageInfo(1, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE);
+  expect(pageInfo).toEqual({
+    hasNextPage: false,
+    hasPreviousPage: false,
+    firstPage: 1,
+    lastPage: 1,
+    totalCount: DEFAULT_PAGE_SIZE,
+  });
+});
+
+test('create PageInfo for pagination with multiple pages', () => {
+  const pageInfo = createPageInfo(2, 1, 3);
+  expect(pageInfo).toEqual({
+    hasNextPage: true,
+    hasPreviousPage: true,
+    firstPage: 1,
+    lastPage: 3,
+    totalCount: 3,
+  });
 });

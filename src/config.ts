@@ -22,6 +22,14 @@ const FILES = {
 };
 
 /**
+ * Config for HeHEs
+ * @param {string} COVER_FOLDER - The folder to save HeHE covers in
+ */
+const HEHES = {
+  COVER_FOLDER: 'hehe-covers',
+};
+
+/**
  * Config for Ebrev - our emailing service
  * @param {string} URL - The base URL for Ebrevs API
  * @param {string} API_TOKEN - The API token set as an env-variable in Ebrev
@@ -44,6 +52,14 @@ const WIKI = {
   PASSWORD: process.env.WIKI_PASSWORD ?? '',
 };
 
+/**
+ * Config for PDF to PNG conversion
+ * @param {string} URL - The base URL for the PDF to PNG microservice
+ */
+const PDF_TO_PNG = {
+  URL: process.env.PDF_TO_PNG_BASE_URL ?? '',
+};
+
 const JWT = {
   SECRET: (process.env.JWT_SECRET as string) ?? '',
 };
@@ -56,9 +72,11 @@ const config = {
   SKIP_ACCESS_CHECKS: process.env.SKIP_ACCESS_CHECKS?.toLowerCase() === 'true',
   POST_ACCESS_COOLDOWN_DAYS: Number.parseInt(process.env.POST_ACCESS_COOLDOWN_DAYS ?? '0'),
   FILES,
+  HEHES,
   EBREV,
   LU,
   WIKI,
+  PDF_TO_PNG,
   JWT,
 };
 

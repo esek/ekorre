@@ -1,7 +1,10 @@
+scalar DateTime
+
 type Query {
   hehe(number: Int!, year: Int!): Hehe!
   hehes(year: Int!): [Hehe!]!
   latestHehe(limit: Int, sortOrder: SortOrder): [Hehe!]!
+  paginatedHehes(pagination: PaginationParams): PaginatedHehes!
 }
 
 type Mutation {
@@ -12,8 +15,16 @@ type Mutation {
 type Hehe {
   number: Int!
   year: Int!
-  uploader: User!,
+  uploadedAt: DateTime!
+  uploader: User!
   file: File!
+  coverEndpoint: String!
+  coverId: String!
+}
+
+type PaginatedHehes implements Pagination {
+  pageInfo: PageInfo!
+  values: [Hehe!]!
 }
 
 enum SortOrder {

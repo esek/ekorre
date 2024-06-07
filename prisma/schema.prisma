@@ -243,13 +243,15 @@ model PrismaFile {
 }
 
 model PrismaHehe {
-  number      Int
-  year        Int
-  uploadedAt  DateTime   @default(now()) @map("uploaded_at")
-  uploader    PrismaUser @relation(name: "PrismaHeheToPrismaUser", fields: [refUploader], references: [username])
-  refUploader String     @map("ref_uploader")
-  file        PrismaFile @relation(name: "PrismaFileToPrismaHehe", fields: [refFile], references: [id])
-  refFile     String     @unique @map("ref_file")
+  number        Int
+  year          Int
+  uploadedAt    DateTime   @default(now()) @map("uploaded_at")
+  uploader      PrismaUser @relation(name: "PrismaHeheToPrismaUser", fields: [refUploader], references: [username])
+  refUploader   String     @map("ref_uploader")
+  file          PrismaFile @relation(name: "PrismaFileToPrismaHehe", fields: [refFile], references: [id])
+  refFile       String     @unique @map("ref_file")
+  coverEndpoint String     @map("cover_endpoint")
+  coverId       String     @map("cover_id")
 
   // Year has more queries than number
   @@id([year, number])
