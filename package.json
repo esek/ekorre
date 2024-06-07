@@ -1,6 +1,6 @@
 {
     "name": "ekorre-ts",
-    "version": "1.10.0",
+    "version": "1.11.0",
     "description": "E-Sektionens backend",
     "main": "src/index.ts",
     "scripts": {
@@ -18,7 +18,7 @@
         "test:regression": "jest test/regression --coverage=false",
         "benchmark": "ts-node tools/benchmark/index.ts",
         "prisma:ci": "prisma generate && prisma db push --accept-data-loss && prisma db seed",
-        "prisma:reset": "prisma migrate reset --skip-seed; prisma db push; prisma db seed",
+        "prisma:reset": "prisma migrate reset --skip-seed && prisma db push && prisma db seed",
         "prisma:generate": "prisma generate",
         "prisma:push": "prisma db push",
         "prisma:migrate": "prisma migrate dev",
@@ -30,7 +30,8 @@
         "Emil Eriksson <eje1999@gmail.com>",
         "Axel Froborg <axel.froborg@gmail.com>",
         "Marcus Lindell <lindellmarcus99@gmail.com>",
-        "Eric Weidow <eric@weidow.se>"
+        "Eric Weidow <eric@weidow.se>",
+        "Axel Andersson <axel.so.andersson@gmail.com>"
     ],
     "bugs": {
         "email": "macapar@esek.se"
