@@ -929,6 +929,7 @@ export type Query = {
   latestElections: Array<Election>;
   latestHehe: Array<Hehe>;
   latestnews: Array<Article>;
+  latexify: Scalars['String'];
   me: User;
   meeting: Meeting;
   meetings: Array<Meeting>;
@@ -1135,6 +1136,15 @@ export type QueryLatestHeheArgs = {
  */
 export type QueryLatestnewsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryLatexifyArgs = {
+  text: Scalars['String'];
 };
 
 
@@ -1926,6 +1936,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   latestElections?: Resolver<Array<ResolversTypes['Election']>, ParentType, ContextType, Partial<QueryLatestElectionsArgs>>;
   latestHehe?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType, Partial<QueryLatestHeheArgs>>;
   latestnews?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, Partial<QueryLatestnewsArgs>>;
+  latexify?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryLatexifyArgs, 'text'>>;
   me?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   meeting?: Resolver<ResolversTypes['Meeting'], ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<ResolversTypes['Meeting']>, ParentType, ContextType, Partial<QueryMeetingsArgs>>;
