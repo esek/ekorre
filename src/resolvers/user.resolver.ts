@@ -112,6 +112,17 @@ const userResolver: Resolvers = {
 
       return providers;
     },
+    verified: async ({ username }, _, ctx) => {
+      await hasAuthenticated(ctx);
+
+      if (!username) {
+        return false;
+      }
+
+      const verified = await userApi.isUserVerified(username);
+
+      return verified;
+    },
   },
   Query: {
     me: async (_, __, { getUsername }) => {
@@ -233,6 +244,10 @@ const userResolver: Resolvers = {
 
       const res = await api.getSingleUser(username);
       return userReduce(res);
+    },
+    verifyUser: async (_, { username, ssn }) => {
+      const success = await api.verifyUser(username, ssn);
+      return success;
     },
   },
 };

@@ -23,6 +23,7 @@ type Mutation {
   resetPassword(username: String!, token: String!, password: String!): Boolean!
   changePassword(oldPassword: String!, newPassword: String!): Boolean!
   casCreateUser(input: NewUser!, hash: String!): User!
+  verifyUser(username: String!, ssn: String!): Boolean!
 }
 
 type User { 
@@ -54,6 +55,7 @@ type User {
   postHistory(current: Boolean): [UserPostHistoryEntry!]!
   wikiEdits: Int!
   loginProviders: [LoginProvider]!
+  verified: Boolean!
 }
 
 input NewUser {

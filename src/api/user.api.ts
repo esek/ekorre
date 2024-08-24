@@ -1,9 +1,11 @@
 /* eslint-disable class-methods-use-this */
+import config from '@/config';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
 import { Prisma, PrismaLoginProvider, PrismaPasswordReset, PrismaUser } from '@prisma/client';
+import axios from 'axios';
 import crypto, { randomUUID } from 'crypto';
 
 import {
@@ -13,6 +15,8 @@ import {
   UnauthenticatedError,
 } from '../errors/request.errors';
 import prisma from './prisma';
+
+const { VERIFY } = config;
 
 type UserWithAccess = Prisma.PrismaUserGetPayload<{
   include: {
@@ -40,7 +44,7 @@ export class UserAPI {
    * @param hash The stored hash
    * @param salt The stored salt
    */
-  private verifyUser(input: string, hash: string, salt: string): boolean {
+  private verifyPassword(input: string, hash: string, salt: string): boolean {
     const equal = hash === this.hashPassword(input, salt);
     return equal;
   }
@@ -240,7 +244,7 @@ export class UserAPI {
       throw new NotFoundError('Användaren finns inte');
     }
 
-    if (!this.verifyUser(password, user.passwordHash, user.passwordSalt)) {
+    if (!this.verifyPassword(password, user.passwordHash, user.passwordSalt)) {
       throw new UnauthenticatedError('Inloggningen misslyckades');
     }
 
@@ -269,7 +273,7 @@ export class UserAPI {
       throw new NotFoundError('Användaren finns inte');
     }
 
-    if (!this.verifyUser(oldPassword, user.passwordHash, user.passwordSalt)) {
+    if (!this.verifyPassword(oldPassword, user.passwordHash, user.passwordSalt)) {
       throw new UnauthenticatedError('Ditt gamla lösenord är fel');
     }
 
@@ -653,5 +657,53 @@ export class UserAPI {
     });
 
     return providers;
+  }
+
+  async isUserVerified(username: string): Promise<boolean> {
+    const res = await prisma.prismaVerifyInfo.findUnique({ where: { refUser: username } });
+
+    //If never verified
+    if (!res) {
+      return false;
+    }
+
+    //If verified more than "a year" ago
+    if (Date.now() - res.dateVerified.getTime() > 1000 * 60 * 60 * 24 * 365) {
+      return false;
+    }
+
+    return true;
+  }
+
+  async verifyUser(username: string, ssn: string): Promise<boolean> {
+    const options = {
+      method: 'POST',
+      url: VERIFY.URL,
+      headers: { 'content-type': 'application/json' },
+      data: { ssn: ssn.slice(2) },
+    };
+
+    const userVerified = await this.isUserVerified(username);
+    const data = await axios.request(options);
+
+    //200: valid ssn not already registerd to anyone.
+    //201: valid ssn registerd to someone.
+    //Verify any user with 200 or an already verified user with 201.
+    if (!(data.status === 200 || (data.status === 201 && userVerified))) {
+      logger.debug('Could not verify user with given ssn');
+      throw new ServerError(
+        'Kunde inte verifiera användaren med givet personnumret. Tillhör personnumret en E:are?',
+      );
+    }
+
+    const res = await prisma.prismaVerifyInfo.upsert({
+      where: { refUser: username },
+      create: { refUser: username },
+      update: {
+        dateVerified: new Date(Date.now()).toISOString(),
+      },
+    });
+
+    return res != null;
   }
 }
