@@ -680,7 +680,7 @@ export class UserAPI {
       method: 'POST',
       url: VERIFY.URL,
       headers: { 'content-type': 'application/json' },
-      data: { ssn: ssn.slice(2) },
+      data: { ssn: ssn.length == 10 ? ssn : ssn.slice(2) }, //Case for both 10 and 12 digit ssn.
     };
 
     const userVerified = await this.isUserVerified(username);
