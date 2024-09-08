@@ -330,10 +330,10 @@ model PrismaLoginProvider {
 }
 
 model PrismaVerifyInfo {
-  id           Int        @id @default(autoincrement())
-  user         PrismaUser @relation(name: "PrismaVerifyInfoToPrismaUser", fields: [refUser], references: [username])
-  refUser      String     @unique @map("ref_user")
-  dateVerified DateTime   @default(now()) @map("date_verified")
+  id            Int        @id @default(autoincrement())
+  user          PrismaUser @relation(name: "PrismaVerifyInfoToPrismaUser", fields: [refUser], references: [username])
+  refUser       String     @unique @map("ref_user")
+  verifiedUntil DateTime   @default(now()) @map("verified_until")
 
   @@map("verify_info")
 }

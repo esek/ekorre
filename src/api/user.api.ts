@@ -667,8 +667,7 @@ export class UserAPI {
       return false;
     }
 
-    //If verified more than "a year" ago
-    if (Date.now() - res.dateVerified.getTime() > 1000 * 60 * 60 * 24 * 365) {
+    if (res.verifiedUntil.getTime() < Date.now()) {
       return false;
     }
 
@@ -676,32 +675,30 @@ export class UserAPI {
   }
 
   async verifyUser(username: string, ssn: string): Promise<boolean> {
+    const userVerified = await this.isUserVerified(username);
+
     const options = {
       method: 'POST',
       url: VERIFY.URL,
       headers: { 'content-type': 'application/json' },
-      data: { ssn: ssn.length == 10 ? ssn : ssn.slice(2) }, //Case for both 10 and 12 digit ssn.
+      data: { ssn: ssn.length == 10 ? ssn : ssn.slice(2), alreadyVerified: userVerified }, //Case for both 10 and 12 digit ssn.
     };
-
-    const userVerified = await this.isUserVerified(username);
     const data = await axios.request(options);
 
-    //200: valid ssn not already registerd to anyone.
-    //201: valid ssn registerd to someone.
-    //Verify any user with 200 or an already verified user with 201.
-    if (!(data.status === 200 || (data.status === 201 && userVerified))) {
+    if (data.status !== 200) {
       logger.debug('Could not verify user with given ssn');
       throw new ServerError(
         'Kunde inte verifiera användaren med givet personnumret. Tillhör personnumret en E:are?',
       );
     }
 
+    //13th of july in the coming year maybe good yes?
+    const verifiedUntil = new Date(new Date().getFullYear() + 1, 6, 13).toISOString();
+
     const res = await prisma.prismaVerifyInfo.upsert({
       where: { refUser: username },
-      create: { refUser: username },
-      update: {
-        dateVerified: new Date(Date.now()).toISOString(),
-      },
+      create: { refUser: username, verifiedUntil: verifiedUntil },
+      update: { verifiedUntil: verifiedUntil },
     });
 
     return res != null;
