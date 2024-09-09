@@ -44,6 +44,7 @@ test('that password is reduced properly', () => {
     emergencyContacts: [],
     loginProviders: [],
     luCard: null,
+    verified: false,
   };
 
   expect(userReduce(dummyDbUser)).toStrictEqual(compare);
