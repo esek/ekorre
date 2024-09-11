@@ -1,11 +1,10 @@
 /* eslint-disable class-methods-use-this */
-import config from '@/config';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
 import { Prisma, PrismaLoginProvider, PrismaPasswordReset, PrismaUser } from '@prisma/client';
-import axios from 'axios';
+import { verify } from '@service/verify';
 import crypto, { randomUUID } from 'crypto';
 
 import {
@@ -15,8 +14,6 @@ import {
   UnauthenticatedError,
 } from '../errors/request.errors';
 import prisma from './prisma';
-
-const { VERIFY } = config;
 
 type UserWithAccess = Prisma.PrismaUserGetPayload<{
   include: {
@@ -677,19 +674,10 @@ export class UserAPI {
   async verifyUser(username: string, ssn: string): Promise<boolean> {
     const userVerified = await this.isUserVerified(username);
 
-    const options = {
-      method: 'POST',
-      url: VERIFY.URL,
-      headers: { 'content-type': 'application/json' },
-      data: { ssn: ssn.length == 10 ? ssn : ssn.slice(2), alreadyVerified: userVerified }, //Case for both 10 and 12 digit ssn.
-    };
-    const data = await axios.request(options);
+    const success = await verify(ssn, userVerified);
 
-    if (data.status !== 200) {
-      logger.debug('Could not verify user with given ssn');
-      throw new ServerError(
-        'Kunde inte verifiera användaren med givet personnumret. Tillhör personnumret en E:are?',
-      );
+    if (!success) {
+      throw new ServerError('Kudne inte verifiera användaren');
     }
 
     //13th of july in the coming year maybe good yes?

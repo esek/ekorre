@@ -1,3 +1,4 @@
+import prisma from '@/api/prisma';
 import { UserAPI } from '@/api/user.api';
 import { BadRequestError, NotFoundError, UnauthenticatedError } from '@/errors/request.errors';
 import type { LoginProvider as LoginProviderType } from '@esek/auth-server';
@@ -357,6 +358,32 @@ test('getting number of members', async () => {
 
   // Det borde iaf vara större eller lika med antalet seeded users
   expect(numberOfMembers).toBeGreaterThanOrEqual(3);
+});
+
+test('Check if user verified', async () => {
+  await expect(api.isUserVerified(mockNewUser0.username)).resolves.toBeFalsy();
+
+  //this is ugly sorry
+  await prisma.prismaVerifyInfo.create({
+    data: {
+      refUser: mockNewUser0.username,
+      verifiedUntil: new Date(new Date().getFullYear() + 1, 6, 13).toISOString(),
+    },
+  });
+
+  await expect(api.isUserVerified(mockNewUser0.username)).resolves.toBeTruthy();
+
+  //this is ugly sorry
+  await prisma.prismaVerifyInfo.update({
+    where: { refUser: mockNewUser0.username },
+    data: {
+      verifiedUntil: new Date(new Date().getFullYear() - 1, 6, 13).toISOString(),
+    },
+  });
+
+  await expect(api.isUserVerified(mockNewUser0.username)).resolves.toBeFalsy();
+
+  await prisma.prismaVerifyInfo.deleteMany();
 });
 
 describe('login providers', () => {

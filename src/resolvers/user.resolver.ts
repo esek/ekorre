@@ -121,8 +121,10 @@ const userResolver: Resolvers = {
         return false;
       }
 
-      const verified = await api.isUserVerified(username);
-      const posts = await postApi.getPostsForUser(username, false);
+      const [verified, posts] = await Promise.all([
+        api.isUserVerified(username),
+        postApi.getPostsForUser(username, false),
+      ]);
 
       //Treated as verified if you have a post
       return verified || posts.length > 0;
