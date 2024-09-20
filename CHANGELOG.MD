@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.1] - 2024-09-20
+
+### Tillagt
+- Lagt till `LATEXIFY_URL` i `docker-compose` och i GitHub-actions
+
 ## [1.12.0] - 2024-07-17
 
 ### Tillagt
