@@ -15,16 +15,15 @@ const api = axios.create({
 });
 
 export const latexify = async (text: string) => {
-  try {
-    const res = await api.post<QueryLatexifyArgs, AxiosResponse>('/latexify', {
-      text: text,
-    });
-    if (res.status == 200) {
-      return res.data as string;
-    } else {
-      throw new ServerError(`${res.status}: ${res.statusText}`);
-    }
-  } catch {
-    throw new ServerError('Texten kunde inte konverteras till LaTeX');
+  const res = await api.post<QueryLatexifyArgs, AxiosResponse>('/latexify', {
+    text: text,
+  });
+
+  if (res.status == 200) {
+    return res.data as string;
   }
+
+  throw new ServerError(
+    `${res.status}: Texten kunde inte konverteras till LaTeX: ${res.statusText}`,
+  );
 };

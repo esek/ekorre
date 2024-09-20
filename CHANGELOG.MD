@@ -9,6 +9,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Tillagt
 - Lagt till `LATEXIFY_URL` i `docker-compose` och i GitHub-actions
+- Förbättra formatet av felmeddelanden från `latexify`
 
 ## [1.12.0] - 2024-07-17
 
