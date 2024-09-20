@@ -8,6 +8,12 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [1.13.0]
 - Verify user logic in user api, resolver and graph.
 
+## [1.12.1] - 2024-09-20
+
+### Tillagt
+- Lagt till `LATEXIFY_URL` i `docker-compose` och i GitHub-actions
+- Förbättra formatet av felmeddelanden från `latexify`
+
 ## [1.12.0] - 2024-07-17
 
 ### Tillagt
