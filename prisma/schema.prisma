@@ -46,6 +46,7 @@ model PrismaUser {
   website           String?
   luCard            String?                  @unique
   dateJoined        DateTime                 @default(now()) @map("date_joined")
+  verifyInfo        PrismaVerifyInfo?        @relation(name: "PrismaVerifyInfoToPrismaUser")
 
   @@index([firstName, lastName])
   @@map("users")
@@ -326,6 +327,15 @@ model PrismaLoginProvider {
   refUser  String     @map("ref_user")
 
   @@map("login_providers")
+}
+
+model PrismaVerifyInfo {
+  id            Int        @id @default(autoincrement())
+  user          PrismaUser @relation(name: "PrismaVerifyInfoToPrismaUser", fields: [refUser], references: [username])
+  refUser       String     @unique @map("ref_user")
+  verifiedUntil DateTime   @default(now()) @map("verified_until")
+
+  @@map("verify_info")
 }
 
 enum PrismaResourceType {

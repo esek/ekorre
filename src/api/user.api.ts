@@ -4,6 +4,7 @@ import { devGuard } from '@/util';
 import { LoginProvider } from '@esek/auth-server';
 import type { NewUser } from '@generated/graphql';
 import { Prisma, PrismaLoginProvider, PrismaPasswordReset, PrismaUser } from '@prisma/client';
+import { verify } from '@service/verify';
 import crypto, { randomUUID } from 'crypto';
 
 import {
@@ -40,7 +41,7 @@ export class UserAPI {
    * @param hash The stored hash
    * @param salt The stored salt
    */
-  private verifyUser(input: string, hash: string, salt: string): boolean {
+  private verifyPassword(input: string, hash: string, salt: string): boolean {
     const equal = hash === this.hashPassword(input, salt);
     return equal;
   }
@@ -240,7 +241,7 @@ export class UserAPI {
       throw new NotFoundError('Användaren finns inte');
     }
 
-    if (!this.verifyUser(password, user.passwordHash, user.passwordSalt)) {
+    if (!this.verifyPassword(password, user.passwordHash, user.passwordSalt)) {
       throw new UnauthenticatedError('Inloggningen misslyckades');
     }
 
@@ -269,7 +270,7 @@ export class UserAPI {
       throw new NotFoundError('Användaren finns inte');
     }
 
-    if (!this.verifyUser(oldPassword, user.passwordHash, user.passwordSalt)) {
+    if (!this.verifyPassword(oldPassword, user.passwordHash, user.passwordSalt)) {
       throw new UnauthenticatedError('Ditt gamla lösenord är fel');
     }
 
@@ -653,5 +654,41 @@ export class UserAPI {
     });
 
     return providers;
+  }
+
+  async isUserVerified(username: string): Promise<boolean> {
+    const res = await prisma.prismaVerifyInfo.findUnique({ where: { refUser: username } });
+
+    //If never verified
+    if (!res) {
+      return false;
+    }
+
+    if (res.verifiedUntil.getTime() < Date.now()) {
+      return false;
+    }
+
+    return true;
+  }
+
+  async verifyUser(username: string, ssn: string): Promise<boolean> {
+    const userVerified = await this.isUserVerified(username);
+
+    const success = await verify(ssn, userVerified);
+
+    if (!success) {
+      throw new ServerError('Kudne inte verifiera användaren');
+    }
+
+    //13th of july in the coming year maybe good yes?
+    const verifiedUntil = new Date(new Date().getFullYear() + 1, 6, 13).toISOString();
+
+    const res = await prisma.prismaVerifyInfo.upsert({
+      where: { refUser: username },
+      create: { refUser: username, verifiedUntil: verifiedUntil },
+      update: { verifiedUntil: verifiedUntil },
+    });
+
+    return res != null;
   }
 }

@@ -68,6 +68,10 @@ const LATEXIFY = {
   URL: process.env.LATEXIFY_URL ?? '',
 };
 
+const VERIFY = {
+  URL: process.env.VERIFY_URL ?? '',
+};
+
 const JWT = {
   SECRET: (process.env.JWT_SECRET as string) ?? '',
 };
@@ -86,6 +90,7 @@ const config = {
   WIKI,
   PDF_TO_PNG,
   LATEXIFY,
+  VERIFY,
   JWT,
 };
 

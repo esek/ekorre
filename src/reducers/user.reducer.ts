@@ -24,6 +24,7 @@ export function userReduce(user: PrismaUser): User {
     wikiEdits: 0,
     emergencyContacts: [],
     loginProviders: [],
+    verified: false,
   };
   return u;
 }

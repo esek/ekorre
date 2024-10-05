@@ -417,6 +417,7 @@ export type Mutation = {
   updateUser: User;
   validatePasswordResetToken: Scalars['Boolean'];
   validateToken: Scalars['Boolean'];
+  verifyUser: Scalars['Boolean'];
 };
 
 
@@ -747,6 +748,12 @@ export type MutationValidatePasswordResetTokenArgs = {
 
 export type MutationValidateTokenArgs = {
   token: Scalars['String'];
+};
+
+
+export type MutationVerifyUserArgs = {
+  ssn: Scalars['String'];
+  username: Scalars['String'];
 };
 
 export type NewActivity = {
@@ -1392,6 +1399,7 @@ export type User = {
   /** Currents posts held by this user */
   posts: Array<Post>;
   username: Scalars['String'];
+  verified: Scalars['Boolean'];
   website?: Maybe<Scalars['String']>;
   wikiEdits: Scalars['Int'];
   zipCode?: Maybe<Scalars['String']>;
@@ -1858,6 +1866,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   updateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
   validateToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidateTokenArgs, 'token'>>;
+  verifyUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationVerifyUserArgs, 'ssn' | 'username'>>;
 }>;
 
 export type NominationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Nomination'] = ResolversParentTypes['Nomination']> = ResolversObject<{
@@ -1994,6 +2003,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   postHistory?: Resolver<Array<ResolversTypes['UserPostHistoryEntry']>, ParentType, ContextType, Partial<UserPostHistoryArgs>>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
   username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  verified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   website?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   wikiEdits?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   zipCode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

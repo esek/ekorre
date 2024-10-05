@@ -4,6 +4,7 @@ import { Logger } from '@/logger';
 import { Context } from '@/models/context';
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated, stripObject } from '@/util';
+import { PostAPI } from '@api/post';
 import { UserAPI } from '@api/user';
 import { userApi } from '@dataloader/user';
 import { Feature, Resolvers, User } from '@generated/graphql';
@@ -13,6 +14,7 @@ import EWiki from '@service/wiki';
 
 const api = new UserAPI();
 const wiki = new EWiki();
+const postApi = new PostAPI();
 
 const logger = Logger.getLogger('UserResolver');
 
@@ -111,6 +113,21 @@ const userResolver: Resolvers = {
       const providers = await userApi.getLoginProviders(obj.username);
 
       return providers;
+    },
+    verified: async ({ username }, _, ctx) => {
+      await hasAuthenticated(ctx);
+
+      if (!username) {
+        return false;
+      }
+
+      const [verified, posts] = await Promise.all([
+        api.isUserVerified(username),
+        postApi.getPostsForUser(username, false),
+      ]);
+
+      //Treated as verified if you have a post
+      return verified || posts.length > 0;
     },
   },
   Query: {
@@ -233,6 +250,10 @@ const userResolver: Resolvers = {
 
       const res = await api.getSingleUser(username);
       return userReduce(res);
+    },
+    verifyUser: async (_, { username, ssn }) => {
+      const success = await api.verifyUser(username, ssn);
+      return success;
     },
   },
 };
