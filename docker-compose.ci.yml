@@ -16,6 +16,7 @@ services:
       - EBREV_API_TOKEN
       - LATEXIFY_URL
       - PDF_TO_PNG_BASE_URL
+      - VERIFY_URL
     networks:
       - traefik
       - default # to join compose network
