@@ -29,7 +29,7 @@ const accessresolver: Resolvers = {
     },
     setIndividualAccess: async (_, { username, access }, ctx) => {
       await hasAccess(ctx, Feature.AccessAdmin);
-      return accessApi.setIndividualAccess(username, access);
+      return accessApi.setIndividualAccess(username, access, ctx.getUsername());
     },
     setPostAccess: async (_, { postId, access }, ctx) => {
       await hasAccess(ctx, Feature.AccessAdmin);
