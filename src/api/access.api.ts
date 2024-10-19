@@ -99,7 +99,7 @@ export class AccessAPI {
 
     return differences;
   }
-  
+
   private getLogIndividualAccessDiffQuery(
     grantor: string,
     target: string,
@@ -323,7 +323,11 @@ export class AccessAPI {
    * @param postId The ID for the user for which acces is to be changed
    * @param newAccess The new access for this post
    */
-  async setPostAccess(postId: number, newAccess: AccessInput, grantor: string | undefined = undefined): Promise<boolean> {
+  async setPostAccess(
+    postId: number,
+    newAccess: AccessInput,
+    grantor: string | undefined = undefined,
+  ): Promise<boolean> {
     const { doors, features } = newAccess;
     const access: Prisma.PrismaPostAccessUncheckedCreateInput[] = [];
 
@@ -361,8 +365,13 @@ export class AccessAPI {
     let transactionQueries = [deleteQuery, createQuery];
 
     if (grantor) {
-      const logDiffQuery = this.getLogPostDiffQuery(grantor, postId, access, await this.getPostAccess(postId))
-      transactionQueries.push(logDiffQuery)
+      const logDiffQuery = this.getLogPostDiffQuery(
+        grantor,
+        postId,
+        access,
+        await this.getPostAccess(postId),
+      );
+      transactionQueries.push(logDiffQuery);
     }
 
     // Ensure deletion and creation is made in one swoop,
@@ -457,7 +466,7 @@ export class AccessAPI {
    * Will clear every post accesslog
    */
   async clearPostAccessLog() {
-    devGuard('Tried to clear post accesslogs in production!')
+    devGuard('Tried to clear post accesslogs in production!');
     await prisma.prismaPostAccessLog.deleteMany();
   }
 
@@ -466,7 +475,7 @@ export class AccessAPI {
    * Will clear every individual accesslog
    */
   async clearIndividualAccessLog() {
-    devGuard('Tried to clear individual accesslogs in production!')
+    devGuard('Tried to clear individual accesslogs in production!');
     await prisma.prismaIndividualAccessLog.deleteMany();
   }
 }

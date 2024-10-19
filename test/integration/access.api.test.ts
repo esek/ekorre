@@ -69,7 +69,12 @@ beforeAll(async () => {
 afterAll(async () => {
   const clearUser0 = accessApi.clearAccessForUser(username0);
   const clearUser1 = accessApi.clearAccessForUser(username1);
-  await Promise.all([clearUser0, clearUser1, accessApi.clearIndividualAccessLog(), accessApi.clearPostAccessLog()]);
+  await Promise.all([
+    clearUser0,
+    clearUser1,
+    accessApi.clearIndividualAccessLog(),
+    accessApi.clearPostAccessLog(),
+  ]);
 
   await postApi.deletePost(postId0);
   await apiKeyApi.removeApiKey(apiKey);
@@ -95,7 +100,7 @@ const setGetTest = async (
 
 // #region Expected values
 
-const grantorUsername = "po7853sj-s"
+const grantorUsername = 'po7853sj-s';
 
 const accessSingleInput: AccessInput = {
   doors: [Door.Bd],
