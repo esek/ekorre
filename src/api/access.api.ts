@@ -99,10 +99,10 @@ export class AccessAPI {
 
     return differences;
   }
-
+  
   private getLogIndividualAccessDiffQuery(
-    grantorUsername: string,
-    targetUsername: string,
+    grantor: string,
+    target: string,
     newAccess: Prisma.PrismaIndividualAccessUncheckedCreateInput[],
     oldAccess: PrismaIndividualAccess[],
   ): Prisma.PrismaPromise<Prisma.BatchPayload> {
@@ -124,16 +124,16 @@ export class AccessAPI {
     const featureDiff = this.getArrDiff(newFeatures, oldFeatures);
 
     const doorLog = Object.entries(doorDiff).map(([door, isActive]) => ({
-      refGrantor: grantorUsername,
-      refTarget: targetUsername,
+      refGrantor: grantor,
+      refTarget: target,
       resourceType: 'door' as PrismaResourceType,
       resource: door,
       isActive: isActive,
     }));
 
     const featureLog = Object.entries(featureDiff).map(([feature, isActive]) => ({
-      refGrantor: grantorUsername,
-      refTarget: targetUsername,
+      refGrantor: grantor,
+      refTarget: target,
       resourceType: 'feature' as PrismaResourceType,
       resource: feature,
       isActive: isActive,
@@ -142,6 +142,54 @@ export class AccessAPI {
     const log = doorLog.concat(featureLog);
 
     const logQuery = prisma.prismaIndividualAccessLog.createMany({
+      data: log,
+    });
+
+    return logQuery;
+  }
+
+  private getLogPostDiffQuery(
+    grantor: string,
+    target: number,
+    newAccess: Prisma.PrismaPostAccessUncheckedCreateInput[],
+    oldAccess: PrismaPostAccess[],
+  ): Prisma.PrismaPromise<Prisma.BatchPayload> {
+    const oldDoors = oldAccess
+      .filter((indindividualAccess) => indindividualAccess.resourceType == 'door')
+      .map((doors) => doors.resource);
+    const oldFeatures = oldAccess
+      .filter((indindividualAccess) => indindividualAccess.resourceType == 'feature')
+      .map((features) => features.resource);
+
+    const newDoors = newAccess
+      .filter((indindividualAccess) => indindividualAccess.resourceType == 'door')
+      .map((doors) => doors.resource);
+    const newFeatures = newAccess
+      .filter((indindividualAccess) => indindividualAccess.resourceType == 'feature')
+      .map((features) => features.resource);
+
+    const doorDiff = this.getArrDiff(newDoors, oldDoors);
+    const featureDiff = this.getArrDiff(newFeatures, oldFeatures);
+
+    const doorLog = Object.entries(doorDiff).map(([door, isActive]) => ({
+      refGrantor: grantor,
+      refTarget: target,
+      resourceType: 'door' as PrismaResourceType,
+      resource: door,
+      isActive: isActive,
+    }));
+
+    const featureLog = Object.entries(featureDiff).map(([feature, isActive]) => ({
+      refGrantor: grantor,
+      refTarget: target,
+      resourceType: 'feature' as PrismaResourceType,
+      resource: feature,
+      isActive: isActive,
+    }));
+
+    const log = doorLog.concat(featureLog);
+
+    const logQuery = prisma.prismaPostAccessLog.createMany({
       data: log,
     });
 
@@ -275,7 +323,7 @@ export class AccessAPI {
    * @param postId The ID for the user for which acces is to be changed
    * @param newAccess The new access for this post
    */
-  async setPostAccess(postId: number, newAccess: AccessInput): Promise<boolean> {
+  async setPostAccess(postId: number, newAccess: AccessInput, grantor: string | undefined = undefined): Promise<boolean> {
     const { doors, features } = newAccess;
     const access: Prisma.PrismaPostAccessUncheckedCreateInput[] = [];
 
@@ -310,9 +358,16 @@ export class AccessAPI {
       data: access,
     });
 
+    let transactionQueries = [deleteQuery, createQuery];
+
+    if (grantor) {
+      const logDiffQuery = this.getLogPostDiffQuery(grantor, postId, access, await this.getPostAccess(postId))
+      transactionQueries.push(logDiffQuery)
+    }
+
     // Ensure deletion and creation is made in one swoop,
     // so access is not deleted if old one is bad
-    const [, res] = await prisma.$transaction([deleteQuery, createQuery]);
+    const [, res] = await prisma.$transaction(transactionQueries);
 
     logger.info(`Updated access for post with id ${postId}`);
     logger.debug(`Updated access for post with id ${postId} to ${Logger.pretty(newAccess)}`);

@@ -33,7 +33,7 @@ const accessresolver: Resolvers = {
     },
     setPostAccess: async (_, { postId, access }, ctx) => {
       await hasAccess(ctx, Feature.AccessAdmin);
-      return accessApi.setPostAccess(postId, access);
+      return accessApi.setPostAccess(postId, access, ctx.getUsername());
     },
   },
   ApiKey: {
