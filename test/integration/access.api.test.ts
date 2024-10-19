@@ -69,7 +69,7 @@ beforeAll(async () => {
 afterAll(async () => {
   const clearUser0 = accessApi.clearAccessForUser(username0);
   const clearUser1 = accessApi.clearAccessForUser(username1);
-  await Promise.all([clearUser0, clearUser1]);
+  await Promise.all([clearUser0, clearUser1, accessApi.clearIndividualAccessLog(), accessApi.clearPostAccessLog()]);
 
   await postApi.deletePost(postId0);
   await apiKeyApi.removeApiKey(apiKey);
@@ -94,6 +94,8 @@ const setGetTest = async (
 };
 
 // #region Expected values
+
+const grantorUsername = "po7853sj-s"
 
 const accessSingleInput: AccessInput = {
   doors: [Door.Bd],
@@ -216,7 +218,7 @@ describe('setting/getting access for user', () => {
   const setAccess =
     (input: AccessInput, username = username0) =>
     () =>
-      accessApi.setIndividualAccess(username, input);
+      accessApi.setIndividualAccess(username, input, username0);
   const getAccess = (username = username0) => accessApi.getIndividualAccess(username);
   it('setting single access', async () => {
     const expectedAccess = mapUserAccess(expectedAccessSingleInput);

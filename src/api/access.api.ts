@@ -451,4 +451,22 @@ export class AccessAPI {
       },
     });
   }
+
+  /**
+   * Used for testing
+   * Will clear every post accesslog
+   */
+  async clearPostAccessLog() {
+    devGuard('Tried to clear post accesslogs in production!')
+    await prisma.prismaPostAccessLog.deleteMany();
+  }
+
+  /**
+   * Used for testing
+   * Will clear every individual accesslog
+   */
+  async clearIndividualAccessLog() {
+    devGuard('Tried to clear individual accesslogs in production!')
+    await prisma.prismaIndividualAccessLog.deleteMany();
+  }
 }
