@@ -79,6 +79,13 @@ export class AccessAPI {
     return access;
   }
 
+  /**
+   * 
+   * @param incoming old values
+   * @param current new values
+   * @returns A record describing which elements are not in both arrays with the value true or false depending on
+   * if it's only in the incoming or current array
+   */
   private getArrDiff(incoming: string[], current: string[]): Record<string, boolean> {
     const differences: Record<string, boolean> = {};
 
@@ -100,6 +107,14 @@ export class AccessAPI {
     return differences;
   }
 
+  /**
+   * 
+   * @param grantor The user giving out permission
+   * @param target The user/post which is getting their access changed
+   * @param newAccess 
+   * @param oldAccess 
+   * @returns getArrDiff calculated for each feature type with info about the grantor and target
+   */
   private getAllInputAccessDiff<
     T extends number | string,
     N extends AccessEntry,
