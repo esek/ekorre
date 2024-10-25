@@ -80,7 +80,7 @@ export class AccessAPI {
   }
 
   /**
-   * 
+   *
    * @param incoming old values
    * @param current new values
    * @returns A record describing which elements are not in both arrays with the value true or false depending on
@@ -108,11 +108,11 @@ export class AccessAPI {
   }
 
   /**
-   * 
+   *
    * @param grantor The user giving out permission
    * @param target The user/post which is getting their access changed
-   * @param newAccess 
-   * @param oldAccess 
+   * @param newAccess
+   * @param oldAccess
    * @returns getArrDiff calculated for each feature type with info about the grantor and target
    */
   private getAllInputAccessDiff<
@@ -337,9 +337,9 @@ export class AccessAPI {
     return res.count === access.length;
   }
 
-  async getAllPostLogs(): Promise<(AccessLogEntry<number> & {id: number})[]> {
-    const values = await prisma.prismaPostAccessLog.findMany({})
-    return values as (AccessLogEntry<number> & {id: number})[];
+  async getAllPostLogs(): Promise<(AccessLogEntry<number> & { id: number })[]> {
+    const values = await prisma.prismaPostAccessLog.findMany({});
+    return values as (AccessLogEntry<number> & { id: number })[];
   }
 
   /**
