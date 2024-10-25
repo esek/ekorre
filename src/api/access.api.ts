@@ -337,6 +337,11 @@ export class AccessAPI {
     return res.count === access.length;
   }
 
+  async getAllPostLogs(): Promise<(AccessLogEntry<number> & {id: number})[]> {
+    const values = await prisma.prismaPostAccessLog.findMany({})
+    return values as (AccessLogEntry<number> & {id: number})[];
+  }
+
   /**
    * Gets a users entire access, including inherited access from posts,
    * and is within post access cooldown (users retains post access some time after

@@ -1,11 +1,13 @@
 
 #import User from './user.graphql'
-
+#import Post from './post.graphql'
+scalar Date
 type Query {
     individualAccess(username: String!): Access!
     postAccess(postId: Int!): Access!
     features: [FeatureInfo!]!
     doors: [DoorInfo!]!
+    postAccessLogs: [AccessLogPost]!
 }
 
 type Mutation {
@@ -40,6 +42,15 @@ type FeatureInfo {
 type DoorInfo {
     name: Door!
     description: String!
+}
+
+type AccessLogPost {
+    grantor: User!
+    target: Post!
+    resourceType: AccessResourceType!
+    resource: String!
+    isActive: Boolean!
+    timestamp: Date!
 }
 
 enum AccessResourceType {
