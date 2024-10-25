@@ -1,7 +1,7 @@
 import { PostAPI } from '@/api/post.api';
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { AccessEntry } from '@/models/access';
+import { AccessEntry, AccessLogEntry } from '@/models/access';
 import { devGuard } from '@/util';
 import { AccessInput, Door, Feature } from '@generated/graphql';
 import {
@@ -100,100 +100,33 @@ export class AccessAPI {
     return differences;
   }
 
-  private getLogIndividualAccessDiffQuery(
-    grantor: string,
-    target: string,
-    newAccess: Prisma.PrismaIndividualAccessUncheckedCreateInput[],
-    oldAccess: PrismaIndividualAccess[],
-  ): Prisma.PrismaPromise<Prisma.BatchPayload> {
-    const oldDoors = oldAccess
-      .filter((indindividualAccess) => indindividualAccess.resourceType == 'door')
-      .map((doors) => doors.resource);
-    const oldFeatures = oldAccess
-      .filter((indindividualAccess) => indindividualAccess.resourceType == 'feature')
-      .map((features) => features.resource);
+  private getAllInputAccessDiff<
+    T extends number | string,
+    N extends AccessEntry,
+    O extends AccessEntry,
+  >(grantor: string, target: T, newAccess: N[], oldAccess: O[]): AccessLogEntry<T>[] {
+    const log = Object.values(PrismaResourceType).flatMap((resourceType) => {
+      const oldResource = oldAccess
+        .filter((access) => access.resourceType == resourceType)
+        .map((access) => access.resource);
+      const newResource = newAccess
+        .filter((access) => access.resourceType == resourceType)
+        .map((access) => access.resource);
 
-    const newDoors = newAccess
-      .filter((indindividualAccess) => indindividualAccess.resourceType == 'door')
-      .map((doors) => doors.resource);
-    const newFeatures = newAccess
-      .filter((indindividualAccess) => indindividualAccess.resourceType == 'feature')
-      .map((features) => features.resource);
+      const resourceDiff = this.getArrDiff(newResource, oldResource);
 
-    const doorDiff = this.getArrDiff(newDoors, oldDoors);
-    const featureDiff = this.getArrDiff(newFeatures, oldFeatures);
+      const logDiff = Object.entries(resourceDiff).map(([resource, isActive]) => ({
+        refGrantor: grantor,
+        refTarget: target,
+        resourceType: resourceType,
+        resource: resource,
+        isActive: isActive,
+      }));
 
-    const doorLog = Object.entries(doorDiff).map(([door, isActive]) => ({
-      refGrantor: grantor,
-      refTarget: target,
-      resourceType: 'door' as PrismaResourceType,
-      resource: door,
-      isActive: isActive,
-    }));
-
-    const featureLog = Object.entries(featureDiff).map(([feature, isActive]) => ({
-      refGrantor: grantor,
-      refTarget: target,
-      resourceType: 'feature' as PrismaResourceType,
-      resource: feature,
-      isActive: isActive,
-    }));
-
-    const log = doorLog.concat(featureLog);
-
-    const logQuery = prisma.prismaIndividualAccessLog.createMany({
-      data: log,
+      return logDiff as AccessLogEntry<T>[];
     });
 
-    return logQuery;
-  }
-
-  private getLogPostDiffQuery(
-    grantor: string,
-    target: number,
-    newAccess: Prisma.PrismaPostAccessUncheckedCreateInput[],
-    oldAccess: PrismaPostAccess[],
-  ): Prisma.PrismaPromise<Prisma.BatchPayload> {
-    const oldDoors = oldAccess
-      .filter((indindividualAccess) => indindividualAccess.resourceType == 'door')
-      .map((doors) => doors.resource);
-    const oldFeatures = oldAccess
-      .filter((indindividualAccess) => indindividualAccess.resourceType == 'feature')
-      .map((features) => features.resource);
-
-    const newDoors = newAccess
-      .filter((indindividualAccess) => indindividualAccess.resourceType == 'door')
-      .map((doors) => doors.resource);
-    const newFeatures = newAccess
-      .filter((indindividualAccess) => indindividualAccess.resourceType == 'feature')
-      .map((features) => features.resource);
-
-    const doorDiff = this.getArrDiff(newDoors, oldDoors);
-    const featureDiff = this.getArrDiff(newFeatures, oldFeatures);
-
-    const doorLog = Object.entries(doorDiff).map(([door, isActive]) => ({
-      refGrantor: grantor,
-      refTarget: target,
-      resourceType: 'door' as PrismaResourceType,
-      resource: door,
-      isActive: isActive,
-    }));
-
-    const featureLog = Object.entries(featureDiff).map(([feature, isActive]) => ({
-      refGrantor: grantor,
-      refTarget: target,
-      resourceType: 'feature' as PrismaResourceType,
-      resource: feature,
-      isActive: isActive,
-    }));
-
-    const log = doorLog.concat(featureLog);
-
-    const logQuery = prisma.prismaPostAccessLog.createMany({
-      data: log,
-    });
-
-    return logQuery;
+    return log;
   }
 
   /**
@@ -246,12 +179,15 @@ export class AccessAPI {
     let transactionQueries = [deleteQuery, createQuery];
 
     if (grantor) {
-      const logDiffQuery = this.getLogIndividualAccessDiffQuery(
+      const individualAccessDiff = this.getAllInputAccessDiff(
         grantor,
         username,
         access,
         await this.getIndividualAccess(username),
       );
+      const logDiffQuery = prisma.prismaIndividualAccessLog.createMany({
+        data: individualAccessDiff,
+      });
       transactionQueries.push(logDiffQuery);
     }
 
@@ -365,12 +301,15 @@ export class AccessAPI {
     let transactionQueries = [deleteQuery, createQuery];
 
     if (grantor) {
-      const logDiffQuery = this.getLogPostDiffQuery(
+      const postAccessDiff = this.getAllInputAccessDiff(
         grantor,
         postId,
         access,
         await this.getPostAccess(postId),
       );
+      const logDiffQuery = prisma.prismaPostAccessLog.createMany({
+        data: postAccessDiff,
+      });
       transactionQueries.push(logDiffQuery);
     }
 
