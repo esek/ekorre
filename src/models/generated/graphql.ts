@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse, MeetingResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse, AccessLogPostResponse, ApiKeyResponse } from '../mappers';
+import type { ArticleResponse, FileResponse, MeetingResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse, AccessLogPostResponse, AccessLogIndividualAccessResponse, ApiKeyResponse } from '../mappers';
 import type { Context } from '../context';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -1525,7 +1525,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = ResolversObject<{
   Access: ResolverTypeWrapper<Access>;
   AccessInput: AccessInput;
-  AccessLogIndividualAccess: ResolverTypeWrapper<AccessLogIndividualAccess>;
+  AccessLogIndividualAccess: ResolverTypeWrapper<AccessLogIndividualAccessResponse>;
   AccessLogPost: ResolverTypeWrapper<AccessLogPostResponse>;
   AccessResourceType: AccessResourceType;
   AccessType: AccessType;
@@ -1599,7 +1599,7 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Access: Access;
   AccessInput: AccessInput;
-  AccessLogIndividualAccess: AccessLogIndividualAccess;
+  AccessLogIndividualAccess: AccessLogIndividualAccessResponse;
   AccessLogPost: AccessLogPostResponse;
   Activity: Activity;
   ApiKey: ApiKeyResponse;

@@ -1,5 +1,5 @@
 import { AccessEntry, AccessLogEntry } from '@/models/access';
-import { AccessLogPostResponse } from '@/models/mappers';
+import { AccessLogIndividualAccessResponse, AccessLogPostResponse } from '@/models/mappers';
 import {
   Access,
   AccessResourceType,
@@ -8,7 +8,7 @@ import {
   Feature,
   FeatureInfo,
 } from '@generated/graphql';
-import { PrismaPostAccessLog } from '@prisma/client';
+import { PrismaIndividualAccessLog, PrismaPostAccessLog } from '@prisma/client';
 
 export const accessLogPostReducer = (access: PrismaPostAccessLog): AccessLogPostResponse => {
   const { id, refGrantor, refTarget, resourceType, ...reduced } = access;
@@ -17,6 +17,16 @@ export const accessLogPostReducer = (access: PrismaPostAccessLog): AccessLogPost
     resourceType: resourceType as AccessResourceType,
     grantor: { username: refGrantor },
     target: { id: refTarget },
+  };
+};
+
+export const accessLogIndividualAccessReducer = (access: PrismaIndividualAccessLog): AccessLogIndividualAccessResponse => {
+  const { id, refGrantor, refTarget, resourceType, ...reduced } = access;
+  return {
+    ...reduced,
+    resourceType: resourceType as AccessResourceType,
+    grantor: { username: refGrantor },
+    target: { username: refTarget },
   };
 };
 

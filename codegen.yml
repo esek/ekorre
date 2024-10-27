@@ -20,6 +20,7 @@ generates:
         Nomination: ../mappers#NominationResponse
         Hehe: ../mappers#HeheResponse
         AccessLogPost: ../mappers#AccessLogPostResponse
+        AccessLogIndividualAccess: ../mappers#AccessLogIndividualAccessResponse
         ApiKey: ../mappers#ApiKeyResponse
     schema: "./src/schemas/*.graphql"
     plugins:

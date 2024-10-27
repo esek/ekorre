@@ -3,7 +3,7 @@ import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { AccessAPI } from '@api/access';
 import { Door, Feature, Resolvers } from '@generated/graphql';
-import { accessLogPostReducer, accessReducer, doorReducer, featureReducer } from '@reducer/access';
+import { accessLogIndividualAccessReducer, accessLogPostReducer, accessReducer, doorReducer, featureReducer } from '@reducer/access';
 
 const accessApi = new AccessAPI();
 
@@ -16,6 +16,16 @@ const accessresolver: Resolvers = {
     target: useDataLoader((model, context) => ({
       dataLoader: context.postDataLoader,
       key: model.target.id,
+    })),
+  },
+  AccessLogIndividualAccess: {
+    grantor: useDataLoader((model, context) => ({
+      dataLoader: context.userDataLoader,
+      key: model.grantor.username,
+    })),
+    target: useDataLoader((model, context) => ({
+      dataLoader: context.userDataLoader,
+      key: model.target.username,
     })),
   },
   Query: {
@@ -35,6 +45,11 @@ const accessresolver: Resolvers = {
       await hasAccess(ctx, Feature.AccessAdmin);
       const accessLog = await accessApi.getAllPostLogs();
       return reduce(accessLog, accessLogPostReducer);
+    },
+    individualAccessLogs: async (_, _params, ctx) => {
+      await hasAccess(ctx, Feature.AccessAdmin);
+      const accessLog = await accessApi.getAllIndividualAccessLogs();
+      return reduce(accessLog, accessLogIndividualAccessReducer);
     },
     features: () => featureReducer(Object.values(Feature)),
     doors: () => doorReducer(Object.values(Door)),

@@ -69,6 +69,11 @@ export type AccessLogPostResponse = Omit<AccessLogPost, 'grantor' | 'target'> & 
   target: Partial<Post>;
 };
 
+export type AccessLogIndividualAccessResponse = Omit<AccessLogPost, 'grantor' | 'target'> & {
+  grantor: Partial<User>;
+  target: Partial<User>;
+};
+
 
 
 export type ApiKeyResponse = Omit<ApiKey, 'creator' | 'refcreator'> & {
