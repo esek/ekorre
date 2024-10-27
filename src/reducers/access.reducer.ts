@@ -1,5 +1,5 @@
 import { AccessEntry, AccessLogEntry } from '@/models/access';
-import { AccessLogResponse } from '@/models/mappers';
+import { AccessLogPostResponse } from '@/models/mappers';
 import {
   Access,
   AccessResourceType,
@@ -10,7 +10,7 @@ import {
 } from '@generated/graphql';
 import { PrismaPostAccessLog } from '@prisma/client';
 
-export const accessLogReducer = (access: PrismaPostAccessLog): AccessLogResponse => {
+export const accessLogPostReducer = (access: PrismaPostAccessLog): AccessLogPostResponse => {
   const { id, refGrantor, refTarget, resourceType, ...reduced } = access;
   return {
     ...reduced,

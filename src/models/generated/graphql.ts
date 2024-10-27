@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse, MeetingResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse, AccessLogResponse, ApiKeyResponse } from '../mappers';
+import type { ArticleResponse, FileResponse, MeetingResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse, AccessLogPostResponse, ApiKeyResponse } from '../mappers';
 import type { Context } from '../context';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -31,8 +31,19 @@ export type AccessInput = {
   features: Array<Feature>;
 };
 
+export type AccessLogIndividualAccess = {
+  grantor: User;
+  /** if the target has the access after the transaction or not */
+  isActive: Scalars['Boolean'];
+  resource: Scalars['String'];
+  resourceType: AccessResourceType;
+  target: User;
+  timestamp: Scalars['Date'];
+};
+
 export type AccessLogPost = {
   grantor: User;
+  /** if the target has the access after the transaction or not */
   isActive: Scalars['Boolean'];
   resource: Scalars['String'];
   resourceType: AccessResourceType;
@@ -941,6 +952,7 @@ export type Query = {
   /** Used if nominations are hidden but an election-admin wants too see nominations */
   hiddenNominations: Array<Nomination>;
   individualAccess: Access;
+  individualAccessLogs: Array<AccessLogIndividualAccess>;
   latestBoardMeetings: Array<Meeting>;
   latestElections: Array<Election>;
   latestHehe: Array<Hehe>;
@@ -1513,7 +1525,8 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = ResolversObject<{
   Access: ResolverTypeWrapper<Access>;
   AccessInput: AccessInput;
-  AccessLogPost: ResolverTypeWrapper<AccessLogResponse>;
+  AccessLogIndividualAccess: ResolverTypeWrapper<AccessLogIndividualAccess>;
+  AccessLogPost: ResolverTypeWrapper<AccessLogPostResponse>;
   AccessResourceType: AccessResourceType;
   AccessType: AccessType;
   Activity: ResolverTypeWrapper<Activity>;
@@ -1586,7 +1599,8 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Access: Access;
   AccessInput: AccessInput;
-  AccessLogPost: AccessLogResponse;
+  AccessLogIndividualAccess: AccessLogIndividualAccess;
+  AccessLogPost: AccessLogPostResponse;
   Activity: Activity;
   ApiKey: ApiKeyResponse;
   Article: ArticleResponse;
@@ -1643,6 +1657,16 @@ export type ResolversParentTypes = ResolversObject<{
 export type AccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Access'] = ResolversParentTypes['Access']> = ResolversObject<{
   doors?: Resolver<Array<ResolversTypes['Door']>, ParentType, ContextType>;
   features?: Resolver<Array<ResolversTypes['Feature']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type AccessLogIndividualAccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessLogIndividualAccess'] = ResolversParentTypes['AccessLogIndividualAccess']> = ResolversObject<{
+  grantor?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  isActive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  resource?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  resourceType?: Resolver<ResolversTypes['AccessResourceType'], ParentType, ContextType>;
+  target?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  timestamp?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -1963,6 +1987,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   hehes?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType, RequireFields<QueryHehesArgs, 'year'>>;
   hiddenNominations?: Resolver<Array<ResolversTypes['Nomination']>, ParentType, ContextType, RequireFields<QueryHiddenNominationsArgs, 'electionId'>>;
   individualAccess?: Resolver<ResolversTypes['Access'], ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
+  individualAccessLogs?: Resolver<Array<ResolversTypes['AccessLogIndividualAccess']>, ParentType, ContextType>;
   latestBoardMeetings?: Resolver<Array<ResolversTypes['Meeting']>, ParentType, ContextType, Partial<QueryLatestBoardMeetingsArgs>>;
   latestElections?: Resolver<Array<ResolversTypes['Election']>, ParentType, ContextType, Partial<QueryLatestElectionsArgs>>;
   latestHehe?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType, Partial<QueryLatestHeheArgs>>;
@@ -2042,6 +2067,7 @@ export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType exte
 
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Access?: AccessResolvers<ContextType>;
+  AccessLogIndividualAccess?: AccessLogIndividualAccessResolvers<ContextType>;
   AccessLogPost?: AccessLogPostResolvers<ContextType>;
   Activity?: ActivityResolvers<ContextType>;
   ApiKey?: ApiKeyResolvers<ContextType>;

@@ -3,7 +3,7 @@ import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { AccessAPI } from '@api/access';
 import { Door, Feature, Resolvers } from '@generated/graphql';
-import { accessLogReducer, accessReducer, doorReducer, featureReducer } from '@reducer/access';
+import { accessLogPostReducer, accessReducer, doorReducer, featureReducer } from '@reducer/access';
 
 const accessApi = new AccessAPI();
 
@@ -34,7 +34,7 @@ const accessresolver: Resolvers = {
     postAccessLogs: async (_, _params, ctx) => {
       await hasAccess(ctx, Feature.AccessAdmin);
       const accessLog = await accessApi.getAllPostLogs();
-      return reduce(accessLog, accessLogReducer);
+      return reduce(accessLog, accessLogPostReducer);
     },
     features: () => featureReducer(Object.values(Feature)),
     doors: () => doorReducer(Object.values(Door)),

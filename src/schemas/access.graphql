@@ -8,6 +8,7 @@ type Query {
     features: [FeatureInfo!]!
     doors: [DoorInfo!]!
     postAccessLogs: [AccessLogPost!]!
+    individualAccessLogs: [AccessLogIndividualAccess!]!
 }
 
 type Mutation {
@@ -49,6 +50,17 @@ type AccessLogPost {
     target: Post!
     resourceType: AccessResourceType!
     resource: String!
+    "if the target has the access after the transaction or not"
+    isActive: Boolean!
+    timestamp: Date!
+}
+
+type AccessLogIndividualAccess {
+    grantor: User!
+    target: User!
+    resourceType: AccessResourceType!
+    resource: String!
+    "if the target has the access after the transaction or not"
     isActive: Boolean!
     timestamp: Date!
 }

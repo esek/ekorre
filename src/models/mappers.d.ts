@@ -64,10 +64,12 @@ export type HeheResponse = Omit<Hehe, 'uploader' | 'file'> & {
   file: Partial<File>;
 };
 
-export type AccessLogResponse = Omit<AccessLogPost, 'grantor' | 'target'> & {
+export type AccessLogPostResponse = Omit<AccessLogPost, 'grantor' | 'target'> & {
   grantor: Partial<User>;
   target: Partial<Post>;
 };
+
+
 
 export type ApiKeyResponse = Omit<ApiKey, 'creator' | 'refcreator'> & {
   creator: Partial<User>;
