@@ -1,4 +1,5 @@
-import { AccessEntry } from '@/models/access';
+import { AccessEntry, AccessLogEntry } from '@/models/access';
+import { AccessLogResponse } from '@/models/mappers';
 import {
   Access,
   AccessResourceType,
@@ -7,6 +8,17 @@ import {
   Feature,
   FeatureInfo,
 } from '@generated/graphql';
+import { PrismaPostAccessLog } from '@prisma/client';
+
+export const accessLogReducer = (access: PrismaPostAccessLog): AccessLogResponse => {
+  const { id, refGrantor, refTarget, resourceType, ...reduced } = access;
+  return {
+    ...reduced,
+    resourceType: resourceType as AccessResourceType,
+    grantor: { username: refGrantor },
+    target: { id: refTarget },
+  };
+};
 
 /**
  * Reduce database access arrays to an access object

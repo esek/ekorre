@@ -9,6 +9,7 @@ import {
   PrismaApiKeyAccess,
   PrismaIndividualAccess,
   PrismaPostAccess,
+  PrismaPostAccessLog,
   PrismaResourceType,
 } from '@prisma/client';
 import { assert } from 'console';
@@ -337,9 +338,9 @@ export class AccessAPI {
     return res.count === access.length;
   }
 
-  async getAllPostLogs(): Promise<(AccessLogEntry<number> & { id: number })[]> {
+  async getAllPostLogs(): Promise<PrismaPostAccessLog[]> {
     const values = await prisma.prismaPostAccessLog.findMany({});
-    return values as (AccessLogEntry<number> & { id: number })[];
+    return values;
   }
 
   /**

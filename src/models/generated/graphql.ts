@@ -9,6 +9,7 @@ import type {
   ProposalResponse,
   NominationResponse,
   HeheResponse,
+  AccessLogResponse,
   ApiKeyResponse,
 } from '../mappers';
 
@@ -910,7 +911,7 @@ export type Query = {
   paginatedHehes: PaginatedHehes;
   post: Post;
   postAccess: Access;
-  postAccessLogs: Array<Maybe<AccessLogPost>>;
+  postAccessLogs: Array<AccessLogPost>;
   posts: Array<Post>;
   searchFiles: Array<File>;
   searchUser: Array<User>;
@@ -2448,7 +2449,7 @@ export type QueryResolvers<
     ContextType,
     RequireFields<QueryPostAccessArgs, 'postId'>
   >;
-  postAccessLogs?: Resolver<Array<Maybe<ResolversTypes['AccessLogPost']>>, ParentType, ContextType>;
+  postAccessLogs?: Resolver<Array<ResolversTypes['AccessLogPost']>, ParentType, ContextType>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType, Partial<QueryPostsArgs>>;
   searchFiles?: Resolver<
     Array<ResolversTypes['File']>,
