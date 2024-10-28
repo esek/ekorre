@@ -5,6 +5,9 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0]
+- log changes to individualAccess and postAccess
+
 ## [1.13.0]
 - Verify user logic in user api, resolver and graph.
 
