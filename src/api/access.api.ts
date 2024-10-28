@@ -157,7 +157,7 @@ export class AccessAPI {
   async setIndividualAccess(
     username: string,
     newAccess: AccessInput,
-    grantor: string | undefined = undefined,
+    grantor: string,
   ): Promise<boolean> {
     const { doors, features } = newAccess;
     const access: Prisma.PrismaIndividualAccessUncheckedCreateInput[] = [];
@@ -193,20 +193,17 @@ export class AccessAPI {
       data: access,
     });
 
-    let transactionQueries = [deleteQuery, createQuery];
+    const individualAccessDiff = this.getAllInputAccessDiff(
+      grantor,
+      username,
+      access,
+      await this.getIndividualAccess(username),
+    );
+    const logDiffQuery = prisma.prismaIndividualAccessLog.createMany({
+      data: individualAccessDiff,
+    });
 
-    if (grantor) {
-      const individualAccessDiff = this.getAllInputAccessDiff(
-        grantor,
-        username,
-        access,
-        await this.getIndividualAccess(username),
-      );
-      const logDiffQuery = prisma.prismaIndividualAccessLog.createMany({
-        data: individualAccessDiff,
-      });
-      transactionQueries.push(logDiffQuery);
-    }
+    let transactionQueries = [deleteQuery, createQuery, logDiffQuery];
 
     const [, res] = await prisma.$transaction(transactionQueries);
 
@@ -322,7 +319,6 @@ export class AccessAPI {
     });
 
     let transactionQueries = [deleteQuery, createQuery, logDiffQuery];
-    
 
     // Ensure deletion and creation is made in one swoop,
     // so access is not deleted if old one is bad

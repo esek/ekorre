@@ -218,7 +218,7 @@ async function addUserWithAccessThenCheckAllUsersWithAccess() {
     lastName: 'SjöSjöstedt',
     class: 'E21',
   });
-  await accessApi.setIndividualAccess(usernameTest, accessSingleInput);
+  await accessApi.setIndividualAccess(usernameTest, accessSingleInput, username1);
   const users = await userApi.getUsersWithIndividualAccess();
   const testUser = users.find((user) => user.username == usernameTest);
   await userApi.deleteUser(usernameTest);
@@ -389,7 +389,7 @@ describe('getting combined access', () => {
 
   it('getting combined access for user', async () => {
     const setAccessFunc = async () => {
-      const a1 = accessApi.setIndividualAccess(username0, accessSingleInput);
+      const a1 = accessApi.setIndividualAccess(username0, accessSingleInput, username1);
       const a2 = accessApi.setPostAccess(postId0, otherAccessSingleInput, username0);
 
       const [r1, r2] = await Promise.all([a1, a2]);
@@ -467,7 +467,9 @@ const expectedIndividualAccessLogs: IndividualAccessLogSimpel<AccessLogIndividua
   },
 ];
 
-function mapAccessLog(accessLog: PrismaIndividualAccessLog): IndividualAccessLogSimpel<AccessLogIndividualAccess> {
+function mapAccessLog(
+  accessLog: PrismaIndividualAccessLog,
+): IndividualAccessLogSimpel<AccessLogIndividualAccess> {
   const { id, refGrantor, refTarget, timestamp, resourceType, ...reduced } = accessLog;
   return {
     ...reduced,
