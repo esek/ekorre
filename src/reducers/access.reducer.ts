@@ -20,7 +20,9 @@ export const accessLogPostReducer = (access: PrismaPostAccessLog): AccessLogPost
   };
 };
 
-export const accessLogIndividualAccessReducer = (access: PrismaIndividualAccessLog): AccessLogIndividualAccessResponse => {
+export const accessLogIndividualAccessReducer = (
+  access: PrismaIndividualAccessLog,
+): AccessLogIndividualAccessResponse => {
   const { id, refGrantor, refTarget, resourceType, ...reduced } = access;
   return {
     ...reduced,

@@ -3,7 +3,13 @@ import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated } from '@/util';
 import { AccessAPI } from '@api/access';
 import { Door, Feature, Resolvers } from '@generated/graphql';
-import { accessLogIndividualAccessReducer, accessLogPostReducer, accessReducer, doorReducer, featureReducer } from '@reducer/access';
+import {
+  accessLogIndividualAccessReducer,
+  accessLogPostReducer,
+  accessReducer,
+  doorReducer,
+  featureReducer,
+} from '@reducer/access';
 
 const accessApi = new AccessAPI();
 

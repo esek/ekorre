@@ -74,8 +74,6 @@ export type AccessLogIndividualAccessResponse = Omit<AccessLogPost, 'grantor' | 
   target: Partial<User>;
 };
 
-
-
 export type ApiKeyResponse = Omit<ApiKey, 'creator' | 'refcreator'> & {
   creator: Partial<User>;
 };

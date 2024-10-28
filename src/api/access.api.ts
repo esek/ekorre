@@ -276,11 +276,7 @@ export class AccessAPI {
    * @param postId The ID for the user for which acces is to be changed
    * @param newAccess The new access for this post
    */
-  async setPostAccess(
-    postId: number,
-    newAccess: AccessInput,
-    grantor: string | undefined = undefined,
-  ): Promise<boolean> {
+  async setPostAccess(postId: number, newAccess: AccessInput, grantor: string): Promise<boolean> {
     const { doors, features } = newAccess;
     const access: Prisma.PrismaPostAccessUncheckedCreateInput[] = [];
 
@@ -315,20 +311,18 @@ export class AccessAPI {
       data: access,
     });
 
-    let transactionQueries = [deleteQuery, createQuery];
+    const postAccessDiff = this.getAllInputAccessDiff(
+      grantor,
+      postId,
+      access,
+      await this.getPostAccess(postId),
+    );
+    const logDiffQuery = prisma.prismaPostAccessLog.createMany({
+      data: postAccessDiff,
+    });
 
-    if (grantor) {
-      const postAccessDiff = this.getAllInputAccessDiff(
-        grantor,
-        postId,
-        access,
-        await this.getPostAccess(postId),
-      );
-      const logDiffQuery = prisma.prismaPostAccessLog.createMany({
-        data: postAccessDiff,
-      });
-      transactionQueries.push(logDiffQuery);
-    }
+    let transactionQueries = [deleteQuery, createQuery, logDiffQuery];
+    
 
     // Ensure deletion and creation is made in one swoop,
     // so access is not deleted if old one is bad
