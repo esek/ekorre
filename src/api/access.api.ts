@@ -207,8 +207,8 @@ export class AccessAPI {
 
     const [, res] = await prisma.$transaction(transactionQueries);
 
-    logger.info(`Updated access for user ${username}`);
-    logger.debug(`Updated access for user ${username} to ${Logger.pretty(newAccess)}`);
+    logger.info(`Updated access for user ${username} by ${grantor}`);
+    logger.debug(`Updated access for user ${username} to ${Logger.pretty(newAccess)} by ${grantor}`);
 
     return res.count === access.length;
   }
@@ -324,8 +324,8 @@ export class AccessAPI {
     // so access is not deleted if old one is bad
     const [, res] = await prisma.$transaction(transactionQueries);
 
-    logger.info(`Updated access for post with id ${postId}`);
-    logger.debug(`Updated access for post with id ${postId} to ${Logger.pretty(newAccess)}`);
+    logger.info(`Updated access for post with id ${postId} by ${grantor}`);
+    logger.debug(`Updated access for post with id ${postId} to ${Logger.pretty(newAccess)} by ${grantor}`);
     return res.count === access.length;
   }
 
