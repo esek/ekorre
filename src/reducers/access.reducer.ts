@@ -1,4 +1,4 @@
-import { AccessEntry, AccessLogEntry } from '@/models/access';
+import { AccessEntry } from '@/models/access';
 import { AccessLogIndividualAccessResponse, AccessLogPostResponse } from '@/models/mappers';
 import {
   Access,

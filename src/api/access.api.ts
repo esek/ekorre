@@ -13,9 +13,6 @@ import {
   PrismaPostAccessLog,
   PrismaResourceType,
 } from '@prisma/client';
-import { assert } from 'console';
-import { access } from 'fs';
-import { features } from 'process';
 
 import prisma from './prisma';
 
@@ -203,12 +200,12 @@ export class AccessAPI {
       data: individualAccessDiff,
     });
 
-    let transactionQueries = [deleteQuery, createQuery, logDiffQuery];
-
-    const [, res] = await prisma.$transaction(transactionQueries);
+    const [, res] = await prisma.$transaction([deleteQuery, createQuery, logDiffQuery]);
 
     logger.info(`Updated access for user ${username} by ${grantor}`);
-    logger.debug(`Updated access for user ${username} to ${Logger.pretty(newAccess)} by ${grantor}`);
+    logger.debug(
+      `Updated access for user ${username} to ${Logger.pretty(newAccess)} by ${grantor}`,
+    );
 
     return res.count === access.length;
   }
@@ -318,14 +315,14 @@ export class AccessAPI {
       data: postAccessDiff,
     });
 
-    let transactionQueries = [deleteQuery, createQuery, logDiffQuery];
-
     // Ensure deletion and creation is made in one swoop,
     // so access is not deleted if old one is bad
-    const [, res] = await prisma.$transaction(transactionQueries);
+    const [, res] = await prisma.$transaction([deleteQuery, createQuery, logDiffQuery]);
 
     logger.info(`Updated access for post with id ${postId} by ${grantor}`);
-    logger.debug(`Updated access for post with id ${postId} to ${Logger.pretty(newAccess)} by ${grantor}`);
+    logger.debug(
+      `Updated access for post with id ${postId} to ${Logger.pretty(newAccess)} by ${grantor}`,
+    );
     return res.count === access.length;
   }
 
