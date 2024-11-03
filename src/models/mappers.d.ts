@@ -9,6 +9,8 @@
  * 2) `generated/graphql.ts` ser bra ut
  */
 import {
+  Access,
+  AccessLogPost,
   ApiKey,
   Article,
   Election,
@@ -60,6 +62,16 @@ export type NominationResponse = Partial<Omit<Nomination, 'user' | 'post'>> & {
 export type HeheResponse = Omit<Hehe, 'uploader' | 'file'> & {
   uploader: Partial<User>;
   file: Partial<File>;
+};
+
+export type AccessLogPostResponse = Omit<AccessLogPost, 'grantor' | 'target'> & {
+  grantor: Partial<User>;
+  target: Partial<Post>;
+};
+
+export type AccessLogIndividualAccessResponse = Omit<AccessLogPost, 'grantor' | 'target'> & {
+  grantor: Partial<User>;
+  target: Partial<User>;
 };
 
 export type ApiKeyResponse = Omit<ApiKey, 'creator' | 'refcreator'> & {

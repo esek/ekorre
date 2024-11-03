@@ -4,13 +4,20 @@ import { PostAPI } from '@api/post';
 import { UserAPI } from '@api/user';
 import {
   AccessInput,
+  AccessLogIndividualAccess,
+  AccessLogPost,
   AccessResourceType,
   Door,
   Feature,
   PostType,
   Utskott,
 } from '@generated/graphql';
-import { PrismaApiKeyAccess, PrismaIndividualAccess, PrismaPostAccess } from '@prisma/client';
+import {
+  PrismaApiKeyAccess,
+  PrismaIndividualAccess,
+  PrismaIndividualAccessLog,
+  PrismaPostAccess,
+} from '@prisma/client';
 import { getRandomUsername } from '@test/utils/utils';
 
 // This test is in integrations because it dependes on many other units and is hard
@@ -57,7 +64,15 @@ beforeAll(async () => {
     utskott: Utskott.Infu,
   });
 
-  const [post1] = await Promise.all([p1, clearUser0, clearUser1, c1, c2]);
+  const [post1] = await Promise.all([
+    p1,
+    clearUser0,
+    clearUser1,
+    c1,
+    c2,
+    accessApi.clearIndividualAccessLog(),
+    accessApi.clearPostAccessLog(),
+  ]);
 
   postId0 = post1.id;
 
@@ -69,7 +84,12 @@ beforeAll(async () => {
 afterAll(async () => {
   const clearUser0 = accessApi.clearAccessForUser(username0);
   const clearUser1 = accessApi.clearAccessForUser(username1);
-  await Promise.all([clearUser0, clearUser1]);
+  await Promise.all([
+    clearUser0,
+    clearUser1,
+    accessApi.clearIndividualAccessLog(),
+    accessApi.clearPostAccessLog(),
+  ]);
 
   await postApi.deletePost(postId0);
   await apiKeyApi.removeApiKey(apiKey);
@@ -198,7 +218,7 @@ async function addUserWithAccessThenCheckAllUsersWithAccess() {
     lastName: 'SjöSjöstedt',
     class: 'E21',
   });
-  await accessApi.setIndividualAccess(usernameTest, accessSingleInput);
+  await accessApi.setIndividualAccess(usernameTest, accessSingleInput, username1);
   const users = await userApi.getUsersWithIndividualAccess();
   const testUser = users.find((user) => user.username == usernameTest);
   await userApi.deleteUser(usernameTest);
@@ -216,7 +236,7 @@ describe('setting/getting access for user', () => {
   const setAccess =
     (input: AccessInput, username = username0) =>
     () =>
-      accessApi.setIndividualAccess(username, input);
+      accessApi.setIndividualAccess(username, input, username0);
   const getAccess = (username = username0) => accessApi.getIndividualAccess(username);
   it('setting single access', async () => {
     const expectedAccess = mapUserAccess(expectedAccessSingleInput);
@@ -314,9 +334,9 @@ describe('setting/getting access for post', () => {
   });
 
   const setAccess =
-    (input: AccessInput, postId = postId0) =>
+    (input: AccessInput, postId = postId0, grantor = username0) =>
     () =>
-      accessApi.setPostAccess(postId, input);
+      accessApi.setPostAccess(postId, input, grantor);
   const getAccess = (postId = postId0) => accessApi.getPostAccess(postId);
 
   it('setting single access', async () => {
@@ -369,8 +389,8 @@ describe('getting combined access', () => {
 
   it('getting combined access for user', async () => {
     const setAccessFunc = async () => {
-      const a1 = accessApi.setIndividualAccess(username0, accessSingleInput);
-      const a2 = accessApi.setPostAccess(postId0, otherAccessSingleInput);
+      const a1 = accessApi.setIndividualAccess(username0, accessSingleInput, username1);
+      const a2 = accessApi.setPostAccess(postId0, otherAccessSingleInput, username0);
 
       const [r1, r2] = await Promise.all([a1, a2]);
 
@@ -389,5 +409,95 @@ describe('getting combined access', () => {
 
   it('getting combined access for unkown', async () => {
     expect(await accessApi.getUserFullAccess('unknown')).toEqual([]);
+  });
+});
+
+const accessTestSequence: AccessInput[] = [
+  {
+    doors: [],
+    features: [],
+  },
+  {
+    doors: [],
+    features: [],
+  },
+  {
+    doors: [Door.Bd],
+    features: [Feature.AccessAdmin],
+  },
+  {
+    doors: [],
+    features: [],
+  },
+];
+
+// Potential problem, this is very implementation specific: It assumes that doors are handled before features and logged as such.
+type IndividualAccessLogSimpel<T extends AccessLogIndividualAccess | AccessLogPost> = Omit<
+  T,
+  'grantor' | 'target' | 'timestamp'
+> & { grantor: string; target: string };
+const expectedIndividualAccessLogs: IndividualAccessLogSimpel<AccessLogIndividualAccess>[] = [
+  {
+    grantor: username0,
+    isActive: true,
+    resource: 'bd',
+    resourceType: AccessResourceType.Door,
+    target: username1,
+  },
+  {
+    grantor: username0,
+    isActive: true,
+    resource: 'access_admin',
+    resourceType: AccessResourceType.Feature,
+    target: username1,
+  },
+  {
+    grantor: username0,
+    isActive: false,
+    resource: 'bd',
+    resourceType: AccessResourceType.Door,
+    target: username1,
+  },
+  {
+    grantor: username0,
+    isActive: false,
+    resource: 'access_admin',
+    resourceType: AccessResourceType.Feature,
+    target: username1,
+  },
+];
+
+function mapAccessLog(
+  accessLog: PrismaIndividualAccessLog,
+): IndividualAccessLogSimpel<AccessLogIndividualAccess> {
+  const { id, refGrantor, refTarget, timestamp, resourceType, ...reduced } = accessLog;
+  return {
+    ...reduced,
+    grantor: refGrantor,
+    target: refTarget,
+    resourceType: resourceType as AccessResourceType,
+  };
+}
+
+describe('setting access for user and checking logs', () => {
+  const setAccess = async (inputSequence: AccessInput[], username = username1) => {
+    for (const input of inputSequence) {
+      await accessApi.setIndividualAccess(username, input, username0);
+    }
+  };
+
+  const getAccess = () =>
+    accessApi.getAllIndividualAccessLogs().then((logs) => logs.map(mapAccessLog));
+
+  beforeEach(async () => {
+    await Promise.all([
+      accessApi.clearIndividualAccessLog(),
+      accessApi.clearAccessForUser(username1),
+    ]);
+  });
+
+  it('add and remove access', async () => {
+    await setAccess(accessTestSequence);
+    expect(await getAccess()).toEqual(expectedIndividualAccessLogs);
   });
 });

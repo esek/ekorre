@@ -73,7 +73,7 @@ const accessApi = new AccessAPI();
 export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, NOOP] => {
   const create = async () => {
     await userApi.createUser(userInfo);
-    await accessApi.setIndividualAccess(userInfo.username, { features: access, doors: [] });
+    await accessApi.setIndividualAccess(userInfo.username, { features: access, doors: [] }, userInfo.username);
   };
 
   const remove = async () => {
@@ -121,7 +121,7 @@ export const genRandomUser = (
       console.log('Attempt to create random user failed, trying again...');
       return create();
     }
-    await accessApi.setIndividualAccess(createdUser.username, { features: access, doors: [] });
+    await accessApi.setIndividualAccess(createdUser.username, { features: access, doors: [] }, createdUser.username);
     return createdUser;
   };
 

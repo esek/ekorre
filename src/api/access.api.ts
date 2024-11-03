@@ -1,14 +1,16 @@
 import { PostAPI } from '@/api/post.api';
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { AccessEntry } from '@/models/access';
+import { AccessEntry, AccessLogEntry } from '@/models/access';
 import { devGuard } from '@/util';
 import { AccessInput, Door, Feature } from '@generated/graphql';
 import {
   Prisma,
   PrismaApiKeyAccess,
   PrismaIndividualAccess,
+  PrismaIndividualAccessLog,
   PrismaPostAccess,
+  PrismaPostAccessLog,
   PrismaResourceType,
 } from '@prisma/client';
 
@@ -77,6 +79,71 @@ export class AccessAPI {
   }
 
   /**
+   *
+   * @param incoming old values
+   * @param current new values
+   * @returns A record describing which elements are not in both arrays with the value true or false depending on
+   * if it's only in the incoming or current array
+   */
+  private getArrDiff(incoming: string[], current: string[]): Record<string, boolean> {
+    const differences: Record<string, boolean> = {};
+
+    const incomingSet = new Set(incoming);
+    const currentSet = new Set(current);
+
+    for (const item of incoming) {
+      if (!currentSet.has(item)) {
+        differences[item] = true;
+      }
+    }
+
+    for (const item of current) {
+      if (!incomingSet.has(item)) {
+        differences[item] = false;
+      }
+    }
+
+    return differences;
+  }
+
+  /**
+   *
+   * @param grantor The user giving out permission
+   * @param target The user/post which is getting their access changed
+   * @param newAccess
+   * @param oldAccess
+   * @returns getArrDiff calculated for each feature type with info about the grantor and target
+   */
+  private getAllInputAccessDiff<
+    T extends number | string,
+    N extends AccessEntry,
+    O extends AccessEntry,
+  >(grantor: string, target: T, newAccess: N[], oldAccess: O[]): AccessLogEntry<T>[] {
+    const log = Object.values(PrismaResourceType).flatMap((resourceType) => {
+      const oldResource = oldAccess
+        .filter((access) => access.resourceType == resourceType)
+        .map((access) => access.resource);
+      const newResource = newAccess
+        .filter((access) => access.resourceType == resourceType)
+        .map((access) => access.resource);
+
+      const resourceDiff = this.getArrDiff(newResource, oldResource);
+
+      const logDiff = Object.entries(resourceDiff).map(([resource, isActive]) => ({
+        refGrantor: grantor,
+        refTarget: target,
+        resourceType: resourceType,
+        resource: resource,
+        isActive: isActive,
+      }));
+
+      return logDiff as AccessLogEntry<T>[];
+    });
+
+    return log;
+  }
+
+  /**
    * Set the individual access for an user
    *
    * **IMPORTANT**: Access is immutable, which means that the provided access object
@@ -84,7 +151,11 @@ export class AccessAPI {
    * @param username Username for the user
    * @param newAccess The new individual access for this user
    */
-  async setIndividualAccess(username: string, newAccess: AccessInput): Promise<boolean> {
+  async setIndividualAccess(
+    username: string,
+    newAccess: AccessInput,
+    grantor: string,
+  ): Promise<boolean> {
     const { doors, features } = newAccess;
     const access: Prisma.PrismaIndividualAccessUncheckedCreateInput[] = [];
 
@@ -119,12 +190,23 @@ export class AccessAPI {
       data: access,
     });
 
-    // Ensure deletion and creation is made in one swoop,
-    // so access is not deleted if old one is bad
-    const [, res] = await prisma.$transaction([deleteQuery, createQuery]);
+    const individualAccessDiff = this.getAllInputAccessDiff(
+      grantor,
+      username,
+      access,
+      await this.getIndividualAccess(username),
+    );
+    const logDiffQuery = prisma.prismaIndividualAccessLog.createMany({
+      data: individualAccessDiff,
+    });
 
-    logger.info(`Updated access for user ${username}`);
-    logger.debug(`Updated access for user ${username} to ${Logger.pretty(newAccess)}`);
+    const [, res] = await prisma.$transaction([deleteQuery, createQuery, logDiffQuery]);
+
+    logger.info(`Updated access for user ${username} by ${grantor}`);
+    logger.debug(
+      `Updated access for user ${username} to ${Logger.pretty(newAccess)} by ${grantor}`,
+    );
+
     return res.count === access.length;
   }
 
@@ -188,7 +270,7 @@ export class AccessAPI {
    * @param postId The ID for the user for which acces is to be changed
    * @param newAccess The new access for this post
    */
-  async setPostAccess(postId: number, newAccess: AccessInput): Promise<boolean> {
+  async setPostAccess(postId: number, newAccess: AccessInput, grantor: string): Promise<boolean> {
     const { doors, features } = newAccess;
     const access: Prisma.PrismaPostAccessUncheckedCreateInput[] = [];
 
@@ -223,13 +305,35 @@ export class AccessAPI {
       data: access,
     });
 
+    const postAccessDiff = this.getAllInputAccessDiff(
+      grantor,
+      postId,
+      access,
+      await this.getPostAccess(postId),
+    );
+    const logDiffQuery = prisma.prismaPostAccessLog.createMany({
+      data: postAccessDiff,
+    });
+
     // Ensure deletion and creation is made in one swoop,
     // so access is not deleted if old one is bad
-    const [, res] = await prisma.$transaction([deleteQuery, createQuery]);
+    const [, res] = await prisma.$transaction([deleteQuery, createQuery, logDiffQuery]);
 
-    logger.info(`Updated access for post with id ${postId}`);
-    logger.debug(`Updated access for post with id ${postId} to ${Logger.pretty(newAccess)}`);
+    logger.info(`Updated access for post with id ${postId} by ${grantor}`);
+    logger.debug(
+      `Updated access for post with id ${postId} to ${Logger.pretty(newAccess)} by ${grantor}`,
+    );
     return res.count === access.length;
+  }
+
+  async getAllPostLogs(): Promise<PrismaPostAccessLog[]> {
+    const values = await prisma.prismaPostAccessLog.findMany({});
+    return values;
+  }
+
+  async getAllIndividualAccessLogs(): Promise<PrismaIndividualAccessLog[]> {
+    const values = await prisma.prismaIndividualAccessLog.findMany({});
+    return values;
   }
 
   /**
@@ -308,5 +412,23 @@ export class AccessAPI {
         refApiKey: key,
       },
     });
+  }
+
+  /**
+   * Used for testing
+   * Will clear every post accesslog
+   */
+  async clearPostAccessLog() {
+    devGuard('Tried to clear post accesslogs in production!');
+    await prisma.prismaPostAccessLog.deleteMany();
+  }
+
+  /**
+   * Used for testing
+   * Will clear every individual accesslog
+   */
+  async clearIndividualAccessLog() {
+    devGuard('Tried to clear individual accesslogs in production!');
+    await prisma.prismaIndividualAccessLog.deleteMany();
   }
 }
