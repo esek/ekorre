@@ -178,4 +178,4 @@ Det finns en pipeline som kommer bygga docker bilder med hjälp av Dockerfile.
 Dessa publiceras sedan till en *registry* som tillhör detta projekt. Dessa bilder är i huvudsak
 designade för servern (som i skrivande stund är extrovert).
 
-Referera till [ddgwiki](https://ddgwiki.esek.se/index.php?title=CI/CD) för mer information.
+Referera till [ddgwiki](https://ddgwiki.esek.se/index.php?title=CI/CD) för mer information. 
