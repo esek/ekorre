@@ -24,6 +24,7 @@ const EXISTING_ACT: PrismaActivity = {
   imageUrl: 'Existing imageUrl',
   locationTitle: 'Existing location',
   locationLink: 'Existing link',
+  hidden: false,
 };
 
 const DUMMY_NEWTICKET: NewTicket = {
@@ -49,6 +50,7 @@ const DUMMY_PRISMAACTIVITY: PrismaActivity = {
   imageUrl: null,
   locationTitle: 'LocationTestTitle',
   locationLink: 'LocationLinkTest',
+  hidden: false,
 };
 
 const DUMMY_NEWACTIVITY: NewActivity = {
