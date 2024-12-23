@@ -24,6 +24,7 @@ export class ActivityAPI {
     from: Date,
     to: Date,
     utskott: Utskott[] = [Utskott.Other],
+    hidden = false,
   ): Promise<PrismaActivity[]> {
     const activities = await prisma.prismaActivity.findMany({
       where: {
@@ -38,7 +39,12 @@ export class ActivityAPI {
           },
           { AND: [{ startDate: { gte: from } }, { endDate: null }] },
         ],
-        AND: { utskott: { in: utskott } },
+        AND: [
+          { utskott: { in: utskott } },
+          {
+            OR: [{ hidden: false }, { hidden: true, ...(hidden ? {} : { hidden: false }) }],
+          },
+        ],
       },
       orderBy: { startDate: 'asc' },
     });
@@ -72,6 +78,7 @@ export class ActivityAPI {
         imageUrl: activity.imageUrl,
         locationTitle: activity.location?.title,
         locationLink: activity.location?.link,
+        hidden: activity.hidden ?? false,
       },
     });
 

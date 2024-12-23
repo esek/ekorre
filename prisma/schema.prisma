@@ -28,41 +28,42 @@ model PrismaIndividualAccessLog {
   resource     String
   isActive     Boolean            @map("is_active")
   timestamp    DateTime           @default(now())
+
   @@map("individual_accesses_log")
 }
 
 model PrismaUser {
-  username                    String                      @id
-  access                      PrismaIndividualAccess[]    @relation(name: "PrismaIndividualAccessToPrismaUser")
-  grantedIndividualAccessLog  PrismaIndividualAccessLog[] @relation(name: "PrismaIndividualAccessLogToPrismaUserGrantor")
-  grantedPostAccessLog        PrismaPostAccessLog[]       @relation(name: "PrismaPostAccessLogToPrismaUserGrantor")
-  targetIndividualAccessLog   PrismaIndividualAccessLog[] @relation(name: "PrismaIndividualAccessLogToPrismaUserTarget")
-  articles                    PrismaArticle[]             @relation(name: "PrismaArticleToAuthor")
-  editedArticles              PrismaArticle[]             @relation(name: "PrismaArticleToLastUpdateBy")
-  elections                   PrismaElection[]            @relation(name: "PrismaElectionToPrismaUser")
-  nominations                 PrismaNomination[]          @relation(name: "PrismaNominationToPrismaUser")
-  proposals                   PrismaProposal[]            @relation(name: "PrismaProposalToPrismaUser")
-  files                       PrismaFile[]                @relation(name: "PrismaFileToPrismaUser")
-  heHes                       PrismaHehe[]                @relation(name: "PrismaHeheToPrismaUser")
-  postHistory                 PrismaPostHistory[]         @relation(name: "PrismaPostHistoryToPrismaUser")
-  emergencyContacts           PrismaEmergencyContact[]    @relation(name: "PrismaEmergencyContactToPrismaUser")
-  passwordResets              PrismaPasswordReset[]       @relation(name: "PrismaPasswordResetToPrismaUser")
-  apiKeys                     PrismaApiKey[]              @relation(name: "PrismaApiKeyToPrismaUser")
-  loginProviders              PrismaLoginProvider[]       @relation(name: "PrismaUserToPrismaLoginProvider")
-  passwordHash                String                      @map("password_hash")
-  passwordSalt                String                      @map("password_salt")
-  firstName                   String                      @map("first_name")
-  lastName                    String                      @map("last_name")
-  class                       String    
-  photoUrl                    String?                     @map("photo_url")
-  email                       String                      @unique
-  phone                       String?   
-  address                     String?   
-  zipCode                     String?                     @map("zip_code")
-  website                     String?   
-  luCard                      String?                     @unique
-  dateJoined                  DateTime                    @default(now()) @map("date_joined")
-  verifyInfo                  PrismaVerifyInfo?           @relation(name: "PrismaVerifyInfoToPrismaUser")
+  username                   String                      @id
+  access                     PrismaIndividualAccess[]    @relation(name: "PrismaIndividualAccessToPrismaUser")
+  grantedIndividualAccessLog PrismaIndividualAccessLog[] @relation(name: "PrismaIndividualAccessLogToPrismaUserGrantor")
+  grantedPostAccessLog       PrismaPostAccessLog[]       @relation(name: "PrismaPostAccessLogToPrismaUserGrantor")
+  targetIndividualAccessLog  PrismaIndividualAccessLog[] @relation(name: "PrismaIndividualAccessLogToPrismaUserTarget")
+  articles                   PrismaArticle[]             @relation(name: "PrismaArticleToAuthor")
+  editedArticles             PrismaArticle[]             @relation(name: "PrismaArticleToLastUpdateBy")
+  elections                  PrismaElection[]            @relation(name: "PrismaElectionToPrismaUser")
+  nominations                PrismaNomination[]          @relation(name: "PrismaNominationToPrismaUser")
+  proposals                  PrismaProposal[]            @relation(name: "PrismaProposalToPrismaUser")
+  files                      PrismaFile[]                @relation(name: "PrismaFileToPrismaUser")
+  heHes                      PrismaHehe[]                @relation(name: "PrismaHeheToPrismaUser")
+  postHistory                PrismaPostHistory[]         @relation(name: "PrismaPostHistoryToPrismaUser")
+  emergencyContacts          PrismaEmergencyContact[]    @relation(name: "PrismaEmergencyContactToPrismaUser")
+  passwordResets             PrismaPasswordReset[]       @relation(name: "PrismaPasswordResetToPrismaUser")
+  apiKeys                    PrismaApiKey[]              @relation(name: "PrismaApiKeyToPrismaUser")
+  loginProviders             PrismaLoginProvider[]       @relation(name: "PrismaUserToPrismaLoginProvider")
+  passwordHash               String                      @map("password_hash")
+  passwordSalt               String                      @map("password_salt")
+  firstName                  String                      @map("first_name")
+  lastName                   String                      @map("last_name")
+  class                      String
+  photoUrl                   String?                     @map("photo_url")
+  email                      String                      @unique
+  phone                      String?
+  address                    String?
+  zipCode                    String?                     @map("zip_code")
+  website                    String?
+  luCard                     String?                     @unique
+  dateJoined                 DateTime                    @default(now()) @map("date_joined")
+  verifyInfo                 PrismaVerifyInfo?           @relation(name: "PrismaVerifyInfoToPrismaUser")
 
   @@index([firstName, lastName])
   @@map("users")
@@ -88,6 +89,7 @@ model PrismaPostAccessLog {
   resource     String
   isActive     Boolean            @map("is_active")
   timestamp    DateTime           @default(now())
+
   @@map("post_accesses_log")
 }
 
@@ -100,10 +102,10 @@ model PrismaPost {
   history           PrismaPostHistory[]   @relation(name: "PrismaPostToPrismaPostHistory")
   sortPriority      Int                   @default(0)
   postname          String                @unique
-  email             String? 
-  utskott           PrismaUtskott 
-  description       String  
-  spots             Int 
+  email             String?
+  utskott           PrismaUtskott
+  description       String
+  spots             Int
   postType          PrismaPostType        @map("post_type")
   active            Boolean               @default(true)
   interviewRequired Boolean               @default(false) @map("interview_required")
@@ -211,6 +213,7 @@ model PrismaNomination {
 
 model PrismaActivity {
   id            String               @id @default(cuid())
+  hidden        Boolean              @default(false)
   source        PrismaActivitySource
   title         String
   description   String?

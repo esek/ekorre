@@ -16,5 +16,6 @@ export const activityReducer = (dbActivity: PrismaActivity): Activity => {
     utskott: dbActivity.utskott as Utskott,
     imageUrl: dbActivity.imageUrl,
     location: location,
+    hidden: dbActivity.hidden,
   };
 };
