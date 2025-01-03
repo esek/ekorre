@@ -18,6 +18,8 @@ WORKDIR $WORKING_DIR
 # where available (npm@5+)
 COPY package*.json ./
 
+RUN apk add openssl
+
 RUN npm ci
 
 # Bundle app source
