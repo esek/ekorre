@@ -22,7 +22,7 @@ type UserWithAccess = Prisma.PrismaUserGetPayload<{
 }>;
 
 const logger = Logger.getLogger('UserAPI');
-const defaultOrder: Prisma.PrismaUserOrderByWithRelationAndSearchRelevanceInput[] = [
+const defaultOrder: Prisma.PrismaUserOrderByWithRelationInput[] = [
   {
     firstName: 'asc',
   },

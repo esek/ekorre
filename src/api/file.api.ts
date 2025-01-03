@@ -16,8 +16,7 @@ const {
 } = config;
 
 const logger = Logger.getLogger('Files');
-
-const defaultOrder: Prisma.PrismaFileOrderByWithRelationAndSearchRelevanceInput[] = [
+const defaultOrder: Prisma.PrismaFileOrderByWithRelationInput[] = [
   { name: 'asc' },
   { createdAt: 'desc' },
 ];

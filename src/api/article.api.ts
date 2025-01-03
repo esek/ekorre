@@ -8,7 +8,7 @@ import { Prisma, PrismaArticleType } from '@prisma/client';
 
 import prisma from './prisma';
 
-const defaultOrder: Prisma.PrismaArticleOrderByWithRelationAndSearchRelevanceInput[] = [
+const defaultOrder: Prisma.PrismaArticleOrderByWithRelationInput[] = [
   {
     createdAt: 'desc',
   },

@@ -11,7 +11,7 @@ import prisma from './prisma';
 
 const logger = Logger.getLogger('PostAPI');
 
-const defaultOrder: Prisma.PrismaPostOrderByWithRelationAndSearchRelevanceInput[] = [
+const defaultOrder: Prisma.PrismaPostOrderByWithRelationInput[] = [
   { utskott: 'asc' },
   { sortPriority: 'desc' },
   { postname: 'asc' },

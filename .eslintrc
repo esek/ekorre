@@ -37,5 +37,5 @@
         "import/no-extraneous-dependencies": "off",
         "@typescript-eslint/no-misused-promises": "off"
     },
-    "ignorePatterns": "src/models/generated/*"
+    "ignorePatterns": ["src/models/generated/*", "src/app/serverconfig.ts"]
 }

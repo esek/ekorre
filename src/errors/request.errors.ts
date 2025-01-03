@@ -1,4 +1,4 @@
-import { ApolloError } from 'apollo-server-errors';
+import { GraphQLError } from 'graphql';
 
 export type RequestErrorResponse = {
   errorType: string;
@@ -7,7 +7,7 @@ export type RequestErrorResponse = {
   stack?: string;
 };
 
-abstract class RequestError extends ApolloError {
+abstract class RequestError extends GraphQLError {
   abstract code: number;
   abstract name: string;
 

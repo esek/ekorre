@@ -1,19 +1,41 @@
 import RequestError from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { GraphQLError } from 'graphql';
+import { GraphQLError, GraphQLFormattedError } from 'graphql';
 
 const logger = Logger.getLogger('GraphQLErrorHandler');
 
-export const errorHandler = (err: GraphQLError) => {
-  const { originalError } = err;
+export const errorHandler = (
+  formattedError: GraphQLFormattedError,
+  error: unknown,
+): GraphQLFormattedError => {
+  if (error instanceof GraphQLError && error.originalError instanceof RequestError) {
+    const originalError = error.originalError;
 
-  if (originalError instanceof RequestError) {
     logger.error(originalError.log());
-    return originalError.response();
+
+    return {
+      ...formattedError,
+      extensions: {
+        ...formattedError.extensions,
+        code: originalError.code,
+        statusCode: originalError.code,
+        errorType: originalError.name,
+        stack: process.env.NODE_ENV === 'development' ? originalError.stack : undefined,
+      },
+    };
   }
 
-  logger.warn(`Non {RequestError} type found - ${originalError?.name ?? err.name}, see to change`);
-  logger.warn(err.message);
+  logger.warn(
+    `Unhandled error type: ${error instanceof GraphQLError ? error.message : 'Unknown error'}`,
+  );
 
-  return err;
+  return {
+    ...formattedError,
+    extensions: {
+      ...formattedError.extensions,
+      code: 'INTERNAL_SERVER_ERROR',
+      statusCode: 500,
+      stack: process.env.NODE_ENV === 'development' ? (error as GraphQLError)?.stack : undefined,
+    },
+  };
 };

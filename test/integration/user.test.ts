@@ -1,11 +1,11 @@
-import apolloServerConfig from '@/app/serverconfig';
+import { apolloServerConfig } from '@/app/serverconfig';
 import tokenProvider from '@/auth';
 import { NOOP } from '@/models/base';
 import { UserAPI } from '@api/user';
+import { ApolloServer } from '@apollo/server';
 import { PrismaUser } from '@prisma/client';
 import requestWithAuth from '@test/utils/requestWithAuth';
 import { genRandomUser } from '@test/utils/utils';
-import { ApolloServer } from 'apollo-server-express';
 
 const apolloServer = new ApolloServer(apolloServerConfig);
 const api = new UserAPI();

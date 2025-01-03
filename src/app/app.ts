@@ -1,47 +1,44 @@
-// import { GraphQLFileLoader, loadSchemaSync, mergeSchemas } from 'graphql-tools';
 import config from '@/config';
+import { Context } from '@/models/context';
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
 import fileRoute from '@route/file';
 import healthRoute from '@route/health';
-import { ApolloServer, ServerRegistration } from 'apollo-server-express';
-import cookieparser from 'cookie-parser';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 import cors, { type CorsOptions } from 'cors';
 import express from 'express';
 
-import apolloServerConfig from './serverconfig';
+import { apolloServerConfig, apolloServerContext } from './serverconfig';
 
 const { FILES, DEV } = config;
 
-// Visa en referens till källfilen istället för den kompilerade
-
-// Starta server.
+// Initialize Express app
 export const app = express();
 
-const registration: ServerRegistration = {
-  app,
-  path: '/',
-};
-
-// this is handled by traefik in other envs
+// CORS setup for DEV environment
 if (DEV) {
-  const options: CorsOptions = {
+  const corsOptions: CorsOptions = {
     credentials: true,
     origin: true,
   };
-  app.use(cors(options));
-  registration.cors = options;
+  app.use(cors(corsOptions));
 }
 
+// Middleware setup
+app.use(cookieParser());
+app.use(bodyParser.json()); // Required for parsing JSON bodies
+
+// REST routes
+app.use(FILES.ENDPOINT, fileRoute);
+app.use('/health', healthRoute);
+
+// Initialize Apollo Server
+const server = new ApolloServer(apolloServerConfig);
+
 (async () => {
-  app.use(cookieparser());
-
-  // Setup files endpoint for REST-file handling
-  app.use(FILES.ENDPOINT, fileRoute);
-
-  app.use('/health', healthRoute);
-
-  const server = new ApolloServer(apolloServerConfig);
-
   await server.start();
 
-  server.applyMiddleware(registration);
+  // Apply Apollo middleware
+  app.use('/', expressMiddleware<Context>(server, { context: apolloServerContext }));
 })();
