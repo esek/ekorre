@@ -995,7 +995,7 @@ export type Query = {
  */
 export type QueryActivitiesArgs = {
   from: Scalars['DateTime'];
-  hidden: Scalars['Boolean'];
+  includeHidden: Scalars['Boolean'];
   to: Scalars['DateTime'];
   utskott: Array<Utskott>;
 };
@@ -1974,7 +1974,7 @@ export type ProposalResolvers<ContextType = Context, ParentType extends Resolver
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  activities?: Resolver<Array<ResolversTypes['Activity']>, ParentType, ContextType, RequireFields<QueryActivitiesArgs, 'from' | 'hidden' | 'to' | 'utskott'>>;
+  activities?: Resolver<Array<ResolversTypes['Activity']>, ParentType, ContextType, RequireFields<QueryActivitiesArgs, 'from' | 'includeHidden' | 'to' | 'utskott'>>;
   activity?: Resolver<ResolversTypes['Activity'], ParentType, ContextType, RequireFields<QueryActivityArgs, 'id'>>;
   apiKey?: Resolver<ResolversTypes['ApiKey'], ParentType, ContextType, RequireFields<QueryApiKeyArgs, 'key'>>;
   apiKeys?: Resolver<Array<ResolversTypes['ApiKey']>, ParentType, ContextType>;
