@@ -4,7 +4,7 @@ scalar DateTime
 
 type Query{
     activity(id: String!) : Activity! 
-    activities(from: DateTime!, to: DateTime!, utskott: [Utskott!]!, includeHidden: Boolean!) : [Activity!]! 
+    activities(from: DateTime!, to: DateTime!, utskott: [Utskott!]!, includeHidden: Boolean) : [Activity!]! 
 }
 
 type Mutation{

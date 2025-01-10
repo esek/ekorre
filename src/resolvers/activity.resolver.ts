@@ -16,7 +16,7 @@ const activityresolver: Resolvers = {
     },
     activities: async (_, { from, to, utskott, includeHidden }, ctx) => {
       await hasAuthenticated(ctx);
-      const activities = await activityApi.getActivities(from, to, utskott, includeHidden);
+      const activities = await activityApi.getActivities(from, to, utskott, includeHidden ?? false);
 
       return reduce(activities, activityReducer);
     },
