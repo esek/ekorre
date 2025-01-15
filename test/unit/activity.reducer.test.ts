@@ -14,6 +14,7 @@ test('reducing valid DatabaseActivity', () => {
     imageUrl: null,
     locationTitle: 'LocationTestTitle',
     locationLink: 'LocationLinkTest',
+    hidden: false,
   };
 
   const expected: Activity = {
@@ -29,6 +30,7 @@ test('reducing valid DatabaseActivity', () => {
       title: 'LocationTestTitle',
       link: 'LocationLinkTest',
     },
+    hidden: false,
   };
 
   const impossibleActivity: PrismaActivity = {

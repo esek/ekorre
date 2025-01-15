@@ -4,7 +4,7 @@ scalar DateTime
 
 type Query{
     activity(id: String!) : Activity! 
-    activities(from: DateTime!, to: DateTime!, utskott: [Utskott!]!) : [Activity!]! 
+    activities(from: DateTime!, to: DateTime!, utskott: [Utskott!]!, includeHidden: Boolean) : [Activity!]! 
 }
 
 type Mutation{
@@ -23,6 +23,7 @@ type Activity{
     utskott: Utskott!
     imageUrl: String
     location: Location
+    hidden: Boolean!
 }
 
 type Location{
@@ -43,6 +44,7 @@ input NewActivity{
     utskott: Utskott!
     imageUrl: String
     location: NewLocation
+    hidden: Boolean
 }
 
 input ModifiedActivity{
@@ -53,6 +55,7 @@ input ModifiedActivity{
     utskott: Utskott
     imageUrl: String
     location: NewLocation
+    hidden: Boolean
 }
 
 enum ActivitySource{

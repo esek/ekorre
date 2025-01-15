@@ -8,6 +8,10 @@ function getRandomDate(): Date {
   return new Date(randomTime);
 }
 
+function getRandomBool(): boolean {
+  return Math.random() > 0.5;
+}
+
 export const activities: Prisma.PrismaActivityCreateInput[] = [
   {
     utskott: PrismaUtskott.CM,
@@ -18,6 +22,7 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
   {
     utskott: PrismaUtskott.FVU,
@@ -28,6 +33,7 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
   {
     utskott: PrismaUtskott.INFU,
@@ -38,6 +44,7 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
   {
     utskott: PrismaUtskott.KM,
@@ -48,6 +55,7 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
   {
     utskott: PrismaUtskott.NOLLU,
@@ -58,6 +66,7 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
   {
     utskott: PrismaUtskott.ENU,
@@ -68,6 +77,7 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
   {
     utskott: PrismaUtskott.PENGU,
@@ -78,6 +88,7 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
   {
     utskott: PrismaUtskott.E6,
@@ -88,6 +99,7 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
   {
     utskott: PrismaUtskott.SRE,
@@ -98,6 +110,7 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
   {
     utskott: PrismaUtskott.STYRELSEN,
@@ -108,6 +121,7 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
   {
     utskott: PrismaUtskott.OTHER,
@@ -118,5 +132,6 @@ export const activities: Prisma.PrismaActivityCreateInput[] = [
     startDate: getRandomDate(),
     locationTitle: '',
     locationLink: '',
+    hidden: getRandomBool(),
   },
 ];

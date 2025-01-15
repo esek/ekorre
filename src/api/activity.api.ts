@@ -24,21 +24,24 @@ export class ActivityAPI {
     from: Date,
     to: Date,
     utskott: Utskott[] = [Utskott.Other],
+    includeHidden = false,
   ): Promise<PrismaActivity[]> {
+    //Acts where (start < to) && ((end > from) || ((start > from) && (end == null)))
+    const dateFilters = {
+      startDate: { lte: to },
+      OR: [{ endDate: { gte: from } }, { AND: [{ startDate: { gte: from } }, { endDate: null }] }],
+    };
+
+    //Only acts in utskott[]
+    const utskottFilter = { utskott: { in: utskott } };
+
+    //If includeHidden, get all acts, else only the visible ones
+    const hiddenFilter = includeHidden ? {} : { OR: [{ hidden: false }] };
+
     const activities = await prisma.prismaActivity.findMany({
       where: {
-        startDate: {
-          lte: to,
-        },
-        OR: [
-          {
-            endDate: {
-              gte: from,
-            },
-          },
-          { AND: [{ startDate: { gte: from } }, { endDate: null }] },
-        ],
-        AND: { utskott: { in: utskott } },
+        ...dateFilters,
+        AND: [utskottFilter, hiddenFilter],
       },
       orderBy: { startDate: 'asc' },
     });
@@ -72,6 +75,7 @@ export class ActivityAPI {
         imageUrl: activity.imageUrl,
         locationTitle: activity.location?.title,
         locationLink: activity.location?.link,
+        hidden: activity.hidden ?? false,
       },
     });
 

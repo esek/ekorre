@@ -13,6 +13,7 @@ ARG WORKING_DIR
 # Create app directory
 WORKDIR $WORKING_DIR
 
+RUN apk add --no-cache openssl
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # where available (npm@5+)
@@ -44,7 +45,7 @@ WORKDIR $WORKING_DIR
 
 # Best practices
 # https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md
-RUN apk add --no-cache tini bash
+RUN apk add --no-cache tini bash openssl
 ENTRYPOINT [ "/sbin/tini", "--" ]
 
 RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh; chmod +x wait-for-it.sh
