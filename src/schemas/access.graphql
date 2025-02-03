@@ -104,4 +104,6 @@ enum Feature {
     ahs_admin,
     activity_admin
     decibel_admin,
+    booking_admin,
+    booker
 }
