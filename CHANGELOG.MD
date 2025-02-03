@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.16.0] - 2024-02-03
+
+### Tillagt
+- Booker och BoookingAdmin som features
+
 ## [1.15.0]
 - added hidden flag functionality to activities
 - query activities to include or exclude hidden activities
