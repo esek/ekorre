@@ -88,6 +88,7 @@ const featureDescriptions: Record<Feature, string> = {
   [Feature.DecibelAdmin]: 'För att kunna gå in på decibel',
   [Feature.Booker]: 'För att kunna boka på bokaboka',
   [Feature.BookingAdmin]: 'För att kunna administrera bokningar på bokaboka',
+  [Feature.EmmechAdmin]: 'För att kunna administera bilder på emmech',
 };
 
 export const featureReducer = (features: Feature[]): FeatureInfo[] => {
