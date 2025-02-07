@@ -105,5 +105,6 @@ enum Feature {
     activity_admin
     decibel_admin,
     booking_admin,
-    booker
+    booker,
+    emmech_admin
 }
