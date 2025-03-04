@@ -12,7 +12,7 @@ Förhoppningsvis har någon hållit denna README:n uppdaterad...
 Börja med att installera alla node modules med
 ¨
 ```bash
-npm install .
+npm install
 ```
 
 Kopiera `.env.example` till `.env` och fyll i miljövariablerna.

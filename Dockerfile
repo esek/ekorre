@@ -52,7 +52,7 @@ RUN wget https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for
 
 COPY --from=BUILD_IMAGE $WORKING_DIR/. .
 
-EXPOSE 3000
+EXPOSE 3001
 
 # Run using tsconfig-paths to rewrite paths
 CMD ["node", "-r", "ts-node/register/transpile-only", "-r", "tsconfig-paths/register", "build/src/index.js"]
