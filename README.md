@@ -179,3 +179,5 @@ Dessa publiceras sedan till en *registry* som tillhör detta projekt. Dessa bild
 designade för servern (som i skrivande stund är extrovert).
 
 Referera till [ddgwiki](https://ddgwiki.esek.se/index.php?title=CI/CD) för mer information. 
+
+Ha det bra!
