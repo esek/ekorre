@@ -5,7 +5,7 @@
 Ekorre är sektionens nya backend driven av Node och GraphQL och
 skriven i TypeScript.
 
-Förhoppningsvis har någon hållit denna README:n uppdaterad...
+Förhoppningsvis har någon hållit denna README:n uppdaterad!
 
 ## Hur startar jag?
 
