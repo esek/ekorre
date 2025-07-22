@@ -15,4 +15,4 @@ jobs:
     with:
       extended_testing: true
       unlimited_service_deploy: true
-      ekorre: true
+      ekorre_quirk: true
