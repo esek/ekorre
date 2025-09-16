@@ -8,7 +8,7 @@ does not take an `electionId` parameter.
 """
 
 type Query {
-  openElection: Election!
+  openElection: [Election!]!
   latestElections(limit: Int, includeUnopened: Boolean, includeHiddenNominations: Boolean): [Election!]!
   election(electionId: Int!): Election!
   elections(electionIds: [Int!]!): [Election!]!

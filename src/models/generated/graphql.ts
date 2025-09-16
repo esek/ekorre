@@ -979,7 +979,7 @@ export type Query = {
   numberOfNominations: Scalars['Int'];
   numberOfProposals: Scalars['Int'];
   numberOfVolunteers: Scalars['Int'];
-  openElection: Election;
+  openElection: Array<Election>;
   paginatedHehes: PaginatedHehes;
   post: Post;
   postAccess: Access;
@@ -2015,7 +2015,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   numberOfNominations?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfNominationsArgs, 'electionId'>>;
   numberOfProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfProposalsArgs, 'electionId'>>;
   numberOfVolunteers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, Partial<QueryNumberOfVolunteersArgs>>;
-  openElection?: Resolver<ResolversTypes['Election'], ParentType, ContextType>;
+  openElection?: Resolver<Array<ResolversTypes['Election']>, ParentType, ContextType>;
   paginatedHehes?: Resolver<ResolversTypes['PaginatedHehes'], ParentType, ContextType, Partial<QueryPaginatedHehesArgs>>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<QueryPostArgs, 'id'>>;
   postAccess?: Resolver<ResolversTypes['Access'], ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postId'>>;

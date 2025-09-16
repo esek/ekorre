@@ -21,11 +21,13 @@ const electionResolver: Resolvers = {
   Query: {
     openElection: async (_, __, ctx) => {
       await hasAuthenticated(ctx);
-      const e = reduce(await api.getOpenElection(), electionReduce);
-      if (e.id) {
-        ctx.electionDataLoader.prime(e.id, e);
+      const elections = reduce(await api.getOpenElections(), electionReduce);
+      for (const e of elections) {
+        if (e.id) {
+          ctx.electionDataLoader.prime(e.id, e);
+        }
       }
-      return e;
+      return elections;
     },
     latestElections: async (_, { limit, includeUnopened, includeHiddenNominations }, ctx) => {
       await hasAuthenticated(ctx);

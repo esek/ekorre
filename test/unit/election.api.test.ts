@@ -76,7 +76,7 @@ test('finding latest elections with limit', async () => {
 
 test('getting open election', async () => {
   await addDummyElections('aa0000bb-s', true, 3);
-  await expect(api.getOpenElection()).rejects.toThrowError(NotFoundError);
+  await expect(api.getOpenElections()).rejects.toThrowError(NotFoundError);
 
   await prisma.prismaElection.create({
     data: {
@@ -87,13 +87,15 @@ test('getting open election', async () => {
     },
   });
 
-  const openElection = await api.getOpenElection();
+  const openElections = await api.getOpenElections();
 
   // Hantera att SQLite sparar bools som 0 och 1
-  openElection.nominationsHidden = !!openElection.nominationsHidden;
-  openElection.open = !!openElection.open;
+  for (const openElection of openElections) {
+    openElection.nominationsHidden = !!openElection.nominationsHidden;
+    openElection.open = !!openElection.open;
+  }
 
-  expect(openElection).toMatchObject({
+  expect(openElections[0]).toMatchObject({
     refCreator: 'bb1111cc-s',
     nominationsHidden: false,
     open: true,
@@ -425,7 +427,7 @@ test('creating election with previous created, opened, but not closed election',
 test('creating election with previous created, opened and closed election', async () => {
   const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await api.openElection(electionId);
-  await api.closeElection();
+  await api.closeElection(electionId);
 
   // Vårt nya val borde ha förra ID:t + 1
   const { id: newId } = await api.createElection('bb1111cc-s', [], false);
@@ -576,7 +578,7 @@ test('opening already closed election', async () => {
   let [election] = await api.getMultipleElections([electionId]);
   expect(election.open).toBeTruthy();
 
-  await expect(api.closeElection()).resolves.toBeTruthy();
+  await expect(api.closeElection(electionId)).resolves.toBeTruthy();
   [election] = await api.getMultipleElections([electionId]);
   expect(election.open).toBeFalsy();
 
@@ -601,27 +603,6 @@ test('opening already opened election', async () => {
   const [election2] = await api.getMultipleElections([electionId]);
   expect(election2).not.toBeNull();
   expect(election2).toMatchObject(election);
-});
-
-test('closing multiple elections', async () => {
-  // Vi ska egentligen inte ha flera möten
-  // öppna samtidigt, men har någon fuckat med databasen
-  // ska man kunna stänga alla och få en varning
-  await prisma.prismaElection.createMany({
-    data: [
-      {
-        refCreator: 'aa0000bb-s',
-        openedAt: new Date(Date.now() + 100),
-        open: true,
-      },
-      {
-        refCreator: 'bb1111cc-s',
-        openedAt: new Date(Date.now() + 300),
-        open: true,
-      },
-    ],
-  });
-  await expect(api.closeElection()).rejects.toThrowError(ServerError);
 });
 
 test('nominating already done nomination does not overwrite answer', async () => {
@@ -791,7 +772,7 @@ test('respond to valid nomination after election close', async () => {
       answer: NominationAnswer.NotAnswered,
     },
   ]);
-  await expect(api.closeElection()).resolves.toBeTruthy();
+  await expect(api.closeElection(electionId)).resolves.toBeTruthy();
   await expect(api.respondToNomination('aa0000bb-s', 1, NominationAnswer.Yes)).rejects.toThrowError(
     NotFoundError,
   );
