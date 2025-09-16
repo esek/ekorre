@@ -104,9 +104,9 @@ const electionResolver: Resolvers = {
       await hasAccess(ctx, Feature.ElectionAdmin);
       return api.openElection(electionId);
     },
-    closeElection: async (_, _1, ctx) => {
+    closeElection: async (_, { electionId }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.closeElection();
+      return api.closeElection(electionId);
     },
     nominate: async (_, { username, postIds }, ctx) => {
       await hasAuthenticated(ctx);

@@ -31,7 +31,7 @@ type Mutation {
   setElectables(electionId: Int!, postIds: [Int!]!): Boolean!
   setHiddenNominations(electionId: Int!, hidden: Boolean!): Boolean!
   openElection(electionId: Int!): Boolean!
-  closeElection: Boolean!
+  closeElection(electionId: Int!): Boolean!
 
   "Only possible during open election, so electionId is known"
   nominate(username: String!, postIds: [Int!]!): Boolean!

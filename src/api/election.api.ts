@@ -353,12 +353,12 @@ export class ElectionAPI {
   ): Promise<PrismaElection> {
     return prisma.$transaction(async (p) => {
       // We ensure that the last election is closed and over
-      const lastElection = (await this.getLatestElections(1))[0];
-      if (lastElection != null && (lastElection?.open || lastElection?.closedAt == null)) {
-        throw new BadRequestError(
-          'Det finns ett öppet val, eller ett val som väntar på att bli öppnat redan.',
-        );
-      }
+      // const lastElection = (await this.getLatestElections(1))[0];
+      // if (lastElection != null && (lastElection?.open || lastElection?.closedAt == null)) {
+      //   throw new BadRequestError(
+      //     'Det finns ett öppet val, eller ett val som väntar på att bli öppnat redan.',
+      //   );
+      // }
 
       try {
         const createdElection = await p.prismaElection.create({
@@ -544,7 +544,7 @@ export class ElectionAPI {
    * @returns If the elction could be closed without error
    * @throws {ServerError} if more than one election was closed, or something else unexpected happened
    */
-  async closeElection(): Promise<boolean> {
+  async closeElection(electionId: number): Promise<boolean> {
     try {
       const { count } = await prisma.prismaElection.updateMany({
         data: {
@@ -552,6 +552,7 @@ export class ElectionAPI {
           open: false,
         },
         where: {
+          id: electionId,
           open: true,
         },
       });

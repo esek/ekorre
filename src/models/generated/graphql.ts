@@ -530,6 +530,11 @@ export type MutationChangePasswordArgs = {
 };
 
 
+export type MutationCloseElectionArgs = {
+  electionId: Scalars['Int'];
+};
+
+
 export type MutationCreateApiKeyArgs = {
   description: Scalars['String'];
 };
@@ -1874,7 +1879,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   casCreateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   changePassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationChangePasswordArgs, 'newPassword' | 'oldPassword'>>;
-  closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCloseElectionArgs, 'electionId'>>;
   createApiKey?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateApiKeyArgs, 'description'>>;
   createElection?: Resolver<ResolversTypes['Election'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
   createFolder?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
