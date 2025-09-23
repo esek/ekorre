@@ -76,7 +76,7 @@ test('finding latest elections with limit', async () => {
 
 test('getting open election', async () => {
   await addDummyElections('aa0000bb-s', true, 3);
-  await expect(api.getOpenElections()).rejects.toThrowError(NotFoundError);
+  expect(await api.getOpenElections()).toEqual([]);
 
   await prisma.prismaElection.create({
     data: {
@@ -405,22 +405,22 @@ test('creating election returns its ID', async () => {
 
 test('creating election with created, but never opened, previous election', async () => {
   await api.createElection('aa0000bb-s', [], false);
-  await expect(api.createElection('bb1111cc-s', [], false)).rejects.toThrowError(BadRequestError);
+  await api.createElection('bb1111cc-s', [], false);
 
-  // Vi vill se till att ett nytt val faktiskt inte skapades
+  // Vi vill se till att ett nytt val faktiskt skapades
   expect((await api.getLatestElections(1))[0]).toMatchObject({
-    refCreator: 'aa0000bb-s',
+    refCreator: 'bb1111cc-s',
   });
 });
 
 test('creating election with previous created, opened, but not closed election', async () => {
   const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await api.openElection(electionId);
-  await expect(api.createElection('bb1111cc-s', [], false)).rejects.toThrowError(BadRequestError);
+  await api.createElection('bb1111cc-s', [], false);
 
-  // Vi vill se till att ett nytt val faktiskt inte skapades
+  // Vi vill se till att ett nytt val faktiskt skapades
   expect((await api.getLatestElections(1))[0]).toMatchObject({
-    refCreator: 'aa0000bb-s',
+    refCreator: 'bb1111cc-s',
   });
 });
 
