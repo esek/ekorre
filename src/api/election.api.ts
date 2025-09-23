@@ -599,7 +599,7 @@ export class ElectionAPI {
         },
       });
 
-      if (openElectionsRes == null) {
+      if (openElectionsRes.length === 0) {
         throw new NotFoundError('Det finns inget öppet val');
       }
 
@@ -607,14 +607,12 @@ export class ElectionAPI {
         const electablePostIds = openElectionRes.electables.map((e) => e.refPost);
 
         if (electablePostIds.length === 0) {
-          continue;
           throw new BadRequestError('Det öppna valet har inga valbara poster');
         }
 
         const filteredPostIds = postIds.filter((e) => electablePostIds.includes(e));
 
         if (filteredPostIds.length === 0) {
-          continue;
           throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
         }
 
