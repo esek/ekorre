@@ -585,6 +585,11 @@ export class ElectionAPI {
       const openElectionsRes = await prisma.prismaElection.findMany({
         where: {
           open: true,
+          electables: {
+            some: {
+              refPost: { in: postIds },
+            },
+          },
         },
         select: {
           id: true,
@@ -600,21 +605,13 @@ export class ElectionAPI {
       });
 
       if (openElectionsRes.length === 0) {
-        throw new NotFoundError('Det finns inget öppet val');
+        throw new BadRequestError('Det finns inget öppet val med den angivna posten');
       }
 
       for (const openElectionRes of openElectionsRes) {
         const electablePostIds = openElectionRes.electables.map((e) => e.refPost);
 
-        if (electablePostIds.length === 0) {
-          throw new BadRequestError('Det öppna valet har inga valbara poster');
-        }
-
         const filteredPostIds = postIds.filter((e) => electablePostIds.includes(e));
-
-        if (filteredPostIds.length === 0) {
-          throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
-        }
 
         try {
           // If nominations already exists, ignore them without throwing

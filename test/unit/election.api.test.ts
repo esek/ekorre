@@ -690,7 +690,7 @@ test('nominating mixed valid and invalid postnames', async () => {
 
 test('nominating with no open elections', async () => {
   await api.createElection('aa0000bb-s', [1], false);
-  await expect(api.nominate('aa0000bb-s', [1])).rejects.toThrowError(NotFoundError);
+  await expect(api.nominate('aa0000bb-s', [1])).rejects.toThrowError(BadRequestError);
 });
 
 test('respond to nomination', async () => {
