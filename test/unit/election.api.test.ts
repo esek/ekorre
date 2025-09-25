@@ -90,10 +90,10 @@ test('getting open election', async () => {
   const openElections = await api.getOpenElections();
 
   // Hantera att SQLite sparar bools som 0 och 1
-  for (const openElection of openElections) {
+  openElections.forEach((openElection) => {
     openElection.nominationsHidden = !!openElection.nominationsHidden;
     openElection.open = !!openElection.open;
-  }
+  });
 
   expect(openElections[0]).toMatchObject({
     refCreator: 'bb1111cc-s',

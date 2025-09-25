@@ -22,11 +22,11 @@ const electionResolver: Resolvers = {
     openElection: async (_, __, ctx) => {
       await hasAuthenticated(ctx);
       const elections = reduce(await api.getOpenElections(), electionReduce);
-      for (const e of elections) {
+      elections.forEach((e) => {
         if (e.id) {
           ctx.electionDataLoader.prime(e.id, e);
         }
-      }
+      });
       return elections;
     },
     latestElections: async (_, { limit, includeUnopened, includeHiddenNominations }, ctx) => {

@@ -608,7 +608,7 @@ export class ElectionAPI {
         throw new BadRequestError('Det finns inget öppet val med den angivna posten');
       }
 
-      for (const openElectionRes of openElectionsRes) {
+      openElectionsRes.forEach(async (openElectionRes) => {
         const electablePostIds = openElectionRes.electables.map((e) => e.refPost);
 
         const filteredPostIds = postIds.filter((e) => electablePostIds.includes(e));
@@ -635,7 +635,7 @@ export class ElectionAPI {
           );
           throw new ServerError('Kunde inte nominera till alla poster');
         }
-      }
+      });
     });
 
     return true;
