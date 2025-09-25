@@ -3,19 +3,26 @@
 Alla märkbara ändringar ska dokumenteras i denna fil.
 
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
-## [1.18.0] - 2024-02-18
+## [1.19.0] - 2025-09-23
+
+### Ändrat
+- Tillåter att flera val samtidigt är aktiva
+- GraphQL query openElection returnerar nu en lista av öppna val istället för endast ett. `Election! -> [Election!]!`
+- GraphQL query closeElection kräver ID:t av valet som ska stängas. `closeElection -> closeElection(electionId: Int!)`
+
+## [1.18.0] - 2025-02-18
 
 ### Ändrat
 - Flyttade aktiviteter utanför medlemsfliken
 
-## [1.17.0] - 2024-02-14
+## [1.17.0] - 2025-02-14
 
 ### Tillagt
 - EmmechAdmin som feature
 
-## [1.16.0] - 2024-02-03
+## [1.16.0] - 2025-02-03
 
 ### Tillagt
 - Booker och BoookingAdmin som features

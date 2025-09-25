@@ -21,11 +21,13 @@ const electionResolver: Resolvers = {
   Query: {
     openElection: async (_, __, ctx) => {
       await hasAuthenticated(ctx);
-      const e = reduce(await api.getOpenElection(), electionReduce);
-      if (e.id) {
-        ctx.electionDataLoader.prime(e.id, e);
-      }
-      return e;
+      const elections = reduce(await api.getOpenElections(), electionReduce);
+      elections.forEach((e) => {
+        if (e.id) {
+          ctx.electionDataLoader.prime(e.id, e);
+        }
+      });
+      return elections;
     },
     latestElections: async (_, { limit, includeUnopened, includeHiddenNominations }, ctx) => {
       await hasAuthenticated(ctx);
@@ -104,9 +106,9 @@ const electionResolver: Resolvers = {
       await hasAccess(ctx, Feature.ElectionAdmin);
       return api.openElection(electionId);
     },
-    closeElection: async (_, _1, ctx) => {
+    closeElection: async (_, { electionId }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.closeElection();
+      return api.closeElection(electionId);
     },
     nominate: async (_, { username, postIds }, ctx) => {
       await hasAuthenticated(ctx);

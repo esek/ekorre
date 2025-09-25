@@ -530,6 +530,11 @@ export type MutationChangePasswordArgs = {
 };
 
 
+export type MutationCloseElectionArgs = {
+  electionId: Scalars['Int'];
+};
+
+
 export type MutationCreateApiKeyArgs = {
   description: Scalars['String'];
 };
@@ -974,7 +979,7 @@ export type Query = {
   numberOfNominations: Scalars['Int'];
   numberOfProposals: Scalars['Int'];
   numberOfVolunteers: Scalars['Int'];
-  openElection: Election;
+  openElection: Array<Election>;
   paginatedHehes: PaginatedHehes;
   post: Post;
   postAccess: Access;
@@ -1874,7 +1879,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   casCreateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   changePassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationChangePasswordArgs, 'newPassword' | 'oldPassword'>>;
-  closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  closeElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCloseElectionArgs, 'electionId'>>;
   createApiKey?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateApiKeyArgs, 'description'>>;
   createElection?: Resolver<ResolversTypes['Election'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
   createFolder?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
@@ -2010,7 +2015,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   numberOfNominations?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfNominationsArgs, 'electionId'>>;
   numberOfProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfProposalsArgs, 'electionId'>>;
   numberOfVolunteers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, Partial<QueryNumberOfVolunteersArgs>>;
-  openElection?: Resolver<ResolversTypes['Election'], ParentType, ContextType>;
+  openElection?: Resolver<Array<ResolversTypes['Election']>, ParentType, ContextType>;
   paginatedHehes?: Resolver<ResolversTypes['PaginatedHehes'], ParentType, ContextType, Partial<QueryPaginatedHehesArgs>>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<QueryPostArgs, 'id'>>;
   postAccess?: Resolver<ResolversTypes['Access'], ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postId'>>;

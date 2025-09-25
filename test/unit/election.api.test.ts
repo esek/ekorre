@@ -76,7 +76,7 @@ test('finding latest elections with limit', async () => {
 
 test('getting open election', async () => {
   await addDummyElections('aa0000bb-s', true, 3);
-  await expect(api.getOpenElection()).rejects.toThrowError(NotFoundError);
+  expect(await api.getOpenElections()).toEqual([]);
 
   await prisma.prismaElection.create({
     data: {
@@ -87,13 +87,15 @@ test('getting open election', async () => {
     },
   });
 
-  const openElection = await api.getOpenElection();
+  const openElections = await api.getOpenElections();
 
   // Hantera att SQLite sparar bools som 0 och 1
-  openElection.nominationsHidden = !!openElection.nominationsHidden;
-  openElection.open = !!openElection.open;
+  openElections.forEach((openElection) => {
+    openElection.nominationsHidden = !!openElection.nominationsHidden;
+    openElection.open = !!openElection.open;
+  });
 
-  expect(openElection).toMatchObject({
+  expect(openElections[0]).toMatchObject({
     refCreator: 'bb1111cc-s',
     nominationsHidden: false,
     open: true,
@@ -403,29 +405,29 @@ test('creating election returns its ID', async () => {
 
 test('creating election with created, but never opened, previous election', async () => {
   await api.createElection('aa0000bb-s', [], false);
-  await expect(api.createElection('bb1111cc-s', [], false)).rejects.toThrowError(BadRequestError);
+  await api.createElection('bb1111cc-s', [], false);
 
-  // Vi vill se till att ett nytt val faktiskt inte skapades
+  // Vi vill se till att ett nytt val faktiskt skapades
   expect((await api.getLatestElections(1))[0]).toMatchObject({
-    refCreator: 'aa0000bb-s',
+    refCreator: 'bb1111cc-s',
   });
 });
 
 test('creating election with previous created, opened, but not closed election', async () => {
   const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await api.openElection(electionId);
-  await expect(api.createElection('bb1111cc-s', [], false)).rejects.toThrowError(BadRequestError);
+  await api.createElection('bb1111cc-s', [], false);
 
-  // Vi vill se till att ett nytt val faktiskt inte skapades
+  // Vi vill se till att ett nytt val faktiskt skapades
   expect((await api.getLatestElections(1))[0]).toMatchObject({
-    refCreator: 'aa0000bb-s',
+    refCreator: 'bb1111cc-s',
   });
 });
 
 test('creating election with previous created, opened and closed election', async () => {
   const { id: electionId } = await api.createElection('aa0000bb-s', [], false);
   await api.openElection(electionId);
-  await api.closeElection();
+  await api.closeElection(electionId);
 
   // Vårt nya val borde ha förra ID:t + 1
   const { id: newId } = await api.createElection('bb1111cc-s', [], false);
@@ -576,7 +578,7 @@ test('opening already closed election', async () => {
   let [election] = await api.getMultipleElections([electionId]);
   expect(election.open).toBeTruthy();
 
-  await expect(api.closeElection()).resolves.toBeTruthy();
+  await expect(api.closeElection(electionId)).resolves.toBeTruthy();
   [election] = await api.getMultipleElections([electionId]);
   expect(election.open).toBeFalsy();
 
@@ -601,27 +603,6 @@ test('opening already opened election', async () => {
   const [election2] = await api.getMultipleElections([electionId]);
   expect(election2).not.toBeNull();
   expect(election2).toMatchObject(election);
-});
-
-test('closing multiple elections', async () => {
-  // Vi ska egentligen inte ha flera möten
-  // öppna samtidigt, men har någon fuckat med databasen
-  // ska man kunna stänga alla och få en varning
-  await prisma.prismaElection.createMany({
-    data: [
-      {
-        refCreator: 'aa0000bb-s',
-        openedAt: new Date(Date.now() + 100),
-        open: true,
-      },
-      {
-        refCreator: 'bb1111cc-s',
-        openedAt: new Date(Date.now() + 300),
-        open: true,
-      },
-    ],
-  });
-  await expect(api.closeElection()).rejects.toThrowError(ServerError);
 });
 
 test('nominating already done nomination does not overwrite answer', async () => {
@@ -709,7 +690,7 @@ test('nominating mixed valid and invalid postnames', async () => {
 
 test('nominating with no open elections', async () => {
   await api.createElection('aa0000bb-s', [1], false);
-  await expect(api.nominate('aa0000bb-s', [1])).rejects.toThrowError(NotFoundError);
+  await expect(api.nominate('aa0000bb-s', [1])).rejects.toThrowError(BadRequestError);
 });
 
 test('respond to nomination', async () => {
@@ -791,7 +772,7 @@ test('respond to valid nomination after election close', async () => {
       answer: NominationAnswer.NotAnswered,
     },
   ]);
-  await expect(api.closeElection()).resolves.toBeTruthy();
+  await expect(api.closeElection(electionId)).resolves.toBeTruthy();
   await expect(api.respondToNomination('aa0000bb-s', 1, NominationAnswer.Yes)).rejects.toThrowError(
     NotFoundError,
   );

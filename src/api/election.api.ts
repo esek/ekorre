@@ -63,8 +63,8 @@ export class ElectionAPI {
    * Retrieves the latest meeting marked as `open`
    * @throws `NotFoundError`
    */
-  async getOpenElection(): Promise<PrismaElection> {
-    const e = await prisma.prismaElection.findFirst({
+  async getOpenElections(): Promise<PrismaElection[]> {
+    const e = await prisma.prismaElection.findMany({
       where: {
         open: true,
       },
@@ -352,14 +352,6 @@ export class ElectionAPI {
     nominationsHidden: boolean,
   ): Promise<PrismaElection> {
     return prisma.$transaction(async (p) => {
-      // We ensure that the last election is closed and over
-      const lastElection = (await this.getLatestElections(1))[0];
-      if (lastElection != null && (lastElection?.open || lastElection?.closedAt == null)) {
-        throw new BadRequestError(
-          'Det finns ett öppet val, eller ett val som väntar på att bli öppnat redan.',
-        );
-      }
-
       try {
         const createdElection = await p.prismaElection.create({
           data: {
@@ -544,7 +536,7 @@ export class ElectionAPI {
    * @returns If the elction could be closed without error
    * @throws {ServerError} if more than one election was closed, or something else unexpected happened
    */
-  async closeElection(): Promise<boolean> {
+  async closeElection(electionId: number): Promise<boolean> {
     try {
       const { count } = await prisma.prismaElection.updateMany({
         data: {
@@ -552,6 +544,7 @@ export class ElectionAPI {
           open: false,
         },
         where: {
+          id: electionId,
           open: true,
         },
       });
@@ -589,9 +582,14 @@ export class ElectionAPI {
     await prisma.$transaction(async () => {
       // We want to minimize time blocked by this transaction, so we use
       // a special query
-      const openElectionRes = await prisma.prismaElection.findFirst({
+      const openElectionsRes = await prisma.prismaElection.findMany({
         where: {
           open: true,
+          electables: {
+            some: {
+              refPost: { in: postIds },
+            },
+          },
         },
         select: {
           id: true,
@@ -601,49 +599,42 @@ export class ElectionAPI {
             },
           },
         },
-        // Should only be one, but let's make sure
         orderBy: {
           createdAt: 'asc',
         },
       });
 
-      if (openElectionRes == null) {
-        throw new NotFoundError('Det finns inget öppet val');
+      if (openElectionsRes.length === 0) {
+        throw new BadRequestError('Det finns inget öppet val med den angivna posten');
       }
 
-      const electablePostIds = openElectionRes.electables.map((e) => e.refPost);
+      for (const openElectionRes of openElectionsRes) {
+        const electablePostIds = openElectionRes.electables.map((e) => e.refPost);
 
-      if (electablePostIds.length === 0) {
-        throw new BadRequestError('Det öppna valet har inga valbara poster');
-      }
+        const filteredPostIds = postIds.filter((e) => electablePostIds.includes(e));
 
-      const filteredPostIds = postIds.filter((e) => electablePostIds.includes(e));
-
-      if (filteredPostIds.length === 0) {
-        throw new BadRequestError('Ingen av de angivna posterna är valbara i detta val');
-      }
-
-      try {
-        // If nominations already exists, ignore them without throwing
-        // errors to not reveal possibly hidden nominations
-        await prisma.prismaNomination.createMany({
-          skipDuplicates: true, // Ignore on collision
-          data: filteredPostIds.map((postId) => {
-            return {
-              refElection: openElectionRes.id,
-              refUser: username,
-              refPost: postId,
-              answer: PrismaNominationAnswer.NOT_ANSWERED,
-            };
-          }),
-        });
-      } catch (err) {
-        logger.debug(
-          `Could not insert all nominations for election with ID ${
-            openElectionRes.id
-          } due to error:\n\t${JSON.stringify(err)}`,
-        );
-        throw new ServerError('Kunde inte nominera till alla poster');
+        try {
+          // If nominations already exists, ignore them without throwing
+          // errors to not reveal possibly hidden nominations
+          await prisma.prismaNomination.createMany({
+            skipDuplicates: true, // Ignore on collision
+            data: filteredPostIds.map((postId) => {
+              return {
+                refElection: openElectionRes.id,
+                refUser: username,
+                refPost: postId,
+                answer: PrismaNominationAnswer.NOT_ANSWERED,
+              };
+            }),
+          });
+        } catch (err) {
+          logger.debug(
+            `Could not insert all nominations for election with ID ${
+              openElectionRes.id
+            } due to error:\n\t${JSON.stringify(err)}`,
+          );
+          throw new ServerError('Kunde inte nominera till alla poster');
+        }
       }
     });
 
@@ -655,27 +646,27 @@ export class ElectionAPI {
     postId: number,
     answer: NominationAnswer,
   ): Promise<boolean> {
-    const openElection = await this.getOpenElection();
+    const openElections = await this.getOpenElections();
 
-    try {
-      await prisma.prismaNomination.update({
-        data: {
-          answer,
-        },
+    let updated = false;
+
+    for (const openElection of openElections) {
+      const updatedEntries = await prisma.prismaNomination.updateMany({
+        data: { answer },
         where: {
-          // These three are unique as a combination
-          refElection_refPost_refUser: {
-            refElection: openElection.id,
-            refUser: username,
-            refPost: postId,
-          },
+          refElection: openElection.id,
+          refUser: username,
+          refPost: postId,
         },
       });
-
-      return true;
-    } catch {
-      throw new NotFoundError('Kunde inte hitta nomineringen!');
+      if (updatedEntries.count != 0) updated = true;
     }
+
+    if (updated) {
+      return true;
+    }
+
+    throw new NotFoundError('Kunde inte hitta nomineringen!');
   }
 
   /**

@@ -8,7 +8,7 @@ does not take an `electionId` parameter.
 """
 
 type Query {
-  openElection: Election!
+  openElection: [Election!]!
   latestElections(limit: Int, includeUnopened: Boolean, includeHiddenNominations: Boolean): [Election!]!
   election(electionId: Int!): Election!
   elections(electionIds: [Int!]!): [Election!]!
@@ -31,7 +31,7 @@ type Mutation {
   setElectables(electionId: Int!, postIds: [Int!]!): Boolean!
   setHiddenNominations(electionId: Int!, hidden: Boolean!): Boolean!
   openElection(electionId: Int!): Boolean!
-  closeElection: Boolean!
+  closeElection(electionId: Int!): Boolean!
 
   "Only possible during open election, so electionId is known"
   nominate(username: String!, postIds: [Int!]!): Boolean!

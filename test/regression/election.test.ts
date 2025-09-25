@@ -71,20 +71,24 @@ test('getting nominations when nominations are hidden', async () => {
   // Nomineringar är dolda,clear så man ska inte kunna
   // få ut accepterade nomineringar om man inte
   // är valadmin och använder `hiddenNominations`-querien
-  expect(data?.data?.openElection).toMatchObject({
-    id: electionId,
-    acceptedNominations: [],
-  });
+  expect(data?.data?.openElection).toMatchObject([
+    {
+      id: electionId,
+      acceptedNominations: [],
+    },
+  ]);
 
   // Om nomineringar görs öppna kan man hitta dem!
   await expect(api.setHiddenNominations(electionId, false)).resolves.toBeTruthy();
 
   data = await requestWithAuth(ELECTION_QUERY, {}, token);
-  expect(data?.data?.openElection).toMatchObject({
-    id: electionId,
-  });
+  expect(data?.data?.openElection).toMatchObject([
+    {
+      id: electionId,
+    },
+  ]);
 
-  const { acceptedNominations } = data?.data.openElection as ElectionResponse;
+  const { acceptedNominations } = (data?.data.openElection as ElectionResponse[])[0];
 
   // För att göra typescript glad
   if (acceptedNominations == null) throw new Error('Should no longer be null');
