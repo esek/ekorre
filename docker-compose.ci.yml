@@ -31,3 +31,4 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: example
       POSTGRES_DB: ekorre_ci
+    restart: unless-stopped
