@@ -1,9 +1,15 @@
 const { compilerOptions } = require('./tsconfig.json');
 const { pathsToModuleNameMapper } = require('ts-jest');
 
+const commonOptions = {
+  preset: 'ts-jest/presets/default',
+  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>' }),
+}
+
+const serialTests = ['test/regression/election.test.ts', 'test/unit/election.api.test.ts']
+
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
-  preset: 'ts-jest/presets/default',
   testEnvironment: 'node',
   collectCoverage: false,
   maxWorkers: '90%',
@@ -11,5 +17,18 @@ module.exports = {
   // eller resolvers
   collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '!src/**/*.{d}.ts', '!src/models/generated/*'], // Ignore .d and generated files
   setupFiles: ['dotenv/config'], // Så jest kommer åt .env
-  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>' }),
+  projects: [
+    {
+      ...commonOptions,
+      displayName: "serial-tests",
+      runner: "jest-serial-runner",
+      testRegex: serialTests,
+    },
+    {
+      ...commonOptions,
+      displayName: "parallel-tests",
+      testMatch: ['**/*.test.ts'],
+      testPathIgnorePatterns: serialTests,
+    },
+  ]
 };
