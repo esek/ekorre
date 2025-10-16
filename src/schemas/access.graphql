@@ -106,5 +106,8 @@ enum Feature {
     decibel_admin,
     booking_admin,
     booker,
-    emmech_admin
+    emmech_admin,
+    bal_admin,
+    expo_admin,
+    salmonella_admin
 }
