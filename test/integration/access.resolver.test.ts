@@ -55,8 +55,8 @@ test('setting and getting full access of user', async () => {
       {
         username: mockUser.username,
         access: {
-          features: [Feature.AccessAdmin],
-          doors: [Door.Bd],
+          doorEndDates: [{ resource:Door.Bd, endDate:null}],
+          featureEndDates:[{ resource:Feature.AccessAdmin, endDate:null}],
         },
       },
       superadminToken,
@@ -66,8 +66,8 @@ test('setting and getting full access of user', async () => {
       {
         postId: mockPost.id,
         access: {
-          features: [Feature.Superadmin],
-          doors: [Door.Hk],
+          doorEndDates: [{ resource:Door.Hk, endDate:null}],
+          featureEndDates:[{ resource:Feature.Superadmin, endDate:null}],
         },
       },
       superadminToken,

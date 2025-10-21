@@ -1,6 +1,6 @@
 {
     "name": "ekorre-ts",
-    "version": "1.19.1",
+    "version": "1.20.0",
     "description": "E-Sektionens backend",
     "main": "src/index.ts",
     "scripts": {
@@ -19,6 +19,7 @@
         "benchmark": "ts-node tools/benchmark/index.ts",
         "prisma:ci": "prisma generate && prisma db push --accept-data-loss && prisma db seed",
         "prisma:reset": "prisma migrate reset --skip-seed && prisma db push && prisma db seed",
+        "prisma:force-reset": "prisma migrate reset --skip-seed --force && prisma db push && prisma db seed",
         "prisma:generate": "prisma generate",
         "prisma:push": "prisma db push",
         "prisma:migrate": "prisma migrate dev",

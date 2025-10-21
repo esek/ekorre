@@ -7,6 +7,7 @@ import {
   accessLogIndividualAccessReducer,
   accessLogPostReducer,
   accessReducer,
+  accessEndDateReducer,
   doorReducer,
   featureReducer,
 } from '@reducer/access';
@@ -41,11 +42,23 @@ const accessresolver: Resolvers = {
 
       return accessReducer(access);
     },
+    individualAccessEndDate: async (_, { username }, ctx) => {
+      await hasAuthenticated(ctx);
+      const access = await accessApi.getIndividualAccess(username);
+
+      return accessEndDateReducer(access);
+    },
     postAccess: async (_, { postId }, ctx) => {
       await hasAuthenticated(ctx);
       const access = await accessApi.getPostAccess(postId);
 
       return accessReducer(access);
+    },
+    postAccessEndDate: async (_, { postId }, ctx) => {
+      await hasAuthenticated(ctx);
+      const access = await accessApi.getPostAccess(postId);
+
+      return accessEndDateReducer(access);
     },
     postAccessLogs: async (_, _params, ctx) => {
       await hasAccess(ctx, Feature.AccessAdmin);

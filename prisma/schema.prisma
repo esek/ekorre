@@ -14,6 +14,7 @@ model PrismaIndividualAccess {
   refUser      String             @map("ref_user")
   resourceType PrismaResourceType @map("resource_type")
   resource     String
+  endDate      DateTime?          @map("end_date")
 
   @@map("individual_accesses")
 }
@@ -26,6 +27,7 @@ model PrismaIndividualAccessLog {
   refTarget    String             @map("ref_target")
   resourceType PrismaResourceType @map("resource_type")
   resource     String
+  endDate      DateTime?          @map("end_date")
   isActive     Boolean            @map("is_active")
   timestamp    DateTime           @default(now())
 
@@ -75,6 +77,7 @@ model PrismaPostAccess {
   refPost      Int                @map("ref_post")
   resourceType PrismaResourceType @map("resource_type")
   resource     String
+  endDate      DateTime?          @map("end_date")
 
   @@map("post_accesses")
 }
@@ -87,6 +90,7 @@ model PrismaPostAccessLog {
   refTarget    Int                @map("ref_target")
   resourceType PrismaResourceType @map("resource_type")
   resource     String
+  endDate      DateTime?          @map("end_date")
   isActive     Boolean            @map("is_active")
   timestamp    DateTime           @default(now())
 
