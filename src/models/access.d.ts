@@ -5,6 +5,12 @@ export type AccessEntry = {
   resourceType: PrismaResourceType;
 };
 
+export type AccessEndDateEntry = {
+  resource: string;
+  resourceType: PrismaResourceType;
+  endDate: Date | null;
+}
+
 export type AccessLogEntry<T = number | string> = {
   refGrantor: string;
   refTarget: T;

@@ -4,7 +4,9 @@
 scalar Date
 type Query {
     individualAccess(username: String!): Access!
+    individualAccessEndDate(username: String!): AccessEndDate!
     postAccess(postId: Int!): Access!
+    postAccessEndDate(postId: Int!): AccessEndDate!
     features: [FeatureInfo!]!
     doors: [DoorInfo!]!
     postAccessLogs: [AccessLogPost!]!
@@ -12,8 +14,8 @@ type Query {
 }
 
 type Mutation {
-    setIndividualAccess(username: String!, access: AccessInput!): Boolean!
-    setPostAccess(postId: Int!, access: AccessInput!): Boolean!
+    setIndividualAccess(username: String!, access: AccessEndDateInput!): Boolean!
+    setPostAccess(postId: Int!, access: AccessEndDateInput!): Boolean!
     setApiKeyAccess(key: String!, access: AccessInput!): Boolean!
 }
 
@@ -35,6 +37,16 @@ input AccessInput {
     features: [Feature!]!
 }
 
+type AccessEndDate {
+    doorEndDates: [DoorEndDate!]!
+    featureEndDates: [FeatureEndDate!]!
+}
+
+input AccessEndDateInput {
+    doorEndDates: [DoorEndDateInput!]!
+    featureEndDates: [FeatureEndDateInput!]!
+}
+
 type FeatureInfo {
     name: Feature!
     description: String!
@@ -45,11 +57,32 @@ type DoorInfo {
     description: String!
 }
 
+type FeatureEndDate {
+    resource: Feature!
+    endDate: Date
+}
+
+input FeatureEndDateInput {
+    resource: Feature!
+    endDate: Date
+}
+
+type DoorEndDate {
+    resource: Door!
+    endDate: Date
+}
+
+input DoorEndDateInput {
+    resource: Door!
+    endDate: Date
+}
+
 type AccessLogPost {
     grantor: User!
     target: Post!
     resourceType: AccessResourceType!
     resource: String!
+    endDate: Date
     "if the target has the access after the transaction or not"
     isActive: Boolean!
     timestamp: Date!
@@ -60,6 +93,7 @@ type AccessLogIndividualAccess {
     target: User!
     resourceType: AccessResourceType!
     resource: String!
+    endDate: Date
     "if the target has the access after the transaction or not"
     isActive: Boolean!
     timestamp: Date!

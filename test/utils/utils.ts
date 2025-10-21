@@ -3,7 +3,7 @@ import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
 import { UserAPI } from '@api/user';
 import { postApi } from '@dataloader/post';
-import { Feature, NewPost, NewUser, PostType, Utskott } from '@generated/graphql';
+import { FeatureEndDateInput, Feature, NewPost, NewUser, PostType, Utskott, DoorEndDateInput } from '@generated/graphql';
 import { PrismaUser, PrismaPost } from '@prisma/client';
 
 /**
@@ -73,7 +73,9 @@ const accessApi = new AccessAPI();
 export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, NOOP] => {
   const create = async () => {
     await userApi.createUser(userInfo);
-    await accessApi.setIndividualAccess(userInfo.username, { features: access, doors: [] }, userInfo.username);
+    await accessApi.setIndividualAccess(userInfo.username, 
+                                        {doorEndDates: [], featureEndDates:access.map((a) => ({ feature:a, endDate:null })) as FeatureEndDateInput[]},
+                                        userInfo.username);
   };
 
   const remove = async () => {
@@ -121,7 +123,9 @@ export const genRandomUser = (
       console.log('Attempt to create random user failed, trying again...');
       return create();
     }
-    await accessApi.setIndividualAccess(createdUser.username, { features: access, doors: [] }, createdUser.username);
+    await accessApi.setIndividualAccess(createdUser.username, 
+                                        {doorEndDates: [], featureEndDates:access.map((a) => ({ feature:a, endDate:null })) as FeatureEndDateInput[]}, 
+                                        createdUser.username);
     return createdUser;
   };
 
