@@ -74,7 +74,7 @@ export const genUserWithAccess = (userInfo: NewUser, access: Feature[]): [NOOP, 
   const create = async () => {
     await userApi.createUser(userInfo);
     await accessApi.setIndividualAccess(userInfo.username, 
-                                        {doorEndDates: [], featureEndDates:access.map((a) => ({ feature:a, endDate:null })) as FeatureEndDateInput[]},
+                                        {doorEndDates: [], featureEndDates:access.map((a) => ({ resource:a, endDate:null })) as FeatureEndDateInput[]},
                                         userInfo.username);
   };
 
@@ -124,7 +124,7 @@ export const genRandomUser = (
       return create();
     }
     await accessApi.setIndividualAccess(createdUser.username, 
-                                        {doorEndDates: [], featureEndDates:access.map((a) => ({ feature:a, endDate:null })) as FeatureEndDateInput[]}, 
+                                        {doorEndDates: [], featureEndDates:access.map((a) => ({ resource:a, endDate:null })) as FeatureEndDateInput[]}, 
                                         createdUser.username);
     return createdUser;
   };
