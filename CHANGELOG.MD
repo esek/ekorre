@@ -3,7 +3,12 @@
 Alla märkbara ändringar ska dokumenteras i denna fil.
 
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
+och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.20.0] - 2025-10-21
+
+### Ändrat
+- Lägg till slutdatum for Dörr och Feature åtgång
 
 ## [1.19.1] - 2025-10-16
 

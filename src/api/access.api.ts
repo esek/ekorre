@@ -1,9 +1,9 @@
 import { PostAPI } from '@/api/post.api';
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { AccessEntry, AccessLogEntry } from '@/models/access';
+import { AccessEntry, AccessEndDateEntry, AccessLogEntry } from '@/models/access';
 import { devGuard } from '@/util';
-import { AccessInput, Door, Feature } from '@generated/graphql';
+import { AccessInput, AccessEndDateInput, Door, Feature } from '@generated/graphql';
 import {
   Prisma,
   PrismaApiKeyAccess,
@@ -28,13 +28,20 @@ const postApi = new PostAPI();
  */
 export class AccessAPI {
   /**
-   * Get specific access for an user in alphabetical order
+   * Get specific access for a user in alphabetical order
    * @param username Username for the user
    */
   async getIndividualAccess(username: string): Promise<PrismaIndividualAccess[]> {
     const access = await prisma.prismaIndividualAccess.findMany({
       where: {
         refUser: username,
+        OR: [ 
+          {
+            endDate:{ gte:new Date() } 
+          }, {
+            endDate: null,
+          },
+        ],
       },
       orderBy: {
         resource: 'asc',
@@ -52,6 +59,13 @@ export class AccessAPI {
     const access = await prisma.prismaPostAccess.findMany({
       where: {
         refPost: postId,
+        OR: [ 
+          {
+            endDate:{ gte:new Date() } 
+          }, {
+            endDate: null,
+          },
+        ],
       },
       orderBy: {
         resource: 'asc',
@@ -149,35 +163,37 @@ export class AccessAPI {
    * **IMPORTANT**: Access is immutable, which means that the provided access object
    * must contain all individual access desired for the user
    * @param username Username for the user
-   * @param newAccess The new individual access for this user
+   * @param newAccess The new individual access including end date for this user
    */
-  async setIndividualAccess(
+async setIndividualAccess(
     username: string,
-    newAccess: AccessInput,
+    newAccess: AccessEndDateInput,
     grantor: string,
   ): Promise<boolean> {
-    const { doors, features } = newAccess;
+    const { doorEndDates, featureEndDates } = newAccess;
     const access: Prisma.PrismaIndividualAccessUncheckedCreateInput[] = [];
 
-    doors.forEach((door) => {
-      if (!Object.values(Door).includes(door)) {
-        throw new ServerError(`${door} är inte en känd dörr`);
+    doorEndDates.forEach((doorEndDate) => {
+      if (!Object.values(Door).includes(doorEndDate.resource)) {
+        throw new ServerError(`${doorEndDate.resource} är inte en känd dörr`);
       }
       access.push({
         refUser: username,
         resourceType: PrismaResourceType.door,
-        resource: door as string,
+        resource: doorEndDate.resource,
+        endDate: doorEndDate.endDate,
       });
     });
 
-    features.forEach((feature) => {
-      if (!Object.values(Feature).includes(feature)) {
-        throw new ServerError(`${feature} är inte en känd feature`);
+    featureEndDates.forEach((featureEndDate) => {
+      if (!Object.values(Feature).includes(featureEndDate.resource)) {
+        throw new ServerError(`${featureEndDate.resource} är inte en känd feature`);
       }
       access.push({
         refUser: username,
         resourceType: PrismaResourceType.feature,
-        resource: feature,
+        resource: featureEndDate.resource,
+        endDate: featureEndDate.endDate,
       });
     });
 
@@ -268,31 +284,33 @@ export class AccessAPI {
    * **IMPORTANT**: Access is immutable, which means that the provided access object
    * must contain all access desired for the post
    * @param postId The ID for the user for which acces is to be changed
-   * @param newAccess The new access for this post
+   * @param newAccess The new access including end date for this post
    */
-  async setPostAccess(postId: number, newAccess: AccessInput, grantor: string): Promise<boolean> {
-    const { doors, features } = newAccess;
+  async setPostAccess(postId: number, newAccess: AccessEndDateInput, grantor: string): Promise<boolean> {
+    const { doorEndDates, featureEndDates } = newAccess;
     const access: Prisma.PrismaPostAccessUncheckedCreateInput[] = [];
 
-    doors.forEach((door) => {
-      if (!Object.values(Door).includes(door)) {
-        throw new ServerError(`${door} är inte en känd feature`);
+    doorEndDates.forEach((doorEndDate) => {
+      if (!Object.values(Door).includes(doorEndDate.resource)) {
+        throw new ServerError(`${doorEndDate.resource} är inte en känd dörr`);
       }
       access.push({
         refPost: postId,
         resourceType: PrismaResourceType.door,
-        resource: door as string,
+        resource: doorEndDate.resource,
+        endDate: doorEndDate.endDate,
       });
     });
 
-    features.forEach((feature) => {
-      if (!Object.values(Feature).includes(feature)) {
-        throw new ServerError(`${feature} är inte en känd feature`);
+    featureEndDates.forEach((featureEndDate) => {
+      if (!Object.values(Feature).includes(featureEndDate.resource)) {
+        throw new ServerError(`${featureEndDate.resource} är inte en känd feature`);
       }
       access.push({
         refPost: postId,
         resourceType: PrismaResourceType.feature,
-        resource: feature,
+        resource: featureEndDate.resource,
+        endDate: featureEndDate.endDate,
       });
     });
 
@@ -358,6 +376,13 @@ export class AccessAPI {
         refPost: {
           in: postIds,
         },
+        OR: [ 
+          {
+            endDate:{ gte:new Date() } 
+          }, {
+            endDate: null,
+          },
+        ],
       },
       orderBy: {
         resource: 'asc',

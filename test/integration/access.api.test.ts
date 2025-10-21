@@ -3,6 +3,7 @@ import { ApiKeyAPI } from '@api/apikey';
 import { PostAPI } from '@api/post';
 import { UserAPI } from '@api/user';
 import {
+  AccessEndDateInput,
   AccessInput,
   AccessLogIndividualAccess,
   AccessLogPost,
@@ -115,9 +116,24 @@ const setGetTest = async (
 
 // #region Expected values
 
-const accessSingleInput: AccessInput = {
+const accessSingleInput: AccessEndDateInput = {
+  doorEndDates: [{ resource:Door.Bd, endDate:null}],
+  featureEndDates:[{ resource:Feature.AccessAdmin, endDate:null}],
+};
+
+const accessSingleNoEndDateInput: AccessInput = {
   doors: [Door.Bd],
   features: [Feature.AccessAdmin],
+};
+
+const accessSingleFutureEndDateInput: AccessEndDateInput = {
+  doorEndDates: [{ resource:Door.Bd, endDate: new Date(9999,11,31)}],
+  featureEndDates:[{ resource:Feature.AccessAdmin, endDate: new Date(9999,11,31)}],
+};
+
+const accessSinglePastEndDateInput: AccessEndDateInput = {
+  doorEndDates: [{ resource:Door.Bd, endDate: new Date(2000,0,1)}],
+  featureEndDates:[{ resource:Feature.AccessAdmin, endDate: new Date(2000,0,1)}],
 };
 
 const expectedAccessSingleInput: Partial<UnionPrismaAccess>[] = [
@@ -131,7 +147,12 @@ const expectedAccessSingleInput: Partial<UnionPrismaAccess>[] = [
   },
 ];
 
-const otherAccessSingleInput: AccessInput = {
+const otherAccessSingleInput: AccessEndDateInput = {
+  doorEndDates: [{ resource:Door.Hk, endDate:null}],
+  featureEndDates:[{ resource:Feature.Superadmin, endDate:null}],
+};
+
+const otheraccessSingleNoEndDateInput: AccessInput = {
   doors: [Door.Hk],
   features: [Feature.Superadmin],
 };
@@ -147,7 +168,12 @@ const expectedAccessOtherSingleInput: Partial<UnionPrismaAccess>[] = [
   },
 ];
 
-const accessMultipleInput: AccessInput = {
+const accessMultipleInput: AccessEndDateInput = {
+  doorEndDates: [{resource:Door.Bd, endDate:null}, {resource:Door.Hk, endDate:null}],
+  featureEndDates:[{resource:Feature.AccessAdmin, endDate:null}, {resource:Feature.Superadmin, endDate:null}],
+};
+
+const accessMultipleNoEndDateInput: AccessInput = {
   doors: [Door.Bd, Door.Hk],
   features: [Feature.AccessAdmin, Feature.Superadmin],
 };
@@ -171,14 +197,29 @@ const expectedAccessMultipleInput: Partial<UnionPrismaAccess>[] = [
   },
 ];
 
-const emptyAccess: AccessInput = { doors: [], features: [] };
+const emptyAccess: AccessEndDateInput = { 
+  doorEndDates: [],
+  featureEndDates:[],
+};
 
-const accessWithUnkownFeature: AccessInput = {
+const emptyNoEndDateAccess: AccessInput = { doors: [], features: [] };
+
+const accessWithUnkownFeature: AccessEndDateInput = {
+  doorEndDates: [],
+  featureEndDates:[{resource:Feature.Superadmin, endDate:null}, {resource:'unknown' as Feature, endDate:null}],
+};
+
+const accessWithUnkownFeatureNoEndDate: AccessInput = {
   doors: [],
   features: [Feature.Superadmin, 'unknown' as Feature],
 };
 
-const accessWithUnkownDoor: AccessInput = {
+const accessWithUnkownDoor: AccessEndDateInput = {
+  doorEndDates: [{resource:Door.Bd, endDate:null}, {resource:'unknown' as Door, endDate:null}],
+  featureEndDates:[],
+};
+
+const accessWithUnkownDoorNoEndDate: AccessInput = {
   doors: [Door.Bd, 'unknown' as Door],
   features: [],
 };
@@ -224,7 +265,7 @@ async function addUserWithAccessThenCheckAllUsersWithAccess() {
   await userApi.deleteUser(usernameTest);
   expect(
     mapIndividualAccessToSingleInput(testUser?.access as PrismaIndividualAccess[]),
-  ).toStrictEqual(accessSingleInput);
+  ).toStrictEqual(accessSingleNoEndDateInput);
 }
 
 test(
@@ -234,7 +275,7 @@ test(
 
 describe('setting/getting access for user', () => {
   const setAccess =
-    (input: AccessInput, username = username0) =>
+    (input: AccessEndDateInput, username = username0) =>
     () =>
       accessApi.setIndividualAccess(username, input, username0);
   const getAccess = (username = username0) => accessApi.getIndividualAccess(username);
@@ -256,8 +297,18 @@ describe('setting/getting access for user', () => {
     await setGetTest(setAccess(accessMultipleInput), getAccess, expectedAccess);
   });
 
+  it('setting single access with future end date', async () => {
+    const expectedAccess = mapUserAccess(expectedAccessSingleInput);
+
+    await setGetTest(setAccess(accessSingleFutureEndDateInput), getAccess, expectedAccess);
+  });
+
   it('removing access', async () => {
     await setGetTest(setAccess(emptyAccess), getAccess, []);
+  });
+
+    it('setting single access with future end date', async () => {
+    await setGetTest(setAccess(accessSinglePastEndDateInput), getAccess, []);
   });
 
   it('setting access for unkown', async () => {
@@ -269,6 +320,10 @@ describe('setting/getting access for user', () => {
   });
 
   it('setting access with invalid door', async () => {
+    await expect(setAccess(accessWithUnkownDoor)).rejects.toThrowError();
+  });
+
+  it('setting access with invalid end date', async () => {
     await expect(setAccess(accessWithUnkownDoor)).rejects.toThrowError();
   });
 
@@ -287,35 +342,35 @@ describe('setting/getting access for apikey', () => {
   it('setting single access', async () => {
     const expectedAccess = mapApiKeyAccess(expectedAccessSingleInput);
 
-    await setGetTest(setAccess(accessSingleInput), getAccess, expectedAccess);
+    await setGetTest(setAccess(accessSingleNoEndDateInput), getAccess, expectedAccess);
   });
 
   it('changing access', async () => {
     const expectedAccess = mapApiKeyAccess(expectedAccessOtherSingleInput);
 
-    await setGetTest(setAccess(otherAccessSingleInput), getAccess, expectedAccess);
+    await setGetTest(setAccess(otheraccessSingleNoEndDateInput), getAccess, expectedAccess);
   });
 
   it('setting access with multiple features', async () => {
     const expectedAccess = mapApiKeyAccess(expectedAccessMultipleInput);
 
-    await setGetTest(setAccess(accessMultipleInput), getAccess, expectedAccess);
+    await setGetTest(setAccess(accessMultipleNoEndDateInput), getAccess, expectedAccess);
   });
 
   it('removing access', async () => {
-    await setGetTest(setAccess(emptyAccess), getAccess, []);
+    await setGetTest(setAccess(emptyNoEndDateAccess), getAccess, []);
   });
 
   it('setting access for unkown', async () => {
-    await expect(setAccess(accessSingleInput, 'unknown')).rejects.toThrowError();
+    await expect(setAccess(accessSingleNoEndDateInput, 'unknown')).rejects.toThrowError();
   });
 
   it('setting access with invalid feature', async () => {
-    await expect(setAccess(accessWithUnkownFeature)).rejects.toThrowError();
+    await expect(setAccess(accessWithUnkownFeatureNoEndDate)).rejects.toThrowError();
   });
 
   it('setting access with invalid door', async () => {
-    await expect(setAccess(accessWithUnkownDoor)).rejects.toThrowError();
+    await expect(setAccess(accessWithUnkownDoorNoEndDate)).rejects.toThrowError();
   });
 
   it('getting access for unkown', async () => {
@@ -334,7 +389,7 @@ describe('setting/getting access for post', () => {
   });
 
   const setAccess =
-    (input: AccessInput, postId = postId0, grantor = username0) =>
+    (input: AccessEndDateInput, postId = postId0, grantor = username0) =>
     () =>
       accessApi.setPostAccess(postId, input, grantor);
   const getAccess = (postId = postId0) => accessApi.getPostAccess(postId);
@@ -412,22 +467,22 @@ describe('getting combined access', () => {
   });
 });
 
-const accessTestSequence: AccessInput[] = [
+const accessTestSequence: AccessEndDateInput[] = [
   {
-    doors: [],
-    features: [],
+    doorEndDates: [],
+    featureEndDates:[],
   },
   {
-    doors: [],
-    features: [],
+    doorEndDates: [],
+    featureEndDates:[],
   },
   {
-    doors: [Door.Bd],
-    features: [Feature.AccessAdmin],
+    doorEndDates: [{ resource:Door.Bd, endDate:null}],
+    featureEndDates:[{ resource:Feature.AccessAdmin, endDate:null}],
   },
   {
-    doors: [],
-    features: [],
+    doorEndDates: [],
+    featureEndDates:[],
   },
 ];
 
@@ -442,6 +497,7 @@ const expectedIndividualAccessLogs: IndividualAccessLogSimpel<AccessLogIndividua
     isActive: true,
     resource: 'bd',
     resourceType: AccessResourceType.Door,
+    endDate: null,
     target: username1,
   },
   {
@@ -449,6 +505,7 @@ const expectedIndividualAccessLogs: IndividualAccessLogSimpel<AccessLogIndividua
     isActive: true,
     resource: 'access_admin',
     resourceType: AccessResourceType.Feature,
+    endDate: null,
     target: username1,
   },
   {
@@ -456,6 +513,7 @@ const expectedIndividualAccessLogs: IndividualAccessLogSimpel<AccessLogIndividua
     isActive: false,
     resource: 'bd',
     resourceType: AccessResourceType.Door,
+    endDate: null,
     target: username1,
   },
   {
@@ -463,6 +521,7 @@ const expectedIndividualAccessLogs: IndividualAccessLogSimpel<AccessLogIndividua
     isActive: false,
     resource: 'access_admin',
     resourceType: AccessResourceType.Feature,
+    endDate: null,
     target: username1,
   },
 ];
@@ -480,7 +539,7 @@ function mapAccessLog(
 }
 
 describe('setting access for user and checking logs', () => {
-  const setAccess = async (inputSequence: AccessInput[], username = username1) => {
+  const setAccess = async (inputSequence: AccessEndDateInput[], username = username1) => {
     for (const input of inputSequence) {
       await accessApi.setIndividualAccess(username, input, username0);
     }

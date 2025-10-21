@@ -26,12 +26,23 @@ export type Access = {
   features: Array<Feature>;
 };
 
+export type AccessEndDate = {
+  doorEndDates: Array<DoorEndDate>;
+  featureEndDates: Array<FeatureEndDate>;
+};
+
+export type AccessEndDateInput = {
+  doorEndDates: Array<DoorEndDateInput>;
+  featureEndDates: Array<FeatureEndDateInput>;
+};
+
 export type AccessInput = {
   doors: Array<Door>;
   features: Array<Feature>;
 };
 
 export type AccessLogIndividualAccess = {
+  endDate?: Maybe<Scalars['Date']>;
   grantor: User;
   /** if the target has the access after the transaction or not */
   isActive: Scalars['Boolean'];
@@ -42,6 +53,7 @@ export type AccessLogIndividualAccess = {
 };
 
 export type AccessLogPost = {
+  endDate?: Maybe<Scalars['Date']>;
   grantor: User;
   /** if the target has the access after the transaction or not */
   isActive: Scalars['Boolean'];
@@ -141,6 +153,16 @@ export enum Door {
   Ulla = 'ulla'
 }
 
+export type DoorEndDate = {
+  endDate?: Maybe<Scalars['Date']>;
+  resource: Door;
+};
+
+export type DoorEndDateInput = {
+  endDate?: InputMaybe<Scalars['Date']>;
+  resource: Door;
+};
+
 export type DoorInfo = {
   description: Scalars['String'];
   name: Door;
@@ -201,6 +223,16 @@ export enum Feature {
   Superadmin = 'superadmin',
   UserAdmin = 'user_admin'
 }
+
+export type FeatureEndDate = {
+  endDate?: Maybe<Scalars['Date']>;
+  resource: Feature;
+};
+
+export type FeatureEndDateInput = {
+  endDate?: InputMaybe<Scalars['Date']>;
+  resource: Feature;
+};
 
 export type FeatureInfo = {
   description: Scalars['String'];
@@ -746,13 +778,13 @@ export type MutationSetHiddenNominationsArgs = {
 
 
 export type MutationSetIndividualAccessArgs = {
-  access: AccessInput;
+  access: AccessEndDateInput;
   username: Scalars['String'];
 };
 
 
 export type MutationSetPostAccessArgs = {
-  access: AccessInput;
+  access: AccessEndDateInput;
   postId: Scalars['Int'];
 };
 
@@ -966,6 +998,7 @@ export type Query = {
   /** Used if nominations are hidden but an election-admin wants too see nominations */
   hiddenNominations: Array<Nomination>;
   individualAccess: Access;
+  individualAccessEndDate: AccessEndDate;
   individualAccessLogs: Array<AccessLogIndividualAccess>;
   latestBoardMeetings: Array<Meeting>;
   latestElections: Array<Election>;
@@ -986,6 +1019,7 @@ export type Query = {
   paginatedHehes: PaginatedHehes;
   post: Post;
   postAccess: Access;
+  postAccessEndDate: AccessEndDate;
   postAccessLogs: Array<AccessLogPost>;
   posts: Array<Post>;
   searchFiles: Array<File>;
@@ -1148,6 +1182,15 @@ export type QueryIndividualAccessArgs = {
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
  */
+export type QueryIndividualAccessEndDateArgs = {
+  username: Scalars['String'];
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
 export type QueryLatestBoardMeetingsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
 };
@@ -1294,6 +1337,15 @@ export type QueryPostArgs = {
  * does not take an `electionId` parameter.
  */
 export type QueryPostAccessArgs = {
+  postId: Scalars['Int'];
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryPostAccessEndDateArgs = {
   postId: Scalars['Int'];
 };
 
@@ -1539,6 +1591,8 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Access: ResolverTypeWrapper<Access>;
+  AccessEndDate: ResolverTypeWrapper<AccessEndDate>;
+  AccessEndDateInput: AccessEndDateInput;
   AccessInput: AccessInput;
   AccessLogIndividualAccess: ResolverTypeWrapper<AccessLogIndividualAccessResponse>;
   AccessLogPost: ResolverTypeWrapper<AccessLogPostResponse>;
@@ -1554,11 +1608,15 @@ export type ResolversTypes = ResolversObject<{
   Date: ResolverTypeWrapper<Scalars['Date']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Door: Door;
+  DoorEndDate: ResolverTypeWrapper<DoorEndDate>;
+  DoorEndDateInput: DoorEndDateInput;
   DoorInfo: ResolverTypeWrapper<DoorInfo>;
   Election: ResolverTypeWrapper<ElectionResponse>;
   EmergencyContact: ResolverTypeWrapper<EmergencyContact>;
   EmergencyContactType: EmergencyContactType;
   Feature: Feature;
+  FeatureEndDate: ResolverTypeWrapper<FeatureEndDate>;
+  FeatureEndDateInput: FeatureEndDateInput;
   FeatureInfo: ResolverTypeWrapper<FeatureInfo>;
   File: ResolverTypeWrapper<FileResponse>;
   FileSystemResponse: ResolverTypeWrapper<Omit<FileSystemResponse, 'files'> & { files: Array<ResolversTypes['File']> }>;
@@ -1613,6 +1671,8 @@ export type ResolversTypes = ResolversObject<{
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   Access: Access;
+  AccessEndDate: AccessEndDate;
+  AccessEndDateInput: AccessEndDateInput;
   AccessInput: AccessInput;
   AccessLogIndividualAccess: AccessLogIndividualAccessResponse;
   AccessLogPost: AccessLogPostResponse;
@@ -1623,9 +1683,13 @@ export type ResolversParentTypes = ResolversObject<{
   CasLoginResponse: CasLoginResponse;
   Date: Scalars['Date'];
   DateTime: Scalars['DateTime'];
+  DoorEndDate: DoorEndDate;
+  DoorEndDateInput: DoorEndDateInput;
   DoorInfo: DoorInfo;
   Election: ElectionResponse;
   EmergencyContact: EmergencyContact;
+  FeatureEndDate: FeatureEndDate;
+  FeatureEndDateInput: FeatureEndDateInput;
   FeatureInfo: FeatureInfo;
   File: FileResponse;
   FileSystemResponse: Omit<FileSystemResponse, 'files'> & { files: Array<ResolversParentTypes['File']> };
@@ -1675,7 +1739,14 @@ export type AccessResolvers<ContextType = Context, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type AccessEndDateResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessEndDate'] = ResolversParentTypes['AccessEndDate']> = ResolversObject<{
+  doorEndDates?: Resolver<Array<ResolversTypes['DoorEndDate']>, ParentType, ContextType>;
+  featureEndDates?: Resolver<Array<ResolversTypes['FeatureEndDate']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type AccessLogIndividualAccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessLogIndividualAccess'] = ResolversParentTypes['AccessLogIndividualAccess']> = ResolversObject<{
+  endDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   grantor?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   isActive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   resource?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1686,6 +1757,7 @@ export type AccessLogIndividualAccessResolvers<ContextType = Context, ParentType
 }>;
 
 export type AccessLogPostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['AccessLogPost'] = ResolversParentTypes['AccessLogPost']> = ResolversObject<{
+  endDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
   grantor?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   isActive?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   resource?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1747,6 +1819,12 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
   name: 'DateTime';
 }
 
+export type DoorEndDateResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DoorEndDate'] = ResolversParentTypes['DoorEndDate']> = ResolversObject<{
+  endDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  resource?: Resolver<ResolversTypes['Door'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type DoorInfoResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DoorInfo'] = ResolversParentTypes['DoorInfo']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['Door'], ParentType, ContextType>;
@@ -1772,6 +1850,12 @@ export type EmergencyContactResolvers<ContextType = Context, ParentType extends 
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   phone?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['EmergencyContactType'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type FeatureEndDateResolvers<ContextType = Context, ParentType extends ResolversParentTypes['FeatureEndDate'] = ResolversParentTypes['FeatureEndDate']> = ResolversObject<{
+  endDate?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  resource?: Resolver<ResolversTypes['Feature'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2003,6 +2087,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   hehes?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType, RequireFields<QueryHehesArgs, 'year'>>;
   hiddenNominations?: Resolver<Array<ResolversTypes['Nomination']>, ParentType, ContextType, RequireFields<QueryHiddenNominationsArgs, 'electionId'>>;
   individualAccess?: Resolver<ResolversTypes['Access'], ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
+  individualAccessEndDate?: Resolver<ResolversTypes['AccessEndDate'], ParentType, ContextType, RequireFields<QueryIndividualAccessEndDateArgs, 'username'>>;
   individualAccessLogs?: Resolver<Array<ResolversTypes['AccessLogIndividualAccess']>, ParentType, ContextType>;
   latestBoardMeetings?: Resolver<Array<ResolversTypes['Meeting']>, ParentType, ContextType, Partial<QueryLatestBoardMeetingsArgs>>;
   latestElections?: Resolver<Array<ResolversTypes['Election']>, ParentType, ContextType, Partial<QueryLatestElectionsArgs>>;
@@ -2022,6 +2107,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   paginatedHehes?: Resolver<ResolversTypes['PaginatedHehes'], ParentType, ContextType, Partial<QueryPaginatedHehesArgs>>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<QueryPostArgs, 'id'>>;
   postAccess?: Resolver<ResolversTypes['Access'], ParentType, ContextType, RequireFields<QueryPostAccessArgs, 'postId'>>;
+  postAccessEndDate?: Resolver<ResolversTypes['AccessEndDate'], ParentType, ContextType, RequireFields<QueryPostAccessEndDateArgs, 'postId'>>;
   postAccessLogs?: Resolver<Array<ResolversTypes['AccessLogPost']>, ParentType, ContextType>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType, Partial<QueryPostsArgs>>;
   searchFiles?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QuerySearchFilesArgs, 'search'>>;
@@ -2083,6 +2169,7 @@ export type UserPostHistoryEntryResolvers<ContextType = Context, ParentType exte
 
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Access?: AccessResolvers<ContextType>;
+  AccessEndDate?: AccessEndDateResolvers<ContextType>;
   AccessLogIndividualAccess?: AccessLogIndividualAccessResolvers<ContextType>;
   AccessLogPost?: AccessLogPostResolvers<ContextType>;
   Activity?: ActivityResolvers<ContextType>;
@@ -2091,9 +2178,11 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
+  DoorEndDate?: DoorEndDateResolvers<ContextType>;
   DoorInfo?: DoorInfoResolvers<ContextType>;
   Election?: ElectionResolvers<ContextType>;
   EmergencyContact?: EmergencyContactResolvers<ContextType>;
+  FeatureEndDate?: FeatureEndDateResolvers<ContextType>;
   FeatureInfo?: FeatureInfoResolvers<ContextType>;
   File?: FileResolvers<ContextType>;
   FileSystemResponse?: FileSystemResponseResolvers<ContextType>;
