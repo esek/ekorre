@@ -1,7 +1,7 @@
 import { PostAPI } from '@/api/post.api';
 import { ServerError } from '@/errors/request.errors';
 import { Logger } from '@/logger';
-import { AccessEntry, AccessEndDateEntry, AccessLogEntry } from '@/models/access';
+import { AccessEntry, AccessLogEntry } from '@/models/access';
 import { devGuard } from '@/util';
 import { AccessInput, AccessEndDateInput, Door, Feature } from '@generated/graphql';
 import {
@@ -35,10 +35,11 @@ export class AccessAPI {
     const access = await prisma.prismaIndividualAccess.findMany({
       where: {
         refUser: username,
-        OR: [ 
+        OR: [
           {
-            endDate:{ gte:new Date() } 
-          }, {
+            endDate: { gte: new Date() },
+          },
+          {
             endDate: null,
           },
         ],
@@ -59,10 +60,11 @@ export class AccessAPI {
     const access = await prisma.prismaPostAccess.findMany({
       where: {
         refPost: postId,
-        OR: [ 
+        OR: [
           {
-            endDate:{ gte:new Date() } 
-          }, {
+            endDate: { gte: new Date() },
+          },
+          {
             endDate: null,
           },
         ],
@@ -165,7 +167,7 @@ export class AccessAPI {
    * @param username Username for the user
    * @param newAccess The new individual access including end date for this user
    */
-async setIndividualAccess(
+  async setIndividualAccess(
     username: string,
     newAccess: AccessEndDateInput,
     grantor: string,
@@ -286,7 +288,11 @@ async setIndividualAccess(
    * @param postId The ID for the user for which acces is to be changed
    * @param newAccess The new access including end date for this post
    */
-  async setPostAccess(postId: number, newAccess: AccessEndDateInput, grantor: string): Promise<boolean> {
+  async setPostAccess(
+    postId: number,
+    newAccess: AccessEndDateInput,
+    grantor: string,
+  ): Promise<boolean> {
     const { doorEndDates, featureEndDates } = newAccess;
     const access: Prisma.PrismaPostAccessUncheckedCreateInput[] = [];
 
@@ -376,10 +382,11 @@ async setIndividualAccess(
         refPost: {
           in: postIds,
         },
-        OR: [ 
+        OR: [
           {
-            endDate:{ gte:new Date() } 
-          }, {
+            endDate: { gte: new Date() },
+          },
+          {
             endDate: null,
           },
         ],

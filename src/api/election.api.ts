@@ -10,7 +10,6 @@ import {
   PrismaNominationAnswer,
   PrismaProposal,
 } from '@prisma/client';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import prisma from './prisma';
 
