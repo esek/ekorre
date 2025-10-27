@@ -8,12 +8,12 @@ const activityApi = new ActivityAPI();
 
 const activityresolver: Resolvers = {
   Query: {
-    activity: async (_, { id }, ctx) => {
+    activity: async (_, { id }, __) => {
       const activity = await activityApi.getActivity(id);
 
       return activityReducer(activity);
     },
-    activities: async (_, { from, to, utskott, includeHidden }, ctx) => {
+    activities: async (_, { from, to, utskott, includeHidden }, __) => {
       const activities = await activityApi.getActivities(from, to, utskott, includeHidden ?? false);
 
       return reduce(activities, activityReducer);
