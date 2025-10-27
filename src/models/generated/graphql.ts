@@ -155,6 +155,7 @@ export type Election = {
   /** Which posts can be elected in the election */
   electables: Array<Post>;
   id: Scalars['Int'];
+  name: Scalars['String'];
   /** Whether accepted nominations are to be hidden */
   nominationsHidden: Scalars['Boolean'];
   open: Scalars['Boolean'];
@@ -430,6 +431,7 @@ export type Mutation = {
   removeMeeting: Scalars['Boolean'];
   removeProposal: Scalars['Boolean'];
   removeTicket: Ticket;
+  renameElection: Scalars['Boolean'];
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
   /** Only possible during open election, so electionId is known */
@@ -699,6 +701,12 @@ export type MutationRemoveProposalArgs = {
 
 export type MutationRemoveTicketArgs = {
   id: Scalars['String'];
+};
+
+
+export type MutationRenameElectionArgs = {
+  electionId: Scalars['Int'];
+  name?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -1760,6 +1768,7 @@ export type ElectionResolvers<ContextType = Context, ParentType extends Resolver
   creator?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   electables?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   nominationsHidden?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   open?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   openedAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
@@ -1914,6 +1923,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
   removeProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProposalArgs, 'electionId' | 'postId' | 'username'>>;
   removeTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationRemoveTicketArgs, 'id'>>;
+  renameElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRenameElectionArgs, 'electionId'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'resetLink' | 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
   respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postId'>>;

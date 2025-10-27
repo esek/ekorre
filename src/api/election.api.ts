@@ -10,6 +10,7 @@ import {
   PrismaNominationAnswer,
   PrismaProposal,
 } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 import prisma from './prisma';
 
@@ -725,6 +726,26 @@ export class ElectionAPI {
       );
       throw new ServerError(
         `Kunde inte ta bort föreslaget för användaren ${username} till posten med ID ${postId}, vilket kan bero på att föreslaget inte fanns`,
+      );
+    }
+  }
+
+  async renameElection(electionId: number, name: string | null): Promise<boolean> {
+    try {
+      await prisma.prismaElection.update({
+        where: { id: electionId, closedAt: null },
+        data: { name },
+      });
+
+      return true;
+    } catch (err) {
+      logger.error(
+        `Could not rename election with ID ${electionId} to ${
+          name ?? 'nothing'
+        } due to error:\n\t${JSON.stringify(err)}`,
+      );
+      throw new ServerError(
+        `Kunde inte döpa om valet med ID ${electionId} till ${name ?? 'inget'}. Är valet stängt?`,
       );
     }
   }

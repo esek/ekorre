@@ -9,6 +9,7 @@ export function electionReduce(dbElection: PrismaElection): ElectionResponse {
     creator: {
       username: refCreator,
     },
+    name: reduced.name ?? 'Val #' + reduced.id.toString(),
   };
 
   return e;
