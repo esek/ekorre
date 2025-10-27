@@ -47,13 +47,13 @@ export const ADD_USER_TO_POST = `
 `;
 
 export const SET_USER_ACCESS_MUTATION = `
-	mutation ($username: String!, $access: AccessInput!) {
+	mutation ($username: String!, $access: AccessEndDateInput!) {
 		setIndividualAccess(username: $username, access: $access)
 	}
 `;
 
 export const SET_POST_ACCESS_MUTATION = `
-	mutation ($postId: Int!, $access: AccessInput!) {
+	mutation ($postId: Int!, $access: AccessEndDateInput!) {
 		setPostAccess(postId: $postId, access: $access)
 	}
 `;

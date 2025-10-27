@@ -1,11 +1,14 @@
-import { AccessEntry } from '@/models/access';
+import { AccessEntry, AccessEndDateEntry } from '@/models/access';
 import { AccessLogIndividualAccessResponse, AccessLogPostResponse } from '@/models/mappers';
 import {
   Access,
+  AccessEndDate,
   AccessResourceType,
   Door,
+  DoorEndDate,
   DoorInfo,
   Feature,
+  FeatureEndDate,
   FeatureInfo,
 } from '@generated/graphql';
 import { PrismaIndividualAccessLog, PrismaPostAccessLog } from '@prisma/client';
@@ -55,12 +58,55 @@ export const accessReducer = (dbAccess: AccessEntry[]): Access => {
         acc.features.push(resource as Feature);
         break;
       }
-      case AccessResourceType.Door:
+      case AccessResourceType.Door: {
         if (acc.doors.includes(resource as Door)) {
           break;
         }
         acc.doors.push(resource as Door);
         break;
+      }
+      default:
+        break;
+    }
+
+    return acc;
+  }, initial);
+
+  return access;
+};
+
+/**
+ * Reduce database access arrays to an accessEndDate object
+ * @param dbAccess database access
+ * @returns accessEndDate object
+ */
+export const accessEndDateReducer = (dbAccess: AccessEndDateEntry[]): AccessEndDate => {
+  const initial: AccessEndDate = {
+    doorEndDates: [],
+    featureEndDates: [],
+  };
+
+  const access = dbAccess.reduce((acc, curr) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { resourceType, resource, endDate} = curr;
+
+    switch (resourceType) {
+      case AccessResourceType.Feature: {
+        const feature = resource as Feature
+        if (acc.featureEndDates.some(featureEndDate => featureEndDate.resource === feature)) {
+          break;
+        }
+        acc.featureEndDates.push( { resource:feature, endDate } as FeatureEndDate );
+        break;
+      }
+      case AccessResourceType.Door: {
+        const door = resource as Door
+        if (acc.doorEndDates.some(doorEndDates => doorEndDates.resource === door)) {
+          break;
+        }
+        acc.doorEndDates.push( { resource:door, endDate } as DoorEndDate);
+        break;
+      }
       default:
         break;
     }
