@@ -729,6 +729,26 @@ export class ElectionAPI {
     }
   }
 
+  async renameElection(electionId: number, name: string | null): Promise<boolean> {
+    try {
+      await prisma.prismaElection.update({
+        where: { id: electionId, closedAt: null },
+        data: { name },
+      });
+
+      return true;
+    } catch (err) {
+      logger.error(
+        `Could not rename election with ID ${electionId} to ${
+          name ?? 'nothing'
+        } due to error:\n\t${JSON.stringify(err)}`,
+      );
+      throw new ServerError(
+        `Kunde inte döpa om valet med ID ${electionId} till ${name ?? 'inget'}. Är valet stängt?`,
+      );
+    }
+  }
+
   /**
    * Clear all data related to elections from the database
    */

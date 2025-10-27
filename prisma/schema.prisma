@@ -187,6 +187,7 @@ model PrismaElectable {
 
 model PrismaElection {
   id                Int                @id @default(autoincrement())
+  name              String?
   electables        PrismaElectable[]  @relation(name: "PrismaElectableToPrismaElection")
   creator           PrismaUser         @relation(name: "PrismaElectionToPrismaUser", fields: [refCreator], references: [username])
   refCreator        String             @map("ref_creator")
