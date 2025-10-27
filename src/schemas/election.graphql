@@ -40,10 +40,12 @@ type Mutation {
   respondToNomination(postId: Int!, accepts: NominationAnswer!): Boolean!
   propose(electionId: Int!, username: String!, postId: Int!): Boolean!
   removeProposal(electionId: Int!, username: String!, postId: Int!): Boolean!
+  renameElection(electionId: Int!, name: String): Boolean!
 }
 
 type Election {
   id: Int!
+  name: String!
   creator: User!
   createdAt: Date!
   openedAt: Date
@@ -71,6 +73,7 @@ type Nomination {
   user: User!
   post: Post!
   answer: NominationAnswer!
+  electionName: String!
 }
 
 enum NominationAnswer {

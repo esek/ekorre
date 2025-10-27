@@ -150,6 +150,10 @@ const electionResolver: Resolvers = {
       await hasAccess(ctx, Feature.ElectionAdmin);
       return api.removeProposal(electionId, username, postId);
     },
+    renameElection: async (_, { electionId, name }, ctx) => {
+      await hasAccess(ctx, Feature.ElectionAdmin);
+      return api.renameElection(electionId, name ?? null);
+    },
   },
   Election: {
     // Vi fyller ut resolvern med de saker som
