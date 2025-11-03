@@ -204,6 +204,7 @@ export enum EmergencyContactType {
 /** Features are used for mapping access to a feature (ex article or election) for user or a post. This is not limited to efterphest */
 export enum Feature {
   AccessAdmin = 'access_admin',
+  AccountingAdmin = 'accounting_admin',
   ActivityAdmin = 'activity_admin',
   AhsAdmin = 'ahs_admin',
   ArticleEditor = 'article_editor',
@@ -890,6 +891,7 @@ export type NewUser = {
 
 export type Nomination = {
   answer: NominationAnswer;
+  electionName: Scalars['String'];
   post: Post;
   user: User;
 };
@@ -2027,6 +2029,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
 
 export type NominationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Nomination'] = ResolversParentTypes['Nomination']> = ResolversObject<{
   answer?: Resolver<ResolversTypes['NominationAnswer'], ParentType, ContextType>;
+  electionName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
