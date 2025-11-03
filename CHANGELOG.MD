@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.22.1] - 2025-11-03
+
+### Ändrat
+- Gör att tester som opererar på samma delar av databasen körs i serie, för att undvika race conditions med misslyckade testfall som följd
+
 ## [1.22.0] - 2025-11-03
 
 ### Tillagt
