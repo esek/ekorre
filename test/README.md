@@ -13,6 +13,8 @@ Via `package.json:scripts` kan de olika testen köras via `npm test` (alla), `np
 
 Alla test ska ha namn på formen `*.test.ts`, där `*` ska vara filnamnet alternativ beskrivninga av test(en) i filen.
 
+Tester som opererar på samma del av databasen kan behöva köras i serie för att inte påverka varandra. Detta kan göras genom att lägga till dem i listan `serialTests` i `jest.config.js`. 
+
 ## Coverage
 
 `jest` är konfigurerat att skapa en bra översikt av coverage. Detta skrivs ut i terminalen, men genom att öppna `coverage/lcov-report/index.html` i webbläsaren
