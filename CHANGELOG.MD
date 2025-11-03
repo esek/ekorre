@@ -34,11 +34,6 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Ändrat
 - bal_admin, expo_admin, salmonella_admin tillagt för roller på admin.esek.se 
 
-## [1.19.1] - 2025-10-14
-
-### Ändrat
-- Gör att tester som opererar på samma delar av databasen körs i serie, för att undvika race conditions med misslyckade testfall som följd
-
 ## [1.19.0] - 2025-09-23
 
 ### Ändrat
