@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.22.0] - 2025-11-03
+
+### Tillagt
+- accounting_admin för kvitto.esek.se
+
 ## [1.21.0] - 2025-10-27
 
 ### Tillagt
