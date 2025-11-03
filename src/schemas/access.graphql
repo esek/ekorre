@@ -143,5 +143,6 @@ enum Feature {
     emmech_admin,
     bal_admin,
     expo_admin,
-    salmonella_admin
+    salmonella_admin,
+    accounting_admin
 }

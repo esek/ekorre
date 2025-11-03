@@ -88,23 +88,23 @@ export const accessEndDateReducer = (dbAccess: AccessEndDateEntry[]): AccessEndD
 
   const access = dbAccess.reduce((acc, curr) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { resourceType, resource, endDate} = curr;
+    const { resourceType, resource, endDate } = curr;
 
     switch (resourceType) {
       case AccessResourceType.Feature: {
-        const feature = resource as Feature
-        if (acc.featureEndDates.some(featureEndDate => featureEndDate.resource === feature)) {
+        const feature = resource as Feature;
+        if (acc.featureEndDates.some((featureEndDate) => featureEndDate.resource === feature)) {
           break;
         }
-        acc.featureEndDates.push( { resource:feature, endDate } as FeatureEndDate );
+        acc.featureEndDates.push({ resource: feature, endDate } as FeatureEndDate);
         break;
       }
       case AccessResourceType.Door: {
-        const door = resource as Door
-        if (acc.doorEndDates.some(doorEndDates => doorEndDates.resource === door)) {
+        const door = resource as Door;
+        if (acc.doorEndDates.some((doorEndDates) => doorEndDates.resource === door)) {
           break;
         }
-        acc.doorEndDates.push( { resource:door, endDate } as DoorEndDate);
+        acc.doorEndDates.push({ resource: door, endDate } as DoorEndDate);
         break;
       }
       default:
@@ -138,6 +138,7 @@ const featureDescriptions: Record<Feature, string> = {
   [Feature.BalAdmin]: 'För att kunna administrera bal på admin.esek.se',
   [Feature.ExpoAdmin]: 'För att kunna administrera expo på admin.esek.se',
   [Feature.SalmonellaAdmin]: 'För att kunna administrera Salmonella på admin.esek.se',
+  [Feature.AccountingAdmin]: 'Admin på kvitto.esek.se (ej Fortnox)',
 };
 
 export const featureReducer = (features: Feature[]): FeatureInfo[] => {
