@@ -40,6 +40,7 @@ type Post {
     """
     spots: Int!
     description: String!
+    shortDescription: String!
     active: Boolean!
     access: Access!
 
