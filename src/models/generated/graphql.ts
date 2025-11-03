@@ -942,6 +942,7 @@ export type Post = {
   interviewRequired?: Maybe<Scalars['Boolean']>;
   postType: PostType;
   postname: Scalars['String'];
+  shortDescription: Scalars['String'];
   /** Higher means it will be shown first */
   sortPriority: Scalars['Int'];
   /**
@@ -2069,6 +2070,7 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
   interviewRequired?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   postType?: Resolver<ResolversTypes['PostType'], ParentType, ContextType>;
   postname?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  shortDescription?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   sortPriority?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   spots?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   utskott?: Resolver<ResolversTypes['Utskott'], ParentType, ContextType>;
