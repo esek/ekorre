@@ -5,6 +5,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.23.1] - 2025-11-12
+
+### Ändrat
+- getPostsForUser filtrerar numera bort framtida poster från listan av poster användaren har 
+
+
 ## [1.23.0] - 2025-11-03
 
 ### Tillagt

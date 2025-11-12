@@ -149,9 +149,14 @@ export class PostAPI {
                 },
               },
             ],
-            AND: {
-              refUser: username,
-            },
+            AND: [
+              {
+                refUser: username,
+              },
+              {
+                start: { lte: new Date() },
+              },
+            ],
           },
         },
       },
