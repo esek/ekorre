@@ -137,8 +137,10 @@ const featureDescriptions: Record<Feature, string> = {
   [Feature.EmmechAdmin]: 'För att kunna administera bilder på emmech',
   [Feature.BalAdmin]: 'För att kunna administrera bal på admin.esek.se',
   [Feature.ExpoAdmin]: 'För att kunna administrera expo på admin.esek.se',
-  [Feature.SalmonellaAdmin]: 'För att kunna administrera Salmonella på admin.esek.se',
+  [Feature.SalmonellaAdmin]: 'Administrera bilderna på våra TV-skärmar via admin.esek.se',
   [Feature.AccountingAdmin]: 'Admin på kvitto.esek.se (ej Fortnox)',
+  [Feature.KillergameAdmin]: 'Administrera killergame på killergame.esek.se',
+  [Feature.LedAdmin]: 'Administrera LED på led.esek.se',
 };
 
 export const featureReducer = (features: Feature[]): FeatureInfo[] => {

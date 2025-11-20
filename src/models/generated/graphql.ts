@@ -218,6 +218,8 @@ export enum Feature {
   ExpoAdmin = 'expo_admin',
   FilesAdmin = 'files_admin',
   HeheAdmin = 'hehe_admin',
+  KillergameAdmin = 'killergame_admin',
+  LedAdmin = 'led_admin',
   MeetingsAdmin = 'meetings_admin',
   NewsEditor = 'news_editor',
   PostAdmin = 'post_admin',

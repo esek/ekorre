@@ -144,5 +144,7 @@ enum Feature {
     bal_admin,
     expo_admin,
     salmonella_admin,
-    accounting_admin
+    accounting_admin,
+    killergame_admin,
+    led_admin
 }

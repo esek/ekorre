@@ -5,6 +5,12 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.24.0] - 2025-11-20
+
+### Tillagt
+- killergame_admin för killergame.esek.se
+- led_admin för led.esek.se
+
 ## [1.23.1] - 2025-11-12
 
 ### Ändrat
