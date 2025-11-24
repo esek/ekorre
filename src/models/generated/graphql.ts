@@ -357,6 +357,8 @@ export enum MeetingType {
   Extra = 'Extra',
   /** Höstterminsmöte */
   Htm = 'HTM',
+  /** Årsmöte */
+  Ohm = 'OHM',
   /** Styrelsemöte */
   Sm = 'SM',
   /** Studierådsmöten avancerad nivå */

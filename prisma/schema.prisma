@@ -411,6 +411,9 @@ enum PrismaMeetingType {
   /// Studierådsmöten intern
   SRI
 
+  ///Årsmöte
+  OHM
+
   /// Höstterminsmöte
   HTM
 

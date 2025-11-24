@@ -55,6 +55,8 @@ enum MeetingType {
   "Studierådsmöten intern"
   SRI
 
+  "Årsmöte"
+  OHM
   "Höstterminsmöte"
   HTM
 
