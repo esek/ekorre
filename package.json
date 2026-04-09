@@ -65,7 +65,7 @@
         "express-fileupload": "^1.4.0",
         "graphql": "^16.6.0",
         "graphql-scalars": "^1.20.1",
-        "jsdom": "^20.0.3",
+        "jsdom": "^29.0.2",
         "jsonwebtoken": "^9.0.3",
         "regenerator-runtime": "^0.13.11",
         "set-cookie-parser": "^2.5.1",
@@ -104,7 +104,7 @@
         "nodemon": "^3.1.11",
         "prettier": "^2.8.1",
         "prisma": "^5.0.0",
-        "prisma-dbml-generator": "^0.10.0",
+        "prisma-dbml-generator": "^0.12.0",
         "supertest": "^6.3.3",
         "ts-jest": "^29.4.6"
     }
