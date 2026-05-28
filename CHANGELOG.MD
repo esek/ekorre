@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.35.0] - 2026-10-16
+
+### Ändrat
+ - Koppla möten till ett datum istället för bara år, och sortera därefter
+
 ## [1.34.0] - 2026-10-15
 
 ### Tillagt
