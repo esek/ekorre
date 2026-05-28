@@ -28,7 +28,7 @@ const guildMeetings = [
 export function meetingReduce(meeting: PrismaMeeting): MeetingResponse {
   let name: string;
   if (guildMeetings.some((m) => m == meeting.type)) {
-    name = `${meeting.type} ${meeting.year}`;
+    name = `${meeting.type} ${meeting.date.getFullYear()}`;
   } else {
     name = `${meeting.type}${zeroPad(meeting.number, 2)}`;
   }
