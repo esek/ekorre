@@ -9,6 +9,9 @@ import prisma from './prisma';
 
 const logger = Logger.getLogger('MeetingAPI');
 
+const dateOnly = (date: Date): Date => new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+const endOfDateUTC = (date: Date): Date => new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999));
+
 export class MeetingAPI {
   /**
    * Hämtar alla möten efter en sortering.
@@ -56,14 +59,14 @@ export class MeetingAPI {
     const whereAnd: Prisma.PrismaMeetingWhereInput[] = [];
 
     if (year != null) {
-      const startOfYear = new Date(year, 0, 1, 0, 0, 0, 0);
-      const endOfYear = new Date(year, 11, 31, 23, 59, 59, 999);
+      const startOfYear = new Date(Date.UTC(year, 0, 1));
+      const endOfYear = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
 
       whereAnd.push({
         date: {
           gte: startOfYear,
-          lte: endOfYear
-        }
+          lte: endOfYear,
+        },
       });
     }
     if (number != null) {
@@ -106,12 +109,12 @@ export class MeetingAPI {
   ): Promise<PrismaMeeting[]> {
     const whereAnd: Prisma.PrismaMeetingWhereInput[] = [];
 
-    const dateFilter: Record<string, Date> = {}
-    if (startDate != null ) {
-      dateFilter.gte = startDate;
+    const dateFilter: Record<string, Date> = {};
+    if (startDate != null) {
+      dateFilter.gte = dateOnly(startDate);
     }
     if (endDate != null) {
-      dateFilter.lte = endDate;
+      dateFilter.lte = endOfDateUTC(endDate);
     }
 
     if (Object.keys(dateFilter).length > 0) {
@@ -168,16 +171,16 @@ export class MeetingAPI {
    * @returns The created meeting
    */
   async createMeeting(type: MeetingType, number?: number, date?: Date): Promise<PrismaMeeting> {
-    // Use current date if none is given
-    const safeDate = date instanceof Date ? date : new Date();
+    // Use current date if none is given and normalize to date-only UTC.
+    const safeDate = date instanceof Date ? dateOnly(date) : dateOnly(new Date());
 
     // If it is a board meeting, or a extra guild meeting (extrainsatt sektionsmöte),
     // it must have a number. If not provided we get it from the DB
     let safeNbr: number;
     if (number == null || !Number.isSafeInteger(number)) {
       const targetYear = safeDate.getFullYear();
-      const startOfYear = new Date(targetYear, 0, 1, 0, 0, 0, 0);
-      const endOfYear = new Date(targetYear, 11, 31, 23, 59, 59, 999);
+      const startOfYear = new Date(Date.UTC(targetYear, 0, 1));
+      const endOfYear = new Date(Date.UTC(targetYear, 11, 31, 23, 59, 59, 999));
 
       const lastMeeting = await prisma.prismaMeeting.findFirst({
         where: {
