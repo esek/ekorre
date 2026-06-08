@@ -319,8 +319,7 @@ model PrismaMeeting {
   // Date has priority in queries,
   // but often also ordered by number
   @@unique([type, number, date])
-  @@index([date, number])
-  @@index([type])
+  @@index([date, type])
   @@map("meetings")
 }
 
