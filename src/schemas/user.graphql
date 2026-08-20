@@ -56,6 +56,7 @@ type User {
   wikiEdits: Int!
   loginProviders: [LoginProvider]!
   verified: Boolean!
+  banner: String
 }
 
 input NewUser {
@@ -76,4 +77,5 @@ input UpdateUser {
   zipCode: String
   website: String
   luCard: String
+  banner: String
 }

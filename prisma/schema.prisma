@@ -66,6 +66,7 @@ model PrismaUser {
   luCard                     String?                     @unique
   dateJoined                 DateTime                    @default(now()) @map("date_joined")
   verifyInfo                 PrismaVerifyInfo?           @relation(name: "PrismaVerifyInfoToPrismaUser")
+  banner                     String?
 
   @@index([firstName, lastName])
   @@map("users")
