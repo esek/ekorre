@@ -321,6 +321,7 @@ export type Meeting = {
   agenda?: Maybe<File>;
   /** Bilaga */
   appendix?: Maybe<File>;
+  date: Scalars['Date'];
   /** Handlingar */
   documents?: Maybe<File>;
   id: Scalars['Int'];
@@ -336,7 +337,6 @@ export type Meeting = {
   /** Kallelse */
   summons?: Maybe<File>;
   type: MeetingType;
-  year: Scalars['Int'];
 };
 
 export enum MeetingDocumentType {
@@ -531,9 +531,9 @@ export type MutationAddHeheArgs = {
 
 
 export type MutationAddMeetingArgs = {
+  date?: InputMaybe<Scalars['Date']>;
   number?: InputMaybe<Scalars['Int']>;
   type: MeetingType;
-  year?: InputMaybe<Scalars['Int']>;
 };
 
 
@@ -1019,10 +1019,10 @@ export type Query = {
   latestElections: Array<Election>;
   latestHehe: Array<Hehe>;
   latestnews: Array<Article>;
-  latexify: Scalars['String'];
   me: User;
   meeting: Meeting;
   meetings: Array<Meeting>;
+  meetingsByDate: Array<Meeting>;
   /** A users own nominations should always be available to them */
   myNominations: Array<Nomination>;
   newsentries: Array<Article>;
@@ -1246,15 +1246,6 @@ export type QueryLatestnewsArgs = {
  * Queries and mutations that relies on an election being open
  * does not take an `electionId` parameter.
  */
-export type QueryLatexifyArgs = {
-  text: Scalars['String'];
-};
-
-
-/**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
- */
 export type QueryMeetingArgs = {
   id: Scalars['Int'];
 };
@@ -1268,6 +1259,19 @@ export type QueryMeetingsArgs = {
   number?: InputMaybe<Scalars['Int']>;
   type?: InputMaybe<MeetingType>;
   year?: InputMaybe<Scalars['Int']>;
+};
+
+
+/**
+ * Queries and mutations that relies on an election being open
+ * does not take an `electionId` parameter.
+ */
+export type QueryMeetingsByDateArgs = {
+  endDate?: InputMaybe<Scalars['Date']>;
+  number?: InputMaybe<Scalars['Int']>;
+  sortOrder?: InputMaybe<Scalars['String']>;
+  startDate?: InputMaybe<Scalars['Date']>;
+  type?: InputMaybe<MeetingType>;
 };
 
 
@@ -1965,6 +1969,7 @@ export type LoginResponseResolvers<ContextType = Context, ParentType extends Res
 export type MeetingResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Meeting'] = ResolversParentTypes['Meeting']> = ResolversObject<{
   agenda?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   appendix?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
+  date?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   documents?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   lateDocuments?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
@@ -1973,7 +1978,6 @@ export type MeetingResolvers<ContextType = Context, ParentType extends Resolvers
   protocol?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   summons?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['MeetingType'], ParentType, ContextType>;
-  year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2122,10 +2126,10 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   latestElections?: Resolver<Array<ResolversTypes['Election']>, ParentType, ContextType, Partial<QueryLatestElectionsArgs>>;
   latestHehe?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType, Partial<QueryLatestHeheArgs>>;
   latestnews?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, Partial<QueryLatestnewsArgs>>;
-  latexify?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryLatexifyArgs, 'text'>>;
   me?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   meeting?: Resolver<ResolversTypes['Meeting'], ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<ResolversTypes['Meeting']>, ParentType, ContextType, Partial<QueryMeetingsArgs>>;
+  meetingsByDate?: Resolver<Array<ResolversTypes['Meeting']>, ParentType, ContextType, Partial<QueryMeetingsByDateArgs>>;
   myNominations?: Resolver<Array<ResolversTypes['Nomination']>, ParentType, ContextType, RequireFields<QueryMyNominationsArgs, 'electionId'>>;
   newsentries?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, Partial<QueryNewsentriesArgs>>;
   numberOfMembers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, Partial<QueryNumberOfMembersArgs>>;

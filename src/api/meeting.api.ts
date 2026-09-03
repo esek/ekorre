@@ -9,6 +9,9 @@ import prisma from './prisma';
 
 const logger = Logger.getLogger('MeetingAPI');
 
+const dateOnly = (date: Date): Date => new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+const endOfDateUTC = (date: Date): Date => new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999));
+
 export class MeetingAPI {
   /**
    * Hämtar alla möten efter en sortering.
@@ -18,7 +21,7 @@ export class MeetingAPI {
    */
   async getAllMeetings(limit = 20, sortOrder: 'desc' | 'asc' = 'desc'): Promise<PrismaMeeting[]> {
     const m = await prisma.prismaMeeting.findMany({
-      orderBy: [{ type: sortOrder }, { year: sortOrder }, { number: sortOrder }],
+      orderBy: [{ date: sortOrder }, { type: sortOrder }, { number: sortOrder }],
       take: limit,
     });
 
@@ -42,7 +45,7 @@ export class MeetingAPI {
 
   /**
    * Retrieves multiple meetings from the database, with possible specifics, ordered
-   * by type first, then year and finally number
+   * by date first, then type and finally number
    * @param year Year of the meeting
    * @param number The number of the meeting, if applicable
    * @param type The type of meeting
@@ -56,7 +59,15 @@ export class MeetingAPI {
     const whereAnd: Prisma.PrismaMeetingWhereInput[] = [];
 
     if (year != null) {
-      whereAnd.push({ year });
+      const startOfYear = new Date(Date.UTC(year, 0, 1));
+      const endOfYear = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
+
+      whereAnd.push({
+        date: {
+          gte: startOfYear,
+          lte: endOfYear,
+        },
+      });
     }
     if (number != null) {
       whereAnd.push({ number });
@@ -69,7 +80,58 @@ export class MeetingAPI {
       where: {
         AND: whereAnd,
       },
-      orderBy: [{ type: 'desc' }, { year: 'desc' }, { number: 'desc' }],
+      orderBy: [{ date: 'desc' }, { type: 'desc' }, { number: 'desc' }],
+    });
+
+    if (m === null) {
+      throw new ServerError('Mötessökningen misslyckades');
+    }
+
+    return m;
+  }
+
+  /**
+   * Retrieves multiple meetings between given dates from the database, with possible specifics,
+   * sorted in specified order
+   * @param startDate Start date for the search
+   * @param endDate End date for the search
+   * @param number The number of the meeting, if applicable
+   * @param type The type of meeting
+   * @param sortOrder Sort order for retrieval
+   * @returns A list of meetings
+   */
+  async getMeetingsByDate(
+    startDate?: Date,
+    endDate?: Date,
+    number?: number,
+    type?: MeetingType,
+    sortOrder: 'desc' | 'asc' = 'desc'
+  ): Promise<PrismaMeeting[]> {
+    const whereAnd: Prisma.PrismaMeetingWhereInput[] = [];
+
+    const dateFilter: Record<string, Date> = {};
+    if (startDate != null) {
+      dateFilter.gte = dateOnly(startDate);
+    }
+    if (endDate != null) {
+      dateFilter.lte = endOfDateUTC(endDate);
+    }
+
+    if (Object.keys(dateFilter).length > 0) {
+      whereAnd.push({ date: dateFilter });
+    }
+
+    if (number != null) {
+      whereAnd.push({ number: number });
+    }
+    if (type != null) {
+      whereAnd.push({ type: type as unknown as PrismaMeetingType });
+    }
+    const m = await prisma.prismaMeeting.findMany({
+      where: {
+        AND: whereAnd,
+      },
+      orderBy: [{ date: sortOrder }, { type: sortOrder }, { number: sortOrder }],
     });
 
     if (m === null) {
@@ -81,7 +143,7 @@ export class MeetingAPI {
 
   /**
    * Retrieves the latest board meetings, ordered
-   * by type first, then year and finally number
+   * by type first, then date and finally number
    * @param limit The number of board meetings to be returned. If `null`, all board meetings are returned
    */
   async getLatestBoardMeetings(limit?: number): Promise<PrismaMeeting[]> {
@@ -89,7 +151,7 @@ export class MeetingAPI {
       where: {
         type: 'SM',
       },
-      orderBy: [{ type: 'desc' }, { year: 'desc' }, { number: 'desc' }],
+      orderBy: [{ date: 'desc' }, { type: 'desc' }, { number: 'desc' }],
       take: limit,
     });
 
@@ -105,26 +167,36 @@ export class MeetingAPI {
    * Skapar ett nytt möte. Misslyckas om mötet redan existerar
    * @param type The type of meeting
    * @param number The number of the meeting. If `null`, it will be number of the latest meeting for that year plus one
-   * @param year The year of the meeting. If `null`, it will be assumed to be the current year
+   * @param date The date of the meeting. If `null`, it will be assumed to be today
    * @returns The created meeting
    */
-  async createMeeting(type: MeetingType, number?: number, year?: number): Promise<PrismaMeeting> {
-    // Use current year if none is given
-    const safeYear = (Number.isSafeInteger(year) ? year : new Date().getFullYear()) as number;
+  async createMeeting(type: MeetingType, number?: number, date?: Date): Promise<PrismaMeeting> {
+    // Use current date if none is given and normalize to date-only UTC.
+    const safeDate = date instanceof Date ? dateOnly(date) : dateOnly(new Date());
 
     // If it is a board meeting, or a extra guild meeting (extrainsatt sektionsmöte),
     // it must have a number. If not provided we get it from the DB
     let safeNbr: number;
     if (number == null || !Number.isSafeInteger(number)) {
+      const targetYear = safeDate.getFullYear();
+      const startOfYear = new Date(Date.UTC(targetYear, 0, 1));
+      const endOfYear = new Date(Date.UTC(targetYear, 11, 31, 23, 59, 59, 999));
+
       const lastMeeting = await prisma.prismaMeeting.findFirst({
-        where: { year },
+        where: {
+          type: type as PrismaMeetingType,
+          date: {
+            gte: startOfYear,
+            lte: endOfYear
+          }
+        },
         select: { number: true },
         orderBy: [{ number: 'desc' }],
       });
 
       if (lastMeeting == null) {
         // If we can't find a previous meeting, this is the first
-        // for this year
+        // for this date
         safeNbr = 1;
       } else {
         safeNbr = lastMeeting.number + 1;
@@ -142,7 +214,7 @@ export class MeetingAPI {
         where: {
           type: type === undefined ? undefined : (type as PrismaMeetingType),
           number: safeNbr,
-          year: safeYear,
+          date: safeDate,
         },
       });
 
@@ -155,7 +227,7 @@ export class MeetingAPI {
           data: {
             type: type as PrismaMeetingType,
             number: safeNbr,
-            year: safeYear,
+            date: safeDate,
           },
         });
 
@@ -168,7 +240,7 @@ export class MeetingAPI {
         const logStr = `Failed to create meeting with values: ${Logger.pretty({
           type,
           number,
-          year,
+          date,
         })} due to error: ${JSON.stringify(err)}`;
         logger.error(logStr);
         throw new ServerError('Attans! Mötet kunde inte skapas!');

@@ -64,6 +64,17 @@ const meetingResolver: Resolvers = {
       );
       return reduce(m, meetingReduce);
     },
+    meetingsByDate: async (_, { number, startDate, endDate, type, sortOrder }) => {
+      // Meetings _should_ be visible to the public
+      const m = await api.getMeetingsByDate(
+        startDate ?? undefined,
+        endDate ?? undefined,
+        number ?? undefined,
+        type ?? undefined,
+        (sortOrder as 'asc' | 'desc') ?? 'desc',
+      );
+      return reduce(m, meetingReduce);
+    },
     latestBoardMeetings: async (_, { limit }) => {
       // Meetings _should_ be visible to the public
       const m = await api.getLatestBoardMeetings(limit ?? undefined);
@@ -71,9 +82,9 @@ const meetingResolver: Resolvers = {
     },
   },
   Mutation: {
-    addMeeting: async (_, { type, number, year }, ctx) => {
+    addMeeting: async (_, { type, number, date }, ctx) => {
       await hasAccess(ctx, Feature.MeetingsAdmin);
-      const meeting = await api.createMeeting(type, number ?? undefined, year ?? undefined);
+      const meeting = await api.createMeeting(type, number ?? undefined, date ?? undefined);
 
       return reduce(meeting, meetingReduce);
     },

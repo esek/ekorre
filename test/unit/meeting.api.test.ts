@@ -9,6 +9,8 @@ const [createDummyUser, deleteDummyUser] = genRandomUser([]);
 
 const api = new MeetingAPI();
 
+const dateOnly = (date: Date): Date => new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+
 // Vi behöver en fejkfil p.g.a. FOREIGN KEY CONSTRAINT
 const DUMMY_FILE: PrismaFile = {
   id: 'meetingFile0',
@@ -49,8 +51,8 @@ afterAll(async () => {
   ]);
 });
 
-test('creating valid VTM/HTM/VM specifying year but not number', async () => {
-  const success = await api.createMeeting(MeetingType.Vtm, undefined, 2008);
+test('creating valid VTM/HTM/VM specifying date but not number', async () => {
+  const success = await api.createMeeting(MeetingType.Vtm, undefined, new Date(2008, 0, 1));
   expect(success).toBeTruthy();
 
   // Vi behöver inte bry oss om år, det där är det enda
@@ -59,7 +61,7 @@ test('creating valid VTM/HTM/VM specifying year but not number', async () => {
   expect(res[0]).toMatchObject({
     type: MeetingType.Vtm,
     number: 1,
-    year: 2008,
+    date: dateOnly(new Date(2008, 0, 1)),
     refSummons: null,
     refAgenda: null,
     refDocuments: null,
@@ -68,17 +70,18 @@ test('creating valid VTM/HTM/VM specifying year but not number', async () => {
   });
 });
 
-test('creating valid VTM/HTM/VM specifying number but not year', async () => {
+test('creating valid VTM/HTM/VM specifying number but not date', async () => {
   const success = await api.createMeeting(MeetingType.Htm, 3, undefined);
   expect(success).toBeTruthy();
 
   // Vi behöver inte bry oss om år, det där är det enda
+  const today = dateOnly(new Date());
   const res = await api.getAllMeetings();
   expect(res.length).toBe(1);
   expect(res[0]).toMatchObject({
     type: MeetingType.Htm,
     number: 3,
-    year: new Date().getFullYear(),
+    date: today,
     refSummons: null,
     refAgenda: null,
     refDocuments: null,
@@ -101,15 +104,15 @@ test('deleting non-existant meeting', async () => {
 });
 
 test('creating two concurrent board meetings', async () => {
-  await api.createMeeting(MeetingType.Sm, 1, 2021);
-  await api.createMeeting(MeetingType.Sm, 4, 2021);
-  await api.createMeeting(MeetingType.Sm, undefined, 2021);
+  await api.createMeeting(MeetingType.Sm, 1, new Date(2021, 0, 1));
+  await api.createMeeting(MeetingType.Sm, 4, new Date(2021, 0, 1));
+  await api.createMeeting(MeetingType.Sm, undefined, new Date(2021, 0, 1));
   const lastMeetings = await api.getLatestBoardMeetings(1);
   expect(lastMeetings.length).toBe(1);
   expect(lastMeetings[0]).toMatchObject({
     type: MeetingType.Sm,
     number: 5,
-    year: 2021,
+    date: dateOnly(new Date(2021, 0, 1)),
     refSummons: null,
     refAgenda: null,
     refDocuments: null,
@@ -119,27 +122,27 @@ test('creating two concurrent board meetings', async () => {
 });
 
 test('creating duplicate meeting fails', async () => {
-  await api.createMeeting(MeetingType.Sm, 1, 2021);
-  await expect(api.createMeeting(MeetingType.Sm, 1, 2021)).rejects.toThrowError(
+  await api.createMeeting(MeetingType.Sm, 1, new Date(2021, 0, 1));
+  await expect(api.createMeeting(MeetingType.Sm, 1, new Date(2021, 0, 1))).rejects.toThrowError(
     new BadRequestError('Mötet finns redan!'),
   );
 });
 
 test('getting single meeting', async () => {
-  await api.createMeeting(MeetingType.Extra, 1, 2021);
+  await api.createMeeting(MeetingType.Extra, 1, new Date(2021, 0, 1));
   const allMeetings = await api.getAllMeetings();
   expect(await api.getSingleMeeting(allMeetings[0].id)).toMatchObject({
     type: MeetingType.Extra,
     number: 1,
-    year: 2021,
+    date: dateOnly(new Date(2021, 0, 1)),
   });
 });
 
 test('get multiple meetings', async () => {
-  await api.createMeeting(MeetingType.Vm, 4, 1667);
-  await api.createMeeting(MeetingType.Sm, undefined, 2021);
-  await api.createMeeting(MeetingType.Htm, 1, 1999);
-  await api.createMeeting(MeetingType.Sm, 5, 1667);
+  await api.createMeeting(MeetingType.Vm, 4, new Date(1667, 0, 1));
+  await api.createMeeting(MeetingType.Sm, undefined, new Date(2021, 0, 1));
+  await api.createMeeting(MeetingType.Htm, 1, new Date(1999, 0, 1));
+  await api.createMeeting(MeetingType.Sm, 5, new Date(1667, 0, 1));
 
   const m = await api.getMultipleMeetings(undefined, 5, MeetingType.Sm);
 
@@ -147,7 +150,23 @@ test('get multiple meetings', async () => {
   expect(m[0]).toMatchObject({
     type: MeetingType.Sm,
     number: 5,
-    year: 1667,
+    date: dateOnly(new Date(1667, 0, 1)),
+  });
+});
+
+test('get multiple meetings by date', async () => {
+  await api.createMeeting(MeetingType.Vm, 4, new Date(1667, 0, 1));
+  await api.createMeeting(MeetingType.Sm, undefined, new Date(2021, 0, 1));
+  await api.createMeeting(MeetingType.Htm, 1, new Date(1999, 0, 1));
+  await api.createMeeting(MeetingType.Sm, 5, new Date(1667, 0, 1));
+
+  const m = await api.getMeetingsByDate(dateOnly(new Date(1667, 0, 1)), dateOnly(new Date(1999, 0, 1)), undefined, undefined, 'asc');
+
+  expect(m.length).toBe(3);
+  expect(m[0]).toMatchObject({
+    type: MeetingType.Sm,
+    number: 5,
+    date: dateOnly(new Date(1667, 0, 1)),
   });
 });
 
@@ -162,7 +181,7 @@ test('finding multiple non-existant meetings', async () => {
 });
 
 test('adding file to meeting', async () => {
-  await api.createMeeting(MeetingType.Extra, 1, 2021);
+  await api.createMeeting(MeetingType.Extra, 1, new Date(2021, 0, 1));
   const { id } = (await api.getAllMeetings())[0];
 
   await expect(
@@ -174,7 +193,7 @@ test('adding file to meeting', async () => {
 });
 
 test('adding duplicate file to meeting', async () => {
-  await api.createMeeting(MeetingType.Sm, 1, 2021);
+  await api.createMeeting(MeetingType.Sm, 1, new Date(2021, 0, 1));
   const { id } = (await api.getAllMeetings())[0];
   await api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Protocol);
   await expect(
@@ -183,7 +202,7 @@ test('adding duplicate file to meeting', async () => {
 });
 
 test('adding private file to meeting', async () => {
-  await api.createMeeting(MeetingType.Sm, 1, 2021);
+  await api.createMeeting(MeetingType.Sm, 1, new Date(2021, 0, 1));
   const { id } = (await api.getAllMeetings())[0];
   await expect(
     api.addFileToMeeting(id, DUMMY_PRIVATE_FILE.id, MeetingDocumentType.Protocol),
@@ -191,7 +210,7 @@ test('adding private file to meeting', async () => {
 });
 
 test('removing document from meeting', async () => {
-  await api.createMeeting(MeetingType.Extra, 1, 2021);
+  await api.createMeeting(MeetingType.Extra, 1, new Date(2021, 0, 1));
   const { id } = (await api.getAllMeetings())[0];
   await api.addFileToMeeting(id, DUMMY_FILE.id, MeetingDocumentType.Summons);
   expect((await api.getSingleMeeting(id)).refSummons).toStrictEqual(DUMMY_FILE.id);
@@ -202,7 +221,7 @@ test('removing document from meeting', async () => {
 });
 
 test('removing non-existant document', async () => {
-  await api.createMeeting(MeetingType.Extra, 1, 2021);
+  await api.createMeeting(MeetingType.Extra, 1, new Date(2021, 0, 1));
   const { id } = (await api.getAllMeetings())[0];
   await expect(api.removeFileFromMeeting(id, MeetingDocumentType.Protocol)).resolves.toBeTruthy();
 });
