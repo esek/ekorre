@@ -577,10 +577,10 @@ export class ElectionAPI {
     }
 
     // We want an atomic operation to protect us from race conditions
-    await prisma.$transaction(async () => {
+    await prisma.$transaction(async (tx) => {
       // We want to minimize time blocked by this transaction, so we use
       // a special query
-      const openElectionsRes = await prisma.prismaElection.findMany({
+      const openElectionsRes = await tx.prismaElection.findMany({
         where: {
           open: true,
           electables: {
@@ -612,7 +612,7 @@ export class ElectionAPI {
         try {
           // If nominations already exists, ignore them without throwing
           // errors to not reveal possibly hidden nominations
-          await prisma.prismaNomination.createMany({
+          await tx.prismaNomination.createMany({
             skipDuplicates: true, // Ignore on collision
             data: filteredPostIds.map((postId) => {
               return {
