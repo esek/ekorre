@@ -50,6 +50,12 @@ export class ServerError extends RequestError {
   name = 'ServerError';
 }
 
+/** The request was based on state that has since changed; reload and retry */
+export class ConflictError extends RequestError {
+  code = 409;
+  name = 'ConflictError';
+}
+
 export class NotFoundError extends RequestError {
   code = 404;
   name = 'NotFoundError';

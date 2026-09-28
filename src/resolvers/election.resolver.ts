@@ -1,3 +1,4 @@
+import config from '@/config';
 import { useDataLoader } from '@/dataloaders';
 import { Logger } from '@/logger';
 import { reduce } from '@/reducers';
@@ -10,6 +11,8 @@ import { electionReduce } from '@reducer/election/election';
 import { nominationReduce } from '@reducer/election/nomination';
 import { proposalReduce } from '@reducer/election/proposal';
 import { sendEmail } from '@service/email';
+
+import { notifyNominationOutcome } from './interview.resolver';
 
 const api = new ElectionAPI();
 const userApi = new UserAPI();
@@ -118,7 +121,7 @@ const electionResolver: Resolvers = {
         return false;
       }
 
-      const couldNominate = api.nominate(username, postIds);
+      const couldNominate = await api.nominate(username, postIds);
 
       if (!couldNominate) {
         return false;
@@ -130,7 +133,7 @@ const electionResolver: Resolvers = {
         await sendEmail(user.email, 'Du har blivit nominerad!', 'nomination', {
           firstName: user.firstName,
           posts: posts.map((p) => p.postname),
-          nominationsLink: 'https://esek.se/member/election/mine',
+          nominationsLink: `${config.WEBSITE_URL}/member/election/mine`,
         });
       } catch (err) {
         logger.error(`Failed to send nomination email`);
@@ -139,8 +142,19 @@ const electionResolver: Resolvers = {
 
       return true;
     },
-    respondToNomination: async (_, { postId, accepts }, ctx) => {
-      return api.respondToNomination(ctx.getUsername(), postId, accepts);
+    respondToNomination: async (_, { postId, accepts, expectedEffect, rebook }, ctx) => {
+      const username = ctx.getUsername();
+      const { electionId, outcome, rebooked } = await api.respondToNomination(
+        username,
+        postId,
+        accepts,
+        {
+          expectedEffect: expectedEffect ?? undefined,
+          rebook: rebook ?? undefined,
+        },
+      );
+      await notifyNominationOutcome(electionId, username, outcome, rebooked);
+      return true;
     },
     propose: async (_, { electionId, username, postId }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);

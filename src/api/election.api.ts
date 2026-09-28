@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/indent */
-import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.errors';
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  ServerError,
+} from '@/errors/request.errors';
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { NominationAnswer } from '@generated/graphql';
@@ -10,10 +15,21 @@ import {
   PrismaNominationAnswer,
   PrismaProposal,
 } from '@prisma/client';
+import { PrismaInterviewBooking } from '@prisma/client';
+import { BookingEffect } from '@service/interview-rules';
 
+import { InterviewAPI, NominationOutcome } from './interview.api';
 import prisma from './prisma';
 
 const logger = Logger.getLogger('ElectionAPI');
+const interviewApi = new InterviewAPI();
+
+export type NominationResponseResult = {
+  electionId: number;
+  outcome: NominationOutcome;
+  /** The new booking, when the nominee rebooked as part of the change */
+  rebooked: PrismaInterviewBooking | null;
+};
 
 export class ElectionAPI {
   /**
@@ -50,9 +66,8 @@ export class ElectionAPI {
         ...unopenedWhere,
         nominationsHidden: includeHiddenNominations ? undefined : false,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      // id breaks ties between elections created in the same millisecond
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     });
 
@@ -90,9 +105,8 @@ export class ElectionAPI {
           in: electionIds.slice(),
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      // id breaks ties between elections created in the same millisecond
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     });
 
     return e;
@@ -579,10 +593,10 @@ export class ElectionAPI {
     }
 
     // We want an atomic operation to protect us from race conditions
-    await prisma.$transaction(async () => {
+    await prisma.$transaction(async (tx) => {
       // We want to minimize time blocked by this transaction, so we use
       // a special query
-      const openElectionsRes = await prisma.prismaElection.findMany({
+      const openElectionsRes = await tx.prismaElection.findMany({
         where: {
           open: true,
           electables: {
@@ -599,9 +613,7 @@ export class ElectionAPI {
             },
           },
         },
-        orderBy: {
-          createdAt: 'asc',
-        },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       });
 
       if (openElectionsRes.length === 0) {
@@ -616,7 +628,7 @@ export class ElectionAPI {
         try {
           // If nominations already exists, ignore them without throwing
           // errors to not reveal possibly hidden nominations
-          await prisma.prismaNomination.createMany({
+          await tx.prismaNomination.createMany({
             skipDuplicates: true, // Ignore on collision
             data: filteredPostIds.map((postId) => {
               return {
@@ -641,32 +653,92 @@ export class ElectionAPI {
     return true;
   }
 
+  /**
+   * Accepts or declines a nomination in the open election, applying the effect on the
+   * nominee's interview booking in the same transaction.
+   *
+   * If the change affects a booking, the caller must pass the `expectedEffect` it showed
+   * the nominee (from `InterviewAPI.previewNominationChange`). If the actual effect
+   * differs, for example because the booking changed in between, nothing is changed.
+   * This guarantees that what the nominee was told is what happened.
+   *
+   * `rebook` books a new time in the same transaction, for when the change unbooks the
+   * nominee and they picked a new time in the confirmation.
+   */
   async respondToNomination(
     username: string,
     postId: number,
     answer: NominationAnswer,
-  ): Promise<boolean> {
+    options: {
+      expectedEffect?: BookingEffect;
+      rebook?: { windowId: number; startsAt: Date };
+      now?: Date;
+    } = {},
+  ): Promise<NominationResponseResult> {
+    const now = options.now ?? new Date();
     const openElections = await this.getOpenElections();
 
-    let updated = false;
+    return prisma.$transaction(async (tx) => {
+      for (const openElection of openElections) {
+        const nomination = await tx.prismaNomination.findUnique({
+          where: {
+            refElection_refPost_refUser: {
+              refElection: openElection.id,
+              refPost: postId,
+              refUser: username,
+            },
+          },
+        });
+        if (!nomination) continue;
 
-    for (const openElection of openElections) {
-      const updatedEntries = await prisma.prismaNomination.updateMany({
-        data: { answer },
-        where: {
-          refElection: openElection.id,
-          refUser: username,
-          refPost: postId,
-        },
-      });
-      if (updatedEntries.count != 0) updated = true;
-    }
+        const outcome = await interviewApi.applyNominationChange(
+          tx,
+          openElection.id,
+          username,
+          postId,
+          answer as PrismaNominationAnswer,
+          now,
+        );
 
-    if (updated) {
-      return true;
-    }
+        if (outcome.effect !== 'NONE' && outcome.effect !== options.expectedEffect) {
+          throw new ConflictError(
+            'Ändringen påverkar din intervjubokning. Ladda om sidan och bekräfta igen.',
+          );
+        }
+        if (options.rebook && outcome.effect !== 'UNBOOKED') {
+          throw new BadRequestError('Ombokning kan bara göras när bokningen tas bort');
+        }
 
-    throw new NotFoundError('Kunde inte hitta nomineringen!');
+        await tx.prismaNomination.update({
+          where: {
+            refElection_refPost_refUser: {
+              refElection: openElection.id,
+              refPost: postId,
+              refUser: username,
+            },
+          },
+          data: { answer },
+        });
+
+        const rebooked = options.rebook
+          ? (
+              await interviewApi.book(
+                openElection.id,
+                username,
+                options.rebook.windowId,
+                options.rebook.startsAt,
+                now,
+                tx,
+                outcome.booking ?? undefined,
+              )
+            ).booking
+          : null;
+
+        return { electionId: openElection.id, outcome, rebooked };
+      }
+
+      throw new NotFoundError('Kunde inte hitta nomineringen!');
+    });
   }
 
   /**

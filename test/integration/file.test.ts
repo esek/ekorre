@@ -1,4 +1,3 @@
-import { app } from '@/app/app';
 import tokenProvider from '@/auth';
 import { StrictObject } from '@/models/base';
 import FileAPI from '@api/file';
@@ -12,8 +11,8 @@ import {
   removeUploadedFiles,
 } from '@test/utils/fileUpload';
 import requestWithAuth from '@test/utils/requestWithAuth';
+import testRequest from '@test/utils/testServer';
 import { genUserWithAccess } from '@test/utils/utils';
-import request from 'supertest';
 
 const fileApi = new FileAPI();
 const userApi = new UserAPI();
@@ -41,7 +40,7 @@ afterAll(async () => {
   await Promise.all([removeCreatedFiles(), teardown()]);
 });
 
-const r = request(app);
+const r = testRequest;
 
 describe('uploading files', () => {
   const accessToken = tokenProvider.issueToken(testUser.username, 'access_token');

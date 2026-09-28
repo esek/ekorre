@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse, MeetingResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse, AccessLogPostResponse, AccessLogIndividualAccessResponse, ApiKeyResponse } from '../mappers';
+import type { ArticleResponse, FileResponse, MeetingResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse, AccessLogPostResponse, AccessLogIndividualAccessResponse, ApiKeyResponse, InterviewSettingsResponse, InterviewPostDurationResponse, InterviewWindowResponse, InterviewBookingResponse, InterviewRequestResponse, InterviewNomineeResponse } from '../mappers';
 import type { Context } from '../context';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -298,6 +298,152 @@ export type HistoryEntry = {
   start: Scalars['Date'];
 };
 
+export type InterviewAvailability = {
+  starts: Array<Scalars['DateTime']>;
+  window: InterviewWindow;
+};
+
+export type InterviewBooking = {
+  endsAt: Scalars['DateTime'];
+  id: Scalars['String'];
+  location?: Maybe<Scalars['String']>;
+  /** Nomination answers changed after the freeze */
+  needsAdminAttention: Scalars['Boolean'];
+  /** Accepted interview posts the booking covers */
+  posts: Array<Post>;
+  /** Length the nominee needs now; can differ from the booking after changes */
+  requiredMinutes: Scalars['Int'];
+  startsAt: Scalars['DateTime'];
+  user: User;
+  videoLink?: Maybe<Scalars['String']>;
+  windowId?: Maybe<Scalars['Int']>;
+};
+
+export enum InterviewBookingEffect {
+  /** After the freeze; the booking stays and the committee is told */
+  Flagged = 'FLAGGED',
+  /** No interview posts left; the booking is removed */
+  Freed = 'FREED',
+  /** Accepted a post; the booking already has the maximum length and now covers it */
+  KeptPostAdded = 'KEPT_POST_ADDED',
+  /** Declined a post, but the length needed is unchanged; the booking stays as it is */
+  KeptPostRemoved = 'KEPT_POST_REMOVED',
+  /** Nothing happens to the booking */
+  None = 'NONE',
+  /** The interview needs less time; the booking keeps its start and ends earlier */
+  Shortened = 'SHORTENED',
+  /** Accepted a post that needs a longer interview; the booking is removed */
+  Unbooked = 'UNBOOKED'
+}
+
+export type InterviewBookingNeed = {
+  booking: InterviewBooking;
+  requiredMinutes: Scalars['Int'];
+};
+
+export type InterviewMissingView = {
+  minutesAvailable: Scalars['Int'];
+  minutesNeeded: Scalars['Int'];
+  needsAttention: Array<InterviewBooking>;
+  outsideWindow: Array<InterviewBooking>;
+  overCapacity: Array<InterviewBooking>;
+  tooShort: Array<InterviewBookingNeed>;
+  unbooked: Array<InterviewNominee>;
+};
+
+export type InterviewNominee = {
+  requiredMinutes: Scalars['Int'];
+  user: User;
+};
+
+export type InterviewPostDuration = {
+  minutes: Scalars['Int'];
+  post: Post;
+};
+
+export type InterviewRequest = {
+  endsAt: Scalars['DateTime'];
+  id: Scalars['String'];
+  location?: Maybe<Scalars['String']>;
+  startsAt: Scalars['DateTime'];
+  status: InterviewRequestStatus;
+  user: User;
+  videoLink?: Maybe<Scalars['String']>;
+};
+
+export enum InterviewRequestStatus {
+  Accepted = 'ACCEPTED',
+  Declined = 'DECLINED',
+  Pending = 'PENDING',
+  Withdrawn = 'WITHDRAWN'
+}
+
+export type InterviewSettings = {
+  defaultDurationMinutes: Scalars['Int'];
+  electionId: Scalars['Int'];
+  freezeAt?: Maybe<Scalars['DateTime']>;
+  /** Manually frozen */
+  frozen: Scalars['Boolean'];
+  /** Frozen right now, manually or by `freezeAt` */
+  isFrozen: Scalars['Boolean'];
+  maxDurationMinutes: Scalars['Int'];
+  minNoticeMinutes: Scalars['Int'];
+  notifyEmails: Array<Scalars['String']>;
+  postDurations: Array<InterviewPostDuration>;
+};
+
+export type InterviewSettingsInput = {
+  /** Set to clear `freezeAt` */
+  clearFreezeAt?: InputMaybe<Scalars['Boolean']>;
+  defaultDurationMinutes?: InputMaybe<Scalars['Int']>;
+  freezeAt?: InputMaybe<Scalars['DateTime']>;
+  frozen?: InputMaybe<Scalars['Boolean']>;
+  maxDurationMinutes?: InputMaybe<Scalars['Int']>;
+  minNoticeMinutes?: InputMaybe<Scalars['Int']>;
+  notifyEmails?: InputMaybe<Array<Scalars['String']>>;
+};
+
+export type InterviewSlotInput = {
+  startsAt: Scalars['DateTime'];
+  windowId: Scalars['Int'];
+};
+
+export type InterviewWindow = {
+  bufferMinutes: Scalars['Int'];
+  capacity: Scalars['Int'];
+  /** The step actually used */
+  effectiveStepMinutes: Scalars['Int'];
+  endsAt: Scalars['DateTime'];
+  id: Scalars['Int'];
+  location?: Maybe<Scalars['String']>;
+  startsAt: Scalars['DateTime'];
+  /** Configured start-time step, or null for the default */
+  stepMinutes?: Maybe<Scalars['Int']>;
+  videoLink?: Maybe<Scalars['String']>;
+};
+
+export type InterviewWindowInput = {
+  bufferMinutes?: InputMaybe<Scalars['Int']>;
+  capacity?: InputMaybe<Scalars['Int']>;
+  endsAt: Scalars['DateTime'];
+  location?: InputMaybe<Scalars['String']>;
+  startsAt: Scalars['DateTime'];
+  stepMinutes?: InputMaybe<Scalars['Int']>;
+  videoLink?: InputMaybe<Scalars['String']>;
+};
+
+export type InterviewWindowUpdate = {
+  bufferMinutes?: InputMaybe<Scalars['Int']>;
+  capacity?: InputMaybe<Scalars['Int']>;
+  /** Set to use the default step */
+  clearStepMinutes?: InputMaybe<Scalars['Boolean']>;
+  endsAt?: InputMaybe<Scalars['DateTime']>;
+  location?: InputMaybe<Scalars['String']>;
+  startsAt?: InputMaybe<Scalars['DateTime']>;
+  stepMinutes?: InputMaybe<Scalars['Int']>;
+  videoLink?: InputMaybe<Scalars['String']>;
+};
+
 export type Location = {
   link?: Maybe<Scalars['String']>;
   title: Scalars['String'];
@@ -431,6 +577,11 @@ export type Mutation = {
   addPost: Post;
   addTicket: Ticket;
   addUsersToPost: Post;
+  /** Books, or reschedules to, a start time in a window */
+  bookInterview: InterviewBooking;
+  /** Admin: cancels without the nominee's approval */
+  cancelInterviewBooking: Scalars['Boolean'];
+  cancelMyInterview: Scalars['Boolean'];
   casCreateUser: User;
   casLogin: CasLoginResponse;
   changePassword: Scalars['Boolean'];
@@ -438,10 +589,14 @@ export type Mutation = {
   createApiKey: Scalars['String'];
   createElection: Election;
   createFolder: File;
+  /** Admin */
+  createInterviewWindow: InterviewWindow;
   createUser: User;
   deactivatePost: Scalars['Boolean'];
   deleteApiKey: Scalars['Boolean'];
   deleteFile: Scalars['Boolean'];
+  /** Admin. Never removes bookings */
+  deleteInterviewWindow: Scalars['Boolean'];
   forgetUser: User;
   issueTokens: TokenResponse;
   linkLoginProvider: LoginProvider;
@@ -454,6 +609,8 @@ export type Mutation = {
   modifyTicket: Ticket;
   /** Only possible during open election, so electionId is known */
   nominate: Scalars['Boolean'];
+  /** Admin: mails nominees who need an interview and have none. Returns how many were mailed */
+  notifyUnbookedNominees: Scalars['Int'];
   openElection: Scalars['Boolean'];
   propose: Scalars['Boolean'];
   providerLogin: LoginResponse;
@@ -469,22 +626,43 @@ export type Mutation = {
   removeProposal: Scalars['Boolean'];
   removeTicket: Ticket;
   renameElection: Scalars['Boolean'];
+  /**
+   * Tells the committee that no time fits the nominee. Only recorded when that is
+   * actually the case.
+   */
+  reportNoInterviewSlot: Scalars['Boolean'];
+  /** Admin: proposes a time; the nominee accepts or declines */
+  requestInterview: InterviewRequest;
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
-  /** Only possible during open election, so electionId is known */
+  respondToInterviewRequest: Scalars['Boolean'];
+  /**
+   * Only possible during open election, so electionId is known.
+   * If the answer affects an interview booking, `expectedEffect` must be the effect
+   * from `nominationResponsePreview`, otherwise nothing is changed. `rebook` books a
+   * new time in the same step when the booking is removed.
+   */
   respondToNomination: Scalars['Boolean'];
   sendEmail: Scalars['Boolean'];
   setApiKeyAccess: Scalars['Boolean'];
   setElectables: Scalars['Boolean'];
   setHiddenNominations: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
+  /** Admin: `minutes: null` resets the post to the default duration */
+  setInterviewPostDuration: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
   setUserPostEnd: Scalars['Boolean'];
   unlinkLoginProvider: Scalars['Boolean'];
+  /** Admin */
+  updateInterviewSettings: InterviewSettings;
+  /** Admin. Never removes bookings; a new location or link is sent to booked nominees */
+  updateInterviewWindow: InterviewWindow;
   updateUser: User;
   validatePasswordResetToken: Scalars['Boolean'];
   validateToken: Scalars['Boolean'];
   verifyUser: Scalars['Boolean'];
+  /** Admin */
+  withdrawInterviewRequest: Scalars['Boolean'];
 };
 
 
@@ -555,6 +733,23 @@ export type MutationAddUsersToPostArgs = {
 };
 
 
+export type MutationBookInterviewArgs = {
+  electionId: Scalars['Int'];
+  startsAt: Scalars['DateTime'];
+  windowId: Scalars['Int'];
+};
+
+
+export type MutationCancelInterviewBookingArgs = {
+  bookingId: Scalars['String'];
+};
+
+
+export type MutationCancelMyInterviewArgs = {
+  electionId: Scalars['Int'];
+};
+
+
 export type MutationCasCreateUserArgs = {
   hash: Scalars['String'];
   input: NewUser;
@@ -594,6 +789,12 @@ export type MutationCreateFolderArgs = {
 };
 
 
+export type MutationCreateInterviewWindowArgs = {
+  electionId: Scalars['Int'];
+  input: InterviewWindowInput;
+};
+
+
 export type MutationCreateUserArgs = {
   input: NewUser;
 };
@@ -611,6 +812,11 @@ export type MutationDeleteApiKeyArgs = {
 
 export type MutationDeleteFileArgs = {
   id: Scalars['ID'];
+};
+
+
+export type MutationDeleteInterviewWindowArgs = {
+  windowId: Scalars['Int'];
 };
 
 
@@ -661,6 +867,11 @@ export type MutationModifyTicketArgs = {
 export type MutationNominateArgs = {
   postIds: Array<Scalars['Int']>;
   username: Scalars['String'];
+};
+
+
+export type MutationNotifyUnbookedNomineesArgs = {
+  electionId: Scalars['Int'];
 };
 
 
@@ -747,6 +958,19 @@ export type MutationRenameElectionArgs = {
 };
 
 
+export type MutationReportNoInterviewSlotArgs = {
+  electionId: Scalars['Int'];
+};
+
+
+export type MutationRequestInterviewArgs = {
+  electionId: Scalars['Int'];
+  startsAt: Scalars['DateTime'];
+  username: Scalars['String'];
+  windowId: Scalars['Int'];
+};
+
+
 export type MutationRequestPasswordResetArgs = {
   resetLink: Scalars['String'];
   returnTo?: InputMaybe<Scalars['String']>;
@@ -761,9 +985,17 @@ export type MutationResetPasswordArgs = {
 };
 
 
+export type MutationRespondToInterviewRequestArgs = {
+  accept: Scalars['Boolean'];
+  requestId: Scalars['String'];
+};
+
+
 export type MutationRespondToNominationArgs = {
   accepts: NominationAnswer;
+  expectedEffect?: InputMaybe<InterviewBookingEffect>;
   postId: Scalars['Int'];
+  rebook?: InputMaybe<InterviewSlotInput>;
 };
 
 
@@ -796,6 +1028,13 @@ export type MutationSetIndividualAccessArgs = {
 };
 
 
+export type MutationSetInterviewPostDurationArgs = {
+  electionId: Scalars['Int'];
+  minutes?: InputMaybe<Scalars['Int']>;
+  postId: Scalars['Int'];
+};
+
+
 export type MutationSetPostAccessArgs = {
   access: AccessEndDateInput;
   postId: Scalars['Int'];
@@ -810,6 +1049,18 @@ export type MutationSetUserPostEndArgs = {
 
 export type MutationUnlinkLoginProviderArgs = {
   id: Scalars['Int'];
+};
+
+
+export type MutationUpdateInterviewSettingsArgs = {
+  electionId: Scalars['Int'];
+  input: InterviewSettingsInput;
+};
+
+
+export type MutationUpdateInterviewWindowArgs = {
+  input: InterviewWindowUpdate;
+  windowId: Scalars['Int'];
 };
 
 
@@ -832,6 +1083,26 @@ export type MutationValidateTokenArgs = {
 export type MutationVerifyUserArgs = {
   ssn: Scalars['String'];
   username: Scalars['String'];
+};
+
+
+export type MutationWithdrawInterviewRequestArgs = {
+  requestId: Scalars['String'];
+};
+
+export type MyInterview = {
+  /** Times the nominee can book now */
+  availability: Array<InterviewAvailability>;
+  booking?: Maybe<InterviewBooking>;
+  /** Whether the election uses interview booking at all */
+  enabled: Scalars['Boolean'];
+  /** When booking closes, if set */
+  freezeAt?: Maybe<Scalars['DateTime']>;
+  /** Booking, rescheduling and cancelling are closed */
+  frozen: Scalars['Boolean'];
+  pendingRequest?: Maybe<InterviewRequest>;
+  /** Length the nominee needs; 0 means no interview */
+  requiredMinutes: Scalars['Int'];
 };
 
 export type NewActivity = {
@@ -905,6 +1176,17 @@ export enum NominationAnswer {
   NotAnswered = 'NOT_ANSWERED',
   Yes = 'YES'
 }
+
+export type NominationResponsePreview = {
+  /** When the booking would be removed: times fitting the new length, for rebooking */
+  availability: Array<InterviewAvailability>;
+  booking?: Maybe<InterviewBooking>;
+  effect: InterviewBookingEffect;
+  /** A pending request from the committee would be withdrawn */
+  requestWithdrawn: Scalars['Boolean'];
+  requiredMinutesAfter: Scalars['Int'];
+  requiredMinutesBefore: Scalars['Int'];
+};
 
 export enum Order {
   Asc = 'asc',
@@ -990,8 +1272,8 @@ export type ProviderOptions = {
 };
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type Query = {
   activities: Array<Activity>;
@@ -1015,17 +1297,35 @@ export type Query = {
   individualAccess: Access;
   individualAccessEndDate: AccessEndDate;
   individualAccessLogs: Array<AccessLogIndividualAccess>;
+  /** Admin: times that would fit a nominee, for proposing one */
+  interviewAvailabilityFor: Array<InterviewAvailability>;
+  /** Admin */
+  interviewBookings: Array<InterviewBooking>;
+  /** Admin: who still needs a time, and bookings that need attention */
+  interviewMissing: InterviewMissingView;
+  /** Admin: pending, unexpired requests */
+  interviewRequests: Array<InterviewRequest>;
+  /** Admin */
+  interviewSettings: InterviewSettings;
+  /** Admin */
+  interviewWindows: Array<InterviewWindow>;
   latestBoardMeetings: Array<Meeting>;
   latestElections: Array<Election>;
   latestHehe: Array<Hehe>;
   latestnews: Array<Article>;
-  latexify: Scalars['String'];
   me: User;
   meeting: Meeting;
   meetings: Array<Meeting>;
+  /** The logged in nominee's interview state for an election */
+  myInterview: MyInterview;
   /** A users own nominations should always be available to them */
   myNominations: Array<Nomination>;
   newsentries: Array<Article>;
+  /**
+   * What answering a nomination in the open election would do to the nominee's
+   * interview booking. Pass the returned `effect` to `respondToNomination`.
+   */
+  nominationResponsePreview: NominationResponsePreview;
   numberOfMembers: Scalars['Int'];
   numberOfNominations: Scalars['Int'];
   numberOfProposals: Scalars['Int'];
@@ -1051,8 +1351,8 @@ export type Query = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryActivitiesArgs = {
   from: Scalars['DateTime'];
@@ -1063,8 +1363,8 @@ export type QueryActivitiesArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryActivityArgs = {
   id: Scalars['String'];
@@ -1072,8 +1372,8 @@ export type QueryActivityArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryApiKeyArgs = {
   key: Scalars['String'];
@@ -1081,8 +1381,8 @@ export type QueryApiKeyArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryArticleArgs = {
   id?: InputMaybe<Scalars['Int']>;
@@ -1091,8 +1391,8 @@ export type QueryArticleArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryArticlesArgs = {
   author?: InputMaybe<Scalars['String']>;
@@ -1103,8 +1403,8 @@ export type QueryArticlesArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryElectionArgs = {
   electionId: Scalars['Int'];
@@ -1112,8 +1412,8 @@ export type QueryElectionArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryElectionsArgs = {
   electionIds: Array<Scalars['Int']>;
@@ -1121,8 +1421,8 @@ export type QueryElectionsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryFileArgs = {
   id: Scalars['ID'];
@@ -1130,8 +1430,8 @@ export type QueryFileArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryFileSystemArgs = {
   folder: Scalars['String'];
@@ -1139,8 +1439,8 @@ export type QueryFileSystemArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryFilesArgs = {
   type?: InputMaybe<FileType>;
@@ -1148,8 +1448,8 @@ export type QueryFilesArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryGroupedPostsArgs = {
   includeInactive?: InputMaybe<Scalars['Boolean']>;
@@ -1157,8 +1457,8 @@ export type QueryGroupedPostsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryHeheArgs = {
   number: Scalars['Int'];
@@ -1167,8 +1467,8 @@ export type QueryHeheArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryHehesArgs = {
   year: Scalars['Int'];
@@ -1176,8 +1476,8 @@ export type QueryHehesArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryHiddenNominationsArgs = {
   answer?: InputMaybe<NominationAnswer>;
@@ -1186,8 +1486,8 @@ export type QueryHiddenNominationsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryIndividualAccessArgs = {
   username: Scalars['String'];
@@ -1195,8 +1495,8 @@ export type QueryIndividualAccessArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryIndividualAccessEndDateArgs = {
   username: Scalars['String'];
@@ -1204,8 +1504,63 @@ export type QueryIndividualAccessEndDateArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryInterviewAvailabilityForArgs = {
+  electionId: Scalars['Int'];
+  username: Scalars['String'];
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryInterviewBookingsArgs = {
+  electionId: Scalars['Int'];
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryInterviewMissingArgs = {
+  electionId: Scalars['Int'];
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryInterviewRequestsArgs = {
+  electionId: Scalars['Int'];
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryInterviewSettingsArgs = {
+  electionId: Scalars['Int'];
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryInterviewWindowsArgs = {
+  electionId: Scalars['Int'];
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryLatestBoardMeetingsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
@@ -1213,8 +1568,8 @@ export type QueryLatestBoardMeetingsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryLatestElectionsArgs = {
   includeHiddenNominations?: InputMaybe<Scalars['Boolean']>;
@@ -1224,8 +1579,8 @@ export type QueryLatestElectionsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryLatestHeheArgs = {
   limit?: InputMaybe<Scalars['Int']>;
@@ -1234,8 +1589,8 @@ export type QueryLatestHeheArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryLatestnewsArgs = {
   limit?: InputMaybe<Scalars['Int']>;
@@ -1243,17 +1598,8 @@ export type QueryLatestnewsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
- */
-export type QueryLatexifyArgs = {
-  text: Scalars['String'];
-};
-
-
-/**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryMeetingArgs = {
   id: Scalars['Int'];
@@ -1261,8 +1607,8 @@ export type QueryMeetingArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryMeetingsArgs = {
   number?: InputMaybe<Scalars['Int']>;
@@ -1272,8 +1618,17 @@ export type QueryMeetingsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryMyInterviewArgs = {
+  electionId: Scalars['Int'];
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryMyNominationsArgs = {
   answer?: InputMaybe<NominationAnswer>;
@@ -1282,8 +1637,8 @@ export type QueryMyNominationsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryNewsentriesArgs = {
   after?: InputMaybe<Scalars['Date']>;
@@ -1293,8 +1648,18 @@ export type QueryNewsentriesArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryNominationResponsePreviewArgs = {
+  accepts: NominationAnswer;
+  postId: Scalars['Int'];
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryNumberOfMembersArgs = {
   noAlumni?: InputMaybe<Scalars['Boolean']>;
@@ -1302,8 +1667,8 @@ export type QueryNumberOfMembersArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryNumberOfNominationsArgs = {
   electionId: Scalars['Int'];
@@ -1312,8 +1677,8 @@ export type QueryNumberOfNominationsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryNumberOfProposalsArgs = {
   electionId: Scalars['Int'];
@@ -1322,8 +1687,8 @@ export type QueryNumberOfProposalsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryNumberOfVolunteersArgs = {
   date?: InputMaybe<Scalars['Date']>;
@@ -1331,8 +1696,8 @@ export type QueryNumberOfVolunteersArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryPaginatedHehesArgs = {
   pagination?: InputMaybe<PaginationParams>;
@@ -1340,8 +1705,8 @@ export type QueryPaginatedHehesArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryPostArgs = {
   id: Scalars['Int'];
@@ -1349,8 +1714,8 @@ export type QueryPostArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryPostAccessArgs = {
   postId: Scalars['Int'];
@@ -1358,8 +1723,8 @@ export type QueryPostAccessArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryPostAccessEndDateArgs = {
   postId: Scalars['Int'];
@@ -1367,8 +1732,8 @@ export type QueryPostAccessEndDateArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryPostsArgs = {
   includeInactive?: InputMaybe<Scalars['Boolean']>;
@@ -1377,8 +1742,8 @@ export type QueryPostsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryPostsFromIDsArgs = {
   ids: Array<Scalars['Int']>;
@@ -1386,8 +1751,8 @@ export type QueryPostsFromIDsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QuerySearchFilesArgs = {
   search: Scalars['String'];
@@ -1395,8 +1760,8 @@ export type QuerySearchFilesArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QuerySearchUserArgs = {
   search: Scalars['String'];
@@ -1404,8 +1769,8 @@ export type QuerySearchUserArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryTicketArgs = {
   id: Scalars['String'];
@@ -1413,8 +1778,8 @@ export type QueryTicketArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryTicketsArgs = {
   activityID?: InputMaybe<Scalars['String']>;
@@ -1422,8 +1787,8 @@ export type QueryTicketsArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryUserArgs = {
   username: Scalars['String'];
@@ -1431,8 +1796,8 @@ export type QueryUserArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryUserByCardArgs = {
   luCard: Scalars['String'];
@@ -1440,8 +1805,8 @@ export type QueryUserByCardArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryUsersArgs = {
   usernames: Array<Scalars['String']>;
@@ -1449,8 +1814,8 @@ export type QueryUsersArgs = {
 
 
 /**
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
  */
 export type QueryUtskottArgs = {
   name: Scalars['String'];
@@ -1652,6 +2017,21 @@ export type ResolversTypes = ResolversObject<{
   HistoryEntry: ResolverTypeWrapper<HistoryEntry>;
   ID: ResolverTypeWrapper<Scalars['ID']>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
+  InterviewAvailability: ResolverTypeWrapper<Omit<InterviewAvailability, 'window'> & { window: ResolversTypes['InterviewWindow'] }>;
+  InterviewBooking: ResolverTypeWrapper<InterviewBookingResponse>;
+  InterviewBookingEffect: InterviewBookingEffect;
+  InterviewBookingNeed: ResolverTypeWrapper<Omit<InterviewBookingNeed, 'booking'> & { booking: ResolversTypes['InterviewBooking'] }>;
+  InterviewMissingView: ResolverTypeWrapper<Omit<InterviewMissingView, 'needsAttention' | 'outsideWindow' | 'overCapacity' | 'tooShort' | 'unbooked'> & { needsAttention: Array<ResolversTypes['InterviewBooking']>, outsideWindow: Array<ResolversTypes['InterviewBooking']>, overCapacity: Array<ResolversTypes['InterviewBooking']>, tooShort: Array<ResolversTypes['InterviewBookingNeed']>, unbooked: Array<ResolversTypes['InterviewNominee']> }>;
+  InterviewNominee: ResolverTypeWrapper<InterviewNomineeResponse>;
+  InterviewPostDuration: ResolverTypeWrapper<InterviewPostDurationResponse>;
+  InterviewRequest: ResolverTypeWrapper<InterviewRequestResponse>;
+  InterviewRequestStatus: InterviewRequestStatus;
+  InterviewSettings: ResolverTypeWrapper<InterviewSettingsResponse>;
+  InterviewSettingsInput: InterviewSettingsInput;
+  InterviewSlotInput: InterviewSlotInput;
+  InterviewWindow: ResolverTypeWrapper<InterviewWindowResponse>;
+  InterviewWindowInput: InterviewWindowInput;
+  InterviewWindowUpdate: InterviewWindowUpdate;
   Location: ResolverTypeWrapper<Location>;
   LoginProvider: ResolverTypeWrapper<LoginProvider>;
   LoginResponse: ResolverTypeWrapper<LoginResponse>;
@@ -1663,6 +2043,7 @@ export type ResolversTypes = ResolversObject<{
   ModifyArticle: ModifyArticle;
   ModifyPost: ModifyPost;
   Mutation: ResolverTypeWrapper<{}>;
+  MyInterview: ResolverTypeWrapper<Omit<MyInterview, 'availability' | 'booking' | 'pendingRequest'> & { availability: Array<ResolversTypes['InterviewAvailability']>, booking?: Maybe<ResolversTypes['InterviewBooking']>, pendingRequest?: Maybe<ResolversTypes['InterviewRequest']> }>;
   NewActivity: NewActivity;
   NewArticle: NewArticle;
   NewLocation: NewLocation;
@@ -1671,6 +2052,7 @@ export type ResolversTypes = ResolversObject<{
   NewUser: NewUser;
   Nomination: ResolverTypeWrapper<NominationResponse>;
   NominationAnswer: NominationAnswer;
+  NominationResponsePreview: ResolverTypeWrapper<Omit<NominationResponsePreview, 'availability' | 'booking'> & { availability: Array<ResolversTypes['InterviewAvailability']>, booking?: Maybe<ResolversTypes['InterviewBooking']> }>;
   Object: ResolverTypeWrapper<Scalars['Object']>;
   Order: Order;
   PageInfo: ResolverTypeWrapper<PageInfo>;
@@ -1724,6 +2106,19 @@ export type ResolversParentTypes = ResolversObject<{
   HistoryEntry: HistoryEntry;
   ID: Scalars['ID'];
   Int: Scalars['Int'];
+  InterviewAvailability: Omit<InterviewAvailability, 'window'> & { window: ResolversParentTypes['InterviewWindow'] };
+  InterviewBooking: InterviewBookingResponse;
+  InterviewBookingNeed: Omit<InterviewBookingNeed, 'booking'> & { booking: ResolversParentTypes['InterviewBooking'] };
+  InterviewMissingView: Omit<InterviewMissingView, 'needsAttention' | 'outsideWindow' | 'overCapacity' | 'tooShort' | 'unbooked'> & { needsAttention: Array<ResolversParentTypes['InterviewBooking']>, outsideWindow: Array<ResolversParentTypes['InterviewBooking']>, overCapacity: Array<ResolversParentTypes['InterviewBooking']>, tooShort: Array<ResolversParentTypes['InterviewBookingNeed']>, unbooked: Array<ResolversParentTypes['InterviewNominee']> };
+  InterviewNominee: InterviewNomineeResponse;
+  InterviewPostDuration: InterviewPostDurationResponse;
+  InterviewRequest: InterviewRequestResponse;
+  InterviewSettings: InterviewSettingsResponse;
+  InterviewSettingsInput: InterviewSettingsInput;
+  InterviewSlotInput: InterviewSlotInput;
+  InterviewWindow: InterviewWindowResponse;
+  InterviewWindowInput: InterviewWindowInput;
+  InterviewWindowUpdate: InterviewWindowUpdate;
   Location: Location;
   LoginProvider: LoginProvider;
   LoginResponse: LoginResponse;
@@ -1733,6 +2128,7 @@ export type ResolversParentTypes = ResolversObject<{
   ModifyArticle: ModifyArticle;
   ModifyPost: ModifyPost;
   Mutation: {};
+  MyInterview: Omit<MyInterview, 'availability' | 'booking' | 'pendingRequest'> & { availability: Array<ResolversParentTypes['InterviewAvailability']>, booking?: Maybe<ResolversParentTypes['InterviewBooking']>, pendingRequest?: Maybe<ResolversParentTypes['InterviewRequest']> };
   NewActivity: NewActivity;
   NewArticle: NewArticle;
   NewLocation: NewLocation;
@@ -1740,6 +2136,7 @@ export type ResolversParentTypes = ResolversObject<{
   NewTicket: NewTicket;
   NewUser: NewUser;
   Nomination: NominationResponse;
+  NominationResponsePreview: Omit<NominationResponsePreview, 'availability' | 'booking'> & { availability: Array<ResolversParentTypes['InterviewAvailability']>, booking?: Maybe<ResolversParentTypes['InterviewBooking']> };
   Object: Scalars['Object'];
   PageInfo: PageInfo;
   PaginatedHehes: Omit<PaginatedHehes, 'values'> & { values: Array<ResolversParentTypes['Hehe']> };
@@ -1941,6 +2338,92 @@ export type HistoryEntryResolvers<ContextType = Context, ParentType extends Reso
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type InterviewAvailabilityResolvers<ContextType = Context, ParentType extends ResolversParentTypes['InterviewAvailability'] = ResolversParentTypes['InterviewAvailability']> = ResolversObject<{
+  starts?: Resolver<Array<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  window?: Resolver<ResolversTypes['InterviewWindow'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InterviewBookingResolvers<ContextType = Context, ParentType extends ResolversParentTypes['InterviewBooking'] = ResolversParentTypes['InterviewBooking']> = ResolversObject<{
+  endsAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  location?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  needsAdminAttention?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
+  requiredMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  startsAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  videoLink?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  windowId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InterviewBookingNeedResolvers<ContextType = Context, ParentType extends ResolversParentTypes['InterviewBookingNeed'] = ResolversParentTypes['InterviewBookingNeed']> = ResolversObject<{
+  booking?: Resolver<ResolversTypes['InterviewBooking'], ParentType, ContextType>;
+  requiredMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InterviewMissingViewResolvers<ContextType = Context, ParentType extends ResolversParentTypes['InterviewMissingView'] = ResolversParentTypes['InterviewMissingView']> = ResolversObject<{
+  minutesAvailable?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  minutesNeeded?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  needsAttention?: Resolver<Array<ResolversTypes['InterviewBooking']>, ParentType, ContextType>;
+  outsideWindow?: Resolver<Array<ResolversTypes['InterviewBooking']>, ParentType, ContextType>;
+  overCapacity?: Resolver<Array<ResolversTypes['InterviewBooking']>, ParentType, ContextType>;
+  tooShort?: Resolver<Array<ResolversTypes['InterviewBookingNeed']>, ParentType, ContextType>;
+  unbooked?: Resolver<Array<ResolversTypes['InterviewNominee']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InterviewNomineeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['InterviewNominee'] = ResolversParentTypes['InterviewNominee']> = ResolversObject<{
+  requiredMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InterviewPostDurationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['InterviewPostDuration'] = ResolversParentTypes['InterviewPostDuration']> = ResolversObject<{
+  minutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InterviewRequestResolvers<ContextType = Context, ParentType extends ResolversParentTypes['InterviewRequest'] = ResolversParentTypes['InterviewRequest']> = ResolversObject<{
+  endsAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  location?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  startsAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['InterviewRequestStatus'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  videoLink?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InterviewSettingsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['InterviewSettings'] = ResolversParentTypes['InterviewSettings']> = ResolversObject<{
+  defaultDurationMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  electionId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  freezeAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  frozen?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  isFrozen?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  maxDurationMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  minNoticeMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  notifyEmails?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  postDurations?: Resolver<Array<ResolversTypes['InterviewPostDuration']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type InterviewWindowResolvers<ContextType = Context, ParentType extends ResolversParentTypes['InterviewWindow'] = ResolversParentTypes['InterviewWindow']> = ResolversObject<{
+  bufferMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  capacity?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  effectiveStepMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  endsAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  location?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  startsAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  stepMinutes?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  videoLink?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type LocationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Location'] = ResolversParentTypes['Location']> = ResolversObject<{
   link?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -1989,6 +2472,9 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addPost?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<MutationAddPostArgs, 'info'>>;
   addTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationAddTicketArgs, 'ticket'>>;
   addUsersToPost?: Resolver<ResolversTypes['Post'], ParentType, ContextType, RequireFields<MutationAddUsersToPostArgs, 'id' | 'usernames'>>;
+  bookInterview?: Resolver<ResolversTypes['InterviewBooking'], ParentType, ContextType, RequireFields<MutationBookInterviewArgs, 'electionId' | 'startsAt' | 'windowId'>>;
+  cancelInterviewBooking?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCancelInterviewBookingArgs, 'bookingId'>>;
+  cancelMyInterview?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationCancelMyInterviewArgs, 'electionId'>>;
   casCreateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCasCreateUserArgs, 'hash' | 'input'>>;
   casLogin?: Resolver<ResolversTypes['CasLoginResponse'], ParentType, ContextType, RequireFields<MutationCasLoginArgs, 'token'>>;
   changePassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationChangePasswordArgs, 'newPassword' | 'oldPassword'>>;
@@ -1996,10 +2482,12 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   createApiKey?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationCreateApiKeyArgs, 'description'>>;
   createElection?: Resolver<ResolversTypes['Election'], ParentType, ContextType, RequireFields<MutationCreateElectionArgs, 'electables' | 'nominationsHidden'>>;
   createFolder?: Resolver<ResolversTypes['File'], ParentType, ContextType, RequireFields<MutationCreateFolderArgs, 'name' | 'path'>>;
+  createInterviewWindow?: Resolver<ResolversTypes['InterviewWindow'], ParentType, ContextType, RequireFields<MutationCreateInterviewWindowArgs, 'electionId' | 'input'>>;
   createUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
   deactivatePost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeactivatePostArgs, 'id'>>;
   deleteApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteApiKeyArgs, 'key'>>;
   deleteFile?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteFileArgs, 'id'>>;
+  deleteInterviewWindow?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteInterviewWindowArgs, 'windowId'>>;
   forgetUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationForgetUserArgs, 'username'>>;
   issueTokens?: Resolver<ResolversTypes['TokenResponse'], ParentType, ContextType, RequireFields<MutationIssueTokensArgs, 'username'>>;
   linkLoginProvider?: Resolver<ResolversTypes['LoginProvider'], ParentType, ContextType, RequireFields<MutationLinkLoginProviderArgs, 'input'>>;
@@ -2010,6 +2498,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   modifyPost?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationModifyPostArgs, 'info'>>;
   modifyTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationModifyTicketArgs, 'entry' | 'id'>>;
   nominate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationNominateArgs, 'postIds' | 'username'>>;
+  notifyUnbookedNominees?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationNotifyUnbookedNomineesArgs, 'electionId'>>;
   openElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenElectionArgs, 'electionId'>>;
   propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postId' | 'username'>>;
   providerLogin?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationProviderLoginArgs, 'input'>>;
@@ -2025,21 +2514,39 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProposalArgs, 'electionId' | 'postId' | 'username'>>;
   removeTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationRemoveTicketArgs, 'id'>>;
   renameElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRenameElectionArgs, 'electionId'>>;
+  reportNoInterviewSlot?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationReportNoInterviewSlotArgs, 'electionId'>>;
+  requestInterview?: Resolver<ResolversTypes['InterviewRequest'], ParentType, ContextType, RequireFields<MutationRequestInterviewArgs, 'electionId' | 'startsAt' | 'username' | 'windowId'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'resetLink' | 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
+  respondToInterviewRequest?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToInterviewRequestArgs, 'accept' | 'requestId'>>;
   respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postId'>>;
   sendEmail?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendEmailArgs, 'options'>>;
   setApiKeyAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetApiKeyAccessArgs, 'access' | 'key'>>;
   setElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetElectablesArgs, 'electionId' | 'postIds'>>;
   setHiddenNominations?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetHiddenNominationsArgs, 'electionId' | 'hidden'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'access' | 'username'>>;
+  setInterviewPostDuration?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetInterviewPostDurationArgs, 'electionId' | 'postId'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postId'>>;
   setUserPostEnd?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetUserPostEndArgs, 'end' | 'id'>>;
   unlinkLoginProvider?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUnlinkLoginProviderArgs, 'id'>>;
+  updateInterviewSettings?: Resolver<ResolversTypes['InterviewSettings'], ParentType, ContextType, RequireFields<MutationUpdateInterviewSettingsArgs, 'electionId' | 'input'>>;
+  updateInterviewWindow?: Resolver<ResolversTypes['InterviewWindow'], ParentType, ContextType, RequireFields<MutationUpdateInterviewWindowArgs, 'input' | 'windowId'>>;
   updateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
   validatePasswordResetToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidatePasswordResetTokenArgs, 'token' | 'username'>>;
   validateToken?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationValidateTokenArgs, 'token'>>;
   verifyUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationVerifyUserArgs, 'ssn' | 'username'>>;
+  withdrawInterviewRequest?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationWithdrawInterviewRequestArgs, 'requestId'>>;
+}>;
+
+export type MyInterviewResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MyInterview'] = ResolversParentTypes['MyInterview']> = ResolversObject<{
+  availability?: Resolver<Array<ResolversTypes['InterviewAvailability']>, ParentType, ContextType>;
+  booking?: Resolver<Maybe<ResolversTypes['InterviewBooking']>, ParentType, ContextType>;
+  enabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  freezeAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  frozen?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  pendingRequest?: Resolver<Maybe<ResolversTypes['InterviewRequest']>, ParentType, ContextType>;
+  requiredMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type NominationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Nomination'] = ResolversParentTypes['Nomination']> = ResolversObject<{
@@ -2047,6 +2554,16 @@ export type NominationResolvers<ContextType = Context, ParentType extends Resolv
   electionName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type NominationResponsePreviewResolvers<ContextType = Context, ParentType extends ResolversParentTypes['NominationResponsePreview'] = ResolversParentTypes['NominationResponsePreview']> = ResolversObject<{
+  availability?: Resolver<Array<ResolversTypes['InterviewAvailability']>, ParentType, ContextType>;
+  booking?: Resolver<Maybe<ResolversTypes['InterviewBooking']>, ParentType, ContextType>;
+  effect?: Resolver<ResolversTypes['InterviewBookingEffect'], ParentType, ContextType>;
+  requestWithdrawn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  requiredMinutesAfter?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  requiredMinutesBefore?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2118,16 +2635,23 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   individualAccess?: Resolver<ResolversTypes['Access'], ParentType, ContextType, RequireFields<QueryIndividualAccessArgs, 'username'>>;
   individualAccessEndDate?: Resolver<ResolversTypes['AccessEndDate'], ParentType, ContextType, RequireFields<QueryIndividualAccessEndDateArgs, 'username'>>;
   individualAccessLogs?: Resolver<Array<ResolversTypes['AccessLogIndividualAccess']>, ParentType, ContextType>;
+  interviewAvailabilityFor?: Resolver<Array<ResolversTypes['InterviewAvailability']>, ParentType, ContextType, RequireFields<QueryInterviewAvailabilityForArgs, 'electionId' | 'username'>>;
+  interviewBookings?: Resolver<Array<ResolversTypes['InterviewBooking']>, ParentType, ContextType, RequireFields<QueryInterviewBookingsArgs, 'electionId'>>;
+  interviewMissing?: Resolver<ResolversTypes['InterviewMissingView'], ParentType, ContextType, RequireFields<QueryInterviewMissingArgs, 'electionId'>>;
+  interviewRequests?: Resolver<Array<ResolversTypes['InterviewRequest']>, ParentType, ContextType, RequireFields<QueryInterviewRequestsArgs, 'electionId'>>;
+  interviewSettings?: Resolver<ResolversTypes['InterviewSettings'], ParentType, ContextType, RequireFields<QueryInterviewSettingsArgs, 'electionId'>>;
+  interviewWindows?: Resolver<Array<ResolversTypes['InterviewWindow']>, ParentType, ContextType, RequireFields<QueryInterviewWindowsArgs, 'electionId'>>;
   latestBoardMeetings?: Resolver<Array<ResolversTypes['Meeting']>, ParentType, ContextType, Partial<QueryLatestBoardMeetingsArgs>>;
   latestElections?: Resolver<Array<ResolversTypes['Election']>, ParentType, ContextType, Partial<QueryLatestElectionsArgs>>;
   latestHehe?: Resolver<Array<ResolversTypes['Hehe']>, ParentType, ContextType, Partial<QueryLatestHeheArgs>>;
   latestnews?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, Partial<QueryLatestnewsArgs>>;
-  latexify?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<QueryLatexifyArgs, 'text'>>;
   me?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   meeting?: Resolver<ResolversTypes['Meeting'], ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<ResolversTypes['Meeting']>, ParentType, ContextType, Partial<QueryMeetingsArgs>>;
+  myInterview?: Resolver<ResolversTypes['MyInterview'], ParentType, ContextType, RequireFields<QueryMyInterviewArgs, 'electionId'>>;
   myNominations?: Resolver<Array<ResolversTypes['Nomination']>, ParentType, ContextType, RequireFields<QueryMyNominationsArgs, 'electionId'>>;
   newsentries?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, Partial<QueryNewsentriesArgs>>;
+  nominationResponsePreview?: Resolver<ResolversTypes['NominationResponsePreview'], ParentType, ContextType, RequireFields<QueryNominationResponsePreviewArgs, 'accepts' | 'postId'>>;
   numberOfMembers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, Partial<QueryNumberOfMembersArgs>>;
   numberOfNominations?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfNominationsArgs, 'electionId'>>;
   numberOfProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfProposalsArgs, 'electionId'>>;
@@ -2220,12 +2744,23 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   GroupedPost?: GroupedPostResolvers<ContextType>;
   Hehe?: HeheResolvers<ContextType>;
   HistoryEntry?: HistoryEntryResolvers<ContextType>;
+  InterviewAvailability?: InterviewAvailabilityResolvers<ContextType>;
+  InterviewBooking?: InterviewBookingResolvers<ContextType>;
+  InterviewBookingNeed?: InterviewBookingNeedResolvers<ContextType>;
+  InterviewMissingView?: InterviewMissingViewResolvers<ContextType>;
+  InterviewNominee?: InterviewNomineeResolvers<ContextType>;
+  InterviewPostDuration?: InterviewPostDurationResolvers<ContextType>;
+  InterviewRequest?: InterviewRequestResolvers<ContextType>;
+  InterviewSettings?: InterviewSettingsResolvers<ContextType>;
+  InterviewWindow?: InterviewWindowResolvers<ContextType>;
   Location?: LocationResolvers<ContextType>;
   LoginProvider?: LoginProviderResolvers<ContextType>;
   LoginResponse?: LoginResponseResolvers<ContextType>;
   Meeting?: MeetingResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  MyInterview?: MyInterviewResolvers<ContextType>;
   Nomination?: NominationResolvers<ContextType>;
+  NominationResponsePreview?: NominationResponsePreviewResolvers<ContextType>;
   Object?: GraphQLScalarType;
   PageInfo?: PageInfoResolvers<ContextType>;
   PaginatedHehes?: PaginatedHehesResolvers<ContextType>;

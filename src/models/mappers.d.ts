@@ -8,6 +8,7 @@
  * 1) Du importerat alla relevanta typer (dvs. inga `any`)
  * 2) `generated/graphql.ts` ser bra ut
  */
+import type { InterviewSettings as DbInterviewSettings } from '@api/interview';
 import {
   Access,
   AccessLogPost,
@@ -22,7 +23,13 @@ import {
   Proposal,
   User,
 } from '@generated/graphql';
-import { PrismaAccessResource } from '@prisma/client';
+import {
+  PrismaAccessResource,
+  PrismaInterviewBooking,
+  PrismaInterviewPostDuration,
+  PrismaInterviewRequest,
+  PrismaInterviewWindow,
+} from '@prisma/client';
 
 export type ArticleResponse = Partial<Omit<Article, 'author' | 'lastUpdatedBy'>> & {
   author: Partial<User>;
@@ -77,3 +84,11 @@ export type AccessLogIndividualAccessResponse = Omit<AccessLogPost, 'grantor' | 
 export type ApiKeyResponse = Omit<ApiKey, 'creator' | 'refcreator'> & {
   creator: Partial<User>;
 };
+
+// Interview types are resolved from the database rows; derived fields have resolvers
+export type InterviewSettingsResponse = DbInterviewSettings;
+export type InterviewPostDurationResponse = PrismaInterviewPostDuration;
+export type InterviewWindowResponse = PrismaInterviewWindow;
+export type InterviewBookingResponse = PrismaInterviewBooking;
+export type InterviewRequestResponse = PrismaInterviewRequest;
+export type InterviewNomineeResponse = { username: string; requiredMinutes: number };

@@ -1,9 +1,6 @@
-import { app } from '@/app/app';
 import { StrictObject } from '@/models/base';
 import { GraphqlResponseData } from '@test/models/test';
-import request from 'supertest';
-
-const r = request(app);
+import r from '@test/utils/testServer';
 
 /**
  * Sends GraphQL query/mutation, using `supertest`, allowing coverage information to be collected.

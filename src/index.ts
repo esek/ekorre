@@ -1,6 +1,7 @@
 import { app } from '@/app/app';
 import config from '@/config';
 import { Logger } from '@/logger';
+import { startInterviewSummaryScheduler } from '@service/interview-summary';
 
 const { PORT, HOST } = config;
 
@@ -11,4 +12,5 @@ logger.log('Beginning startup...');
 
 app.listen(PORT, HOST, () => {
   logger.log(`Server started on http://${HOST}:${PORT}`);
+  startInterviewSummaryScheduler();
 });

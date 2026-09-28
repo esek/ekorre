@@ -75,6 +75,8 @@ const config = {
   X_API_KEY_HEADER: 'X-E-Api-Key',
   SKIP_ACCESS_CHECKS: process.env.SKIP_ACCESS_CHECKS?.toLowerCase() === 'true',
   POST_ACCESS_COOLDOWN_DAYS: Number.parseInt(process.env.POST_ACCESS_COOLDOWN_DAYS ?? '0'),
+  // Base URL of the website, used for links in mail
+  WEBSITE_URL: (process.env.WEBSITE_URL ?? 'https://esek.se').replace(/\/$/, ''),
   FILES,
   HEHES,
   EBREV,

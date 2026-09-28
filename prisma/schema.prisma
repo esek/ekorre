@@ -35,37 +35,41 @@ model PrismaIndividualAccessLog {
 }
 
 model PrismaUser {
-  username                   String                      @id
-  access                     PrismaIndividualAccess[]    @relation(name: "PrismaIndividualAccessToPrismaUser")
-  grantedIndividualAccessLog PrismaIndividualAccessLog[] @relation(name: "PrismaIndividualAccessLogToPrismaUserGrantor")
-  grantedPostAccessLog       PrismaPostAccessLog[]       @relation(name: "PrismaPostAccessLogToPrismaUserGrantor")
-  targetIndividualAccessLog  PrismaIndividualAccessLog[] @relation(name: "PrismaIndividualAccessLogToPrismaUserTarget")
-  articles                   PrismaArticle[]             @relation(name: "PrismaArticleToAuthor")
-  editedArticles             PrismaArticle[]             @relation(name: "PrismaArticleToLastUpdateBy")
-  elections                  PrismaElection[]            @relation(name: "PrismaElectionToPrismaUser")
-  nominations                PrismaNomination[]          @relation(name: "PrismaNominationToPrismaUser")
-  proposals                  PrismaProposal[]            @relation(name: "PrismaProposalToPrismaUser")
-  files                      PrismaFile[]                @relation(name: "PrismaFileToPrismaUser")
-  heHes                      PrismaHehe[]                @relation(name: "PrismaHeheToPrismaUser")
-  postHistory                PrismaPostHistory[]         @relation(name: "PrismaPostHistoryToPrismaUser")
-  emergencyContacts          PrismaEmergencyContact[]    @relation(name: "PrismaEmergencyContactToPrismaUser")
-  passwordResets             PrismaPasswordReset[]       @relation(name: "PrismaPasswordResetToPrismaUser")
-  apiKeys                    PrismaApiKey[]              @relation(name: "PrismaApiKeyToPrismaUser")
-  loginProviders             PrismaLoginProvider[]       @relation(name: "PrismaUserToPrismaLoginProvider")
-  passwordHash               String                      @map("password_hash")
-  passwordSalt               String                      @map("password_salt")
-  firstName                  String                      @map("first_name")
-  lastName                   String                      @map("last_name")
+  username                   String                       @id
+  access                     PrismaIndividualAccess[]     @relation(name: "PrismaIndividualAccessToPrismaUser")
+  grantedIndividualAccessLog PrismaIndividualAccessLog[]  @relation(name: "PrismaIndividualAccessLogToPrismaUserGrantor")
+  grantedPostAccessLog       PrismaPostAccessLog[]        @relation(name: "PrismaPostAccessLogToPrismaUserGrantor")
+  targetIndividualAccessLog  PrismaIndividualAccessLog[]  @relation(name: "PrismaIndividualAccessLogToPrismaUserTarget")
+  articles                   PrismaArticle[]              @relation(name: "PrismaArticleToAuthor")
+  editedArticles             PrismaArticle[]              @relation(name: "PrismaArticleToLastUpdateBy")
+  elections                  PrismaElection[]             @relation(name: "PrismaElectionToPrismaUser")
+  nominations                PrismaNomination[]           @relation(name: "PrismaNominationToPrismaUser")
+  proposals                  PrismaProposal[]             @relation(name: "PrismaProposalToPrismaUser")
+  interviewBookings          PrismaInterviewBooking[]     @relation(name: "PrismaInterviewBookingToPrismaUser")
+  interviewRequests          PrismaInterviewRequest[]     @relation(name: "PrismaInterviewRequestToPrismaUser")
+  createdInterviewRequests   PrismaInterviewRequest[]     @relation(name: "PrismaInterviewRequestToCreator")
+  interviewNoSlotEvents      PrismaInterviewNoSlotEvent[] @relation(name: "PrismaInterviewNoSlotEventToPrismaUser")
+  files                      PrismaFile[]                 @relation(name: "PrismaFileToPrismaUser")
+  heHes                      PrismaHehe[]                 @relation(name: "PrismaHeheToPrismaUser")
+  postHistory                PrismaPostHistory[]          @relation(name: "PrismaPostHistoryToPrismaUser")
+  emergencyContacts          PrismaEmergencyContact[]     @relation(name: "PrismaEmergencyContactToPrismaUser")
+  passwordResets             PrismaPasswordReset[]        @relation(name: "PrismaPasswordResetToPrismaUser")
+  apiKeys                    PrismaApiKey[]               @relation(name: "PrismaApiKeyToPrismaUser")
+  loginProviders             PrismaLoginProvider[]        @relation(name: "PrismaUserToPrismaLoginProvider")
+  passwordHash               String                       @map("password_hash")
+  passwordSalt               String                       @map("password_salt")
+  firstName                  String                       @map("first_name")
+  lastName                   String                       @map("last_name")
   class                      String
-  photoUrl                   String?                     @map("photo_url")
-  email                      String                      @unique
+  photoUrl                   String?                      @map("photo_url")
+  email                      String                       @unique
   phone                      String?
   address                    String?
-  zipCode                    String?                     @map("zip_code")
+  zipCode                    String?                      @map("zip_code")
   website                    String?
-  luCard                     String?                     @unique
-  dateJoined                 DateTime                    @default(now()) @map("date_joined")
-  verifyInfo                 PrismaVerifyInfo?           @relation(name: "PrismaVerifyInfoToPrismaUser")
+  luCard                     String?                      @unique
+  dateJoined                 DateTime                     @default(now()) @map("date_joined")
+  verifyInfo                 PrismaVerifyInfo?            @relation(name: "PrismaVerifyInfoToPrismaUser")
 
   @@index([firstName, lastName])
   @@map("users")
@@ -174,10 +178,11 @@ model PrismaArticle {
 }
 
 model PrismaElectable {
-  post        PrismaPost     @relation(name: "PrismaElectableToPrismaPost", fields: [refPost], references: [id])
-  refPost     Int            @map("ref_post")
-  election    PrismaElection @relation(name: "PrismaElectableToPrismaElection", fields: [refElection], references: [id])
-  refElection Int            @map("ref_election")
+  post              PrismaPost                   @relation(name: "PrismaElectableToPrismaPost", fields: [refPost], references: [id])
+  refPost           Int                          @map("ref_post")
+  election          PrismaElection               @relation(name: "PrismaElectableToPrismaElection", fields: [refElection], references: [id])
+  refElection       Int                          @map("ref_election")
+  interviewDuration PrismaInterviewPostDuration? @relation(name: "PrismaElectableToPrismaInterviewPostDuration")
 
   // Electables are not often inserted/updated,
   // but often queried on which election they belong to
@@ -187,18 +192,23 @@ model PrismaElectable {
 }
 
 model PrismaElection {
-  id                Int                @id @default(autoincrement())
-  name              String?
-  electables        PrismaElectable[]  @relation(name: "PrismaElectableToPrismaElection")
-  creator           PrismaUser         @relation(name: "PrismaElectionToPrismaUser", fields: [refCreator], references: [username])
-  refCreator        String             @map("ref_creator")
-  createdAt         DateTime           @default(now()) @map("created_at")
-  openedAt          DateTime?          @map("opened_at")
-  closedAt          DateTime?          @map("closed_at")
-  open              Boolean            @default(false)
-  nominationsHidden Boolean            @default(false) @map("nominations_hidden")
-  proposals         PrismaProposal[]   @relation(name: "PrismaElectionToPrismaProposal")
-  nominations       PrismaNomination[] @relation(name: "PrismaElectionToPrismaNomination")
+  id                    Int                          @id @default(autoincrement())
+  name                  String?
+  electables            PrismaElectable[]            @relation(name: "PrismaElectableToPrismaElection")
+  creator               PrismaUser                   @relation(name: "PrismaElectionToPrismaUser", fields: [refCreator], references: [username])
+  refCreator            String                       @map("ref_creator")
+  createdAt             DateTime                     @default(now()) @map("created_at")
+  openedAt              DateTime?                    @map("opened_at")
+  closedAt              DateTime?                    @map("closed_at")
+  open                  Boolean                      @default(false)
+  nominationsHidden     Boolean                      @default(false) @map("nominations_hidden")
+  proposals             PrismaProposal[]             @relation(name: "PrismaElectionToPrismaProposal")
+  nominations           PrismaNomination[]           @relation(name: "PrismaElectionToPrismaNomination")
+  interviewSettings     PrismaInterviewSettings?     @relation(name: "PrismaElectionToPrismaInterviewSettings")
+  interviewWindows      PrismaInterviewWindow[]      @relation(name: "PrismaElectionToPrismaInterviewWindow")
+  interviewBookings     PrismaInterviewBooking[]     @relation(name: "PrismaElectionToPrismaInterviewBooking")
+  interviewRequests     PrismaInterviewRequest[]     @relation(name: "PrismaElectionToPrismaInterviewRequest")
+  interviewNoSlotEvents PrismaInterviewNoSlotEvent[] @relation(name: "PrismaElectionToPrismaInterviewNoSlotEvent")
 
   @@map("elections")
 }
@@ -481,4 +491,139 @@ enum PrismaEmergencyContactType {
   OTHER
 
   @@map("emergency_contact_types")
+}
+
+// ---------------------------------------------------------------------------
+// Interview booking. Nominees who have accepted nominations for posts with
+// `interviewRequired` book one interview with the election committee.
+// Windows are offers for new bookings; bookings are commitments and are never
+// removed by changing a window.
+// ---------------------------------------------------------------------------
+
+model PrismaInterviewSettings {
+  election               PrismaElection @relation(name: "PrismaElectionToPrismaInterviewSettings", fields: [refElection], references: [id], onDelete: Cascade)
+  refElection            Int            @id @map("ref_election")
+  // Length per interview post unless overridden in PrismaInterviewPostDuration
+  defaultDurationMinutes Int            @default(15) @map("default_duration_minutes")
+  // Cap on one nominee's combined interview length
+  maxDurationMinutes     Int            @default(60) @map("max_duration_minutes")
+  // Nominees cannot book or reschedule to a start closer than this
+  minNoticeMinutes       Int            @default(1440) @map("min_notice_minutes")
+  // After this, only admins can change bookings
+  freezeAt               DateTime?      @map("freeze_at")
+  // Manual freeze regardless of freezeAt
+  frozen                 Boolean        @default(false)
+  // Recipients of the daily "no slot available" summary
+  notifyEmails           String[]       @default(["vbordforande@esek.se", "vbsekreterare@esek.se"]) @map("notify_emails")
+  // Last daily summary sent, so restarts and multiple instances never send twice
+  lastSummarySentAt      DateTime?      @map("last_summary_sent_at")
+
+  @@map("interview_settings")
+}
+
+model PrismaInterviewPostDuration {
+  electable   PrismaElectable @relation(name: "PrismaElectableToPrismaInterviewPostDuration", fields: [refElection, refPost], references: [refElection, refPost], onDelete: Cascade)
+  refElection Int             @map("ref_election")
+  refPost     Int             @map("ref_post")
+  minutes     Int
+
+  @@id([refElection, refPost])
+  @@map("interview_post_durations")
+}
+
+model PrismaInterviewWindow {
+  id            Int                      @id @default(autoincrement())
+  election      PrismaElection           @relation(name: "PrismaElectionToPrismaInterviewWindow", fields: [refElection], references: [id], onDelete: Cascade)
+  refElection   Int                      @map("ref_election")
+  startsAt      DateTime                 @map("starts_at")
+  endsAt        DateTime                 @map("ends_at")
+  location      String?
+  videoLink     String?                  @map("video_link")
+  // Blocked after each interview before the next may start
+  bufferMinutes Int                      @default(0) @map("buffer_minutes")
+  // Interviews that may run at the same time
+  capacity      Int                      @default(1)
+  // Start-time grid; null means derived from durations and buffer
+  stepMinutes   Int?                     @map("step_minutes")
+  createdAt     DateTime                 @default(now()) @map("created_at")
+  bookings      PrismaInterviewBooking[] @relation(name: "PrismaInterviewBookingToPrismaInterviewWindow")
+  requests      PrismaInterviewRequest[] @relation(name: "PrismaInterviewRequestToPrismaInterviewWindow")
+
+  @@index([refElection, startsAt])
+  @@map("interview_windows")
+}
+
+model PrismaInterviewBooking {
+  // cuid so it can double as a stable calendar UID
+  id                  String                 @id @default(cuid())
+  election            PrismaElection         @relation(name: "PrismaElectionToPrismaInterviewBooking", fields: [refElection], references: [id], onDelete: Cascade)
+  refElection         Int                    @map("ref_election")
+  user                PrismaUser             @relation(name: "PrismaInterviewBookingToPrismaUser", fields: [refUser], references: [username], onDelete: Cascade)
+  refUser             String                 @map("ref_user")
+  // Null once the window is deleted; the booking itself stays
+  window              PrismaInterviewWindow? @relation(name: "PrismaInterviewBookingToPrismaInterviewWindow", fields: [refWindow], references: [id], onDelete: SetNull)
+  refWindow           Int?                   @map("ref_window")
+  startsAt            DateTime               @map("starts_at")
+  endsAt              DateTime               @map("ends_at")
+  // Copied from the window so a booking survives window changes
+  location            String?
+  videoLink           String?                @map("video_link")
+  // Calendar SEQUENCE, bumped on every change sent to the nominee
+  sequence            Int                    @default(0)
+  // Set when nomination answers change after the freeze
+  needsAdminAttention Boolean                @default(false) @map("needs_admin_attention")
+  createdAt           DateTime               @default(now()) @map("created_at")
+  updatedAt           DateTime               @updatedAt @map("updated_at")
+
+  // One interview per nominee and election
+  @@unique([refElection, refUser])
+  @@index([refWindow, startsAt])
+  @@map("interview_bookings")
+}
+
+enum PrismaInterviewRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+
+  @@map("interview_request_status")
+}
+
+// An admin's proposed time for a nominee. While pending it reserves its time.
+model PrismaInterviewRequest {
+  id          String                       @id @default(cuid())
+  election    PrismaElection               @relation(name: "PrismaElectionToPrismaInterviewRequest", fields: [refElection], references: [id], onDelete: Cascade)
+  refElection Int                          @map("ref_election")
+  user        PrismaUser                   @relation(name: "PrismaInterviewRequestToPrismaUser", fields: [refUser], references: [username], onDelete: Cascade)
+  refUser     String                       @map("ref_user")
+  creator     PrismaUser                   @relation(name: "PrismaInterviewRequestToCreator", fields: [refCreator], references: [username])
+  refCreator  String                       @map("ref_creator")
+  window      PrismaInterviewWindow?       @relation(name: "PrismaInterviewRequestToPrismaInterviewWindow", fields: [refWindow], references: [id], onDelete: SetNull)
+  refWindow   Int?                         @map("ref_window")
+  startsAt    DateTime                     @map("starts_at")
+  endsAt      DateTime                     @map("ends_at")
+  location    String?
+  videoLink   String?                      @map("video_link")
+  status      PrismaInterviewRequestStatus @default(PENDING)
+  createdAt   DateTime                     @default(now()) @map("created_at")
+  resolvedAt  DateTime?                    @map("resolved_at")
+
+  @@index([refElection, refUser, status])
+  @@index([refWindow, status])
+  @@map("interview_requests")
+}
+
+// A nominee found no time that fits them; collected for the daily summary
+model PrismaInterviewNoSlotEvent {
+  id              Int            @id @default(autoincrement())
+  election        PrismaElection @relation(name: "PrismaElectionToPrismaInterviewNoSlotEvent", fields: [refElection], references: [id], onDelete: Cascade)
+  refElection     Int            @map("ref_election")
+  user            PrismaUser     @relation(name: "PrismaInterviewNoSlotEventToPrismaUser", fields: [refUser], references: [username], onDelete: Cascade)
+  refUser         String         @map("ref_user")
+  requiredMinutes Int            @map("required_minutes")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  @@index([refElection, createdAt])
+  @@map("interview_no_slot_events")
 }

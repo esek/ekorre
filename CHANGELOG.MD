@@ -5,6 +5,23 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.31.0] - 2026-09-28
+
+### Tillagt
+- Intervjubokning för val: inställningar per val, intervjutider (fönster), bokning, ombokning och avbokning för nominerade, förslag på tider från valberedningen och en översikt över vilka som saknar tid (`interview.graphql`)
+- `respondToNomination` påverkar bokningen i samma transaktion och kräver `expectedEffect` när svaret ändrar en bokning
+- Mejl med kalenderinbjudan (.ics) vid varje ändring av en bokning, och en daglig sammanfattning kl. 17:15 till valberedningen
+- Miljövariabeln `WEBSITE_URL` för länkar i mejl
+
+### Ändrat
+- Testerna kör med två workers i CI (`jest.config.js`), eftersom en worker per kärna använde över 6 GB och fick CI-runnern att ta slut på minne
+
+### Fixat
+- `nominate` väntade inte på nomineringen, så den returnerade `true` och skickade mejl även när det misslyckades, och kunde krascha servern
+- Lösenordsåterställning och nominering kördes inte i sina transaktioner
+- Val skapade samma millisekund kom i slumpad ordning
+- Flera instabila tester: städning av poster i `post.api.test.ts`, loggtestet i `access.api.test.ts`, och en delad testserver i stället för en ny server per request
+
 ## [1.30.0] - 2026-03-10
 
 ### Tillagt
