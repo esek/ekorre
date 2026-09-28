@@ -6,7 +6,11 @@ const commonOptions = {
   moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: '<rootDir>' }),
 }
 
-const serialTests = ['test/regression/election.test.ts', 'test/unit/election.api.test.ts']
+const serialTests = [
+  'test/regression/election.test.ts',
+  'test/unit/election.api.test.ts',
+  'test/integration/election.nominate.test.ts',
+]
 
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {

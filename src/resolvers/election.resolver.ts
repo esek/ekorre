@@ -118,7 +118,7 @@ const electionResolver: Resolvers = {
         return false;
       }
 
-      const couldNominate = api.nominate(username, postIds);
+      const couldNominate = await api.nominate(username, postIds);
 
       if (!couldNominate) {
         return false;
