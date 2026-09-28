@@ -13,6 +13,9 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Mejl med kalenderinbjudan (.ics) vid varje ändring av en bokning, och en daglig sammanfattning kl. 17:15 till valberedningen
 - Miljövariabeln `WEBSITE_URL` för länkar i mejl
 
+### Ändrat
+- Testerna kör med två workers i CI (`jest.config.js`), eftersom en worker per kärna använde över 6 GB och fick CI-runnern att ta slut på minne
+
 ### Fixat
 - `nominate` väntade inte på nomineringen, så den returnerade `true` och skickade mejl även när det misslyckades, och kunde krascha servern
 - Lösenordsåterställning och nominering kördes inte i sina transaktioner
