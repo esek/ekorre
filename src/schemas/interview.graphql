@@ -168,6 +168,8 @@ type InterviewBooking {
   windowId: Int
   "Nomination answers changed after the freeze"
   needsAdminAttention: Boolean!
+  "Length the nominee needs now; can differ from the booking after changes"
+  requiredMinutes: Int!
 }
 
 type InterviewRequest {

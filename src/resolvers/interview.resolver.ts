@@ -430,6 +430,7 @@ const interviewResolver: Resolvers = {
       return Promise.all(ids.map((id) => ctx.postDataLoader.load(id)));
     },
     windowId: (model) => model.refWindow,
+    requiredMinutes: (model) => api.getRequiredMinutes(model.refElection, model.refUser),
   },
   InterviewRequest: {
     user: useDataLoader((model, ctx) => ({ dataLoader: ctx.userDataLoader, key: model.refUser })),

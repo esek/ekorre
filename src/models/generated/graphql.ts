@@ -311,6 +311,8 @@ export type InterviewBooking = {
   needsAdminAttention: Scalars['Boolean'];
   /** Accepted interview posts the booking covers */
   posts: Array<Post>;
+  /** Length the nominee needs now; can differ from the booking after changes */
+  requiredMinutes: Scalars['Int'];
   startsAt: Scalars['DateTime'];
   user: User;
   videoLink?: Maybe<Scalars['String']>;
@@ -2346,6 +2348,7 @@ export type InterviewBookingResolvers<ContextType = Context, ParentType extends 
   location?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   needsAdminAttention?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType>;
+  requiredMinutes?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   startsAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   videoLink?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
