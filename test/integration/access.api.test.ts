@@ -1,3 +1,4 @@
+import prisma from '@/api/prisma';
 import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
 import { PostAPI } from '@api/post';
@@ -37,6 +38,19 @@ const username1 = getRandomUsername();
 let apiKey: string;
 let postId0: number;
 
+/**
+ * Only this file's users' log rows. Other test files grant access in parallel, so reading
+ * or clearing the whole log would see or delete their rows.
+ */
+const ownLogs = () => ({
+  OR: [
+    { refTarget: { in: [username0, username1] } },
+    { refGrantor: { in: [username0, username1] } },
+  ],
+});
+const clearOwnIndividualAccessLog = () =>
+  prisma.prismaIndividualAccessLog.deleteMany({ where: ownLogs() });
+
 beforeAll(async () => {
   const clearUser0 = accessApi.clearAccessForUser(username0);
   const clearUser1 = accessApi.clearAccessForUser(username1);
@@ -71,7 +85,7 @@ beforeAll(async () => {
     clearUser1,
     c1,
     c2,
-    accessApi.clearIndividualAccessLog(),
+    clearOwnIndividualAccessLog(),
     accessApi.clearPostAccessLog(),
   ]);
 
@@ -88,7 +102,7 @@ afterAll(async () => {
   await Promise.all([
     clearUser0,
     clearUser1,
-    accessApi.clearIndividualAccessLog(),
+    clearOwnIndividualAccessLog(),
     accessApi.clearPostAccessLog(),
   ]);
 
@@ -361,7 +375,6 @@ describe('setting/getting access for apikey', () => {
     await setGetTest(setAccess(accessSinglePastEndDateInput), getAccess, []);
   });
 
-
   it('setting access for unkown', async () => {
     await expect(setAccess(accessSingleInput, 'unknown')).rejects.toThrowError();
   });
@@ -546,14 +559,14 @@ describe('setting access for user and checking logs', () => {
     }
   };
 
+  // Rows from one change share a timestamp; within it they are in insertion order
   const getAccess = () =>
-    accessApi.getAllIndividualAccessLogs().then((logs) => logs.map(mapAccessLog));
+    prisma.prismaIndividualAccessLog
+      .findMany({ where: ownLogs(), orderBy: [{ timestamp: 'desc' }, { id: 'asc' }] })
+      .then((logs) => logs.map(mapAccessLog));
 
   beforeEach(async () => {
-    await Promise.all([
-      accessApi.clearIndividualAccessLog(),
-      accessApi.clearAccessForUser(username1),
-    ]);
+    await Promise.all([clearOwnIndividualAccessLog(), accessApi.clearAccessForUser(username1)]);
   });
 
   it('add and remove access', async () => {
