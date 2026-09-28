@@ -31,6 +31,8 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
+  // Some tests fake the clock; leaving it faked makes later Prisma calls hang
+  jest.useRealTimers();
   try {
     await api.deleteUser(mockNewUser1.username);
   } catch (e) {
@@ -313,10 +315,13 @@ test('reset password with expired resetPasswordToken', async () => {
   // Vi fejkar nu att system time är 1h fram
   const expireMinutes = 60;
   const trueTime = new Date();
-  jest.useFakeTimers().setSystemTime(new Date(trueTime.getTime() + expireMinutes * 60000));
+  // Prisma needs real nextTick/setImmediate, only the clock may be faked
+  jest
+    .useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] })
+    .setSystemTime(new Date(trueTime.getTime() + expireMinutes * 60000));
 
   await expect(
-    api.resetPassword(mockNewUser1.username, token, 'drr password'),
+    api.resetPassword(token, mockNewUser1.username, 'drr password'),
   ).rejects.toThrowError(NotFoundError);
 });
 
@@ -350,6 +355,26 @@ test('reset password properly', async () => {
 
   // Försäkra oss om att lösen ändras
   await expect(api.loginUser(mockNewUser1.username, newPassword)).resolves.toBeTruthy();
+});
+
+test('a reset password token can only be used once, even concurrently', async () => {
+  await api.createUser(mockNewUser1);
+  const token = await api.requestPasswordReset(mockNewUser1.username);
+  const passwords = ['first new password', 'second new password'];
+
+  const results = await Promise.allSettled(
+    passwords.map((p) => api.resetPassword(token, mockNewUser1.username, p)),
+  );
+
+  expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+
+  // The password must be the one set by the reset that succeeded
+  const winner = passwords[results.findIndex((r) => r.status === 'fulfilled')];
+  const loser = passwords.find((p) => p !== winner) ?? '';
+  await expect(api.loginUser(mockNewUser1.username, winner)).resolves.toBeTruthy();
+  await expect(api.loginUser(mockNewUser1.username, loser)).rejects.toThrowError(
+    UnauthenticatedError,
+  );
 });
 
 test('getting number of members', async () => {

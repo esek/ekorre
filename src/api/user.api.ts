@@ -435,8 +435,8 @@ export class UserAPI {
 
     // We want all of this as an atomic operation, and rollback everything
     // if it fails
-    await prisma.$transaction(async () => {
-      const row = await prisma.prismaPasswordReset.findFirst({
+    await prisma.$transaction(async (tx) => {
+      const row = await tx.prismaPasswordReset.findFirst({
         where: {
           refUser: username.toLowerCase(),
           AND: {
@@ -450,10 +450,14 @@ export class UserAPI {
         throw new NotFoundError('Denna förfrågan finns inte eller har gått ut');
       }
 
-      await this.updateUser(username, { ...passwordData });
+      await tx.prismaUser.update({
+        where: { username: username.toLowerCase() },
+        data: passwordData,
+      });
 
-      // Delete row in password table
-      await prisma.prismaPasswordReset.delete({
+      // Delete row in password table. If a concurrent reset already used this token
+      // the delete fails, rolling back the password change above
+      await tx.prismaPasswordReset.delete({
         where: {
           token,
         },
