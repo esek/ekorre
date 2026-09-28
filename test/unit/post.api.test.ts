@@ -64,10 +64,12 @@ afterEach(async () => {
   jest.useRealTimers();
   config.POST_ACCESS_COOLDOWN_DAYS = originalAccessCooldown;
   await api.clearHistoryForUser(dummyUser.username);
+  // Exact names only: np.name can be a single letter, and endsWith would then match
+  // seeded posts (e.g. 'r' matches 'Macapär') and delete them under other tests
   await prisma.prismaPost.deleteMany({
     where: {
       postname: {
-        endsWith: np.name,
+        in: [np.name, `AA${np.name}`, `ZZ${np.name}`],
       },
     },
   });
