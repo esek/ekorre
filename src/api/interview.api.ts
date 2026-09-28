@@ -30,6 +30,9 @@ import prisma from './prisma';
 
 const logger = Logger.getLogger('InterviewAPI');
 
+// Queries on one client run one after another, never with Promise.all: inside an
+// interactive transaction every query shares one connection, and concurrent queries on
+// it can hang in this Prisma version.
 type Tx = Prisma.TransactionClient;
 
 /** Settings as stored, or the defaults when an election has none yet */
@@ -179,10 +182,8 @@ export class InterviewAPI {
   }
 
   async getDurationConfig(electionId: number, client: Tx = prisma): Promise<DurationConfig> {
-    const [settings, durations] = await Promise.all([
-      this.getSettings(electionId, client),
-      this.getPostDurations(electionId, client),
-    ]);
+    const settings = await this.getSettings(electionId, client);
+    const durations = await this.getPostDurations(electionId, client);
     return {
       defaultDurationMinutes: settings.defaultDurationMinutes,
       maxDurationMinutes: settings.maxDurationMinutes,
@@ -205,22 +206,18 @@ export class InterviewAPI {
     username: string,
     client: Tx = prisma,
   ): Promise<number[]> {
-    const [nominations, interviewPosts] = await Promise.all([
-      client.prismaNomination.findMany({
-        where: { refElection: electionId, refUser: username, answer: PrismaNominationAnswer.YES },
-        select: { refPost: true },
-      }),
-      this.getInterviewPostIds(electionId, client),
-    ]);
+    const nominations = await client.prismaNomination.findMany({
+      where: { refElection: electionId, refUser: username, answer: PrismaNominationAnswer.YES },
+      select: { refPost: true },
+    });
+    const interviewPosts = await this.getInterviewPostIds(electionId, client);
     const interview = new Set(interviewPosts);
     return nominations.map((n) => n.refPost).filter((p) => interview.has(p));
   }
 
   async getRequiredMinutes(electionId: number, username: string, client: Tx = prisma) {
-    const [config, posts] = await Promise.all([
-      this.getDurationConfig(electionId, client),
-      this.getAcceptedInterviewPostIds(electionId, username, client),
-    ]);
+    const config = await this.getDurationConfig(electionId, client);
+    const posts = await this.getAcceptedInterviewPostIds(electionId, username, client);
     return requiredMinutes(config, posts);
   }
 
@@ -364,10 +361,8 @@ export class InterviewAPI {
   /** Step for a window: its own, or derived from the election's durations and its buffer */
   async stepFor(window: PrismaInterviewWindow, client: Tx = prisma) {
     if (window.stepMinutes) return window.stepMinutes;
-    const [config, posts] = await Promise.all([
-      this.getDurationConfig(window.refElection, client),
-      this.getInterviewPostIds(window.refElection, client),
-    ]);
+    const config = await this.getDurationConfig(window.refElection, client);
+    const posts = await this.getInterviewPostIds(window.refElection, client);
     return defaultStepMinutes(config, posts, window.bufferMinutes);
   }
 
@@ -385,22 +380,20 @@ export class InterviewAPI {
     const settings = await this.getSettings(window.refElection, client);
     const excludeUser = options.exceptUser ? { refUser: { not: options.exceptUser } } : {};
     const excludeRequest = options.exceptRequestId ? { id: { not: options.exceptRequestId } } : {};
-    const [bookings, requests] = await Promise.all([
-      client.prismaInterviewBooking.findMany({
-        where: { refWindow: window.id, ...excludeUser },
-        select: { startsAt: true, endsAt: true },
-      }),
-      client.prismaInterviewRequest.findMany({
-        where: {
-          refWindow: window.id,
-          status: PrismaInterviewRequestStatus.PENDING,
-          startsAt: { gte: addMinutes(now, settings.minNoticeMinutes) },
-          ...excludeUser,
-          ...excludeRequest,
-        },
-        select: { startsAt: true, endsAt: true },
-      }),
-    ]);
+    const bookings = await client.prismaInterviewBooking.findMany({
+      where: { refWindow: window.id, ...excludeUser },
+      select: { startsAt: true, endsAt: true },
+    });
+    const requests = await client.prismaInterviewRequest.findMany({
+      where: {
+        refWindow: window.id,
+        status: PrismaInterviewRequestStatus.PENDING,
+        startsAt: { gte: addMinutes(now, settings.minNoticeMinutes) },
+        ...excludeUser,
+        ...excludeRequest,
+      },
+      select: { startsAt: true, endsAt: true },
+    });
     return [...bookings, ...requests];
   }
 
@@ -446,10 +439,8 @@ export class InterviewAPI {
 
     const result: WindowAvailability[] = [];
     for (const window of windows) {
-      const [step, taken] = await Promise.all([
-        this.stepFor(window, client),
-        this.takenIn(window, now, client, { exceptUser: username }),
-      ]);
+      const step = await this.stepFor(window, client);
+      const taken = await this.takenIn(window, now, client, { exceptUser: username });
       const starts = availableStarts(window, step, length, taken, { notBefore });
       if (starts.length) result.push({ window, starts });
     }
@@ -490,10 +481,8 @@ export class InterviewAPI {
         throw new BadRequestError('Du har inga accepterade nomineringar som kräver intervju');
       }
 
-      const [step, taken] = await Promise.all([
-        this.stepFor(window, tx),
-        this.takenIn(window, now, tx, { exceptUser: username }),
-      ]);
+      const step = await this.stepFor(window, tx);
+      const taken = await this.takenIn(window, now, tx, { exceptUser: username });
       const fit = checkFit(window, step, startsAt, length, taken, {
         notBefore: addMinutes(now, settings.minNoticeMinutes),
       });
@@ -578,14 +567,12 @@ export class InterviewAPI {
     now: Date,
     client: Tx = prisma,
   ): Promise<NominationOutcome> {
-    const [config, before, interviewPosts, booking, settings, pending] = await Promise.all([
-      this.getDurationConfig(electionId, client),
-      this.getAcceptedInterviewPostIds(electionId, username, client),
-      this.getInterviewPostIds(electionId, client),
-      this.getBooking(electionId, username, client),
-      this.getSettings(electionId, client),
-      this.getPendingRequest(electionId, username, now, client),
-    ]);
+    const config = await this.getDurationConfig(electionId, client);
+    const before = await this.getAcceptedInterviewPostIds(electionId, username, client);
+    const interviewPosts = await this.getInterviewPostIds(electionId, client);
+    const booking = await this.getBooking(electionId, username, client);
+    const settings = await this.getSettings(electionId, client);
+    const pending = await this.getPendingRequest(electionId, username, now, client);
 
     let after = before.filter((p) => p !== postId);
     if (answer === PrismaNominationAnswer.YES && interviewPosts.includes(postId)) {
@@ -876,10 +863,8 @@ export class InterviewAPI {
 
   /** Nominees with accepted interview posts and their required length */
   async getInterviewNominees(electionId: number, client: Tx = prisma) {
-    const [config, interviewPosts] = await Promise.all([
-      this.getDurationConfig(electionId, client),
-      this.getInterviewPostIds(electionId, client),
-    ]);
+    const config = await this.getDurationConfig(electionId, client);
+    const interviewPosts = await this.getInterviewPostIds(electionId, client);
     const nominations = await client.prismaNomination.findMany({
       where: {
         refElection: electionId,
@@ -900,20 +885,18 @@ export class InterviewAPI {
 
   /** Nominees who need an interview and have no booking */
   async getUnbookedNominees(electionId: number) {
-    const [nominees, bookings] = await Promise.all([
-      this.getInterviewNominees(electionId),
-      this.getBookings(electionId),
-    ]);
+    const nominees = await this.getInterviewNominees(electionId);
+    const bookings = await this.getBookings(electionId);
     const booked = new Set(bookings.map((b) => b.refUser));
     return nominees.filter((n) => !booked.has(n.username));
   }
 
   async getMissingView(electionId: number, now: Date): Promise<MissingView> {
-    const [nominees, bookings, windows] = await Promise.all([
-      this.getInterviewNominees(electionId),
-      this.getBookings(electionId),
-      prisma.prismaInterviewWindow.findMany({ where: { refElection: electionId } }),
-    ]);
+    const nominees = await this.getInterviewNominees(electionId);
+    const bookings = await this.getBookings(electionId);
+    const windows = await prisma.prismaInterviewWindow.findMany({
+      where: { refElection: electionId },
+    });
 
     const required = new Map(nominees.map((n) => [n.username, n.requiredMinutes]));
     const booked = new Set(bookings.map((b) => b.refUser));
