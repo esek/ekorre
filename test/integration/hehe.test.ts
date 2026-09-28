@@ -1,18 +1,17 @@
-import { app } from '@/app/app';
 import tokenProvider from '@/auth';
 import FileAPI from '@api/file';
 import { HeheAPI } from '@api/hehe';
 import { AccessType, Feature, File, FileType } from '@generated/graphql';
 import { removeUploadedFiles, UploadFileOptions, baseUploadFile } from '@test/utils/fileUpload';
+import testRequest from '@test/utils/testServer';
 import { genRandomUser } from '@test/utils/utils';
-import request from 'supertest';
 
 const heheApi = new HeheAPI();
 const fileApi = new FileAPI();
 
 const testFile = 'test-hehe.pdf';
 
-const r = request(app);
+const r = testRequest;
 
 const [createDummyUser, deleteDummyUser] = genRandomUser([Feature.HeheAdmin, Feature.FilesAdmin]);
 
