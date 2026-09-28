@@ -106,6 +106,9 @@ export const notifyNominationOutcome = async (
             organizer,
           );
           break;
+        case 'SHORTENED':
+          await sendBookingMail('SHORTENED', electionId, nominee, booking, postnames, organizer);
+          break;
         case 'FLAGGED':
           await sendCommitteeMail(
             settings.notifyEmails,

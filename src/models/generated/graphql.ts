@@ -326,10 +326,12 @@ export enum InterviewBookingEffect {
   Freed = 'FREED',
   /** Accepted a post; the booking already has the maximum length and now covers it */
   KeptPostAdded = 'KEPT_POST_ADDED',
-  /** Declined a post; the booking keeps its length */
+  /** Declined a post, but the length needed is unchanged; the booking stays as it is */
   KeptPostRemoved = 'KEPT_POST_REMOVED',
   /** Nothing happens to the booking */
   None = 'NONE',
+  /** The interview needs less time; the booking keeps its start and ends earlier */
+  Shortened = 'SHORTENED',
   /** Accepted a post that needs a longer interview; the booking is removed */
   Unbooked = 'UNBOOKED'
 }

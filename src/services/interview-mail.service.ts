@@ -130,6 +130,7 @@ export type BookingMailKind =
   | 'REQUEST_ACCEPTED'
   | 'POSTS_ADDED'
   | 'POSTS_REMOVED'
+  | 'SHORTENED'
   | 'RELOCATED';
 
 const bookingCopy: Record<BookingMailKind, { subject: string; heading: string; intro: string }> = {
@@ -159,6 +160,12 @@ const bookingCopy: Record<BookingMailKind, { subject: string; heading: string; i
     heading: 'Din intervju gäller nu färre poster',
     intro:
       'Du har tackat nej till en nominering. Din bokning är kvar med samma tid och längd, men gäller nu färre poster.',
+  },
+  SHORTENED: {
+    subject: 'Din intervju är kortare',
+    heading: 'Din intervju är kortare',
+    intro:
+      'Dina nomineringar har ändrats så att intervjun behöver mindre tid. Den börjar som förut men slutar tidigare.',
   },
   RELOCATED: {
     subject: 'Ny plats för din intervju',

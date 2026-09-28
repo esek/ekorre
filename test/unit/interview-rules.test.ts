@@ -249,12 +249,28 @@ describe('bookingEffect', () => {
     expect(effect([1, 2, 3, 4], [1, 2, 3, 4, 5], booking60)).toBe('KEPT_POST_ADDED');
   });
 
-  it('keeps the booking at its length when declining one of several posts', () => {
-    expect(effect([1, 2], [1])).toBe('KEPT_POST_REMOVED');
+  it('shortens the booking when declining one of several posts', () => {
+    expect(effect([1, 2], [1])).toBe('SHORTENED');
+  });
+
+  it('keeps the booking when declining still needs the maximum length', () => {
+    expect(effect([1, 2, 3, 4, 5], [1, 2, 3, 4], booking60)).toBe('KEPT_POST_REMOVED');
+  });
+
+  it('shortens from the maximum when declining drops below it', () => {
+    expect(effect([1, 2, 3, 4], [1, 2, 3], booking60)).toBe('SHORTENED');
   });
 
   it('keeps the booking on decline even if durations were raised since booking', () => {
     expect(effect([1, 2], [1], booking30, false, config({ 1: 45 }))).toBe('KEPT_POST_REMOVED');
+  });
+
+  it('shortens when accepting needs less time than booked, e.g. after durations were lowered', () => {
+    expect(effect([1], [1, 2], booking60)).toBe('SHORTENED');
+  });
+
+  it('does not shorten after the freeze', () => {
+    expect(effect([1, 2], [1], booking30, true)).toBe('FLAGGED');
   });
 
   it('frees the booking when the last interview post is declined', () => {

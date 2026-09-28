@@ -634,6 +634,16 @@ export class InterviewAPI {
             data: { sequence: { increment: 1 } },
           });
           break;
+        case 'SHORTENED':
+          // Same start, earlier end; frees time in the window and never collides
+          outcome.booking = await tx.prismaInterviewBooking.update({
+            where: { id: booking.id },
+            data: {
+              endsAt: addMinutes(booking.startsAt, outcome.requiredMinutesAfter),
+              sequence: { increment: 1 },
+            },
+          });
+          break;
         case 'FLAGGED':
           outcome.booking = await tx.prismaInterviewBooking.update({
             where: { id: booking.id },

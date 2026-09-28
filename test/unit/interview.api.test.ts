@@ -417,14 +417,38 @@ describe('nomination changes', () => {
     expect(outcome.booking).toMatchObject({ id: booking.id, sequence: 1 });
   });
 
-  it('keeps the booking at its length when declining one post', async () => {
+  it('shortens the booking, keeping its start, when declining one post', async () => {
     const { booking } = await book(users[0], [0, 1]);
     const outcome = await change(users[0], 1, NO);
+    expect(outcome.effect).toBe('SHORTENED');
+    expect(await api.getBooking(electionId, users[0])).toMatchObject({
+      id: booking.id,
+      startsAt: booking.startsAt,
+      endsAt: new Date(booking.startsAt.getTime() + 15 * 60000),
+      sequence: 1,
+    });
+  });
+
+  it('keeps the booking when declining still needs the maximum length', async () => {
+    const { booking } = await book(users[0], [0, 1, 2, 3, 4]);
+    const outcome = await change(users[0], 4, NO);
     expect(outcome.effect).toBe('KEPT_POST_REMOVED');
     expect(await api.getBooking(electionId, users[0])).toMatchObject({
       endsAt: booking.endsAt,
       sequence: 1,
     });
+  });
+
+  it('frees the shortened time for others', async () => {
+    const w = await window('17:00', '17:30');
+    await accept(users[0], [0, 1]);
+    await accept(users[1], [0]);
+    await api.book(electionId, users[0], w.id, at('17:00'), NOW);
+    expect(await api.getAvailability(electionId, users[1], NOW)).toEqual([]);
+
+    await change(users[0], 1, NO);
+    const free = await api.getAvailability(electionId, users[1], NOW);
+    expect(free[0].starts).toEqual([at('17:15')]);
   });
 
   it('frees the booking when the last interview post is declined', async () => {

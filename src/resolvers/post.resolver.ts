@@ -10,7 +10,7 @@ const postresolver: Resolvers = {
   Query: {
     post: async (_, { id }, ctx) => {
       await hasAuthenticated(ctx);
-      
+
       const res = await api.getPost(id);
       return postReduce(res);
     },
@@ -19,7 +19,7 @@ const postresolver: Resolvers = {
       // here, so we don't need to check if authenticated for the post.
       // If we were to do that, this fails for unauth users because this calls post history which
       // would then get sad if unauth.
-      if (typeof utskott !== "string" || utskott.toLowerCase() !== "styrelsen"){
+      if (typeof utskott !== 'string' || utskott.toLowerCase() !== 'styrelsen') {
         await hasAuthenticated(ctx);
       }
 
@@ -119,7 +119,7 @@ const postresolver: Resolvers = {
     },
     postHistory: async ({ username }, { current }, ctx) => {
       await hasAuthenticated(ctx);
-      
+
       const entries = await api.getHistoryEntries(username, undefined, current ?? false);
 
       // Vi omvandlar från DatabaseHistoryEntry user history entries

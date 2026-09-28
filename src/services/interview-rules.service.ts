@@ -175,8 +175,11 @@ export const isFrozen = (settings: FreezeState, now: Date) =>
  * What happens to an existing booking when a nominee's accepted interview posts change.
  *
  * - NONE: nothing changes (no booking, or the interview posts are the same)
- * - KEPT_POST_ADDED: accepted a post, but the booking already covers the length needed
- * - KEPT_POST_REMOVED: declined a post; the booking keeps its length
+ * - KEPT_POST_ADDED: accepted a post, but the booking already has the length needed
+ * - KEPT_POST_REMOVED: declined a post, but the length needed is unchanged (e.g. at the
+ *   maximum), or longer because durations were raised after booking; the booking stays
+ * - SHORTENED: the interview needs less time; the booking keeps its start and ends
+ *   earlier. Shrinking never collides with other bookings, it only frees time
  * - UNBOOKED: accepted a post that needs a longer interview; the booking is removed
  * - FREED: no interview posts left; the booking is removed
  * - FLAGGED: after the freeze; the booking stays and the committee is told
@@ -185,6 +188,7 @@ export type BookingEffect =
   | 'NONE'
   | 'KEPT_POST_ADDED'
   | 'KEPT_POST_REMOVED'
+  | 'SHORTENED'
   | 'UNBOOKED'
   | 'FREED'
   | 'FLAGGED';
@@ -206,10 +210,13 @@ export const bookingEffect = (input: {
   if (frozen) return 'FLAGGED';
 
   const added = [...after].some((p) => !before.has(p));
-  if (!added) return 'KEPT_POST_REMOVED';
-
   const booked = minutesBetween(booking.startsAt, booking.endsAt);
-  return requiredMinutes(config, [...after]) > booked ? 'UNBOOKED' : 'KEPT_POST_ADDED';
+  const required = requiredMinutes(config, [...after]);
+
+  // Declining never removes a booking; only accepting can need more time than booked
+  if (added && required > booked) return 'UNBOOKED';
+  if (required < booked) return 'SHORTENED';
+  return added ? 'KEPT_POST_ADDED' : 'KEPT_POST_REMOVED';
 };
 
 /** Minutes Stockholm is ahead of UTC at the given instant (60 in winter, 120 in summer) */

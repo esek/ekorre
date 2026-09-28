@@ -403,6 +403,42 @@ describe('nomination changes while booked', () => {
     expect(icsField(icsOf(mails()[0]), 'SEQUENCE')).toBe('1');
   });
 
+  it("declining a post shortens the booking and moves the calendar event's end", async () => {
+    const w = await createWindow();
+    await respond(0, 'YES');
+    await respond(1, 'YES');
+    const booking = await book(w, '17:00');
+    mockedSendEmail.mockReset();
+
+    const preview = await gql(PREVIEW, { postId: posts[1].id, accepts: 'NO' }, nominee);
+    expect(preview.data.nominationResponsePreview).toMatchObject({
+      effect: 'SHORTENED',
+      requiredMinutesBefore: 30,
+      requiredMinutesAfter: 15,
+    });
+
+    const unconfirmed = await respond(1, 'NO');
+    expect(unconfirmed.errors?.[0]).toMatchObject({ errorType: 'ConflictError' });
+
+    const res = await respond(1, 'NO', { expectedEffect: 'SHORTENED' });
+    expect(res.errors).toBeUndefined();
+    expect((await gql(MY, { electionId }, nominee)).data.myInterview).toMatchObject({
+      booking: {
+        id: booking.id,
+        startsAt: at('17:00').toISOString(),
+        endsAt: at('17:15').toISOString(),
+      },
+    });
+
+    expect(mails()).toHaveLength(1);
+    expect(mails()[0].subject).toBe('Din intervju är kortare');
+    const ics = icsOf(mails()[0]);
+    expect(icsField(ics, 'UID')).toBe(`interview-${booking.id}@esek.se`);
+    expect(icsField(ics, 'SEQUENCE')).toBe('1');
+    expect(icsField(ics, 'DTSTART')).toBe('20300110T170000Z');
+    expect(icsField(ics, 'DTEND')).toBe('20300110T171500Z');
+  });
+
   it('answering a post without interview never needs confirmation', async () => {
     const w = await createWindow();
     await respond(0, 'YES');
