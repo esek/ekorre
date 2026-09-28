@@ -56,10 +56,27 @@ const timeFormat = new Intl.DateTimeFormat('sv-SE', {
 export const formatSlot = (startsAt: Date, endsAt: Date) =>
   `${dateFormat.format(startsAt)} kl. ${timeFormat.format(startsAt)}–${timeFormat.format(endsAt)}`;
 
-const slotOverrides = (slot: Omit<MailSlot, 'id' | 'sequence'>) => ({
+/**
+ * The time is always labelled with its status, so a removed or proposed time can never
+ * be mistaken for a booking when skimming the mail
+ */
+type TimeStatus = 'BOOKED' | 'REMOVED' | 'PROPOSED' | 'WITHDRAWN';
+
+const timeLabels: Record<TimeStatus, string> = {
+  BOOKED: 'Bokad tid',
+  REMOVED: 'Avbokad tid',
+  PROPOSED: 'Föreslagen tid',
+  WITHDRAWN: 'Återkallat förslag',
+};
+
+const slotOverrides = (slot: Omit<MailSlot, 'id' | 'sequence'>, status: TimeStatus) => ({
   time: formatSlot(slot.startsAt, slot.endsAt),
+  timeLabel: timeLabels[status],
+  // Only non-empty strings are truthy in the template
+  struck: status === 'REMOVED' || status === 'WITHDRAWN' ? 'yes' : '',
   location: slot.location ?? '',
-  videoLink: slot.videoLink ?? '',
+  // No clickable meeting link for a time that no longer applies
+  videoLink: status === 'BOOKED' || status === 'PROPOSED' ? slot.videoLink ?? '' : '',
 });
 
 const calendarAttachment = (
@@ -167,7 +184,7 @@ export const sendBookingMail = (
       firstName: nominee.firstName,
       heading: copy.heading,
       intro: copy.intro,
-      ...slotOverrides(booking),
+      ...slotOverrides(booking, 'BOOKED'),
       posts: postnames,
       note: 'Kalenderinbjudan finns bifogad.',
       buttonText: 'Visa din intervju',
@@ -220,7 +237,7 @@ export const sendBookingRemovedMail = (
       firstName: nominee.firstName,
       heading: 'Din intervju är avbokad',
       intro: copy.intro,
-      ...slotOverrides(booking),
+      ...slotOverrides(booking, 'REMOVED'),
       posts: [],
       note: copy.rebook
         ? 'Tiden ovan gäller inte längre. Boka en ny tid på hemsidan.'
@@ -243,7 +260,7 @@ export const sendRequestMail = (
     heading: 'Förslag på intervjutid',
     intro:
       'Valberedningen föreslår en tid för din intervju. Tiden är inte bokad förrän du har accepterat den på hemsidan.',
-    ...slotOverrides(request),
+    ...slotOverrides(request, 'PROPOSED'),
     posts: postnames,
     note: 'Om du redan har en bokad intervju gäller den tills du accepterar den nya tiden.',
     buttonText: 'Svara på förslaget',
@@ -262,7 +279,7 @@ export const sendRequestWithdrawnMail = (
     intro: becauseNominationsChanged
       ? 'Dina nomineringar har ändrats så att intervjun behöver en annan längd, så valberedningens förslag på tid har dragits tillbaka.'
       : 'Valberedningen har dragit tillbaka sitt förslag på tid.',
-    ...slotOverrides(request),
+    ...slotOverrides(request, 'WITHDRAWN'),
     posts: [],
     note: 'Tiden ovan har aldrig varit bokad.',
     buttonText: 'Visa din intervju',
@@ -276,6 +293,8 @@ export const sendSlotsUpdatedMail = (electionId: number, nominee: MailPerson) =>
     intro:
       'Valberedningen har uppdaterat intervjutiderna. Du har accepterat en nominering som kräver intervju men har ingen bokad tid.',
     time: '',
+    timeLabel: '',
+    struck: '',
     location: '',
     videoLink: '',
     posts: [],
