@@ -845,3 +845,20 @@ test('removing non-existant proposal', async () => {
   await expect(api.removeProposal(electionId, 'aa0000bb-s', 1)).rejects.toThrowError(ServerError);
   await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
+
+test('latest elections are ordered by id when created at the same time', async () => {
+  const { id: firstId } = await api.createElection('aa0000bb-s', [], false);
+  const { id: secondId } = await api.createElection('bb1111cc-s', [], false);
+
+  const createdAt = new Date();
+  await prisma.prismaElection.updateMany({
+    where: { id: { in: [firstId, secondId] } },
+    data: { createdAt },
+  });
+
+  const elections = await api.getLatestElections();
+  expect(elections.map((e) => e.id)).toEqual([secondId, firstId]);
+
+  const multiple = await api.getMultipleElections([firstId, secondId]);
+  expect(multiple.map((e) => e.id)).toEqual([secondId, firstId]);
+});

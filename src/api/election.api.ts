@@ -50,9 +50,8 @@ export class ElectionAPI {
         ...unopenedWhere,
         nominationsHidden: includeHiddenNominations ? undefined : false,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      // id breaks ties between elections created in the same millisecond
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit,
     });
 
@@ -90,9 +89,8 @@ export class ElectionAPI {
           in: electionIds.slice(),
         },
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      // id breaks ties between elections created in the same millisecond
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     });
 
     return e;
@@ -599,9 +597,7 @@ export class ElectionAPI {
             },
           },
         },
-        orderBy: {
-          createdAt: 'asc',
-        },
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       });
 
       if (openElectionsRes.length === 0) {
