@@ -1,0 +1,237 @@
+# import User from 'user.graphql'
+# import Post from 'post.graphql'
+# import NominationAnswer from 'election.graphql'
+
+scalar DateTime
+
+"""
+Interview booking for elections. Nominees with accepted nominations for posts that
+require an interview book one interview with the election committee.
+"""
+type Query {
+  "The logged in nominee's interview state for an election"
+  myInterview(electionId: Int!): MyInterview!
+
+  """
+  What answering a nomination in the open election would do to the nominee's
+  interview booking. Pass the returned `effect` to `respondToNomination`.
+  """
+  nominationResponsePreview(postId: Int!, accepts: NominationAnswer!): NominationResponsePreview!
+
+  "Admin"
+  interviewSettings(electionId: Int!): InterviewSettings!
+  "Admin"
+  interviewWindows(electionId: Int!): [InterviewWindow!]!
+  "Admin"
+  interviewBookings(electionId: Int!): [InterviewBooking!]!
+  "Admin: pending, unexpired requests"
+  interviewRequests(electionId: Int!): [InterviewRequest!]!
+  "Admin: who still needs a time, and bookings that need attention"
+  interviewMissing(electionId: Int!): InterviewMissingView!
+  "Admin: times that would fit a nominee, for proposing one"
+  interviewAvailabilityFor(electionId: Int!, username: String!): [InterviewAvailability!]!
+}
+
+type Mutation {
+  "Books, or reschedules to, a start time in a window"
+  bookInterview(electionId: Int!, windowId: Int!, startsAt: DateTime!): InterviewBooking!
+  cancelMyInterview(electionId: Int!): Boolean!
+  """
+  Tells the committee that no time fits the nominee. Only recorded when that is
+  actually the case.
+  """
+  reportNoInterviewSlot(electionId: Int!): Boolean!
+  respondToInterviewRequest(requestId: String!, accept: Boolean!): Boolean!
+
+  "Admin"
+  updateInterviewSettings(electionId: Int!, input: InterviewSettingsInput!): InterviewSettings!
+  "Admin: `minutes: null` resets the post to the default duration"
+  setInterviewPostDuration(electionId: Int!, postId: Int!, minutes: Int): Boolean!
+  "Admin"
+  createInterviewWindow(electionId: Int!, input: InterviewWindowInput!): InterviewWindow!
+  "Admin. Never removes bookings; a new location or link is sent to booked nominees"
+  updateInterviewWindow(windowId: Int!, input: InterviewWindowUpdate!): InterviewWindow!
+  "Admin. Never removes bookings"
+  deleteInterviewWindow(windowId: Int!): Boolean!
+  "Admin: proposes a time; the nominee accepts or declines"
+  requestInterview(
+    electionId: Int!
+    username: String!
+    windowId: Int!
+    startsAt: DateTime!
+  ): InterviewRequest!
+  "Admin"
+  withdrawInterviewRequest(requestId: String!): Boolean!
+  "Admin: cancels without the nominee's approval"
+  cancelInterviewBooking(bookingId: String!): Boolean!
+  "Admin: mails nominees who need an interview and have none. Returns how many were mailed"
+  notifyUnbookedNominees(electionId: Int!): Int!
+}
+
+enum InterviewBookingEffect {
+  "Nothing happens to the booking"
+  NONE
+  "Accepted a post; the booking already has the maximum length and now covers it"
+  KEPT_POST_ADDED
+  "Declined a post; the booking keeps its length"
+  KEPT_POST_REMOVED
+  "Accepted a post that needs a longer interview; the booking is removed"
+  UNBOOKED
+  "No interview posts left; the booking is removed"
+  FREED
+  "After the freeze; the booking stays and the committee is told"
+  FLAGGED
+}
+
+enum InterviewRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+}
+
+type InterviewSettings {
+  electionId: Int!
+  defaultDurationMinutes: Int!
+  maxDurationMinutes: Int!
+  minNoticeMinutes: Int!
+  freezeAt: DateTime
+  "Manually frozen"
+  frozen: Boolean!
+  "Frozen right now, manually or by `freezeAt`"
+  isFrozen: Boolean!
+  notifyEmails: [String!]!
+  postDurations: [InterviewPostDuration!]!
+}
+
+type InterviewPostDuration {
+  post: Post!
+  minutes: Int!
+}
+
+input InterviewSettingsInput {
+  defaultDurationMinutes: Int
+  maxDurationMinutes: Int
+  minNoticeMinutes: Int
+  freezeAt: DateTime
+  "Set to clear `freezeAt`"
+  clearFreezeAt: Boolean
+  frozen: Boolean
+  notifyEmails: [String!]
+}
+
+type InterviewWindow {
+  id: Int!
+  startsAt: DateTime!
+  endsAt: DateTime!
+  location: String
+  videoLink: String
+  bufferMinutes: Int!
+  capacity: Int!
+  "Configured start-time step, or null for the default"
+  stepMinutes: Int
+  "The step actually used"
+  effectiveStepMinutes: Int!
+}
+
+input InterviewWindowInput {
+  startsAt: DateTime!
+  endsAt: DateTime!
+  location: String
+  videoLink: String
+  bufferMinutes: Int
+  capacity: Int
+  stepMinutes: Int
+}
+
+input InterviewWindowUpdate {
+  startsAt: DateTime
+  endsAt: DateTime
+  location: String
+  videoLink: String
+  bufferMinutes: Int
+  capacity: Int
+  stepMinutes: Int
+  "Set to use the default step"
+  clearStepMinutes: Boolean
+}
+
+type InterviewBooking {
+  id: String!
+  user: User!
+  startsAt: DateTime!
+  endsAt: DateTime!
+  location: String
+  videoLink: String
+  "Accepted interview posts the booking covers"
+  posts: [Post!]!
+  windowId: Int
+  "Nomination answers changed after the freeze"
+  needsAdminAttention: Boolean!
+}
+
+type InterviewRequest {
+  id: String!
+  user: User!
+  startsAt: DateTime!
+  endsAt: DateTime!
+  location: String
+  videoLink: String
+  status: InterviewRequestStatus!
+}
+
+type InterviewAvailability {
+  window: InterviewWindow!
+  starts: [DateTime!]!
+}
+
+type MyInterview {
+  "Whether the election uses interview booking at all"
+  enabled: Boolean!
+  "Length the nominee needs; 0 means no interview"
+  requiredMinutes: Int!
+  booking: InterviewBooking
+  pendingRequest: InterviewRequest
+  "Booking, rescheduling and cancelling are closed"
+  frozen: Boolean!
+  "When booking closes, if set"
+  freezeAt: DateTime
+  "Times the nominee can book now"
+  availability: [InterviewAvailability!]!
+}
+
+type InterviewNominee {
+  user: User!
+  requiredMinutes: Int!
+}
+
+type InterviewBookingNeed {
+  booking: InterviewBooking!
+  requiredMinutes: Int!
+}
+
+type InterviewMissingView {
+  unbooked: [InterviewNominee!]!
+  minutesNeeded: Int!
+  minutesAvailable: Int!
+  tooShort: [InterviewBookingNeed!]!
+  outsideWindow: [InterviewBooking!]!
+  overCapacity: [InterviewBooking!]!
+  needsAttention: [InterviewBooking!]!
+}
+
+type NominationResponsePreview {
+  effect: InterviewBookingEffect!
+  requiredMinutesBefore: Int!
+  requiredMinutesAfter: Int!
+  booking: InterviewBooking
+  "When the booking would be removed: times fitting the new length, for rebooking"
+  availability: [InterviewAvailability!]!
+  "A pending request from the committee would be withdrawn"
+  requestWithdrawn: Boolean!
+}
+
+input InterviewSlotInput {
+  windowId: Int!
+  startsAt: DateTime!
+}

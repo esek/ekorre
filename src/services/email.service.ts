@@ -17,12 +17,20 @@ const api = axios.create({
   headers: { Authorization: API_TOKEN },
 });
 
+export type EmailAttachment = {
+  filename: string;
+  contentType: string;
+  /** Base64 encoded file content */
+  content: string;
+};
+
 export const sendEmail = async (
   to: string[] | string,
   subject: string,
   templateName: string,
   overrides: Record<string, string | string[]>,
   body?: string,
+  attachments?: EmailAttachment[],
 ) => {
   try {
     return await api.post<SendEmailOptions, AxiosResponse>('/send', {
@@ -31,6 +39,7 @@ export const sendEmail = async (
       templateName,
       overrides,
       body,
+      ...(attachments?.length ? { attachments } : {}),
     });
   } catch {
     throw new ServerError('Mailet kunde inte skickas');

@@ -22,6 +22,12 @@ generates:
         AccessLogPost: ../mappers#AccessLogPostResponse
         AccessLogIndividualAccess: ../mappers#AccessLogIndividualAccessResponse
         ApiKey: ../mappers#ApiKeyResponse
+        InterviewSettings: ../mappers#InterviewSettingsResponse
+        InterviewPostDuration: ../mappers#InterviewPostDurationResponse
+        InterviewWindow: ../mappers#InterviewWindowResponse
+        InterviewBooking: ../mappers#InterviewBookingResponse
+        InterviewRequest: ../mappers#InterviewRequestResponse
+        InterviewNominee: ../mappers#InterviewNomineeResponse
     schema: "./src/schemas/*.graphql"
     plugins:
       - "typescript"

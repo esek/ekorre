@@ -262,6 +262,9 @@ export class InterviewAPI {
     if (!w.location?.trim() && !w.videoLink?.trim()) {
       throw new BadRequestError('Ange en plats eller en videolänk');
     }
+    if (w.videoLink?.trim() && !/^https?:\/\/[^\s]+$/i.test(w.videoLink.trim())) {
+      throw new BadRequestError('Videolänken måste börja med http:// eller https://');
+    }
     assertPositiveInt(w.bufferMinutes, 'Buffert', true);
     assertPositiveInt(w.capacity, 'Kapacitet');
     assertPositiveInt(w.stepMinutes, 'Intervall');
@@ -359,7 +362,7 @@ export class InterviewAPI {
   }
 
   /** Step for a window: its own, or derived from the election's durations and its buffer */
-  private async stepFor(window: PrismaInterviewWindow, client: Tx = prisma) {
+  async stepFor(window: PrismaInterviewWindow, client: Tx = prisma) {
     if (window.stepMinutes) return window.stepMinutes;
     const [config, posts] = await Promise.all([
       this.getDurationConfig(window.refElection, client),
@@ -465,6 +468,11 @@ export class InterviewAPI {
     startsAt: Date,
     now: Date,
     client?: Tx,
+    /**
+     * Recreate a booking removed earlier in the same transaction under its old id and
+     * next sequence, so calendars update the existing event instead of adding one
+     */
+    replaces?: Pick<PrismaInterviewBooking, 'id' | 'sequence'>,
   ): Promise<{ booking: PrismaInterviewBooking; previous: PrismaInterviewBooking | null }> {
     const run = async (tx: Tx) => {
       const window = await this.lockWindow(tx, windowId);
@@ -508,7 +516,12 @@ export class InterviewAPI {
             data: { ...data, sequence: { increment: 1 } },
           })
         : await tx.prismaInterviewBooking.create({
-            data: { ...data, refElection: electionId, refUser: username },
+            data: {
+              ...data,
+              refElection: electionId,
+              refUser: username,
+              ...(replaces ? { id: replaces.id, sequence: replaces.sequence + 1 } : {}),
+            },
           });
 
       // A booking the nominee made themselves replaces any pending request

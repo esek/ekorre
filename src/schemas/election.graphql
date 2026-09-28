@@ -1,5 +1,6 @@
 # import User from 'user.graphql'
 # import Post from 'post.graphql'
+# import InterviewBookingEffect, InterviewSlotInput from 'interview.graphql'
 
 scalar Date
 """
@@ -36,8 +37,18 @@ type Mutation {
   "Only possible during open election, so electionId is known"
   nominate(username: String!, postIds: [Int!]!): Boolean!
 
-  "Only possible during open election, so electionId is known"
-  respondToNomination(postId: Int!, accepts: NominationAnswer!): Boolean!
+  """
+  Only possible during open election, so electionId is known.
+  If the answer affects an interview booking, `expectedEffect` must be the effect
+  from `nominationResponsePreview`, otherwise nothing is changed. `rebook` books a
+  new time in the same step when the booking is removed.
+  """
+  respondToNomination(
+    postId: Int!
+    accepts: NominationAnswer!
+    expectedEffect: InterviewBookingEffect
+    rebook: InterviewSlotInput
+  ): Boolean!
   propose(electionId: Int!, username: String!, postId: Int!): Boolean!
   removeProposal(electionId: Int!, username: String!, postId: Int!): Boolean!
   renameElection(electionId: Int!, name: String): Boolean!
