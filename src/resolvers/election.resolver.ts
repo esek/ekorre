@@ -1,3 +1,4 @@
+import config from '@/config';
 import { useDataLoader } from '@/dataloaders';
 import { Logger } from '@/logger';
 import { reduce } from '@/reducers';
@@ -132,7 +133,7 @@ const electionResolver: Resolvers = {
         await sendEmail(user.email, 'Du har blivit nominerad!', 'nomination', {
           firstName: user.firstName,
           posts: posts.map((p) => p.postname),
-          nominationsLink: 'https://esek.se/member/election/mine',
+          nominationsLink: `${config.WEBSITE_URL}/member/election/mine`,
         });
       } catch (err) {
         logger.error(`Failed to send nomination email`);
