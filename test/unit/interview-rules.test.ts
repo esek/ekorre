@@ -206,6 +206,12 @@ describe('freeMinutes', () => {
     const taken = [iv('2026-10-06T18:30:00Z', '2026-10-06T19:00:00Z')];
     expect(freeMinutes(window({ bufferMinutes: 10 }), taken)).toBe(90);
   });
+
+  it('returns whole minutes when the window starts mid-minute', () => {
+    const clipped = { ...window({}), startsAt: t('2026-10-06T17:00:01.625Z') };
+    const taken = [iv('2026-10-06T17:30:00Z', '2026-10-06T18:00:00Z')];
+    expect(freeMinutes(clipped, taken)).toBe(89);
+  });
 });
 
 describe('isFrozen', () => {

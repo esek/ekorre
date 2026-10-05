@@ -163,7 +163,9 @@ export const freeMinutes = (window: WindowShape, taken: readonly Interval[]) => 
     const end = Math.min(t.endsAt.getTime(), window.endsAt.getTime());
     return acc + (end - start) / MINUTE;
   }, 0);
-  return Math.max(0, minutesBetween(window.startsAt, window.endsAt) * window.capacity - used);
+  // A window clipped to "now" starts mid-minute, so round down to whole minutes
+  const total = ((window.endsAt.getTime() - window.startsAt.getTime()) / MINUTE) * window.capacity;
+  return Math.max(0, Math.floor(total - used));
 };
 
 export type FreezeState = { freezeAt: Date | null; frozen: boolean };
