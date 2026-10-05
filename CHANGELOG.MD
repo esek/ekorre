@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.31.1] - 2026-10-05
+
+### Fixat
+- `interviewMissing.minutesAvailable` kunde bli ett decimaltal när ett intervjufönster redan hade börjat, så intervjuöversikten för admin gick inte att hämta
+
 ## [1.31.0] - 2026-09-28
 
 ### Tillagt
