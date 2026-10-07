@@ -425,8 +425,22 @@ export class InterviewAPI {
     lengthMinutes?: number,
     client: Tx = prisma,
   ): Promise<WindowAvailability[]> {
+    if (await this.isFrozen(electionId, now, client)) return [];
+    return this.getProposableTimes(electionId, username, now, lengthMinutes, client);
+  }
+
+  /**
+   * Start times an admin could propose to the nominee. Like `getAvailability`, but also
+   * after the freeze, since `createRequest` works then too.
+   */
+  async getProposableTimes(
+    electionId: number,
+    username: string,
+    now: Date,
+    lengthMinutes?: number,
+    client: Tx = prisma,
+  ): Promise<WindowAvailability[]> {
     const settings = await this.getSettings(electionId, client);
-    if (isFrozen(settings, now)) return [];
 
     const length = lengthMinutes ?? (await this.getRequiredMinutes(electionId, username, client));
     if (length <= 0) return [];

@@ -217,7 +217,7 @@ const interviewResolver: Resolvers = {
     },
     interviewAvailabilityFor: async (_, { electionId, username }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.getAvailability(electionId, username, new Date());
+      return api.getProposableTimes(electionId, username, new Date());
     },
   },
   Mutation: {

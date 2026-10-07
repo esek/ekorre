@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.31.2] - 2026-10-07
+
+### Fixat
+- `interviewAvailabilityFor` gav inga tider efter att bokningen stängts, så valberedningen kunde inte föreslå nya tider trots att `requestInterview` fungerar då
+
 ## [1.31.1] - 2026-10-05
 
 ### Fixat

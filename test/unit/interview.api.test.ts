@@ -301,6 +301,10 @@ describe('booking', () => {
 
     await api.updateSettings(electionId, { frozen: true });
     expect(await api.getAvailability(electionId, users[0], NOW)).toEqual([]);
+    // Admins can still propose times after the freeze
+    expect((await api.getProposableTimes(electionId, users[0], NOW))[0].starts).toEqual(
+      short[0].starts,
+    );
   });
 });
 
