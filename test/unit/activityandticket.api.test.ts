@@ -16,6 +16,7 @@ const ticketApi = new TicketAPI();
 const EXISTING_ACT: PrismaActivity = {
   id: 'ExistingID',
   source: PrismaActivitySource.WEBSITE,
+  sourceId: null,
   title: 'ExistingTitle',
   description: 'This is an existing activity.',
   startDate: new Date('2024-01-01'),
@@ -42,6 +43,7 @@ let ctr = 1;
 const DUMMY_PRISMAACTIVITY: PrismaActivity = {
   id: 'dummy',
   source: PrismaActivitySource.WEBSITE,
+  sourceId: null,
   title: 'Title',
   description: 'TestDescription',
   startDate: new Date('2024-02-03'),

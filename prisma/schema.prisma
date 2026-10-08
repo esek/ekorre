@@ -229,6 +229,7 @@ model PrismaNomination {
 
 model PrismaActivity {
   id            String               @id @default(cuid())
+  sourceId      String?              @map("source_id")
   hidden        Boolean              @default(false)
   source        PrismaActivitySource
   title         String
@@ -241,6 +242,7 @@ model PrismaActivity {
   locationLink  String?              @map("location_link")
   tickets       PrismaTicket[]
 
+  @@unique([source, sourceId])
   @@map("activities")
 }
 
@@ -443,6 +445,7 @@ enum PrismaMeetingType {
 enum PrismaActivitySource {
   WEBSITE
   ORBI
+  TEKNOLOGAPPEN
   OTHER
 
   @@map("activity_source")

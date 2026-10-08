@@ -2,11 +2,61 @@ import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { devGuard, stripObject } from '@/util';
 import { ModifiedActivity, NewActivity, Utskott } from '@generated/graphql';
-import { PrismaActivity, PrismaActivitySource } from '@prisma/client';
+import { PrismaActivity, PrismaActivitySource, PrismaUtskott } from '@prisma/client';
+import { TEKNOLOGAPPEN_UTSKOTT_PATHS, TeknologappenActivity } from '@service/teknologappen';
 
 import prisma from './prisma';
 
 export class ActivityAPI {
+  async syncTeknologappenActivities(activities: TeknologappenActivity[]): Promise<number> {
+    await Promise.all(
+      activities.map((activity) =>
+        prisma.prismaActivity.upsert({
+          where: {
+            source_sourceId: {
+              source: PrismaActivitySource.TEKNOLOGAPPEN,
+              sourceId: activity.id,
+            },
+          },
+          create: this.toTeknologappenData(activity),
+          update: this.toTeknologappenData(activity),
+        }),
+      ),
+    );
+
+    return activities.length;
+  }
+
+  private toTeknologappenData(activity: TeknologappenActivity) {
+    return {
+      sourceId: activity.id,
+      source: PrismaActivitySource.TEKNOLOGAPPEN,
+      title: this.localizedValue(activity.title),
+      description: this.localizedValue(activity.description),
+      startDate: new Date(activity.time_start),
+      endDate: new Date(activity.time_end),
+      utskott: this.getTeknologappenUtskott(activity),
+      imageUrl: activity.image_url,
+      locationTitle: this.localizedValue(activity.location.name),
+      locationLink: activity.location.url,
+      hidden: activity.is_hidden,
+    };
+  }
+
+  private localizedValue(values: Record<string, string>): string {
+    return values.sv ?? values.en ?? Object.values(values)[0] ?? '';
+  }
+
+  private getTeknologappenUtskott(activity: TeknologappenActivity): PrismaUtskott {
+    const path = activity.creator_path.trim().toLocaleLowerCase();
+
+    const match = Object.entries(TEKNOLOGAPPEN_UTSKOTT_PATHS).find(
+      ([, utskottPath]) => utskottPath === path,
+    );
+
+    return (match?.[0] as PrismaUtskott | undefined) ?? PrismaUtskott.OTHER;
+  }
+
   async getActivity(id: string): Promise<PrismaActivity> {
     const activity = await prisma.prismaActivity.findFirst({
       where: {
