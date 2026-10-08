@@ -501,7 +501,7 @@ describe('admin requests', () => {
     expect(await api.getAvailability(electionId, users[1], NOW)).toEqual([]);
   });
 
-  it('expire at the minimum notice and can no longer be accepted', async () => {
+  it('stay open past the minimum notice and expire when they start', async () => {
     const w = await window('17:00', '17:15');
     await accept(users[0], [0]);
     const { request } = await api.createRequest(
@@ -513,15 +513,20 @@ describe('admin requests', () => {
       NOW,
     );
 
-    // Minimum notice is 24 h, so the request expires at 17:00 the day before
-    const lastMoment = new Date('2030-01-09T17:00:00Z');
-    const expired = new Date('2030-01-09T17:00:01Z');
+    // The committee proposed the time, so the 24 h minimum notice does not cut it short
+    const insideNotice = new Date('2030-01-10T12:00:00Z');
+    const lastMoment = new Date('2030-01-10T16:59:59Z');
+    const started = at('17:00');
     expect(await api.getPendingRequest(electionId, users[0], lastMoment)).not.toBeNull();
-    expect(await api.getPendingRequest(electionId, users[0], expired)).toBeNull();
-    expect(await api.getPendingRequests(electionId, expired)).toHaveLength(0);
-    await expect(api.respondToRequest(users[0], request.id, true, expired)).rejects.toThrow(
+    expect(await api.getPendingRequests(electionId, lastMoment)).toHaveLength(1);
+    expect(await api.getPendingRequest(electionId, users[0], started)).toBeNull();
+    expect(await api.getPendingRequests(electionId, started)).toHaveLength(0);
+    await expect(api.respondToRequest(users[0], request.id, true, started)).rejects.toThrow(
       'gått ut',
     );
+
+    const res = await api.respondToRequest(users[0], request.id, true, insideNotice);
+    expect(res.booking?.startsAt).toEqual(at('17:00'));
   });
 
   it('keep the old booking until accepted, then replace it', async () => {

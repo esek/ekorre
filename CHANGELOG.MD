@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.31.3] - 2026-10-08
+
+### Ändrat
+- Valberedningens förslag på intervjutid gäller nu ända tills tiden börjar, i stället för att gå ut när framförhållningen passerats. Nominerade kunde annars inte acceptera ett förslag nära intervjun, och förslaget försvann från deras sida
+
 ## [1.31.2] - 2026-10-07
 
 ### Fixat

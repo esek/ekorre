@@ -367,7 +367,8 @@ export class InterviewAPI {
   }
 
   /**
-   * Time already taken in a window: its bookings and its pending, unexpired requests.
+   * Time already taken in a window: its bookings and its pending requests that have not
+   * started yet.
    * `exceptUser` leaves out that nominee's own booking and request, so rescheduling or
    * accepting a request is not blocked by the nominee's own current time.
    */
@@ -377,7 +378,6 @@ export class InterviewAPI {
     client: Tx,
     options: { exceptUser?: string; exceptRequestId?: string } = {},
   ): Promise<Interval[]> {
-    const settings = await this.getSettings(window.refElection, client);
     const excludeUser = options.exceptUser ? { refUser: { not: options.exceptUser } } : {};
     const excludeRequest = options.exceptRequestId ? { id: { not: options.exceptRequestId } } : {};
     const bookings = await client.prismaInterviewBooking.findMany({
@@ -388,7 +388,7 @@ export class InterviewAPI {
       where: {
         refWindow: window.id,
         status: PrismaInterviewRequestStatus.PENDING,
-        startsAt: { gte: addMinutes(now, settings.minNoticeMinutes) },
+        startsAt: { gt: now },
         ...excludeUser,
         ...excludeRequest,
       },
@@ -684,27 +684,28 @@ export class InterviewAPI {
   // Admin requests
   // ---------------------------------------------------------------------------
 
-  /** The nominee's pending request that has not yet expired */
+  /**
+   * The nominee's pending request that has not started yet. The minimum notice does not
+   * apply, since the committee proposed the time and can answer at any time before it.
+   */
   async getPendingRequest(electionId: number, username: string, now: Date, client: Tx = prisma) {
-    const settings = await this.getSettings(electionId, client);
     return client.prismaInterviewRequest.findFirst({
       where: {
         refElection: electionId,
         refUser: username,
         status: PrismaInterviewRequestStatus.PENDING,
-        startsAt: { gte: addMinutes(now, settings.minNoticeMinutes) },
+        startsAt: { gt: now },
       },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async getPendingRequests(electionId: number, now: Date) {
-    const settings = await this.getSettings(electionId);
     return prisma.prismaInterviewRequest.findMany({
       where: {
         refElection: electionId,
         status: PrismaInterviewRequestStatus.PENDING,
-        startsAt: { gte: addMinutes(now, settings.minNoticeMinutes) },
+        startsAt: { gt: now },
       },
       orderBy: { startsAt: 'asc' },
     });
@@ -779,7 +780,7 @@ export class InterviewAPI {
 
   /**
    * Nominee accepts or declines an admin request. Accepting replaces their booking.
-   * The request must still be pending, unexpired and match the length they need.
+   * The request must still be pending, not yet started and match the length they need.
    */
   async respondToRequest(
     username: string,
@@ -800,8 +801,7 @@ export class InterviewAPI {
         throw new BadRequestError('Förfrågan är inte längre aktiv');
       }
 
-      const settings = await this.getSettings(request.refElection, tx);
-      if (request.startsAt < addMinutes(now, settings.minNoticeMinutes)) {
+      if (request.startsAt <= now) {
         throw new BadRequestError('Förfrågan har gått ut');
       }
 
