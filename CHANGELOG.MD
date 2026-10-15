@@ -5,6 +5,19 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.34.0] - 2026-10-15
+
+### Tillagt
+- Valberedningens förslag har status: utkast, skickat, accepterat, avböjt eller återkallat. Förslag skickas per post med `sendProposals`, och den föreslagna svarar med `respondToProposal`
+- Motkandidering per post (`openCounterCandidacy`, `respondToCounterCandidacy`). Kandidater som aldrig föreslagits får mejl, och alla kandidater utan skickat eller accepterat förslag kan svara
+- En deadline per val för förslag och motkandidering (`setProposalDeadline`). Obesvarade förslag räknas som avböjda efter den, och bara admins kan ändra (`setProposalStatus`, `setCounterCandidacy`)
+- `proposalOverview` för valberedningen, och `myProposals`/`myCounterCandidacies` för medlemmar
+- Mejl när ett förslag skickas eller återkallas och när motkandidering öppnar (ebrev-mallen `election-proposal`)
+
+### Ändrat
+- `propose` skapar ett utkast och kräver att personen har accepterat sin nominering till posten. `removeProposal` återkallar ett skickat eller accepterat förslag i stället för att ta bort det
+- `Election.proposals` visar bara accepterade förslag för den som inte är valadmin. Förslag från före denna version räknas som accepterade
+
 ## [1.33.0] - 2026-10-15
 
 ### Tillagt
