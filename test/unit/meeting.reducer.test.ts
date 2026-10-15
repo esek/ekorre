@@ -7,7 +7,7 @@ const dummyDbMeeting: PrismaMeeting = {
   id: 420,
   type: MeetingType.Sm,
   number: 3,
-  year: 1817,
+  date: new Date('1817-01-15'),
   refSummons: 'a valid file id',
   refAgenda: 'a valid file id',
   refLateDocuments: 'another valid file id',
@@ -20,7 +20,7 @@ const expected: MeetingResponse = {
   name: `${dummyDbMeeting.type}${String(dummyDbMeeting.number).padStart(2, '0')}`,
   id: dummyDbMeeting.id,
   number: dummyDbMeeting.number,
-  year: dummyDbMeeting.year,
+  date: dummyDbMeeting.date,
   type: dummyDbMeeting.type as MeetingType,
   documents: {
     id: dummyDbMeeting.refDocuments ?? undefined,
@@ -50,7 +50,8 @@ test('test reducing a spring term meeting', () => {
   const localDbMeeting = { ...dummyDbMeeting };
   localDbMeeting.type = MeetingType.Vtm;
   const localExpected = { ...expected };
-  localExpected.name = `${MeetingType.Vtm} ${String(dummyDbMeeting.year).padStart(2, '0')}`;
+  const year = localDbMeeting.date.getFullYear();
+  localExpected.name = `${MeetingType.Vtm} ${year}`;
   localExpected.type = localDbMeeting.type as MeetingType;
   expect(meetingReduce(localDbMeeting)).toStrictEqual(localExpected);
 });

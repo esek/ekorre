@@ -487,6 +487,7 @@ export type Meeting = {
   agenda?: Maybe<File>;
   /** Bilaga */
   appendix?: Maybe<File>;
+  date: Scalars['Date'];
   /** Handlingar */
   documents?: Maybe<File>;
   id: Scalars['Int'];
@@ -502,7 +503,6 @@ export type Meeting = {
   /** Kallelse */
   summons?: Maybe<File>;
   type: MeetingType;
-  year: Scalars['Int'];
 };
 
 export enum MeetingDocumentType {
@@ -748,9 +748,9 @@ export type MutationAddHeheArgs = {
 
 
 export type MutationAddMeetingArgs = {
+  date?: InputMaybe<Scalars['Date']>;
   number?: InputMaybe<Scalars['Int']>;
   type: MeetingType;
-  year?: InputMaybe<Scalars['Int']>;
 };
 
 
@@ -1431,6 +1431,7 @@ export type Query = {
   me: User;
   meeting: Meeting;
   meetings: Array<Meeting>;
+  meetingsByDate: Array<Meeting>;
   myCounterCandidacies: Array<CounterCandidacyOption>;
   /** The logged in nominee's interview state for an election */
   myInterview: MyInterview;
@@ -1734,6 +1735,19 @@ export type QueryMeetingsArgs = {
   number?: InputMaybe<Scalars['Int']>;
   type?: InputMaybe<MeetingType>;
   year?: InputMaybe<Scalars['Int']>;
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryMeetingsByDateArgs = {
+  endDate?: InputMaybe<Scalars['Date']>;
+  number?: InputMaybe<Scalars['Int']>;
+  sortOrder?: InputMaybe<Scalars['String']>;
+  startDate?: InputMaybe<Scalars['Date']>;
+  type?: InputMaybe<MeetingType>;
 };
 
 
@@ -2618,6 +2632,7 @@ export type LoginResponseResolvers<ContextType = Context, ParentType extends Res
 export type MeetingResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Meeting'] = ResolversParentTypes['Meeting']> = ResolversObject<{
   agenda?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   appendix?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
+  date?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
   documents?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   lateDocuments?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
@@ -2626,7 +2641,6 @@ export type MeetingResolvers<ContextType = Context, ParentType extends Resolvers
   protocol?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   summons?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['MeetingType'], ParentType, ContextType>;
-  year?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2840,6 +2854,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   me?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   meeting?: Resolver<ResolversTypes['Meeting'], ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<ResolversTypes['Meeting']>, ParentType, ContextType, Partial<QueryMeetingsArgs>>;
+  meetingsByDate?: Resolver<Array<ResolversTypes['Meeting']>, ParentType, ContextType, Partial<QueryMeetingsByDateArgs>>;
   myCounterCandidacies?: Resolver<Array<ResolversTypes['CounterCandidacyOption']>, ParentType, ContextType, RequireFields<QueryMyCounterCandidaciesArgs, 'electionId'>>;
   myInterview?: Resolver<ResolversTypes['MyInterview'], ParentType, ContextType, RequireFields<QueryMyInterviewArgs, 'electionId'>>;
   myNominations?: Resolver<Array<ResolversTypes['Nomination']>, ParentType, ContextType, RequireFields<QueryMyNominationsArgs, 'electionId'>>;
