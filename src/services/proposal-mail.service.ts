@@ -12,6 +12,8 @@ import { sendEmail } from '@service/email';
 const logger = Logger.getLogger('ProposalMail');
 
 export const PROPOSAL_TEMPLATE = 'election-proposal';
+/** Heading, lines and a button; shared with the interview summary */
+export const COMMITTEE_TEMPLATE = 'interview-committee';
 
 export type MailRecipient = {
   firstName: string;
@@ -101,3 +103,28 @@ export const sendCounterCandidacyMail = (
     buttonText: 'Svara',
     buttonLink: nominationsLink(electionId),
   });
+
+/**
+ * Tells the committee about a member's answer, at the addresses set for the election
+ * (the interview settings' recipients). Never throws, like the other mail
+ */
+export const sendCommitteeAnswerMail = async (
+  to: string[],
+  electionId: number,
+  subject: string,
+  lines: string[],
+) => {
+  try {
+    await sendEmail(to, subject, COMMITTEE_TEMPLATE, {
+      heading: subject,
+      lines,
+      buttonText: 'Öppna valberedningens förslag',
+      buttonLink: `${config.WEBSITE_URL}/admin/elections/${electionId}/proposals`,
+    });
+    return true;
+  } catch (err) {
+    logger.error(`Failed to send "${subject}" to ${to.join(', ')}`);
+    logger.error(err);
+    return false;
+  }
+};

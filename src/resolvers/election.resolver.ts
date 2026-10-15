@@ -5,6 +5,7 @@ import type { Context } from '@/models/context';
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated, notEmpty } from '@/util';
 import { ElectionAPI } from '@api/election';
+import { InterviewAPI } from '@api/interview';
 import { PostAPI } from '@api/post';
 import { ProposalAPI } from '@api/proposal';
 import { UserAPI } from '@api/user';
@@ -15,6 +16,7 @@ import { nominationReduce } from '@reducer/election/nomination';
 import { proposalReduce } from '@reducer/election/proposal';
 import { sendEmail } from '@service/email';
 import {
+  sendCommitteeAnswerMail,
   sendCounterCandidacyMail,
   sendProposalWithdrawnMail,
   sendProposedMail,
@@ -26,6 +28,7 @@ const api = new ElectionAPI();
 const userApi = new UserAPI();
 const postApi = new PostAPI();
 const proposalApi = new ProposalAPI();
+const interviewApi = new InterviewAPI();
 
 const logger = Logger.getLogger('ElectionResolver');
 
@@ -36,6 +39,32 @@ const isElectionAdmin = async (ctx: Context) => {
     return true;
   } catch {
     return false;
+  }
+};
+
+/** Mails the committee addresses of the election about a member's answer */
+const tellCommittee = async (
+  electionId: number,
+  username: string,
+  postId: number,
+  subject: (name: string, postname: string) => string,
+  answer: string,
+) => {
+  try {
+    const [user, post, settings] = await Promise.all([
+      userApi.getSingleUser(username),
+      postApi.getPost(postId),
+      interviewApi.getSettings(electionId),
+    ]);
+    const name = `${user.firstName} ${user.lastName}`;
+    await sendCommitteeAnswerMail(settings.notifyEmails, electionId, subject(name, post.postname), [
+      `${name} (${username})`,
+      `Post: ${post.postname}`,
+      `Svar: ${answer}`,
+    ]);
+  } catch (err) {
+    logger.error('Could not tell the committee about an answer');
+    logger.error(err);
   }
 };
 
@@ -239,7 +268,16 @@ const electionResolver: Resolvers = {
     },
     respondToProposal: async (_, { electionId, postId, accepts }, ctx) => {
       await hasAuthenticated(ctx);
-      await proposalApi.respondToProposal(electionId, postId, ctx.getUsername(), accepts);
+      const username = ctx.getUsername();
+      await proposalApi.respondToProposal(electionId, postId, username, accepts);
+      await tellCommittee(
+        electionId,
+        username,
+        postId,
+        (name, postname) =>
+          `${name} ${accepts ? 'accepterade' : 'tackade nej till'} förslaget till ${postname}`,
+        accepts ? 'Accepterade förslaget' : 'Tackade nej till förslaget',
+      );
       return true;
     },
     openCounterCandidacy: async (_, { electionId, postId }, ctx) => {
@@ -255,7 +293,16 @@ const electionResolver: Resolvers = {
     },
     respondToCounterCandidacy: async (_, { electionId, postId, accepts }, ctx) => {
       await hasAuthenticated(ctx);
-      await proposalApi.respondToCounterCandidacy(electionId, postId, ctx.getUsername(), accepts);
+      const username = ctx.getUsername();
+      await proposalApi.respondToCounterCandidacy(electionId, postId, username, accepts);
+      await tellCommittee(
+        electionId,
+        username,
+        postId,
+        (name, postname) =>
+          `${name} ${accepts ? 'motkandiderar' : 'motkandiderar inte'} till ${postname}`,
+        accepts ? 'Motkandiderar' : 'Motkandiderar inte',
+      );
       return true;
     },
     setProposalDeadline: async (_, { electionId, deadline }, ctx) => {

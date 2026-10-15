@@ -14,6 +14,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Valadmins kan ändra status och motkandidatur manuellt när som helst, utan mejl (`setProposalStatus`, `setCounterCandidacy`)
 - `proposalOverview` för valberedningen, och `myProposals`/`myCounterCandidacies` för medlemmar
 - Mejl när ett förslag skickas eller återkallas och när motkandidering öppnar (ebrev-mallen `election-proposal`)
+- Valberedningen får ett mejl varje gång någon svarar på ett förslag eller på motkandidering, till mottagarna i valets intervjuinställningar
 
 ### Ändrat
 - `propose` skapar ett utkast och kräver att personen har accepterat sin nominering till posten. `removeProposal` återkallar ett skickat eller accepterat förslag i stället för att ta bort det

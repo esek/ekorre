@@ -2,6 +2,7 @@ import prisma from '@/api/prisma';
 import tokenProvider from '@/auth';
 import config from '@/config';
 import { ElectionAPI } from '@api/election';
+import { InterviewAPI } from '@api/interview';
 import { Feature } from '@generated/graphql';
 import { PrismaNominationAnswer, PrismaPost, PrismaUser } from '@prisma/client';
 import { sendEmail } from '@service/email';
@@ -13,6 +14,7 @@ jest.mock('@service/email', () => ({ sendEmail: jest.fn() }));
 
 const mockedSendEmail = sendEmail as jest.MockedFunction<typeof sendEmail>;
 const electionApi = new ElectionAPI();
+const interviewApi = new InterviewAPI();
 
 let admin: PrismaUser;
 let member: PrismaUser;
@@ -233,12 +235,73 @@ describe('mail', () => {
     });
   });
 
-  test('answering sends nothing', async () => {
+  test('each answer to a proposal is mailed to the committee, not the person', async () => {
+    await ok(PROPOSE, vars(candidates[0]), admin);
+    await ok(PROPOSE, vars(candidates[1]), admin);
+    await ok(SEND, { e: electionId, p: post.id }, admin);
+    mockedSendEmail.mockReset();
+
+    await ok(RESPOND, { e: electionId, p: post.id, a: true }, candidates[0]);
+    await ok(RESPOND, { e: electionId, p: post.id, a: false }, candidates[1]);
+
+    const name = (u: PrismaUser) => `${u.firstName} ${u.lastName}`;
+    expect(mails()).toEqual([
+      expect.objectContaining({
+        to: ['vbordforande@esek.se', 'vbsekreterare@esek.se'],
+        template: 'interview-committee',
+        subject: `${name(candidates[0])} accepterade förslaget till ${post.postname}`,
+      }),
+      expect.objectContaining({
+        subject: `${name(candidates[1])} tackade nej till förslaget till ${post.postname}`,
+      }),
+    ]);
+    expect(mails()[0].overrides).toMatchObject({
+      lines: [
+        `${name(candidates[0])} (${candidates[0].username})`,
+        `Post: ${post.postname}`,
+        'Svar: Accepterade förslaget',
+      ],
+      buttonLink: `${config.WEBSITE_URL}/admin/elections/${electionId}/proposals`,
+    });
+  });
+
+  test('each motkandidat answer is mailed to the committee addresses of the election', async () => {
+    await interviewApi.updateSettings(electionId, { notifyEmails: ['valberedningen@esek.se'] });
+    await ok(OPEN, { e: electionId, p: post.id }, admin);
+    mockedSendEmail.mockReset();
+
+    await ok(COUNTER, { e: electionId, p: post.id, a: true }, candidates[2]);
+    await ok(COUNTER, { e: electionId, p: post.id, a: false }, candidates[2]);
+
+    const name = `${candidates[2].firstName} ${candidates[2].lastName}`;
+    expect(mails().map((m) => [m.to, m.subject])).toEqual([
+      [['valberedningen@esek.se'], `${name} motkandiderar till ${post.postname}`],
+      [['valberedningen@esek.se'], `${name} motkandiderar inte till ${post.postname}`],
+    ]);
+    expect(mails()[0].overrides.lines).toEqual(
+      expect.arrayContaining([`${name} (${candidates[2].username})`]),
+    );
+  });
+
+  test('a failing committee mail does not undo the answer', async () => {
+    await ok(PROPOSE, vars(candidates[0]), admin);
+    await ok(SEND, { e: electionId, p: post.id }, admin);
+    mockedSendEmail.mockRejectedValue(new Error('ebrev is down'));
+    await ok(RESPOND, { e: electionId, p: post.id, a: true }, candidates[0]);
+    const mine = (await ok(MINE, { e: electionId }, candidates[0])) as {
+      myProposals: { status: string }[];
+    };
+    expect(mine.myProposals[0].status).toBe('ACCEPTED');
+  });
+
+  test('admin changes and opening motkandidering do not mail the committee', async () => {
     await ok(PROPOSE, vars(candidates[0]), admin);
     await ok(SEND, { e: electionId, p: post.id }, admin);
     mockedSendEmail.mockReset();
-    await ok(RESPOND, { e: electionId, p: post.id, a: true }, candidates[0]);
-    expect(mails()).toHaveLength(0);
+    await ok(SET_STATUS, { ...vars(candidates[0]), s: 'ACCEPTED' }, admin);
+    await ok(SET_COUNTER, { ...vars(candidates[1]), a: true }, admin);
+    await ok(OPEN, { e: electionId, p: post.id }, admin);
+    expect(mails().filter((m) => m.template === 'interview-committee')).toEqual([]);
   });
 
   test('withdrawing tells the person, removing a draft does not', async () => {
