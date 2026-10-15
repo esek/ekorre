@@ -6,6 +6,7 @@ test('reducing valid DatabaseActivity', () => {
   const activity: PrismaActivity = {
     id: 'testID',
     source: PrismaActivitySource.WEBSITE,
+    sourceId: null,
     title: 'TestTitle',
     description: 'TestDescription',
     startDate: new Date('2024-02-03'),

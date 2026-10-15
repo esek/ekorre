@@ -64,6 +64,11 @@ const VERIFY = {
   URL: process.env.VERIFY_URL ?? '',
 };
 
+const TEKNOLOGAPPEN = {
+  API_KEY: process.env.TEKNOLOGAPPEN_API_KEY ?? '',
+  SYNC_INTERVAL_MINUTES: Number.parseInt(process.env.TEKNOLOGAPPEN_SYNC_INTERVAL_MINUTES ?? '60', 10),
+};
+
 const JWT = {
   SECRET: (process.env.JWT_SECRET as string) ?? '',
 };
@@ -84,6 +89,7 @@ const config = {
   WIKI,
   PDF_TO_PNG,
   VERIFY,
+  TEKNOLOGAPPEN,
   JWT,
 };
 
