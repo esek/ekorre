@@ -102,21 +102,22 @@ model PrismaPostAccessLog {
 }
 
 model PrismaPost {
-  id                Int                   @id @default(autoincrement())
-  access            PrismaPostAccess[]    @relation(name: "PrismaPostToPrismaPostAccess")
-  targetAccessLog   PrismaPostAccessLog[] @relation(name: "PrismaPostAccessLogToPrismaPostTarget")
-  electables        PrismaElectable[]     @relation(name: "PrismaElectableToPrismaPost")
-  nominations       PrismaNomination[]    @relation(name: "PrismaNominationToPrismaPost")
-  history           PrismaPostHistory[]   @relation(name: "PrismaPostToPrismaPostHistory")
-  sortPriority      Int                   @default(0)
-  postname          String                @unique
-  email             String?
-  utskott           PrismaUtskott
-  description       String
-  spots             Int
-  postType          PrismaPostType        @map("post_type")
-  active            Boolean               @default(true)
-  interviewRequired Boolean               @default(false) @map("interview_required")
+  id                   Int                   @id @default(autoincrement())
+  access               PrismaPostAccess[]    @relation(name: "PrismaPostToPrismaPostAccess")
+  targetAccessLog      PrismaPostAccessLog[] @relation(name: "PrismaPostAccessLogToPrismaPostTarget")
+  electables           PrismaElectable[]     @relation(name: "PrismaElectableToPrismaPost")
+  nominations          PrismaNomination[]    @relation(name: "PrismaNominationToPrismaPost")
+  history              PrismaPostHistory[]   @relation(name: "PrismaPostToPrismaPostHistory")
+  sortPriority         Int                   @default(0)
+  postname             String                @unique
+  email                String?
+  utskott              PrismaUtskott
+  description          String
+  spots                Int
+  postType             PrismaPostType        @map("post_type")
+  active               Boolean               @default(true)
+  interviewRequired    Boolean               @default(false) @map("interview_required")
+  teknologappenGroupId String?               @unique @map("teknologappen_group_id")
 
   // Posts are either searched by name or by utskott,
   // name handled by primare key (@id)

@@ -393,6 +393,24 @@ export class PostAPI {
   }
 
   /**
+   * Links a post to its group in Teknologappen
+   * @param id ID for the post
+   * @param groupId ID of the group in Teknologappen
+   */
+  async setTeknologappenGroupId(id: number, groupId: string): Promise<boolean> {
+    const post = await prisma.prismaPost.update({
+      data: {
+        teknologappenGroupId: groupId,
+      },
+      where: {
+        id,
+      },
+    });
+
+    return post != null;
+  }
+
+  /**
    * Retrieves all post history entries for a user, post, or the combination.
    * Only specifying username retrieves all history entries for that user,
    * and only specifying postname retrieves all entries for that post.

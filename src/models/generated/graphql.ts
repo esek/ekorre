@@ -1599,13 +1599,8 @@ export type QueryLatestnewsArgs = {
 
 
 /**
-<<<<<<< Updated upstream
  * Interview booking for elections. Nominees with accepted nominations for posts that
  * require an interview book one interview with the election committee.
-=======
- * Queries and mutations that relies on an election being open
- * does not take an `electionId` parameter.
->>>>>>> Stashed changes
  */
 export type QueryMeetingArgs = {
   id: Scalars['Int'];

@@ -64,9 +64,24 @@ const VERIFY = {
   URL: process.env.VERIFY_URL ?? '',
 };
 
+const membershipSyncModes = ['off', 'dry-run', 'on'] as const;
+
+/**
+ * Config for Teknologappen
+ * @param {string} API_KEY - API key issued by Teknologappen
+ * @param {number} SYNC_INTERVAL_MINUTES - How often activities and memberships are synced, 0 disables
+ * @param {string} MEMBERSHIP_SYNC - `off`, `dry-run` (only logs planned changes) or `on`
+ */
 const TEKNOLOGAPPEN = {
   API_KEY: process.env.TEKNOLOGAPPEN_API_KEY ?? '',
-  SYNC_INTERVAL_MINUTES: Number.parseInt(process.env.TEKNOLOGAPPEN_SYNC_INTERVAL_MINUTES ?? '60', 10),
+  SYNC_INTERVAL_MINUTES: Number.parseInt(
+    process.env.TEKNOLOGAPPEN_SYNC_INTERVAL_MINUTES ?? '60',
+    10,
+  ),
+  MEMBERSHIP_SYNC:
+    membershipSyncModes.find(
+      (mode) => mode === process.env.TEKNOLOGAPPEN_MEMBERSHIP_SYNC?.toLowerCase(),
+    ) ?? 'off',
 };
 
 const JWT = {
