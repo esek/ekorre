@@ -166,6 +166,24 @@ describe('access', () => {
     ]);
   });
 
+  test('members still see accepted nominations, unless nominations are hidden', async () => {
+    await ok(PROPOSE, vars(candidates[0]), admin);
+    await ok(SEND, { e: electionId, p: post.id }, admin);
+    await ok(RESPOND, { e: electionId, p: post.id, a: true }, candidates[0]);
+    const q = `query ($e: Int!) { election(electionId: $e) { acceptedNominations { user { username } } proposals { status } } }`;
+    type Res = { election: { acceptedNominations: unknown[]; proposals: unknown[] } };
+
+    const visible = (await ok(q, { e: electionId }, member)) as Res;
+    // Every candidate accepted both posts
+    expect(visible.election.acceptedNominations).toHaveLength(candidates.length * 2);
+    expect(visible.election.proposals).toEqual([]);
+
+    await electionApi.setHiddenNominations(electionId, true);
+    const hidden = (await ok(q, { e: electionId }, member)) as Res;
+    expect(hidden.election.acceptedNominations).toEqual([]);
+    expect(hidden.election.proposals).toEqual([]);
+  });
+
   test("a member's own view has no drafts and nothing of others", async () => {
     await ok(PROPOSE, vars(candidates[0]), admin);
     await ok(PROPOSE, vars(candidates[1], otherPost), admin);
