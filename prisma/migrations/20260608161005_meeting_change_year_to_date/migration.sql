@@ -29,7 +29,4 @@ ALTER TABLE "meetings" DROP COLUMN "year";
 -- CreateIndex
 CREATE INDEX IF NOT EXISTS "meetings_date_type_idx" ON "meetings"("date", "type");
 -- CreateIndex
-CREATE INDEX IF NOT EXISTS "meetings_date_number_idx" ON "meetings"("date", "number");
-
--- CreateIndex
 CREATE UNIQUE INDEX IF NOT EXISTS "meetings_type_number_date_key" ON "meetings"("type", "number", "date");
