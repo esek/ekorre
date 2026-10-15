@@ -16,6 +16,8 @@ services:
       - EBREV_API_TOKEN
       - PDF_TO_PNG_BASE_URL
       - VERIFY_URL
+      - TEKNOLOGAPPEN_API_KEY
+      - TEKNOLOGAPPEN_SYNC_INTERVAL_MINUTES
     networks:
       - traefik
       - default # to join compose network
