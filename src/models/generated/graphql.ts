@@ -678,7 +678,7 @@ export type Mutation = {
   /** Sends all draft proposals for a post and mails the proposed. Returns how many were sent */
   sendProposals: Scalars['Int'];
   setApiKeyAccess: Scalars['Boolean'];
-  /** Admin change after the deadline, without mail. `answer: null` removes the answer */
+  /** Manual admin change, at any time and without mail. `answer: null` removes the answer */
   setCounterCandidacy: Scalars['Boolean'];
   setElectables: Scalars['Boolean'];
   setHiddenNominations: Scalars['Boolean'];
@@ -688,7 +688,7 @@ export type Mutation = {
   setPostAccess: Scalars['Boolean'];
   /** Sets the deadline for proposals and motkandidering */
   setProposalDeadline: Scalars['Boolean'];
-  /** Admin change after the deadline, without mail */
+  /** Manual admin change, at any time and without mail */
   setProposalStatus: Scalars['Boolean'];
   setUserPostEnd: Scalars['Boolean'];
   unlinkLoginProvider: Scalars['Boolean'];

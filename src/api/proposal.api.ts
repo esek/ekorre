@@ -8,7 +8,7 @@
  *
  * Everything locks for members at the election's `proposalDeadline`. A proposal still
  * pending then counts as declined; this is computed when read, nothing is scheduled.
- * After the deadline only admins can change statuses and motkandidat answers.
+ * Admins can change statuses and motkandidat answers by hand at any time.
  */
 import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { devGuard } from '@/util';
@@ -100,12 +100,6 @@ export class ProposalAPI {
       throw new BadRequestError('Sätt en deadline för förslag och motkandidering först');
     }
     this.assertBeforeDeadline(election, now);
-  }
-
-  private assertAfterDeadline(election: PrismaElection, now: Date) {
-    if (!isPastDeadline(election, now)) {
-      throw new BadRequestError('Detta kan bara ändras manuellt efter deadline');
-    }
   }
 
   private async assertElectable(tx: Tx, electionId: number, postId: number) {
@@ -389,7 +383,7 @@ export class ProposalAPI {
     });
   }
 
-  /** Admin change after the deadline. Accepting clears any motkandidat answer */
+  /** Manual admin change, at any time and without mail. Accepting clears any motkandidat answer */
   async setProposalStatus(
     electionId: number,
     username: string,
@@ -401,8 +395,7 @@ export class ProposalAPI {
       throw new BadRequestError('Status kan bara sättas till accepterad, avböjd eller återkallad');
     }
     await prisma.$transaction(async (tx) => {
-      const election = await this.election(electionId, tx);
-      this.assertAfterDeadline(election, now);
+      await this.election(electionId, tx);
 
       const { count } = await tx.prismaProposal.updateMany({
         where: { refElection: electionId, refPost: postId, refUser: username },
@@ -419,7 +412,7 @@ export class ProposalAPI {
     });
   }
 
-  /** Admin change after the deadline. `null` removes the answer */
+  /** Manual admin change, at any time and without mail. `null` removes the answer */
   async setCounterCandidacy(
     electionId: number,
     username: string,
@@ -428,8 +421,7 @@ export class ProposalAPI {
     now = new Date(),
   ) {
     await prisma.$transaction(async (tx) => {
-      const election = await this.election(electionId, tx);
-      this.assertAfterDeadline(election, now);
+      await this.election(electionId, tx);
 
       if (accepts == null) {
         await tx.prismaCounterCandidacy.deleteMany({

@@ -334,11 +334,19 @@ describe('the whole flow', () => {
     ]);
   });
 
-  test('admin overrides are refused before the deadline', async () => {
+  test('manual admin changes work before the deadline and send no mail', async () => {
     await ok(PROPOSE, vars(candidates[0]), admin);
     await ok(SEND, { e: electionId, p: post.id }, admin);
-    const res = await gql(SET_STATUS, { ...vars(candidates[0]), s: 'ACCEPTED' }, admin);
-    expect(res.errors?.[0]).toMatchObject({ errorType: 'BadRequestError' });
+    mockedSendEmail.mockReset();
+
+    await ok(SET_STATUS, { ...vars(candidates[0]), s: 'WITHDRAWN' }, admin);
+    await ok(SET_COUNTER, { ...vars(candidates[1]), a: true }, admin);
+    expect(mails()).toHaveLength(0);
+
+    const mine = (await ok(MINE, { e: electionId }, candidates[0])) as {
+      myProposals: { status: string }[];
+    };
+    expect(mine.myProposals[0].status).toBe('WITHDRAWN');
   });
 
   test('a deadline before the election closed is refused', async () => {

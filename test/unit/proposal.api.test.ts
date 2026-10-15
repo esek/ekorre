@@ -37,7 +37,11 @@ const counterAnswer = async (username: string, postId: number) =>
   (
     await prisma.prismaCounterCandidacy.findUnique({
       where: {
-        refElection_refPost_refUser: { refElection: electionId, refPost: postId, refUser: username },
+        refElection_refPost_refUser: {
+          refElection: electionId,
+          refPost: postId,
+          refUser: username,
+        },
       },
     })
   )?.answer;
@@ -127,9 +131,9 @@ describe('deadline', () => {
     const { closedAt } = await prisma.prismaElection.findUniqueOrThrow({
       where: { id: electionId },
     });
-    await expect(
-      api.setDeadline(electionId, closedAt as Date, AFTER),
-    ).rejects.toThrowError(BadRequestError);
+    await expect(api.setDeadline(electionId, closedAt as Date, AFTER)).rejects.toThrowError(
+      BadRequestError,
+    );
     await expect(
       api.setDeadline(electionId, new Date((closedAt as Date).getTime() + 1), AFTER),
     ).resolves.toBeUndefined();
@@ -226,9 +230,7 @@ describe('sending', () => {
     expect((await proposal(users[2], unique.id))?.status).toBe(DRAFT);
 
     // Nothing left to send for the post
-    await expect(api.sendProposals(electionId, pair.id, NOW)).rejects.toThrowError(
-      BadRequestError,
-    );
+    await expect(api.sendProposals(electionId, pair.id, NOW)).rejects.toThrowError(BadRequestError);
   });
 
   test('not after the deadline', async () => {
@@ -462,9 +464,9 @@ describe('opening motkandidering', () => {
     await expect(api.openCounterCandidacy(electionId, unique.id, AFTER)).rejects.toThrowError(
       BadRequestError,
     );
-    await expect(
-      api.openCounterCandidacy(electionId, notElectable.id, NOW),
-    ).rejects.toThrowError(BadRequestError);
+    await expect(api.openCounterCandidacy(electionId, notElectable.id, NOW)).rejects.toThrowError(
+      BadRequestError,
+    );
     expect(
       (await api.getOverview(electionId, AFTER)).every((o) => !o.canOpenCounterCandidacy),
     ).toBe(true);
@@ -475,9 +477,7 @@ describe('opening motkandidering', () => {
     const e = await electionApi.createElection('aa0000bb-s', [unique.id], false);
     await electionApi.openElection(e.id);
     await api.setDeadline(e.id, new Date(Date.now() + HOUR));
-    await expect(api.openCounterCandidacy(e.id, unique.id)).rejects.toThrowError(
-      BadRequestError,
-    );
+    await expect(api.openCounterCandidacy(e.id, unique.id)).rejects.toThrowError(BadRequestError);
   });
 
   test('without a deadline', async () => {
@@ -485,9 +485,7 @@ describe('opening motkandidering', () => {
     const e = await electionApi.createElection('aa0000bb-s', [unique.id], false);
     await electionApi.openElection(e.id);
     await electionApi.closeElection(e.id);
-    await expect(api.openCounterCandidacy(e.id, unique.id)).rejects.toThrowError(
-      BadRequestError,
-    );
+    await expect(api.openCounterCandidacy(e.id, unique.id)).rejects.toThrowError(BadRequestError);
     expect((await api.getOverview(e.id))[0].canOpenCounterCandidacy).toBe(false);
   });
 });
@@ -616,9 +614,7 @@ describe('overview', () => {
     await api.respondToCounterCandidacy(electionId, many.id, users[3], false, NOW);
 
     const overview = await api.getOverview(electionId, NOW);
-    expect(overview.map((o) => o.postId).sort()).toEqual(
-      [unique.id, pair.id, many.id].sort(),
-    );
+    expect(overview.map((o) => o.postId).sort()).toEqual([unique.id, pair.id, many.id].sort());
     const o = overview.find((p) => p.postId === many.id);
     expect(o?.candidates).toEqual(users.slice(0, 4));
     expect(o?.acceptedCount).toBe(2);
@@ -633,17 +629,24 @@ describe('overview', () => {
   });
 });
 
-describe('admin changes after the deadline', () => {
+describe('manual admin changes', () => {
   beforeEach(close);
 
-  test('are refused before the deadline', async () => {
+  test('work before the deadline too', async () => {
     await proposeAndSend(unique.id, users[0]);
+    // A yes by phone before the person answered on the site
+    await api.setProposalStatus(electionId, users[0], unique.id, ACCEPTED, NOW);
+    expect(await proposal(users[0], unique.id)).toMatchObject({
+      status: ACCEPTED,
+      answeredAt: NOW,
+    });
+    // No longer pending, so the person cannot answer it themselves
     await expect(
-      api.setProposalStatus(electionId, users[0], unique.id, ACCEPTED, NOW),
+      api.respondToProposal(electionId, unique.id, users[0], false, NOW),
     ).rejects.toThrowError(BadRequestError);
-    await expect(
-      api.setCounterCandidacy(electionId, users[1], unique.id, true, NOW),
-    ).rejects.toThrowError(BadRequestError);
+
+    await api.setCounterCandidacy(electionId, users[1], unique.id, true, NOW);
+    expect(await counterAnswer(users[1], unique.id)).toBe(YES);
   });
 
   test('set a proposal status, and accepting clears motkandidering', async () => {

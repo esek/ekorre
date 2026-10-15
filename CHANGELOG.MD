@@ -10,7 +10,8 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Tillagt
 - Valberedningens förslag har status: utkast, skickat, accepterat, avböjt eller återkallat. Förslag skickas per post med `sendProposals`, och den föreslagna svarar med `respondToProposal`
 - Motkandidering per post (`openCounterCandidacy`, `respondToCounterCandidacy`). Kandidater som aldrig föreslagits får mejl, och alla kandidater utan skickat eller accepterat förslag kan svara
-- En deadline per val för förslag och motkandidering (`setProposalDeadline`). Obesvarade förslag räknas som avböjda efter den, och bara admins kan ändra (`setProposalStatus`, `setCounterCandidacy`)
+- En deadline per val för förslag och motkandidering (`setProposalDeadline`). Obesvarade förslag räknas som avböjda efter den
+- Valadmins kan ändra status och motkandidatur manuellt när som helst, utan mejl (`setProposalStatus`, `setCounterCandidacy`)
 - `proposalOverview` för valberedningen, och `myProposals`/`myCounterCandidacies` för medlemmar
 - Mejl när ett förslag skickas eller återkallas och när motkandidering öppnar (ebrev-mallen `election-proposal`)
 

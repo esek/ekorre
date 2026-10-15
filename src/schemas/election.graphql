@@ -74,14 +74,14 @@ type Mutation {
   respondToCounterCandidacy(electionId: Int!, postId: Int!, accepts: Boolean!): Boolean!
   "Sets the deadline for proposals and motkandidering"
   setProposalDeadline(electionId: Int!, deadline: DateTime!): Boolean!
-  "Admin change after the deadline, without mail"
+  "Manual admin change, at any time and without mail"
   setProposalStatus(
     electionId: Int!
     username: String!
     postId: Int!
     status: ProposalStatus!
   ): Boolean!
-  "Admin change after the deadline, without mail. `answer: null` removes the answer"
+  "Manual admin change, at any time and without mail. `answer: null` removes the answer"
   setCounterCandidacy(
     electionId: Int!
     username: String!
