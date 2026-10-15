@@ -1,9 +1,10 @@
 import { app } from '@/app/app';
-import { ActivityAPI } from '@api/activity';
 import config from '@/config';
 import { Logger } from '@/logger';
+import { ActivityAPI } from '@api/activity';
 import { startInterviewSummaryScheduler } from '@service/interview-summary';
 import TeknologappenService from '@service/teknologappen';
+import { runTeknologappenMembershipSync } from '@service/teknologappen-membership';
 
 const { PORT, HOST } = config;
 const teknologappen = new TeknologappenService();
@@ -39,11 +40,12 @@ app.listen(PORT, HOST, () => {
   startInterviewSummaryScheduler();
 
   void syncTeknologappenActivities();
+  void runTeknologappenMembershipSync();
 
   if (config.TEKNOLOGAPPEN.SYNC_INTERVAL_MINUTES > 0) {
-    setInterval(
-      () => void syncTeknologappenActivities(),
-      config.TEKNOLOGAPPEN.SYNC_INTERVAL_MINUTES * 60 * 1000,
-    );
+    setInterval(() => {
+      void syncTeknologappenActivities();
+      void runTeknologappenMembershipSync();
+    }, config.TEKNOLOGAPPEN.SYNC_INTERVAL_MINUTES * 60 * 1000);
   }
 });

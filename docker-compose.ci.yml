@@ -18,6 +18,7 @@ services:
       - VERIFY_URL
       - TEKNOLOGAPPEN_API_KEY
       - TEKNOLOGAPPEN_SYNC_INTERVAL_MINUTES
+      - TEKNOLOGAPPEN_MEMBERSHIP_SYNC
     networks:
       - traefik
       - default # to join compose network

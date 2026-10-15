@@ -37,6 +37,7 @@ const p: Omit<PrismaPost, 'id'> = {
   active: true,
   interviewRequired: false,
   sortPriority: 0,
+  teknologappenGroupId: null,
 };
 
 const mp: Omit<ModifyPost, 'id'> = {

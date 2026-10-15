@@ -5,10 +5,16 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.33.0] - 2026-10-15
+
+### Tillagt
+- Postinnehav synkas till Teknologappen. Varje post får en grupp under sitt utskott, och den skapas om den saknas. Nya innehavare läggs till och de vars mandat gått ut (efter `POST_ACCESS_COOLDOWN_DAYS`) tas bort. Medlemmar som lagts till på annat sätt i appen lämnas orörda
+- `TEKNOLOGAPPEN_MEMBERSHIP_SYNC` styr synken: `off`, `dry-run` eller `on`
+
 ## [1.32.0] - 2026-10-08
 
 ### Ändrat
-- Aktiviteter laddas nu in från Teknologappen via dennes API. 
+- Aktiviteter laddas nu in från Teknologappen via dennes API.
 
 ## [1.31.3] - 2026-10-08
 

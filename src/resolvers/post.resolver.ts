@@ -3,6 +3,7 @@ import { hasAccess, hasAuthenticated } from '@/util';
 import { PostAPI } from '@api/post';
 import { Feature, Post, Resolvers, Utskott } from '@generated/graphql';
 import { postReduce } from '@reducer/post';
+import { requestTeknologappenMembershipSync } from '@service/teknologappen-membership';
 
 const api = new PostAPI();
 
@@ -70,36 +71,48 @@ const postresolver: Resolvers = {
     addPost: async (_, { info }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
       const post = await api.createPost(info);
+      requestTeknologappenMembershipSync();
 
       return reduce(post, postReduce);
     },
     modifyPost: async (_, { info }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
-      return api.modifyPost(info);
+      const res = await api.modifyPost(info);
+      requestTeknologappenMembershipSync();
+      return res;
     },
     addUsersToPost: async (_, { usernames, id, start, end }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
 
       await api.addUsersToPost(usernames, id, start ?? undefined, end ?? undefined);
+      requestTeknologappenMembershipSync();
 
       const res = await api.getPost(id);
       return postReduce(res);
     },
     activatePost: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
-      return api.setPostStatus(id, true);
+      const res = await api.setPostStatus(id, true);
+      requestTeknologappenMembershipSync();
+      return res;
     },
     deactivatePost: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
-      return api.setPostStatus(id, false);
+      const res = await api.setPostStatus(id, false);
+      requestTeknologappenMembershipSync();
+      return res;
     },
     setUserPostEnd: async (_, { id, end }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
-      return api.setUserPostEnd(id, end);
+      const res = await api.setUserPostEnd(id, end);
+      requestTeknologappenMembershipSync();
+      return res;
     },
     removeHistoryEntry: async (_, { id }, ctx) => {
       await hasAccess(ctx, Feature.PostAdmin);
-      return api.removeHistoryEntry(id);
+      const res = await api.removeHistoryEntry(id);
+      requestTeknologappenMembershipSync();
+      return res;
     },
   },
   User: {

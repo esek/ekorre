@@ -1,7 +1,8 @@
 import config from '@/config';
 import { ServerError } from '@/errors/request.errors';
+import { components } from '@generated/teknologappen';
 import { PrismaUtskott } from '@prisma/client';
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, Method } from 'axios';
 
 type ApiKeyRequest = {
   key: string;
@@ -15,32 +16,14 @@ type TokenResponse = {
   expires_in: number;
 };
 
-export type TeknologappenLocalizedText = Record<string, string>;
+type Schemas = components['schemas'];
 
-export type TeknologappenActivity = {
-  id: string;
-  host_ids: string[];
-  creator_name: TeknologappenLocalizedText;
-  creator_path: string;
-  title: TeknologappenLocalizedText;
-  description: TeknologappenLocalizedText;
-  location: {
-    name: TeknologappenLocalizedText;
-    directions: TeknologappenLocalizedText;
-    coordinate_wgs84: {
-      north: number;
-      east: number;
-    } | null;
-    url: string | null;
-  };
-  time_start: string;
-  time_end: string;
-  image_url: string;
-  is_hidden: boolean;
-  earliest_purchasable_ticket_release: string | null;
-};
-
-type ActivitiesResponse = TeknologappenActivity[] | { activities: TeknologappenActivity[] };
+export type TeknologappenActivity = Schemas['BriefActivity'];
+export type TeknologappenGroup = Schemas['FatGroup'];
+export type TeknologappenPutGroup = Schemas['PutGroup'];
+export type TeknologappenUser = Schemas['AdminUser'];
+export type TeknologappenMe = Schemas['Me'];
+type MinilithError = Schemas['MinilithError'];
 
 /**
  * Group path of each utskott in Teknologappen. `OTHER` maps to the guild itself.
@@ -62,7 +45,7 @@ export const TEKNOLOGAPPEN_UTSKOTT_PATHS: Record<PrismaUtskott, string> = {
 
 const { TEKNOLOGAPPEN } = config;
 const AUTH_URL = 'https://api.auth.teknologappen.se/api/v0/api-key-get-access-token';
-const ACTIVITIES_URL = 'https://api.teknologappen.se/v0/activities';
+const API_URL = 'https://api.teknologappen.se/v0';
 const CALLBACK_URL_V1 = 'https://api.teknologappen.se/v0/user/auth-callback/v1';
 
 class TeknologappenService {
@@ -74,16 +57,15 @@ class TeknologappenService {
       return this.accessToken;
     }
 
+    const body: ApiKeyRequest = {
+      key: TEKNOLOGAPPEN.API_KEY,
+      callback_url_v1: CALLBACK_URL_V1,
+      default_name: 'Ekorre',
+      default_language: 'sv',
+    };
+
     try {
-      const { data } = await axios.post<TokenResponse>(
-        AUTH_URL,
-        {
-          key: TEKNOLOGAPPEN.API_KEY,
-          callback_url_v1: CALLBACK_URL_V1,
-          default_name: 'Ekorre',
-          default_language: 'sv',
-        } satisfies ApiKeyRequest,
-      );
+      const { data } = await axios.post<TokenResponse>(AUTH_URL, body);
       if (!data.access_token) {
         throw new Error('Authentication response did not contain an access token');
       }
@@ -98,29 +80,88 @@ class TeknologappenService {
     }
   }
 
-  public async getActivities(): Promise<TeknologappenActivity[]> {
+  /**
+   * Sends an authenticated request to the Teknologappen API
+   * @param method HTTP method
+   * @param path Path relative to `/v0`, starting with `/`
+   * @param data Optional JSON body
+   * @throws {ServerError} With the status and the error message from Teknologappen
+   */
+  private async request<T = void>(method: Method, path: string, data?: unknown): Promise<T> {
+    const token = await this.getAccessToken();
+    const request: AxiosRequestConfig = {
+      method,
+      url: `${API_URL}${path}`,
+      data,
+      headers: { Authorization: `Bearer ${token}` },
+    };
+
     try {
-      const token = await this.getAccessToken();
-      const request: AxiosRequestConfig = {
-        headers: { Authorization: `Bearer ${token}` },
-      };
-      const { data } = await axios.get<ActivitiesResponse>(ACTIVITIES_URL, request);
-
-      if (Array.isArray(data)) {
-        return data;
-      }
-
-      if (Array.isArray(data.activities)) {
-        return data.activities;
-      }
-
-      throw new Error('Activities response did not contain an activity list');
+      const res = await axios.request<T>(request);
+      return res.data;
     } catch (error) {
-      if (error instanceof ServerError) {
-        throw error;
+      if (axios.isAxiosError<MinilithError>(error) && error.response) {
+        const { status, data: body } = error.response;
+        const message = body?.message ?? error.message;
+        throw new ServerError(`Teknologappen svarade ${status} på ${method} ${path}: ${message}`);
       }
-      throw new ServerError(`Kunde inte hämta aktiviteter från Teknologappen: ${String(error)}`);
+      throw new ServerError(`Kunde inte nå Teknologappen (${method} ${path}): ${String(error)}`);
     }
+  }
+
+  public async getActivities(): Promise<TeknologappenActivity[]> {
+    return this.request<TeknologappenActivity[]>('GET', '/activities');
+  }
+
+  /**
+   * Gets every group in the tlth tree, including the ones we can only see
+   */
+  public async getGroupTree(): Promise<TeknologappenGroup[]> {
+    return this.request<TeknologappenGroup[]>('GET', '/groups/tree');
+  }
+
+  /**
+   * Creates or fully replaces a group. The id is chosen by the caller for new groups
+   */
+  public async putGroup(id: string, group: TeknologappenPutGroup): Promise<void> {
+    return this.request('PUT', `/admin/groups/${id}`, group);
+  }
+
+  /**
+   * Gets the account the API key logs in as
+   */
+  public async getMe(): Promise<TeknologappenMe> {
+    return this.request<TeknologappenMe>('GET', '/user');
+  }
+
+  /**
+   * Makes a user direct admin of a group. Requires adminship in the group or its parent
+   */
+  public async addGroupAdmin(groupId: string, userId: string): Promise<void> {
+    await this.request('POST', `/admin/groups/${groupId}/admins`, { user_id: userId });
+  }
+
+  /**
+   * Lists the direct members of a group. Requires adminship in the group
+   */
+  public async getGroupMembers(groupId: string): Promise<TeknologappenUser[]> {
+    return this.request<TeknologappenUser[]>('GET', `/admin/groups/${groupId}/members`);
+  }
+
+  /**
+   * Adds a direct member. The user does not need to have logged in to the app yet
+   * @param memberId Prefixed user id, e.g. `lund-university:ab1234cd-s`. Unprefixed ids
+   * are stored as they are and do not match any real account
+   */
+  public async addGroupMember(groupId: string, memberId: string): Promise<void> {
+    return this.request('PUT', `/admin/groups/${groupId}/members/${encodeURIComponent(memberId)}`);
+  }
+
+  public async removeGroupMember(groupId: string, memberId: string): Promise<void> {
+    return this.request(
+      'DELETE',
+      `/admin/groups/${groupId}/members/${encodeURIComponent(memberId)}`,
+    );
   }
 }
 

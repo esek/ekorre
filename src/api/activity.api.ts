@@ -37,8 +37,8 @@ export class ActivityAPI {
       endDate: new Date(activity.time_end),
       utskott: this.getTeknologappenUtskott(activity),
       imageUrl: activity.image_url,
-      locationTitle: this.localizedValue(activity.location.name),
-      locationLink: activity.location.url,
+      locationTitle: this.localizedValue(activity.location.name ?? {}),
+      locationLink: activity.location.url ?? null,
       hidden: activity.is_hidden,
     };
   }
