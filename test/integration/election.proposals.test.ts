@@ -144,7 +144,7 @@ describe('access', () => {
     }
   });
 
-  test('members only see accepted proposals of the election', async () => {
+  test('members see no proposals of the election, not even accepted ones', async () => {
     await ok(PROPOSE, vars(candidates[0]), admin);
     await ok(PROPOSE, vars(candidates[1]), admin);
     await ok(PROPOSE, vars(candidates[2], otherPost), admin);
@@ -152,14 +152,13 @@ describe('access', () => {
     await ok(RESPOND, { e: electionId, p: post.id, a: true }, candidates[0]);
     await ok(RESPOND, { e: electionId, p: post.id, a: false }, candidates[1]);
 
-    const asMember = (await ok(PROPOSALS, { e: electionId }, member)) as {
-      election: { proposals: { user: { username: string }; status: string }[] };
-    };
-    expect(asMember.election.proposals).toEqual([
-      expect.objectContaining({ user: { username: candidates[0].username }, status: 'ACCEPTED' }),
-    ]);
+    type Proposals = { election: { proposals: { status: string }[] } };
+    for (const u of [member, candidates[0]]) {
+      const res = (await ok(PROPOSALS, { e: electionId }, u)) as Proposals;
+      expect(res.election.proposals).toEqual([]);
+    }
 
-    const asAdmin = (await ok(PROPOSALS, { e: electionId }, admin)) as typeof asMember;
+    const asAdmin = (await ok(PROPOSALS, { e: electionId }, admin)) as Proposals;
     expect(asAdmin.election.proposals.map((p) => p.status).sort()).toEqual([
       'ACCEPTED',
       'DECLINED',
@@ -181,7 +180,11 @@ describe('access', () => {
       election: { proposalDeadline: string };
     };
     expect(mine1.myProposals).toEqual([
-      { post: { id: otherPost.id, postname: otherPost.postname }, status: 'PENDING', expired: false },
+      {
+        post: { id: otherPost.id, postname: otherPost.postname },
+        status: 'PENDING',
+        expired: false,
+      },
     ]);
     expect(new Date(mine1.election.proposalDeadline)).toEqual(deadline);
   });
@@ -198,9 +201,7 @@ describe('mail', () => {
     };
     expect(sent.sendProposals).toBe(2);
     const m = mails();
-    expect(m.map((x) => x.to[0]).sort()).toEqual(
-      [candidates[0].email, candidates[1].email].sort(),
-    );
+    expect(m.map((x) => x.to[0]).sort()).toEqual([candidates[0].email, candidates[1].email].sort());
     expect(m[0]).toMatchObject({
       template: 'election-proposal',
       subject: `Valberedningen föreslår dig till ${post.postname}`,
@@ -252,9 +253,7 @@ describe('mail', () => {
 
     await ok(OPEN, { e: electionId, p: post.id }, admin);
     const m = mails();
-    expect(m.map((x) => x.to[0]).sort()).toEqual(
-      [candidates[2].email, candidates[3].email].sort(),
-    );
+    expect(m.map((x) => x.to[0]).sort()).toEqual([candidates[2].email, candidates[3].email].sort());
     expect(m[0]).toMatchObject({
       template: 'election-proposal',
       subject: `Vill du motkandidera till ${post.postname}?`,

@@ -29,7 +29,7 @@ const proposalApi = new ProposalAPI();
 
 const logger = Logger.getLogger('ElectionResolver');
 
-/** Election admins see every proposal; others only accepted ones */
+/** Whether the caller may see valberedningens förslag */
 const isElectionAdmin = async (ctx: Context) => {
   try {
     await hasAccess(ctx, Feature.ElectionAdmin);
@@ -312,12 +312,13 @@ const electionResolver: Resolvers = {
         }),
       );
     },
+    // Valberedningens förslag are only for election admins, also once accepted
     proposals: async (model, _, ctx) => {
+      if (!(await isElectionAdmin(ctx))) {
+        return [];
+      }
       const p = await proposalApi.getProposals(model.id ?? -1);
-      const visible = (await isElectionAdmin(ctx))
-        ? p
-        : p.filter((proposal) => proposal.status === PrismaProposalStatus.ACCEPTED);
-      return reduce(visible, proposalReduce);
+      return reduce(p, proposalReduce);
     },
     acceptedNominations: async (model) => {
       // Eftersom denna bara ska returneras om valadmin tillåter

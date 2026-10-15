@@ -102,6 +102,7 @@ type Election {
 
   "Which posts can be elected in the election"
   electables: [Post!]!
+  "Only for election admins; empty for everyone else"
   proposals: [Proposal]
 
   "Is only available if `nominationsHidden` is `false`"
@@ -115,7 +116,7 @@ type Election {
 }
 
 """
-Valberedningens förslag. Members only see ACCEPTED proposals of others.
+Valberedningens förslag. Members only see their own, through `myProposals`.
 A PENDING proposal past the deadline is reported as DECLINED
 """
 type Proposal {

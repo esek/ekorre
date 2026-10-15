@@ -201,6 +201,7 @@ export type Election = {
   openedAt?: Maybe<Scalars['Date']>;
   /** After it, proposals and motkandidering are locked for members */
   proposalDeadline?: Maybe<Scalars['DateTime']>;
+  /** Only for election admins; empty for everyone else */
   proposals?: Maybe<Array<Maybe<Proposal>>>;
 };
 
@@ -1346,7 +1347,7 @@ export enum PostType {
 }
 
 /**
- * Valberedningens förslag. Members only see ACCEPTED proposals of others.
+ * Valberedningens förslag. Members only see their own, through `myProposals`.
  * A PENDING proposal past the deadline is reported as DECLINED
  */
 export type Proposal = {

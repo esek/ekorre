@@ -16,7 +16,7 @@ och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Ändrat
 - `propose` skapar ett utkast och kräver att personen har accepterat sin nominering till posten. `removeProposal` återkallar ett skickat eller accepterat förslag i stället för att ta bort det
-- `Election.proposals` visar bara accepterade förslag för den som inte är valadmin. Förslag från före denna version räknas som accepterade
+- `Election.proposals` är tom för alla utom valadmins. Medlemmar ser bara sina egna förslag via `myProposals`. Förslag från före denna version räknas som accepterade
 
 ## [1.33.0] - 2026-10-15
 
