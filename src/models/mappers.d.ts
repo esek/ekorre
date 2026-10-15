@@ -20,7 +20,10 @@ import {
   Meeting,
   Nomination,
   Post,
+  CounterCandidacy,
+  CounterCandidacyOption,
   Proposal,
+  ProposalPostOverview,
   User,
 } from '@generated/graphql';
 import {
@@ -64,6 +67,23 @@ export type ProposalResponse = Partial<Omit<Proposal, 'user' | 'post'>> & {
 export type NominationResponse = Partial<Omit<Nomination, 'user' | 'post'>> & {
   user: Partial<User>;
   post: Partial<Post>;
+};
+
+export type CounterCandidacyResponse = Omit<CounterCandidacy, 'user' | 'post'> & {
+  user: Partial<User>;
+  post: Partial<Post>;
+};
+
+export type CounterCandidacyOptionResponse = Omit<CounterCandidacyOption, 'post'> & {
+  post: Partial<Post>;
+};
+
+// prettier-ignore
+export type ProposalPostOverviewResponse = Omit<ProposalPostOverview, 'post' | 'proposals' | 'candidates' | 'counterCandidacies'> & {
+  post: Partial<Post>;
+  proposals: ProposalResponse[];
+  candidates: Partial<User>[];
+  counterCandidacies: CounterCandidacyResponse[];
 };
 
 export type HeheResponse = Omit<Hehe, 'uploader' | 'file'> & {

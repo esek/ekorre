@@ -16,6 +16,8 @@ const serialTests = [
   'test/unit/interview.api.test.ts',
   'test/integration/interview.test.ts',
   'test/unit/interview.summary.test.ts',
+  'test/unit/proposal.api.test.ts',
+  'test/integration/election.proposals.test.ts',
 ]
 
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */

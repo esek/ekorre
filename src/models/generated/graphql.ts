@@ -1,5 +1,5 @@
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import type { ArticleResponse, FileResponse, MeetingResponse, ElectionResponse, ProposalResponse, NominationResponse, HeheResponse, AccessLogPostResponse, AccessLogIndividualAccessResponse, ApiKeyResponse, InterviewSettingsResponse, InterviewPostDurationResponse, InterviewWindowResponse, InterviewBookingResponse, InterviewRequestResponse, InterviewNomineeResponse } from '../mappers';
+import type { ArticleResponse, FileResponse, MeetingResponse, ElectionResponse, ProposalResponse, NominationResponse, CounterCandidacyResponse, CounterCandidacyOptionResponse, ProposalPostOverviewResponse, HeheResponse, AccessLogPostResponse, AccessLogIndividualAccessResponse, ApiKeyResponse, InterviewSettingsResponse, InterviewPostDurationResponse, InterviewWindowResponse, InterviewBookingResponse, InterviewRequestResponse, InterviewNomineeResponse } from '../mappers';
 import type { Context } from '../context';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -136,6 +136,22 @@ export type CasLoginResponse = {
   username: Scalars['String'];
 };
 
+export type CounterCandidacy = {
+  /** YES or NO */
+  answer: NominationAnswer;
+  answeredAt: Scalars['DateTime'];
+  post: Post;
+  user: User;
+};
+
+export type CounterCandidacyOption = {
+  /** NOT_ANSWERED until the user has answered */
+  answer: NominationAnswer;
+  /** Whether the user can answer or change their answer now */
+  canRespond: Scalars['Boolean'];
+  post: Post;
+};
+
 /** This represets all doors that E-sektionen own */
 export enum Door {
   Arkivet = 'arkivet',
@@ -183,6 +199,8 @@ export type Election = {
   nominationsHidden: Scalars['Boolean'];
   open: Scalars['Boolean'];
   openedAt?: Maybe<Scalars['Date']>;
+  /** After it, proposals and motkandidering are locked for members */
+  proposalDeadline?: Maybe<Scalars['DateTime']>;
   proposals?: Maybe<Array<Maybe<Proposal>>>;
 };
 
@@ -612,7 +630,10 @@ export type Mutation = {
   nominate: Scalars['Boolean'];
   /** Admin: mails nominees who need an interview and have none. Returns how many were mailed */
   notifyUnbookedNominees: Scalars['Int'];
+  /** Opens motkandidering for a post and mails candidates who were never proposed */
+  openCounterCandidacy: Scalars['Boolean'];
   openElection: Scalars['Boolean'];
+  /** Adds a draft proposal. The user must be a candidate (accepted nomination) for the post */
   propose: Scalars['Boolean'];
   providerLogin: LoginResponse;
   refresh: TokenResponse;
@@ -624,6 +645,10 @@ export type Mutation = {
   removeHehe: Scalars['Boolean'];
   removeHistoryEntry: Scalars['Boolean'];
   removeMeeting: Scalars['Boolean'];
+  /**
+   * Deletes a draft. A sent or accepted proposal is withdrawn instead, and the person is
+   * mailed if the deadline has not passed
+   */
   removeProposal: Scalars['Boolean'];
   removeTicket: Ticket;
   renameElection: Scalars['Boolean'];
@@ -636,6 +661,8 @@ export type Mutation = {
   requestInterview: InterviewRequest;
   requestPasswordReset: Scalars['Boolean'];
   resetPassword: Scalars['Boolean'];
+  /** The user's own answer to running as motkandidat */
+  respondToCounterCandidacy: Scalars['Boolean'];
   respondToInterviewRequest: Scalars['Boolean'];
   /**
    * Only possible during open election, so electionId is known.
@@ -644,14 +671,24 @@ export type Mutation = {
    * new time in the same step when the booking is removed.
    */
   respondToNomination: Scalars['Boolean'];
+  /** Accepts or declines the user's own pending proposal */
+  respondToProposal: Scalars['Boolean'];
   sendEmail: Scalars['Boolean'];
+  /** Sends all draft proposals for a post and mails the proposed. Returns how many were sent */
+  sendProposals: Scalars['Int'];
   setApiKeyAccess: Scalars['Boolean'];
+  /** Admin change after the deadline, without mail. `answer: null` removes the answer */
+  setCounterCandidacy: Scalars['Boolean'];
   setElectables: Scalars['Boolean'];
   setHiddenNominations: Scalars['Boolean'];
   setIndividualAccess: Scalars['Boolean'];
   /** Admin: `minutes: null` resets the post to the default duration */
   setInterviewPostDuration: Scalars['Boolean'];
   setPostAccess: Scalars['Boolean'];
+  /** Sets the deadline for proposals and motkandidering */
+  setProposalDeadline: Scalars['Boolean'];
+  /** Admin change after the deadline, without mail */
+  setProposalStatus: Scalars['Boolean'];
   setUserPostEnd: Scalars['Boolean'];
   unlinkLoginProvider: Scalars['Boolean'];
   /** Admin */
@@ -876,6 +913,12 @@ export type MutationNotifyUnbookedNomineesArgs = {
 };
 
 
+export type MutationOpenCounterCandidacyArgs = {
+  electionId: Scalars['Int'];
+  postId: Scalars['Int'];
+};
+
+
 export type MutationOpenElectionArgs = {
   electionId: Scalars['Int'];
 };
@@ -986,6 +1029,13 @@ export type MutationResetPasswordArgs = {
 };
 
 
+export type MutationRespondToCounterCandidacyArgs = {
+  accepts: Scalars['Boolean'];
+  electionId: Scalars['Int'];
+  postId: Scalars['Int'];
+};
+
+
 export type MutationRespondToInterviewRequestArgs = {
   accept: Scalars['Boolean'];
   requestId: Scalars['String'];
@@ -1000,14 +1050,35 @@ export type MutationRespondToNominationArgs = {
 };
 
 
+export type MutationRespondToProposalArgs = {
+  accepts: Scalars['Boolean'];
+  electionId: Scalars['Int'];
+  postId: Scalars['Int'];
+};
+
+
 export type MutationSendEmailArgs = {
   options: SendEmailOptions;
+};
+
+
+export type MutationSendProposalsArgs = {
+  electionId: Scalars['Int'];
+  postId: Scalars['Int'];
 };
 
 
 export type MutationSetApiKeyAccessArgs = {
   access: AccessEndDateInput;
   key: Scalars['String'];
+};
+
+
+export type MutationSetCounterCandidacyArgs = {
+  answer?: InputMaybe<Scalars['Boolean']>;
+  electionId: Scalars['Int'];
+  postId: Scalars['Int'];
+  username: Scalars['String'];
 };
 
 
@@ -1039,6 +1110,20 @@ export type MutationSetInterviewPostDurationArgs = {
 export type MutationSetPostAccessArgs = {
   access: AccessEndDateInput;
   postId: Scalars['Int'];
+};
+
+
+export type MutationSetProposalDeadlineArgs = {
+  deadline: Scalars['DateTime'];
+  electionId: Scalars['Int'];
+};
+
+
+export type MutationSetProposalStatusArgs = {
+  electionId: Scalars['Int'];
+  postId: Scalars['Int'];
+  status: ProposalStatus;
+  username: Scalars['String'];
 };
 
 
@@ -1260,11 +1345,39 @@ export enum PostType {
   U = 'U'
 }
 
-/** Valberedningens förslag */
+/**
+ * Valberedningens förslag. Members only see ACCEPTED proposals of others.
+ * A PENDING proposal past the deadline is reported as DECLINED
+ */
 export type Proposal = {
+  answeredAt?: Maybe<Scalars['DateTime']>;
+  /** Was still pending when the deadline passed */
+  expired: Scalars['Boolean'];
   post: Post;
+  sentAt?: Maybe<Scalars['DateTime']>;
+  status: ProposalStatus;
   user: User;
 };
+
+export type ProposalPostOverview = {
+  acceptedCount: Scalars['Int'];
+  /** Whether motkandidering can be opened now */
+  canOpenCounterCandidacy: Scalars['Boolean'];
+  /** Candidates (accepted nominations) for the post */
+  candidates: Array<User>;
+  counterCandidacies: Array<CounterCandidacy>;
+  counterCandidacyOpenedAt?: Maybe<Scalars['DateTime']>;
+  post: Post;
+  proposals: Array<Proposal>;
+};
+
+export enum ProposalStatus {
+  Accepted = 'ACCEPTED',
+  Declined = 'DECLINED',
+  Draft = 'DRAFT',
+  Pending = 'PENDING',
+  Withdrawn = 'WITHDRAWN'
+}
 
 export type ProviderOptions = {
   email?: InputMaybe<Scalars['String']>;
@@ -1317,10 +1430,13 @@ export type Query = {
   me: User;
   meeting: Meeting;
   meetings: Array<Meeting>;
+  myCounterCandidacies: Array<CounterCandidacyOption>;
   /** The logged in nominee's interview state for an election */
   myInterview: MyInterview;
   /** A users own nominations should always be available to them */
   myNominations: Array<Nomination>;
+  /** The user's own proposals (sent ones only) and motkandidat options in an election */
+  myProposals: Array<Proposal>;
   newsentries: Array<Article>;
   /**
    * What answering a nomination in the open election would do to the nominee's
@@ -1339,6 +1455,8 @@ export type Query = {
   postAccessLogs: Array<AccessLogPost>;
   posts: Array<Post>;
   postsFromIDs: Array<Post>;
+  /** Valberedningens work per post: proposals, candidates and motkandidering. Election admins only */
+  proposalOverview: Array<ProposalPostOverview>;
   searchFiles: Array<File>;
   searchUser: Array<User>;
   ticket: Ticket;
@@ -1622,6 +1740,15 @@ export type QueryMeetingsArgs = {
  * Interview booking for elections. Nominees with accepted nominations for posts that
  * require an interview book one interview with the election committee.
  */
+export type QueryMyCounterCandidaciesArgs = {
+  electionId: Scalars['Int'];
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
 export type QueryMyInterviewArgs = {
   electionId: Scalars['Int'];
 };
@@ -1633,6 +1760,15 @@ export type QueryMyInterviewArgs = {
  */
 export type QueryMyNominationsArgs = {
   answer?: InputMaybe<NominationAnswer>;
+  electionId: Scalars['Int'];
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryMyProposalsArgs = {
   electionId: Scalars['Int'];
 };
 
@@ -1748,6 +1884,15 @@ export type QueryPostsArgs = {
  */
 export type QueryPostsFromIDsArgs = {
   ids: Array<Scalars['Int']>;
+};
+
+
+/**
+ * Interview booking for elections. Nominees with accepted nominations for posts that
+ * require an interview book one interview with the election committee.
+ */
+export type QueryProposalOverviewArgs = {
+  electionId: Scalars['Int'];
 };
 
 
@@ -1996,6 +2141,8 @@ export type ResolversTypes = ResolversObject<{
   ArticleType: ArticleType;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   CasLoginResponse: ResolverTypeWrapper<CasLoginResponse>;
+  CounterCandidacy: ResolverTypeWrapper<CounterCandidacyResponse>;
+  CounterCandidacyOption: ResolverTypeWrapper<CounterCandidacyOptionResponse>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   Door: Door;
@@ -2063,6 +2210,8 @@ export type ResolversTypes = ResolversObject<{
   Post: ResolverTypeWrapper<Post>;
   PostType: PostType;
   Proposal: ResolverTypeWrapper<ProposalResponse>;
+  ProposalPostOverview: ResolverTypeWrapper<ProposalPostOverviewResponse>;
+  ProposalStatus: ProposalStatus;
   ProviderOptions: ProviderOptions;
   Query: ResolverTypeWrapper<{}>;
   SendEmailOptions: SendEmailOptions;
@@ -2089,6 +2238,8 @@ export type ResolversParentTypes = ResolversObject<{
   Article: ArticleResponse;
   Boolean: Scalars['Boolean'];
   CasLoginResponse: CasLoginResponse;
+  CounterCandidacy: CounterCandidacyResponse;
+  CounterCandidacyOption: CounterCandidacyOptionResponse;
   Date: Scalars['Date'];
   DateTime: Scalars['DateTime'];
   DoorEndDate: DoorEndDate;
@@ -2145,6 +2296,7 @@ export type ResolversParentTypes = ResolversObject<{
   PaginationParams: PaginationParams;
   Post: Post;
   Proposal: ProposalResponse;
+  ProposalPostOverview: ProposalPostOverviewResponse;
   ProviderOptions: ProviderOptions;
   Query: {};
   SendEmailOptions: SendEmailOptions;
@@ -2234,6 +2386,21 @@ export type CasLoginResponseResolvers<ContextType = Context, ParentType extends 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type CounterCandidacyResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CounterCandidacy'] = ResolversParentTypes['CounterCandidacy']> = ResolversObject<{
+  answer?: Resolver<ResolversTypes['NominationAnswer'], ParentType, ContextType>;
+  answeredAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type CounterCandidacyOptionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['CounterCandidacyOption'] = ResolversParentTypes['CounterCandidacyOption']> = ResolversObject<{
+  answer?: Resolver<ResolversTypes['NominationAnswer'], ParentType, ContextType>;
+  canRespond?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
   name: 'Date';
 }
@@ -2265,6 +2432,7 @@ export type ElectionResolvers<ContextType = Context, ParentType extends Resolver
   nominationsHidden?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   open?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   openedAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  proposalDeadline?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   proposals?: Resolver<Maybe<Array<Maybe<ResolversTypes['Proposal']>>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2500,6 +2668,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   modifyTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationModifyTicketArgs, 'entry' | 'id'>>;
   nominate?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationNominateArgs, 'postIds' | 'username'>>;
   notifyUnbookedNominees?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationNotifyUnbookedNomineesArgs, 'electionId'>>;
+  openCounterCandidacy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenCounterCandidacyArgs, 'electionId' | 'postId'>>;
   openElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationOpenElectionArgs, 'electionId'>>;
   propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postId' | 'username'>>;
   providerLogin?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationProviderLoginArgs, 'input'>>;
@@ -2519,15 +2688,21 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   requestInterview?: Resolver<ResolversTypes['InterviewRequest'], ParentType, ContextType, RequireFields<MutationRequestInterviewArgs, 'electionId' | 'startsAt' | 'username' | 'windowId'>>;
   requestPasswordReset?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRequestPasswordResetArgs, 'resetLink' | 'username'>>;
   resetPassword?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationResetPasswordArgs, 'password' | 'token' | 'username'>>;
+  respondToCounterCandidacy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToCounterCandidacyArgs, 'accepts' | 'electionId' | 'postId'>>;
   respondToInterviewRequest?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToInterviewRequestArgs, 'accept' | 'requestId'>>;
   respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postId'>>;
+  respondToProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToProposalArgs, 'accepts' | 'electionId' | 'postId'>>;
   sendEmail?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendEmailArgs, 'options'>>;
+  sendProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationSendProposalsArgs, 'electionId' | 'postId'>>;
   setApiKeyAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetApiKeyAccessArgs, 'access' | 'key'>>;
+  setCounterCandidacy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetCounterCandidacyArgs, 'electionId' | 'postId' | 'username'>>;
   setElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetElectablesArgs, 'electionId' | 'postIds'>>;
   setHiddenNominations?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetHiddenNominationsArgs, 'electionId' | 'hidden'>>;
   setIndividualAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetIndividualAccessArgs, 'access' | 'username'>>;
   setInterviewPostDuration?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetInterviewPostDurationArgs, 'electionId' | 'postId'>>;
   setPostAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetPostAccessArgs, 'access' | 'postId'>>;
+  setProposalDeadline?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetProposalDeadlineArgs, 'deadline' | 'electionId'>>;
+  setProposalStatus?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetProposalStatusArgs, 'electionId' | 'postId' | 'status' | 'username'>>;
   setUserPostEnd?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetUserPostEndArgs, 'end' | 'id'>>;
   unlinkLoginProvider?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUnlinkLoginProviderArgs, 'id'>>;
   updateInterviewSettings?: Resolver<ResolversTypes['InterviewSettings'], ParentType, ContextType, RequireFields<MutationUpdateInterviewSettingsArgs, 'electionId' | 'input'>>;
@@ -2610,8 +2785,23 @@ export type PostResolvers<ContextType = Context, ParentType extends ResolversPar
 }>;
 
 export type ProposalResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Proposal'] = ResolversParentTypes['Proposal']> = ResolversObject<{
+  answeredAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  expired?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
+  sentAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['ProposalStatus'], ParentType, ContextType>;
   user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ProposalPostOverviewResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ProposalPostOverview'] = ResolversParentTypes['ProposalPostOverview']> = ResolversObject<{
+  acceptedCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  canOpenCounterCandidacy?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  candidates?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
+  counterCandidacies?: Resolver<Array<ResolversTypes['CounterCandidacy']>, ParentType, ContextType>;
+  counterCandidacyOpenedAt?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  post?: Resolver<ResolversTypes['Post'], ParentType, ContextType>;
+  proposals?: Resolver<Array<ResolversTypes['Proposal']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2649,8 +2839,10 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   me?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
   meeting?: Resolver<ResolversTypes['Meeting'], ParentType, ContextType, RequireFields<QueryMeetingArgs, 'id'>>;
   meetings?: Resolver<Array<ResolversTypes['Meeting']>, ParentType, ContextType, Partial<QueryMeetingsArgs>>;
+  myCounterCandidacies?: Resolver<Array<ResolversTypes['CounterCandidacyOption']>, ParentType, ContextType, RequireFields<QueryMyCounterCandidaciesArgs, 'electionId'>>;
   myInterview?: Resolver<ResolversTypes['MyInterview'], ParentType, ContextType, RequireFields<QueryMyInterviewArgs, 'electionId'>>;
   myNominations?: Resolver<Array<ResolversTypes['Nomination']>, ParentType, ContextType, RequireFields<QueryMyNominationsArgs, 'electionId'>>;
+  myProposals?: Resolver<Array<ResolversTypes['Proposal']>, ParentType, ContextType, RequireFields<QueryMyProposalsArgs, 'electionId'>>;
   newsentries?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, Partial<QueryNewsentriesArgs>>;
   nominationResponsePreview?: Resolver<ResolversTypes['NominationResponsePreview'], ParentType, ContextType, RequireFields<QueryNominationResponsePreviewArgs, 'accepts' | 'postId'>>;
   numberOfMembers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, Partial<QueryNumberOfMembersArgs>>;
@@ -2665,6 +2857,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   postAccessLogs?: Resolver<Array<ResolversTypes['AccessLogPost']>, ParentType, ContextType>;
   posts?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType, Partial<QueryPostsArgs>>;
   postsFromIDs?: Resolver<Array<ResolversTypes['Post']>, ParentType, ContextType, RequireFields<QueryPostsFromIDsArgs, 'ids'>>;
+  proposalOverview?: Resolver<Array<ResolversTypes['ProposalPostOverview']>, ParentType, ContextType, RequireFields<QueryProposalOverviewArgs, 'electionId'>>;
   searchFiles?: Resolver<Array<ResolversTypes['File']>, ParentType, ContextType, RequireFields<QuerySearchFilesArgs, 'search'>>;
   searchUser?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QuerySearchUserArgs, 'search'>>;
   ticket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<QueryTicketArgs, 'id'>>;
@@ -2731,6 +2924,8 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   ApiKey?: ApiKeyResolvers<ContextType>;
   Article?: ArticleResolvers<ContextType>;
   CasLoginResponse?: CasLoginResponseResolvers<ContextType>;
+  CounterCandidacy?: CounterCandidacyResolvers<ContextType>;
+  CounterCandidacyOption?: CounterCandidacyOptionResolvers<ContextType>;
   Date?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
   DoorEndDate?: DoorEndDateResolvers<ContextType>;
@@ -2768,6 +2963,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Pagination?: PaginationResolvers<ContextType>;
   Post?: PostResolvers<ContextType>;
   Proposal?: ProposalResolvers<ContextType>;
+  ProposalPostOverview?: ProposalPostOverviewResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Ticket?: TicketResolvers<ContextType>;
   TokenResponse?: TokenResponseResolvers<ContextType>;

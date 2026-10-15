@@ -45,6 +45,7 @@ model PrismaUser {
   elections                  PrismaElection[]             @relation(name: "PrismaElectionToPrismaUser")
   nominations                PrismaNomination[]           @relation(name: "PrismaNominationToPrismaUser")
   proposals                  PrismaProposal[]             @relation(name: "PrismaProposalToPrismaUser")
+  counterCandidacies         PrismaCounterCandidacy[]     @relation(name: "PrismaCounterCandidacyToPrismaUser")
   interviewBookings          PrismaInterviewBooking[]     @relation(name: "PrismaInterviewBookingToPrismaUser")
   interviewRequests          PrismaInterviewRequest[]     @relation(name: "PrismaInterviewRequestToPrismaUser")
   createdInterviewRequests   PrismaInterviewRequest[]     @relation(name: "PrismaInterviewRequestToCreator")
@@ -121,7 +122,9 @@ model PrismaPost {
 
   // Posts are either searched by name or by utskott,
   // name handled by primare key (@id)
-  PrismaProposal PrismaProposal[] @relation("PrismaProposalToPrismaPost")
+  PrismaProposal        PrismaProposal[]             @relation("PrismaProposalToPrismaPost")
+  counterCandidacyPosts PrismaCounterCandidacyPost[] @relation("PrismaCounterCandidacyPostToPrismaPost")
+  counterCandidacies    PrismaCounterCandidacy[]     @relation("PrismaCounterCandidacyToPrismaPost")
 
   @@index([utskott])
   @@map("posts")
@@ -203,6 +206,8 @@ model PrismaElection {
   closedAt              DateTime?                    @map("closed_at")
   open                  Boolean                      @default(false)
   nominationsHidden     Boolean                      @default(false) @map("nominations_hidden")
+  /// After it, proposals and motkandidering are locked for members
+  proposalDeadline      DateTime?                    @map("proposal_deadline")
   proposals             PrismaProposal[]             @relation(name: "PrismaElectionToPrismaProposal")
   nominations           PrismaNomination[]           @relation(name: "PrismaElectionToPrismaNomination")
   interviewSettings     PrismaInterviewSettings?     @relation(name: "PrismaElectionToPrismaInterviewSettings")
@@ -210,6 +215,8 @@ model PrismaElection {
   interviewBookings     PrismaInterviewBooking[]     @relation(name: "PrismaElectionToPrismaInterviewBooking")
   interviewRequests     PrismaInterviewRequest[]     @relation(name: "PrismaElectionToPrismaInterviewRequest")
   interviewNoSlotEvents PrismaInterviewNoSlotEvent[] @relation(name: "PrismaElectionToPrismaInterviewNoSlotEvent")
+  counterCandidacyPosts PrismaCounterCandidacyPost[] @relation(name: "PrismaCounterCandidacyPostToPrismaElection")
+  counterCandidacies    PrismaCounterCandidacy[]     @relation(name: "PrismaCounterCandidacyToPrismaElection")
 
   @@map("elections")
 }
@@ -262,15 +269,57 @@ model PrismaTicket {
 }
 
 model PrismaProposal {
-  user        PrismaUser     @relation(name: "PrismaProposalToPrismaUser", fields: [refUser], references: [username])
-  refUser     String         @map("ref_user")
-  post        PrismaPost     @relation(name: "PrismaProposalToPrismaPost", fields: [refPost], references: [id])
-  refPost     Int            @map("ref_post")
-  election    PrismaElection @relation(name: "PrismaElectionToPrismaProposal", fields: [refElection], references: [id])
-  refElection Int            @map("ref_election")
+  user        PrismaUser           @relation(name: "PrismaProposalToPrismaUser", fields: [refUser], references: [username])
+  refUser     String               @map("ref_user")
+  post        PrismaPost           @relation(name: "PrismaProposalToPrismaPost", fields: [refPost], references: [id])
+  refPost     Int                  @map("ref_post")
+  election    PrismaElection       @relation(name: "PrismaElectionToPrismaProposal", fields: [refElection], references: [id])
+  refElection Int                  @map("ref_election")
+  /// Rows from before proposals had a status were final, so they default to ACCEPTED.
+  /// New proposals are always created as DRAFT
+  status      PrismaProposalStatus @default(ACCEPTED)
+  sentAt      DateTime?            @map("sent_at")
+  answeredAt  DateTime?            @map("answered_at")
 
   @@id([refElection, refPost, refUser])
   @@map("proposals")
+}
+
+enum PrismaProposalStatus {
+  DRAFT
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+
+  @@map("proposal_status")
+}
+
+/// Motkandidering opened by the committee for a post in an election
+model PrismaCounterCandidacyPost {
+  election    PrismaElection @relation(name: "PrismaCounterCandidacyPostToPrismaElection", fields: [refElection], references: [id], onDelete: Cascade)
+  refElection Int            @map("ref_election")
+  post        PrismaPost     @relation(name: "PrismaCounterCandidacyPostToPrismaPost", fields: [refPost], references: [id])
+  refPost     Int            @map("ref_post")
+  openedAt    DateTime       @default(now()) @map("opened_at")
+
+  @@id([refElection, refPost])
+  @@map("counter_candidacy_posts")
+}
+
+/// A candidate's answer to whether they run as motkandidat for a post
+model PrismaCounterCandidacy {
+  election    PrismaElection         @relation(name: "PrismaCounterCandidacyToPrismaElection", fields: [refElection], references: [id], onDelete: Cascade)
+  refElection Int                    @map("ref_election")
+  post        PrismaPost             @relation(name: "PrismaCounterCandidacyToPrismaPost", fields: [refPost], references: [id])
+  refPost     Int                    @map("ref_post")
+  user        PrismaUser             @relation(name: "PrismaCounterCandidacyToPrismaUser", fields: [refUser], references: [username])
+  refUser     String                 @map("ref_user")
+  answer      PrismaNominationAnswer
+  answeredAt  DateTime               @default(now()) @map("answered_at")
+
+  @@id([refElection, refPost, refUser])
+  @@map("counter_candidacies")
 }
 
 model PrismaFile {

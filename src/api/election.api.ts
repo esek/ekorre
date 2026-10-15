@@ -741,66 +741,6 @@ export class ElectionAPI {
     });
   }
 
-  /**
-   * Adds a proposals from Valberedningen for a post. Does *not* check that there are not
-   * more proposals than `Post.spots`, since Valberedningen can do whatever they want.
-   * Also does not ensure that the post is electable
-   * @param electionId ID of an election
-   * @param username Username for the user to be proposed for this post
-   * @param postId ID of the post this user is to be proposed for
-   */
-  async propose(electionId: number, username: string, postId: number): Promise<boolean> {
-    try {
-      await prisma.prismaProposal.create({
-        data: {
-          refElection: electionId,
-          refUser: username,
-          refPost: postId,
-        },
-      });
-
-      return true;
-    } catch (err) {
-      logger.error(
-        `Could not insert proposal for user ${username} and post ID ${postId} in election with ID ${electionId} due to error:\n\t${JSON.stringify(
-          err,
-        )}`,
-      );
-      throw new ServerError(`Kunde inte föreslå användaren ${username} till posten ID ${postId}`);
-    }
-  }
-
-  /**
-   * Attempts to remove one of Valberedningen's proposals for a post
-   * @param electionId ID of the election
-   * @param username Username of the previously proposed user
-   * @param postId ID of the post the user has previously been proposed for
-   * @returns If the proposal could be removed
-   * @throws `ServerError` if the proposal could not be removed, or never existed
-   */
-  async removeProposal(electionId: number, username: string, postId: number): Promise<boolean> {
-    try {
-      await prisma.prismaProposal.delete({
-        where: {
-          refElection_refPost_refUser: {
-            refElection: electionId,
-            refUser: username,
-            refPost: postId,
-          },
-        },
-      });
-
-      return true;
-    } catch {
-      logger.error(
-        `Could not delete proposal for user ${username} and post ID ${postId} in election with ID ${electionId}}`,
-      );
-      throw new ServerError(
-        `Kunde inte ta bort föreslaget för användaren ${username} till posten med ID ${postId}, vilket kan bero på att föreslaget inte fanns`,
-      );
-    }
-  }
-
   async renameElection(electionId: number, name: string | null): Promise<boolean> {
     try {
       await prisma.prismaElection.update({
@@ -828,6 +768,8 @@ export class ElectionAPI {
     devGuard('Cannot clear DB in production');
 
     await prisma.prismaElectable.deleteMany();
+    await prisma.prismaCounterCandidacy.deleteMany();
+    await prisma.prismaCounterCandidacyPost.deleteMany();
     await prisma.prismaProposal.deleteMany();
     await prisma.prismaNomination.deleteMany();
     await prisma.prismaElection.deleteMany();

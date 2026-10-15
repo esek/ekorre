@@ -36,6 +36,15 @@ const addDummyElections = async (
   await Promise.all(queries);
 };
 
+/** Proposals inserted as they were before proposals had a status */
+const addProposals = (electionId: number) =>
+  prisma.prismaProposal.createMany({
+    data: [
+      { refElection: electionId, refUser: 'aa0000bb-s', refPost: 1 },
+      { refElection: electionId, refUser: 'bb1111cc-s', refPost: 2 },
+    ],
+  });
+
 beforeAll(async () => {
   await api.clear();
 });
@@ -344,9 +353,7 @@ test('getting number of proposals', async () => {
   const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await api.openElection(electionId);
 
-  // Nominera lite folk
-  await expect(api.propose(electionId, 'aa0000bb-s', 1)).resolves.toBeTruthy();
-  await expect(api.propose(electionId, 'bb1111cc-s', 2)).resolves.toBeTruthy();
+  await addProposals(electionId);
 
   expect(await api.getNumberOfProposals(electionId)).toEqual(2);
   expect(await api.getNumberOfProposals(electionId, 1)).toEqual(1);
@@ -356,24 +363,25 @@ test('getting all proposals', async () => {
   const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
   await api.openElection(electionId);
 
-  // Nominera lite folk
-  await expect(api.propose(electionId, 'aa0000bb-s', 1)).resolves.toBeTruthy();
-  await expect(api.propose(electionId, 'bb1111cc-s', 2)).resolves.toBeTruthy();
+  await addProposals(electionId);
 
   const proposals = await api.getAllProposals(electionId);
   expect(proposals).toHaveLength(2);
+  // Rows from before proposals had a status were final, so they count as accepted
   expect(proposals).toEqual(
     expect.arrayContaining([
-      {
+      expect.objectContaining({
         refElection: electionId,
         refUser: 'aa0000bb-s',
         refPost: 1,
-      },
-      {
+        status: 'ACCEPTED',
+      }),
+      expect.objectContaining({
         refElection: electionId,
         refUser: 'bb1111cc-s',
         refPost: 2,
-      },
+        status: 'ACCEPTED',
+      }),
     ]),
   );
 });
@@ -786,64 +794,6 @@ test('respond to valid nomination after election close', async () => {
       answer: NominationAnswer.NotAnswered,
     },
   ]);
-});
-
-test('proposing', async () => {
-  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
-  await expect(api.propose(electionId, 'bb1111cc-s', 1)).resolves.toBeTruthy();
-  await expect(api.getAllProposals(electionId)).resolves.toEqual([
-    {
-      refElection: electionId,
-      refUser: 'bb1111cc-s',
-      refPost: 1,
-    },
-  ]);
-});
-
-test('proposing non-existant user', async () => {
-  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
-  await expect(api.propose(electionId, 'Not an user', 1)).rejects.toThrowError(ServerError);
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
-});
-
-test('proposing non-existant post', async () => {
-  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
-  await expect(api.propose(electionId, 'bb1111cc-s', -1)).rejects.toThrowError(ServerError);
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
-});
-
-test('proposing non-existant election', async () => {
-  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
-  await expect(api.propose(-1, 'bb1111cc-s', 1)).rejects.toThrowError(ServerError);
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
-});
-
-test('removing proposal', async () => {
-  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
-  await expect(api.propose(electionId, 'bb1111cc-s', 1)).resolves.toBeTruthy();
-  await expect(api.getAllProposals(electionId)).resolves.toEqual([
-    {
-      refElection: electionId,
-      refUser: 'bb1111cc-s',
-      refPost: 1,
-    },
-  ]);
-  await expect(api.removeProposal(electionId, 'bb1111cc-s', 1)).resolves.toBeTruthy();
-
-  // Kolla att den faktiskt togs bort
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
-});
-
-test('removing non-existant proposal', async () => {
-  const { id: electionId } = await api.createElection('aa0000bb-s', [1, 2], false);
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
-  await expect(api.removeProposal(electionId, 'aa0000bb-s', 1)).rejects.toThrowError(ServerError);
-  await expect(api.getAllProposals(electionId)).resolves.toHaveLength(0);
 });
 
 test('latest elections are ordered by id when created at the same time', async () => {

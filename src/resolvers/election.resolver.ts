@@ -1,24 +1,48 @@
 import config from '@/config';
 import { useDataLoader } from '@/dataloaders';
 import { Logger } from '@/logger';
+import type { Context } from '@/models/context';
 import { reduce } from '@/reducers';
 import { hasAccess, hasAuthenticated, notEmpty } from '@/util';
 import { ElectionAPI } from '@api/election';
 import { PostAPI } from '@api/post';
+import { ProposalAPI } from '@api/proposal';
 import { UserAPI } from '@api/user';
 import { Feature, NominationAnswer, Resolvers } from '@generated/graphql';
+import { PrismaProposalStatus } from '@prisma/client';
 import { electionReduce } from '@reducer/election/election';
 import { nominationReduce } from '@reducer/election/nomination';
 import { proposalReduce } from '@reducer/election/proposal';
 import { sendEmail } from '@service/email';
+import {
+  sendCounterCandidacyMail,
+  sendProposalWithdrawnMail,
+  sendProposedMail,
+} from '@service/proposal-mail';
 
 import { notifyNominationOutcome } from './interview.resolver';
 
 const api = new ElectionAPI();
 const userApi = new UserAPI();
 const postApi = new PostAPI();
+const proposalApi = new ProposalAPI();
 
 const logger = Logger.getLogger('ElectionResolver');
+
+/** Election admins see every proposal; others only accepted ones */
+const isElectionAdmin = async (ctx: Context) => {
+  try {
+    await hasAccess(ctx, Feature.ElectionAdmin);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const recipient = async (username: string) => {
+  const { firstName, email } = await userApi.getSingleUser(username);
+  return { firstName, email };
+};
 
 const electionResolver: Resolvers = {
   Query: {
@@ -75,6 +99,38 @@ const electionResolver: Resolvers = {
     numberOfProposals: async (_, { electionId, postId }, ctx) => {
       await hasAuthenticated(ctx);
       return api.getNumberOfProposals(electionId, postId ?? undefined);
+    },
+    proposalOverview: async (_, { electionId }, ctx) => {
+      await hasAccess(ctx, Feature.ElectionAdmin);
+      const overview = await proposalApi.getOverview(electionId);
+      return overview.map((o) => ({
+        post: { id: o.postId },
+        proposals: reduce(o.proposals, proposalReduce),
+        candidates: o.candidates.map((username) => ({ username })),
+        acceptedCount: o.acceptedCount,
+        counterCandidacyOpenedAt: o.counterCandidacyOpenedAt,
+        canOpenCounterCandidacy: o.canOpenCounterCandidacy,
+        counterCandidacies: o.counterCandidacies.map((c) => ({
+          user: { username: c.refUser },
+          post: { id: c.refPost },
+          answer: c.answer as NominationAnswer,
+          answeredAt: c.answeredAt,
+        })),
+      }));
+    },
+    myProposals: async (_, { electionId }, ctx) => {
+      await hasAuthenticated(ctx);
+      const p = await proposalApi.getMyProposals(electionId, ctx.getUsername());
+      return reduce(p, proposalReduce);
+    },
+    myCounterCandidacies: async (_, { electionId }, ctx) => {
+      await hasAuthenticated(ctx);
+      const options = await proposalApi.getMyCounterCandidacies(electionId, ctx.getUsername());
+      return options.map((o) => ({
+        post: { id: o.postId },
+        answer: o.answer as NominationAnswer,
+        canRespond: o.canRespond,
+      }));
     },
   },
   Mutation: {
@@ -158,11 +214,70 @@ const electionResolver: Resolvers = {
     },
     propose: async (_, { electionId, username, postId }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.propose(electionId, username, postId);
+      await proposalApi.propose(electionId, username, postId);
+      return true;
     },
     removeProposal: async (_, { electionId, username, postId }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
-      return api.removeProposal(electionId, username, postId);
+      const { notify } = await proposalApi.removeProposal(electionId, username, postId);
+      if (notify) {
+        const [to, post] = await Promise.all([recipient(username), postApi.getPost(postId)]);
+        await sendProposalWithdrawnMail(electionId, to, post.postname);
+      }
+      return true;
+    },
+    sendProposals: async (_, { electionId, postId }, ctx) => {
+      await hasAccess(ctx, Feature.ElectionAdmin);
+      const { usernames, deadline } = await proposalApi.sendProposals(electionId, postId);
+      const post = await postApi.getPost(postId);
+      await Promise.all(
+        usernames.map(async (username) =>
+          sendProposedMail(electionId, await recipient(username), post.postname, deadline),
+        ),
+      );
+      return usernames.length;
+    },
+    respondToProposal: async (_, { electionId, postId, accepts }, ctx) => {
+      await hasAuthenticated(ctx);
+      await proposalApi.respondToProposal(electionId, postId, ctx.getUsername(), accepts);
+      return true;
+    },
+    openCounterCandidacy: async (_, { electionId, postId }, ctx) => {
+      await hasAccess(ctx, Feature.ElectionAdmin);
+      const { usernames, deadline } = await proposalApi.openCounterCandidacy(electionId, postId);
+      const post = await postApi.getPost(postId);
+      await Promise.all(
+        usernames.map(async (username) =>
+          sendCounterCandidacyMail(electionId, await recipient(username), post.postname, deadline),
+        ),
+      );
+      return true;
+    },
+    respondToCounterCandidacy: async (_, { electionId, postId, accepts }, ctx) => {
+      await hasAuthenticated(ctx);
+      await proposalApi.respondToCounterCandidacy(electionId, postId, ctx.getUsername(), accepts);
+      return true;
+    },
+    setProposalDeadline: async (_, { electionId, deadline }, ctx) => {
+      await hasAccess(ctx, Feature.ElectionAdmin);
+      await proposalApi.setDeadline(electionId, deadline);
+      ctx.electionDataLoader.clear(electionId);
+      return true;
+    },
+    setProposalStatus: async (_, { electionId, username, postId, status }, ctx) => {
+      await hasAccess(ctx, Feature.ElectionAdmin);
+      await proposalApi.setProposalStatus(
+        electionId,
+        username,
+        postId,
+        status as PrismaProposalStatus,
+      );
+      return true;
+    },
+    setCounterCandidacy: async (_, { electionId, username, postId, answer }, ctx) => {
+      await hasAccess(ctx, Feature.ElectionAdmin);
+      await proposalApi.setCounterCandidacy(electionId, username, postId, answer ?? null);
+      return true;
     },
     renameElection: async (_, { electionId, name }, ctx) => {
       await hasAccess(ctx, Feature.ElectionAdmin);
@@ -197,9 +312,12 @@ const electionResolver: Resolvers = {
         }),
       );
     },
-    proposals: async (model) => {
-      const p = await api.getAllProposals(model.id ?? -1);
-      return reduce(p, proposalReduce);
+    proposals: async (model, _, ctx) => {
+      const p = await proposalApi.getProposals(model.id ?? -1);
+      const visible = (await isElectionAdmin(ctx))
+        ? p
+        : p.filter((proposal) => proposal.status === PrismaProposalStatus.ACCEPTED);
+      return reduce(visible, proposalReduce);
     },
     acceptedNominations: async (model) => {
       // Eftersom denna bara ska returneras om valadmin tillåter
@@ -224,6 +342,30 @@ const electionResolver: Resolvers = {
       dataLoader: context.postDataLoader,
       key: model.post.id,
     })),
+  },
+  CounterCandidacy: {
+    user: useDataLoader((model, context) => ({
+      dataLoader: context.userDataLoader,
+      key: model.user.username,
+    })),
+    post: useDataLoader((model, context) => ({
+      dataLoader: context.postDataLoader,
+      key: model.post.id,
+    })),
+  },
+  CounterCandidacyOption: {
+    post: useDataLoader((model, context) => ({
+      dataLoader: context.postDataLoader,
+      key: model.post.id,
+    })),
+  },
+  ProposalPostOverview: {
+    post: useDataLoader((model, context) => ({
+      dataLoader: context.postDataLoader,
+      key: model.post.id,
+    })),
+    candidates: (model, _, ctx) =>
+      Promise.all(model.candidates.map((u) => ctx.userDataLoader.load(u.username ?? ''))),
   },
   Nomination: {
     user: useDataLoader((model, context) => ({

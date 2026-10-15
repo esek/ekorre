@@ -18,6 +18,9 @@ generates:
         Election: ../mappers#ElectionResponse
         Proposal: ../mappers#ProposalResponse
         Nomination: ../mappers#NominationResponse
+        CounterCandidacy: ../mappers#CounterCandidacyResponse
+        CounterCandidacyOption: ../mappers#CounterCandidacyOptionResponse
+        ProposalPostOverview: ../mappers#ProposalPostOverviewResponse
         Hehe: ../mappers#HeheResponse
         AccessLogPost: ../mappers#AccessLogPostResponse
         AccessLogIndividualAccess: ../mappers#AccessLogIndividualAccessResponse

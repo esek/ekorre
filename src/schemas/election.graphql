@@ -3,6 +3,7 @@
 # import InterviewBookingEffect, InterviewSlotInput from 'interview.graphql'
 
 scalar Date
+scalar DateTime
 """
 Queries and mutations that relies on an election being open
 does not take an `electionId` parameter.
@@ -23,6 +24,13 @@ type Query {
   myNominations(electionId: Int!, answer: NominationAnswer): [Nomination!]!
   numberOfNominations(electionId: Int!, postId: Int): Int!
   numberOfProposals(electionId: Int!, postId: Int): Int!
+
+  "Valberedningens work per post: proposals, candidates and motkandidering. Election admins only"
+  proposalOverview(electionId: Int!): [ProposalPostOverview!]!
+
+  "The user's own proposals (sent ones only) and motkandidat options in an election"
+  myProposals(electionId: Int!): [Proposal!]!
+  myCounterCandidacies(electionId: Int!): [CounterCandidacyOption!]!
 }
 
 type Mutation {
@@ -49,8 +57,37 @@ type Mutation {
     expectedEffect: InterviewBookingEffect
     rebook: InterviewSlotInput
   ): Boolean!
+  "Adds a draft proposal. The user must be a candidate (accepted nomination) for the post"
   propose(electionId: Int!, username: String!, postId: Int!): Boolean!
+  """
+  Deletes a draft. A sent or accepted proposal is withdrawn instead, and the person is
+  mailed if the deadline has not passed
+  """
   removeProposal(electionId: Int!, username: String!, postId: Int!): Boolean!
+  "Sends all draft proposals for a post and mails the proposed. Returns how many were sent"
+  sendProposals(electionId: Int!, postId: Int!): Int!
+  "Accepts or declines the user's own pending proposal"
+  respondToProposal(electionId: Int!, postId: Int!, accepts: Boolean!): Boolean!
+  "Opens motkandidering for a post and mails candidates who were never proposed"
+  openCounterCandidacy(electionId: Int!, postId: Int!): Boolean!
+  "The user's own answer to running as motkandidat"
+  respondToCounterCandidacy(electionId: Int!, postId: Int!, accepts: Boolean!): Boolean!
+  "Sets the deadline for proposals and motkandidering"
+  setProposalDeadline(electionId: Int!, deadline: DateTime!): Boolean!
+  "Admin change after the deadline, without mail"
+  setProposalStatus(
+    electionId: Int!
+    username: String!
+    postId: Int!
+    status: ProposalStatus!
+  ): Boolean!
+  "Admin change after the deadline, without mail. `answer: null` removes the answer"
+  setCounterCandidacy(
+    electionId: Int!
+    username: String!
+    postId: Int!
+    answer: Boolean
+  ): Boolean!
   renameElection(electionId: Int!, name: String): Boolean!
 }
 
@@ -72,12 +109,59 @@ type Election {
 
   "Whether accepted nominations are to be hidden"
   nominationsHidden: Boolean!
+
+  "After it, proposals and motkandidering are locked for members"
+  proposalDeadline: DateTime
 }
 
-"Valberedningens förslag"
+"""
+Valberedningens förslag. Members only see ACCEPTED proposals of others.
+A PENDING proposal past the deadline is reported as DECLINED
+"""
 type Proposal {
   user: User!
   post: Post!
+  status: ProposalStatus!
+  sentAt: DateTime
+  answeredAt: DateTime
+  "Was still pending when the deadline passed"
+  expired: Boolean!
+}
+
+enum ProposalStatus {
+  DRAFT
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
+}
+
+type ProposalPostOverview {
+  post: Post!
+  proposals: [Proposal!]!
+  "Candidates (accepted nominations) for the post"
+  candidates: [User!]!
+  acceptedCount: Int!
+  counterCandidacyOpenedAt: DateTime
+  "Whether motkandidering can be opened now"
+  canOpenCounterCandidacy: Boolean!
+  counterCandidacies: [CounterCandidacy!]!
+}
+
+type CounterCandidacy {
+  user: User!
+  post: Post!
+  "YES or NO"
+  answer: NominationAnswer!
+  answeredAt: DateTime!
+}
+
+type CounterCandidacyOption {
+  post: Post!
+  "NOT_ANSWERED until the user has answered"
+  answer: NominationAnswer!
+  "Whether the user can answer or change their answer now"
+  canRespond: Boolean!
 }
 
 type Nomination {
