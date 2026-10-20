@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.35.1] - 2026-10-20
+
+### Säkerhet
+- Felsvar från API:t innehåller bara stacktrace i utvecklingsläge
+
 ## [1.35.0] - 2026-10-16
 
 ### Ändrat
