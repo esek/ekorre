@@ -55,4 +55,4 @@ COPY --from=BUILD_IMAGE $WORKING_DIR/. .
 EXPOSE 3000
 
 # Run using tsconfig-paths to rewrite paths
-CMD ["node", "-r", "ts-node/register/transpile-only", "-r", "tsconfig-paths/register", "build/src/index.js"]
+CMD ["/srv/app/start.sh"]
