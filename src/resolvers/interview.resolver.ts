@@ -18,6 +18,7 @@ import {
   sendBookingMail,
   sendBookingRemovedMail,
   sendCommitteeMail,
+  sendRequestDeclinedMail,
   sendRequestMail,
   sendRequestWithdrawnMail,
   sendSlotsUpdatedMail,
@@ -299,6 +300,12 @@ const interviewResolver: Resolvers = {
           postnames,
           organizer,
         );
+      } else if (!accept) {
+        const [nominee, settings] = await Promise.all([
+          person(username),
+          api.getSettings(request.refElection),
+        ]);
+        await sendRequestDeclinedMail(settings.notifyEmails, request.refElection, nominee, request);
       }
       return true;
     },

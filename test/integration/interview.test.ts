@@ -537,6 +537,52 @@ describe('admin', () => {
     expect(icsField(icsOf(mails()[1]), 'LOCATION')).toBe('E:B');
   });
 
+  it('declining a request tells the committee with a link to propose again', async () => {
+    const w = await createWindow();
+    await respond(0, 'YES');
+    const req = await gql(
+      `mutation ($e: Int!, $u: String!, $w: Int!, $s: DateTime!) {
+        requestInterview(electionId: $e, username: $u, windowId: $w, startsAt: $s) { id }
+      }`,
+      { e: electionId, u: nominee.username, w, s: at('17:10') },
+      admin,
+    );
+    const requestId = (req.data.requestInterview as { id: string }).id;
+    mockedSendEmail.mockReset();
+
+    const res = await gql(
+      'mutation ($id: String!) { respondToInterviewRequest(requestId: $id, accept: false) }',
+      { id: requestId },
+      nominee,
+    );
+    expect(res.errors).toBeUndefined();
+    expect(mails()).toHaveLength(1);
+    const settings = await interviewApi.getSettings(electionId);
+    expect(mails()[0].to).toEqual(settings.notifyEmails);
+    expect(mails()[0].subject).toContain('tackade nej');
+    expect(mails()[0].overrides.buttonLink).toContain(
+      `/admin/elections/${electionId}/interviews?propose=${nominee.username}`,
+    );
+  });
+
+  it('refuses window bounds that would leave a booking outside', async () => {
+    const w = await createWindow();
+    await respond(0, 'YES');
+    await book(w, '18:00');
+    const UPDATE = `mutation ($w: Int!, $s: DateTime!, $e: DateTime!) {
+      updateInterviewWindow(windowId: $w, input: { startsAt: $s, endsAt: $e }) { id }
+    }`;
+
+    const refused = await gql(UPDATE, { w, s: at('17:00'), e: at('18:00') }, admin);
+    expect(refused.errors?.[0]).toMatchObject({
+      errorType: 'BadRequestError',
+      message: expect.stringContaining(nominee.firstName) as unknown,
+    });
+
+    const allowed = await gql(UPDATE, { w, s: at('16:00'), e: at('18:30') }, admin);
+    expect(allowed.errors).toBeUndefined();
+  });
+
   it('notifies only nominees who need an interview and have none', async () => {
     const w = await createWindow({ capacity: 2 });
     await respond(0, 'YES');

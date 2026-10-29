@@ -310,6 +310,32 @@ export const sendSlotsUpdatedMail = (electionId: number, nominee: MailPerson) =>
     buttonLink: interviewLink(electionId),
   });
 
+/** Tells the committee a nominee declined a proposed time, linking straight to proposing a new one */
+export const sendRequestDeclinedMail = (
+  to: string[],
+  electionId: number,
+  nominee: MailPerson,
+  request: Pick<MailSlot, 'startsAt' | 'endsAt'>,
+) =>
+  send(
+    to,
+    `${nominee.firstName} ${nominee.lastName} tackade nej till föreslagen tid`,
+    COMMITTEE_TEMPLATE,
+    {
+      heading: 'Föreslagen intervjutid nekad',
+      lines: [
+        `${nominee.firstName} ${nominee.lastName} (${
+          nominee.username
+        }) tackade nej till tiden ${formatSlot(request.startsAt, request.endsAt)}.`,
+        'Eventuell tidigare bokning ligger kvar. Föreslå en ny tid via länken nedan.',
+      ],
+      buttonText: 'Föreslå ny tid',
+      buttonLink: `${
+        config.WEBSITE_URL
+      }/admin/elections/${electionId}/interviews?propose=${encodeURIComponent(nominee.username)}`,
+    },
+  );
+
 export const sendCommitteeMail = (
   to: string[],
   subject: string,
