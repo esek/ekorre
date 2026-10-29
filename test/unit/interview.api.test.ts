@@ -309,15 +309,16 @@ describe('booking', () => {
 });
 
 describe('changing windows never removes bookings', () => {
-  it('keeps bookings when a window shrinks, and flags them', async () => {
+  it('refuses to shrink a window past its bookings, and keeps them', async () => {
     const w = await window('17:00', '19:00');
     await accept(users[0], [0]);
     await api.book(electionId, users[0], w.id, at('18:30'), NOW);
 
-    await api.updateWindow(w.id, { endsAt: at('18:00') });
+    await expect(api.updateWindow(w.id, { endsAt: at('18:00') })).rejects.toThrow(
+      'Flytta eller avboka dem först',
+    );
     expect(await api.getBooking(electionId, users[0])).not.toBeNull();
-    const view = await api.getMissingView(electionId, NOW);
-    expect(view.outsideWindow.map((b) => b.refUser)).toEqual([users[0]]);
+    expect((await api.getWindow(w.id)).endsAt).toEqual(at('19:00'));
   });
 
   it('keeps bookings when capacity drops, and flags them', async () => {

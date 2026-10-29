@@ -306,6 +306,7 @@ export class InterviewAPI {
         stepMinutes: input.stepMinutes !== undefined ? input.stepMinutes : current.stepMinutes,
       };
       this.validateWindow(merged);
+      await this.assertKeepsEveryoneInside(tx, current, merged.startsAt, merged.endsAt);
 
       const window = await tx.prismaInterviewWindow.update({
         where: { id: windowId },
@@ -339,6 +340,46 @@ export class InterviewAPI {
       });
       return { window, relocated };
     });
+  }
+
+  /**
+   * Refuses new bounds that would push a booking or pending request out of the window,
+   * naming who is in the way so the admin can move them first. Ones already outside the
+   * current bounds do not block, so any other edit of the window stays possible.
+   */
+  private async assertKeepsEveryoneInside(
+    tx: Tx,
+    current: PrismaInterviewWindow,
+    startsAt: Date,
+    endsAt: Date,
+  ) {
+    const inside = (i: { startsAt: Date; endsAt: Date }, from: Date, to: Date) =>
+      i.startsAt >= from && i.endsAt <= to;
+    const select = { refUser: true, startsAt: true, endsAt: true };
+    const [bookings, requests] = await Promise.all([
+      tx.prismaInterviewBooking.findMany({ where: { refWindow: current.id }, select }),
+      tx.prismaInterviewRequest.findMany({
+        where: {
+          refWindow: current.id,
+          status: PrismaInterviewRequestStatus.PENDING,
+          startsAt: { gt: new Date() },
+        },
+        select,
+      }),
+    ]);
+    const pushedOut = [...bookings, ...requests].filter(
+      (i) => inside(i, current.startsAt, current.endsAt) && !inside(i, startsAt, endsAt),
+    );
+    if (pushedOut.length === 0) return;
+
+    const users = await tx.prismaUser.findMany({
+      where: { username: { in: [...new Set(pushedOut.map((i) => i.refUser))] } },
+      select: { firstName: true, lastName: true },
+    });
+    const names = users.map((u) => `${u.firstName} ${u.lastName}`).join(', ');
+    throw new BadRequestError(
+      `Ändringen skulle lämna bokningar eller förslag utanför tiden: ${names}. Flytta eller avboka dem först.`,
+    );
   }
 
   /** Deletes a window. Its bookings stay, detached from any window */
