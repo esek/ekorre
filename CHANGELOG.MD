@@ -5,6 +5,14 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.36.0] - 2026-10-29
+
+### Tillagt
+- Valberedningen får ett mejl när en nominerad tackar nej till en föreslagen intervjutid, med en länk för att föreslå en ny tid
+
+### Ändrat
+- En intervjutid kan inte längre kortas eller flyttas så att bokningar eller förslag hamnar utanför den
+
 ## [1.35.2] - 2026-10-20
 
 ### Fixat
