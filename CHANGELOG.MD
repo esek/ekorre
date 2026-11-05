@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.36.1] - 2026-11-05
+
+### Fixat
+- Se till att enbart aktiviteter som är kopplade till E-sektionen importeras från Teknologappen
+
 ## [1.36.0] - 2026-10-29
 
 ### Tillagt
