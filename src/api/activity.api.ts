@@ -3,28 +3,48 @@ import { StrictObject } from '@/models/base';
 import { devGuard, stripObject } from '@/util';
 import { ModifiedActivity, NewActivity, Utskott } from '@generated/graphql';
 import { PrismaActivity, PrismaActivitySource, PrismaUtskott } from '@prisma/client';
-import { TEKNOLOGAPPEN_UTSKOTT_PATHS, TeknologappenActivity } from '@service/teknologappen';
+import {
+  isTeknologappenGuildActivity,
+  TEKNOLOGAPPEN_UTSKOTT_PATHS,
+  TeknologappenActivity,
+} from '@service/teknologappen';
 
 import prisma from './prisma';
 
 export class ActivityAPI {
   async syncTeknologappenActivities(activities: TeknologappenActivity[]): Promise<number> {
-    await Promise.all(
-      activities.map((activity) =>
-        prisma.prismaActivity.upsert({
-          where: {
-            source_sourceId: {
-              source: PrismaActivitySource.TEKNOLOGAPPEN,
-              sourceId: activity.id,
-            },
-          },
-          create: this.toTeknologappenData(activity),
-          update: this.toTeknologappenData(activity),
-        }),
-      ),
-    );
+    const guildActivities = activities.filter(isTeknologappenGuildActivity);
+    const outOfScopeIds = activities
+      .filter((activity) => !isTeknologappenGuildActivity(activity))
+      .map(({ id }) => id);
 
-    return activities.length;
+    await prisma.$transaction(async (tx) => {
+      if (outOfScopeIds.length > 0) {
+        await tx.prismaActivity.deleteMany({
+          where: {
+            source: PrismaActivitySource.TEKNOLOGAPPEN,
+            sourceId: { in: outOfScopeIds },
+          },
+        });
+      }
+
+      await Promise.all(
+        guildActivities.map((activity) =>
+          tx.prismaActivity.upsert({
+            where: {
+              source_sourceId: {
+                source: PrismaActivitySource.TEKNOLOGAPPEN,
+                sourceId: activity.id,
+              },
+            },
+            create: this.toTeknologappenData(activity),
+            update: this.toTeknologappenData(activity),
+          }),
+        ),
+      );
+    });
+
+    return guildActivities.length;
   }
 
   private toTeknologappenData(activity: TeknologappenActivity) {

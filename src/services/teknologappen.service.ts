@@ -43,6 +43,14 @@ export const TEKNOLOGAPPEN_UTSKOTT_PATHS: Record<PrismaUtskott, string> = {
   STYRELSEN: 'tlth.e.board',
 };
 
+export const isTeknologappenGuildActivity = (activity: TeknologappenActivity): boolean => {
+  const path = activity.creator_path.trim().toLocaleLowerCase();
+  return (
+    path === TEKNOLOGAPPEN_UTSKOTT_PATHS.OTHER ||
+    path.startsWith(`${TEKNOLOGAPPEN_UTSKOTT_PATHS.OTHER}.`)
+  );
+};
+
 const { TEKNOLOGAPPEN } = config;
 const AUTH_URL = 'https://api.auth.teknologappen.se/api/v0/api-key-get-access-token';
 const API_URL = 'https://api.teknologappen.se/v0';
