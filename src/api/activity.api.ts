@@ -2,6 +2,7 @@ import { BadRequestError, NotFoundError } from '@/errors/request.errors';
 import { StrictObject } from '@/models/base';
 import { devGuard, stripObject } from '@/util';
 import { ModifiedActivity, NewActivity, Utskott } from '@generated/graphql';
+import { markdownToSafeHtml } from '@service/markdown';
 import { PrismaActivity, PrismaActivitySource, PrismaUtskott } from '@prisma/client';
 import {
   isTeknologappenGuildActivity,
@@ -52,7 +53,7 @@ export class ActivityAPI {
       sourceId: activity.id,
       source: PrismaActivitySource.TEKNOLOGAPPEN,
       title: this.localizedValue(activity.title),
-      description: this.localizedValue(activity.description),
+      description: markdownToSafeHtml(this.localizedValue(activity.description)),
       startDate: new Date(activity.time_start),
       endDate: new Date(activity.time_end),
       utskott: this.getTeknologappenUtskott(activity),
