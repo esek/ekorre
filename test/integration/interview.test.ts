@@ -599,6 +599,60 @@ describe('admin', () => {
     expect(mails().map((m) => m.to)).toEqual([[nominee.email]]);
   });
 
+  describe('reminders', () => {
+    const REMIND = `mutation ($e: Int!, $u: [String!]) {
+      remindUnbookedNominees(electionId: $e, usernames: $u)
+    }`;
+    const REQUEST = `mutation ($e: Int!, $u: String!, $w: Int!, $s: DateTime!) {
+      requestInterview(electionId: $e, username: $u, windowId: $w, startsAt: $s) { id }
+    }`;
+
+    it('reminds only nominees who need an interview and have none', async () => {
+      const w = await createWindow({ capacity: 2 });
+      await respond(0, 'YES');
+      await gql(RESPOND, { postId: posts[0].id, accepts: 'YES' }, other);
+      await book(w, '17:00', other);
+      mockedSendEmail.mockReset();
+
+      const res = await gql(REMIND, { e: electionId }, admin);
+      expect(res.data.remindUnbookedNominees).toBe(1);
+      expect(mails().map((m) => m.to)).toEqual([[nominee.email]]);
+      expect(mails()[0].subject).toBe('Påminnelse: boka din intervju');
+      expect(mails()[0].overrides.buttonText).toBe('Boka intervju');
+      expect(mails()[0].overrides.note).toBe('');
+    });
+
+    it('can be limited to chosen nominees', async () => {
+      await createWindow({ capacity: 2 });
+      await respond(0, 'YES');
+      await gql(RESPOND, { postId: posts[0].id, accepts: 'YES' }, other);
+      mockedSendEmail.mockReset();
+
+      const res = await gql(REMIND, { e: electionId, u: [other.username] }, admin);
+      expect(res.data.remindUnbookedNominees).toBe(1);
+      expect(mails().map((m) => m.to)).toEqual([[other.email]]);
+    });
+
+    it('asks for an answer when a proposal is waiting, also after booking has closed', async () => {
+      const w = await createWindow({ capacity: 2 });
+      await respond(0, 'YES');
+      await gql(RESPOND, { postId: posts[0].id, accepts: 'YES' }, other);
+      await gql(REQUEST, { e: electionId, u: nominee.username, w, s: at('17:10') }, admin);
+      await interviewApi.updateSettings(electionId, { frozen: true });
+      mockedSendEmail.mockReset();
+
+      const res = await gql(REMIND, { e: electionId }, admin);
+      expect(res.data.remindUnbookedNominees).toBe(1);
+      expect(mails().map((m) => m.to)).toEqual([[nominee.email]]);
+      expect(mails()[0].overrides.buttonText).toBe('Svara på förslaget');
+    });
+
+    it('requires election admin', async () => {
+      const res = await gql(REMIND, { e: electionId }, nominee);
+      expect(res.errors?.[0]).toMatchObject({ errorType: 'ForbiddenError' });
+    });
+  });
+
   it('rejects video links that are not web links', async () => {
     const res = await gql(
       CREATE_WINDOW,

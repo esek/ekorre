@@ -638,6 +638,11 @@ export type Mutation = {
   propose: Scalars['Boolean'];
   providerLogin: LoginResponse;
   refresh: TokenResponse;
+  /**
+   * Admin: reminds nominees who need an interview and have none to book one. `usernames`
+   * limits the reminder to those nominees. Returns how many were mailed
+   */
+  remindUnbookedNominees: Scalars['Int'];
   removeActivity: Activity;
   removeArticle: Scalars['Boolean'];
   removeElectables: Scalars['Boolean'];
@@ -939,6 +944,12 @@ export type MutationProviderLoginArgs = {
 
 export type MutationRefreshArgs = {
   refreshToken: Scalars['String'];
+};
+
+
+export type MutationRemindUnbookedNomineesArgs = {
+  electionId: Scalars['Int'];
+  usernames?: InputMaybe<Array<Scalars['String']>>;
 };
 
 
@@ -2688,6 +2699,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   propose?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationProposeArgs, 'electionId' | 'postId' | 'username'>>;
   providerLogin?: Resolver<ResolversTypes['LoginResponse'], ParentType, ContextType, RequireFields<MutationProviderLoginArgs, 'input'>>;
   refresh?: Resolver<ResolversTypes['TokenResponse'], ParentType, ContextType, RequireFields<MutationRefreshArgs, 'refreshToken'>>;
+  remindUnbookedNominees?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationRemindUnbookedNomineesArgs, 'electionId'>>;
   removeActivity?: Resolver<ResolversTypes['Activity'], ParentType, ContextType, RequireFields<MutationRemoveActivityArgs, 'id'>>;
   removeArticle?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveArticleArgs, 'articleId'>>;
   removeElectables?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveElectablesArgs, 'electionId' | 'postIds'>>;
