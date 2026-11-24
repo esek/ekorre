@@ -3,7 +3,7 @@ import { BadRequestError, NotFoundError, ServerError } from '@/errors/request.er
 import { Logger } from '@/logger';
 import { devGuard } from '@/util';
 import { AccessType, MeetingDocumentType, MeetingType } from '@generated/graphql';
-import { Prisma, PrismaMeeting, PrismaMeetingType } from '@prisma/client';
+import { Prisma, PrismaMeeting, PrismaMeetingItemStatus, PrismaMeetingType } from '@prisma/client';
 
 import prisma from './prisma';
 
@@ -36,12 +36,45 @@ export class MeetingAPI {
    */
   async getNextMeeting(): Promise<PrismaMeeting | null> {
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 1);
+    cutoff.setDate(cutoff.getDate() - 7);
 
-    return prisma.prismaMeeting.findFirst({
-      where: { date: { gte: cutoff } },
+    const meetings = await prisma.prismaMeeting.findMany({
+      where: {
+        date: { gte: cutoff },
+        schedule: { isNot: null },
+      },
+      include: {
+        schedule: {
+          include: { items: { orderBy: { position: 'asc' } } },
+        },
+      },
       orderBy: [{ date: 'asc' }, { type: 'asc' }, { number: 'asc' }],
     });
+
+    const now = Date.now();
+    const twoHours = 2 * 60 * 60 * 1000;
+
+    return (
+      meetings.find((meeting) => {
+        const items = meeting.schedule?.items ?? [];
+
+        // A schedule without items is not an actual schedule yet.
+        if (items.length === 0) return false;
+
+        const allClosed = items.every(
+          (item) =>
+            item.status === PrismaMeetingItemStatus.DONE ||
+            item.status === PrismaMeetingItemStatus.SKIPPED,
+        );
+        if (!allClosed) return true;
+
+        const lastItem = items[items.length - 1];
+        if (lastItem.actualStart == null || lastItem.actualSeconds == null) return true;
+
+        const stoppedAt = lastItem.actualStart.getTime() + lastItem.actualSeconds * 1000;
+        return now - stoppedAt <= twoHours;
+      }) ?? null
+    );
   }
 
   /**
