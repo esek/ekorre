@@ -17,6 +17,7 @@ import {
   MailPerson,
   sendBookingMail,
   sendBookingRemovedMail,
+  sendBookingReminderMail,
   sendCommitteeMail,
   sendRequestDeclinedMail,
   sendRequestMail,
@@ -417,6 +418,29 @@ const interviewResolver: Resolvers = {
       let sent = 0;
       for (const { username } of unbooked) {
         if (await sendSlotsUpdatedMail(electionId, await person(username))) sent += 1;
+      }
+      return sent;
+    },
+    remindUnbookedNominees: async (_, { electionId, usernames }, ctx) => {
+      await hasAccess(ctx, Feature.ElectionAdmin);
+      const now = new Date();
+      const settings = await api.getSettings(electionId);
+      const frozen = isFrozen(settings, now);
+      const proposed = new Set(
+        (await api.getPendingRequests(electionId, now)).map((r) => r.refUser),
+      );
+      const only = usernames ? new Set(usernames) : undefined;
+      const unbooked = (await api.getUnbookedNominees(electionId)).filter(
+        // Once booking has closed, only an answer to a proposal can still give a booking
+        ({ username }) => (only?.has(username) ?? true) && (!frozen || proposed.has(username)),
+      );
+      let sent = 0;
+      for (const { username } of unbooked) {
+        const mailed = await sendBookingReminderMail(electionId, await person(username), {
+          hasProposal: proposed.has(username),
+          closesAt: frozen ? null : settings.freezeAt,
+        });
+        if (mailed) sent += 1;
       }
       return sent;
     },

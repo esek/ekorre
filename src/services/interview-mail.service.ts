@@ -310,6 +310,34 @@ export const sendSlotsUpdatedMail = (electionId: number, nominee: MailPerson) =>
     buttonLink: interviewLink(electionId),
   });
 
+/**
+ * Reminds a nominee who still has no booking. With a proposal from the committee waiting,
+ * the reminder is about answering it, which is possible even after booking has closed.
+ */
+export const sendBookingReminderMail = (
+  electionId: number,
+  nominee: MailPerson,
+  { hasProposal, closesAt }: { hasProposal: boolean; closesAt: Date | null },
+) =>
+  send(nominee.email, 'Påminnelse: boka din intervju', NOMINEE_TEMPLATE, {
+    firstName: nominee.firstName,
+    heading: 'Du har inte bokat din intervju',
+    intro: hasProposal
+      ? 'Du har accepterat en nominering som kräver intervju men har ingen bokad tid. Valberedningen har föreslagit en tid som väntar på ditt svar.'
+      : 'Du har accepterat en nominering som kräver intervju men har ingen bokad tid. Boka en tid med valberedningen på hemsidan.',
+    time: '',
+    timeLabel: '',
+    struck: '',
+    location: '',
+    videoLink: '',
+    posts: [],
+    note: closesAt
+      ? `Bokningen stänger ${dateFormat.format(closesAt)} kl. ${timeFormat.format(closesAt)}.`
+      : '',
+    buttonText: hasProposal ? 'Svara på förslaget' : 'Boka intervju',
+    buttonLink: interviewLink(electionId),
+  });
+
 /** Tells the committee a nominee declined a proposed time, linking straight to proposing a new one */
 export const sendRequestDeclinedMail = (
   to: string[],

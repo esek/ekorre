@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.37.0] - 2026-11-24
+
+### Tillagt
+- Valberedningen kan påminna nominerade som saknar intervjubokning om att boka, alla på en gång eller utvalda, med `remindUnbookedNominees`. Den som har ett förslag på tid som väntar påminns om att svara på det
+
 ## [1.36.2] - 2026-11-12
 
 ### Fixat

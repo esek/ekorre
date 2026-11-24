@@ -66,6 +66,11 @@ type Mutation {
   cancelInterviewBooking(bookingId: String!): Boolean!
   "Admin: mails nominees who need an interview and have none. Returns how many were mailed"
   notifyUnbookedNominees(electionId: Int!): Int!
+  """
+  Admin: reminds nominees who need an interview and have none to book one. `usernames`
+  limits the reminder to those nominees. Returns how many were mailed
+  """
+  remindUnbookedNominees(electionId: Int!, usernames: [String!]): Int!
 }
 
 enum InterviewBookingEffect {
