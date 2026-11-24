@@ -500,9 +500,26 @@ export type Meeting = {
    */
   number: Scalars['Int'];
   protocol?: Maybe<File>;
+  /** Live/planned schedule for the meeting */
+  schedule?: Maybe<MeetingSchedule>;
   /** Kallelse */
   summons?: Maybe<File>;
   type: MeetingType;
+};
+
+/** A break in the schedule, e.g. the meeting continues the next day */
+export type MeetingBreak = {
+  afterItemPosition: Scalars['Int'];
+  endAt: Scalars['DateTime'];
+  label?: Maybe<Scalars['String']>;
+  startAt: Scalars['DateTime'];
+};
+
+export type MeetingBreakInput = {
+  afterItemPosition: Scalars['Int'];
+  endAt: Scalars['DateTime'];
+  label?: InputMaybe<Scalars['String']>;
+  startAt: Scalars['DateTime'];
 };
 
 export enum MeetingDocumentType {
@@ -516,6 +533,94 @@ export enum MeetingDocumentType {
   Protocol = 'protocol',
   /** Kallelse */
   Summons = 'summons'
+}
+
+/** One numbered point on the agenda */
+export type MeetingItem = {
+  actualSeconds?: Maybe<Scalars['Int']>;
+  actualStart?: Maybe<Scalars['DateTime']>;
+  description?: Maybe<Scalars['String']>;
+  /** Agenda number as written, e.g. 12 */
+  number: Scalars['String'];
+  plannedSeconds?: Maybe<Scalars['Int']>;
+  /** Position in the saved order (1-based) */
+  position: Scalars['Int'];
+  posts: Array<MeetingItemPost>;
+  status: MeetingItemStatus;
+  /** Predicted duration from previous meetings of the same type */
+  suggestedSeconds?: Maybe<Scalars['Int']>;
+  title: Scalars['String'];
+};
+
+export type MeetingItemInput = {
+  actualSeconds?: InputMaybe<Scalars['Int']>;
+  actualStart?: InputMaybe<Scalars['DateTime']>;
+  description?: InputMaybe<Scalars['String']>;
+  number: Scalars['String'];
+  plannedSeconds?: InputMaybe<Scalars['Int']>;
+  posts: Array<MeetingItemPostInput>;
+  status?: InputMaybe<MeetingItemStatus>;
+  title: Scalars['String'];
+};
+
+/** A post handled under an agenda item */
+export type MeetingItemPost = {
+  actualSeconds?: Maybe<Scalars['Int']>;
+  actualStart?: Maybe<Scalars['DateTime']>;
+  /** Number of applicants, read from the Typst handlingar */
+  applicants?: Maybe<Scalars['Int']>;
+  name: Scalars['String'];
+  plannedSeconds?: Maybe<Scalars['Int']>;
+  position: Scalars['Int'];
+  /** Seconds each applicant gets to present themselves */
+  presentationSeconds: Scalars['Int'];
+  spots?: Maybe<Scalars['Int']>;
+  status: MeetingItemStatus;
+  /** Predicted presentation time from previous meetings of the same type */
+  suggestedPresentationSeconds?: Maybe<Scalars['Int']>;
+  /** Predicted duration from previous meetings of the same type */
+  suggestedSeconds?: Maybe<Scalars['Int']>;
+};
+
+export type MeetingItemPostInput = {
+  actualSeconds?: InputMaybe<Scalars['Int']>;
+  actualStart?: InputMaybe<Scalars['DateTime']>;
+  applicants?: InputMaybe<Scalars['Int']>;
+  name: Scalars['String'];
+  plannedSeconds?: InputMaybe<Scalars['Int']>;
+  presentationSeconds?: InputMaybe<Scalars['Int']>;
+  spots?: InputMaybe<Scalars['Int']>;
+  status?: InputMaybe<MeetingItemStatus>;
+};
+
+export enum MeetingItemStatus {
+  Active = 'ACTIVE',
+  Done = 'DONE',
+  Pending = 'PENDING',
+  Skipped = 'SKIPPED'
+}
+
+/** Planned and live timing for a meeting */
+export type MeetingSchedule = {
+  actualStart?: Maybe<Scalars['DateTime']>;
+  breaks: Array<MeetingBreak>;
+  items: Array<MeetingItem>;
+  scheduledStart?: Maybe<Scalars['DateTime']>;
+  status: MeetingScheduleStatus;
+};
+
+export type MeetingScheduleInput = {
+  actualStart?: InputMaybe<Scalars['DateTime']>;
+  breaks: Array<MeetingBreakInput>;
+  items: Array<MeetingItemInput>;
+  scheduledStart?: InputMaybe<Scalars['DateTime']>;
+  status?: InputMaybe<MeetingScheduleStatus>;
+};
+
+export enum MeetingScheduleStatus {
+  Draft = 'DRAFT',
+  Finished = 'FINISHED',
+  Live = 'LIVE'
 }
 
 export enum MeetingType {
@@ -651,6 +756,8 @@ export type Mutation = {
   removeHehe: Scalars['Boolean'];
   removeHistoryEntry: Scalars['Boolean'];
   removeMeeting: Scalars['Boolean'];
+  /** Admin */
+  removeMeetingSchedule: Scalars['Boolean'];
   /**
    * Deletes a draft. A sent or accepted proposal is withdrawn instead, and the person is
    * mailed if the deadline has not passed
@@ -679,6 +786,8 @@ export type Mutation = {
   respondToNomination: Scalars['Boolean'];
   /** Accepts or declines the user's own pending proposal */
   respondToProposal: Scalars['Boolean'];
+  /** Admin: create or replace the whole schedule for a meeting */
+  saveMeetingSchedule: MeetingSchedule;
   sendEmail: Scalars['Boolean'];
   /** Sends all draft proposals for a post and mails the proposed. Returns how many were sent */
   sendProposals: Scalars['Int'];
@@ -996,6 +1105,11 @@ export type MutationRemoveMeetingArgs = {
 };
 
 
+export type MutationRemoveMeetingScheduleArgs = {
+  meetingId: Scalars['Int'];
+};
+
+
 export type MutationRemoveProposalArgs = {
   electionId: Scalars['Int'];
   postId: Scalars['Int'];
@@ -1066,6 +1180,12 @@ export type MutationRespondToProposalArgs = {
   accepts: Scalars['Boolean'];
   electionId: Scalars['Int'];
   postId: Scalars['Int'];
+};
+
+
+export type MutationSaveMeetingScheduleArgs = {
+  input: MeetingScheduleInput;
+  meetingId: Scalars['Int'];
 };
 
 
@@ -1451,6 +1571,11 @@ export type Query = {
   /** The user's own proposals (sent ones only) and motkandidat options in an election */
   myProposals: Array<Proposal>;
   newsentries: Array<Article>;
+  /**
+   * The next meeting (or the one currently being held). Public, used by the
+   * public schedule page. Null when there is no upcoming meeting.
+   */
+  nextMeeting?: Maybe<Meeting>;
   /**
    * What answering a nomination in the open election would do to the nominee's
    * interview booking. Pass the returned `effect` to `respondToNomination`.
@@ -2210,7 +2335,17 @@ export type ResolversTypes = ResolversObject<{
   LoginProvider: ResolverTypeWrapper<LoginProvider>;
   LoginResponse: ResolverTypeWrapper<LoginResponse>;
   Meeting: ResolverTypeWrapper<MeetingResponse>;
+  MeetingBreak: ResolverTypeWrapper<MeetingBreak>;
+  MeetingBreakInput: MeetingBreakInput;
   MeetingDocumentType: MeetingDocumentType;
+  MeetingItem: ResolverTypeWrapper<MeetingItem>;
+  MeetingItemInput: MeetingItemInput;
+  MeetingItemPost: ResolverTypeWrapper<MeetingItemPost>;
+  MeetingItemPostInput: MeetingItemPostInput;
+  MeetingItemStatus: MeetingItemStatus;
+  MeetingSchedule: ResolverTypeWrapper<MeetingSchedule>;
+  MeetingScheduleInput: MeetingScheduleInput;
+  MeetingScheduleStatus: MeetingScheduleStatus;
   MeetingType: MeetingType;
   ModifiedActivity: ModifiedActivity;
   ModifiedTicket: ModifiedTicket;
@@ -2301,6 +2436,14 @@ export type ResolversParentTypes = ResolversObject<{
   LoginProvider: LoginProvider;
   LoginResponse: LoginResponse;
   Meeting: MeetingResponse;
+  MeetingBreak: MeetingBreak;
+  MeetingBreakInput: MeetingBreakInput;
+  MeetingItem: MeetingItem;
+  MeetingItemInput: MeetingItemInput;
+  MeetingItemPost: MeetingItemPost;
+  MeetingItemPostInput: MeetingItemPostInput;
+  MeetingSchedule: MeetingSchedule;
+  MeetingScheduleInput: MeetingScheduleInput;
   ModifiedActivity: ModifiedActivity;
   ModifiedTicket: ModifiedTicket;
   ModifyArticle: ModifyArticle;
@@ -2650,8 +2793,55 @@ export type MeetingResolvers<ContextType = Context, ParentType extends Resolvers
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   number?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   protocol?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
+  schedule?: Resolver<Maybe<ResolversTypes['MeetingSchedule']>, ParentType, ContextType>;
   summons?: Resolver<Maybe<ResolversTypes['File']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['MeetingType'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type MeetingBreakResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MeetingBreak'] = ResolversParentTypes['MeetingBreak']> = ResolversObject<{
+  afterItemPosition?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  endAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  label?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  startAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type MeetingItemResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MeetingItem'] = ResolversParentTypes['MeetingItem']> = ResolversObject<{
+  actualSeconds?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  actualStart?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  number?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  plannedSeconds?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  position?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  posts?: Resolver<Array<ResolversTypes['MeetingItemPost']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['MeetingItemStatus'], ParentType, ContextType>;
+  suggestedSeconds?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type MeetingItemPostResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MeetingItemPost'] = ResolversParentTypes['MeetingItemPost']> = ResolversObject<{
+  actualSeconds?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  actualStart?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  applicants?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  plannedSeconds?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  position?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  presentationSeconds?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  spots?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['MeetingItemStatus'], ParentType, ContextType>;
+  suggestedPresentationSeconds?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  suggestedSeconds?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type MeetingScheduleResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MeetingSchedule'] = ResolversParentTypes['MeetingSchedule']> = ResolversObject<{
+  actualStart?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  breaks?: Resolver<Array<ResolversTypes['MeetingBreak']>, ParentType, ContextType>;
+  items?: Resolver<Array<ResolversTypes['MeetingItem']>, ParentType, ContextType>;
+  scheduledStart?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['MeetingScheduleStatus'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2708,6 +2898,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeHehe?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHeheArgs, 'number' | 'year'>>;
   removeHistoryEntry?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveHistoryEntryArgs, 'id'>>;
   removeMeeting?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingArgs, 'id'>>;
+  removeMeetingSchedule?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveMeetingScheduleArgs, 'meetingId'>>;
   removeProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveProposalArgs, 'electionId' | 'postId' | 'username'>>;
   removeTicket?: Resolver<ResolversTypes['Ticket'], ParentType, ContextType, RequireFields<MutationRemoveTicketArgs, 'id'>>;
   renameElection?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRenameElectionArgs, 'electionId'>>;
@@ -2719,6 +2910,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   respondToInterviewRequest?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToInterviewRequestArgs, 'accept' | 'requestId'>>;
   respondToNomination?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToNominationArgs, 'accepts' | 'postId'>>;
   respondToProposal?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRespondToProposalArgs, 'accepts' | 'electionId' | 'postId'>>;
+  saveMeetingSchedule?: Resolver<ResolversTypes['MeetingSchedule'], ParentType, ContextType, RequireFields<MutationSaveMeetingScheduleArgs, 'input' | 'meetingId'>>;
   sendEmail?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSendEmailArgs, 'options'>>;
   sendProposals?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<MutationSendProposalsArgs, 'electionId' | 'postId'>>;
   setApiKeyAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationSetApiKeyAccessArgs, 'access' | 'key'>>;
@@ -2872,6 +3064,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   myNominations?: Resolver<Array<ResolversTypes['Nomination']>, ParentType, ContextType, RequireFields<QueryMyNominationsArgs, 'electionId'>>;
   myProposals?: Resolver<Array<ResolversTypes['Proposal']>, ParentType, ContextType, RequireFields<QueryMyProposalsArgs, 'electionId'>>;
   newsentries?: Resolver<Array<ResolversTypes['Article']>, ParentType, ContextType, Partial<QueryNewsentriesArgs>>;
+  nextMeeting?: Resolver<Maybe<ResolversTypes['Meeting']>, ParentType, ContextType>;
   nominationResponsePreview?: Resolver<ResolversTypes['NominationResponsePreview'], ParentType, ContextType, RequireFields<QueryNominationResponsePreviewArgs, 'accepts' | 'postId'>>;
   numberOfMembers?: Resolver<ResolversTypes['Int'], ParentType, ContextType, Partial<QueryNumberOfMembersArgs>>;
   numberOfNominations?: Resolver<ResolversTypes['Int'], ParentType, ContextType, RequireFields<QueryNumberOfNominationsArgs, 'electionId'>>;
@@ -2981,6 +3174,10 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   LoginProvider?: LoginProviderResolvers<ContextType>;
   LoginResponse?: LoginResponseResolvers<ContextType>;
   Meeting?: MeetingResolvers<ContextType>;
+  MeetingBreak?: MeetingBreakResolvers<ContextType>;
+  MeetingItem?: MeetingItemResolvers<ContextType>;
+  MeetingItemPost?: MeetingItemPostResolvers<ContextType>;
+  MeetingSchedule?: MeetingScheduleResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   MyInterview?: MyInterviewResolvers<ContextType>;
   Nomination?: NominationResolvers<ContextType>;

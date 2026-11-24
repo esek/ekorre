@@ -377,6 +377,7 @@ model PrismaMeeting {
   refProtocol      String?           @unique @map("ref_protocol")
   appendix         PrismaFile?       @relation(name: "MeetingAppendix", fields: [refAppendix], references: [id])
   refAppendix      String?           @unique @map("ref_appendix")
+  schedule         PrismaMeetingSchedule? @relation(name: "PrismaMeetingToPrismaMeetingSchedule")
 
   // Date has priority in queries,
   // but often also ordered by number
@@ -678,4 +679,98 @@ model PrismaInterviewNoSlotEvent {
 
   @@index([refElection, createdAt])
   @@map("interview_no_slot_events")
+}
+
+/// How far along a meeting schedule is.
+enum PrismaMeetingScheduleStatus {
+  /// Not started, timings are only planned
+  DRAFT
+  /// Meeting is being held right now
+  LIVE
+  /// Meeting is over
+  FINISHED
+
+  @@map("meeting_schedule_status")
+}
+
+/// Status for an agenda item or a post under an item.
+enum PrismaMeetingItemStatus {
+  PENDING
+  ACTIVE
+  DONE
+  SKIPPED
+
+  @@map("meeting_item_status")
+}
+
+/// Live/planned schedule for a meeting. One per meeting.
+model PrismaMeetingSchedule {
+  id             Int                         @id @default(autoincrement())
+  meeting        PrismaMeeting               @relation(name: "PrismaMeetingToPrismaMeetingSchedule", fields: [refMeeting], references: [id], onDelete: Cascade)
+  refMeeting     Int                         @unique @map("ref_meeting")
+  scheduledStart DateTime?                   @map("scheduled_start")
+  actualStart    DateTime?                   @map("actual_start")
+  status         PrismaMeetingScheduleStatus @default(DRAFT)
+  createdAt      DateTime                    @default(now()) @map("created_at")
+  updatedAt      DateTime                    @updatedAt @map("updated_at")
+  items          PrismaMeetingItem[]  @relation(name: "PrismaMeetingScheduleToPrismaMeetingItem")
+  breaks         PrismaMeetingBreak[] @relation(name: "PrismaMeetingScheduleToPrismaMeetingBreak")
+
+  @@map("meeting_schedules")
+}
+
+/// One numbered point (§) on the agenda.
+model PrismaMeetingItem {
+  id             Int                     @id @default(autoincrement())
+  schedule       PrismaMeetingSchedule   @relation(name: "PrismaMeetingScheduleToPrismaMeetingItem", fields: [refSchedule], references: [id], onDelete: Cascade)
+  refSchedule    Int                     @map("ref_schedule")
+  position       Int
+  /// Agenda number as written, e.g. "12" (kept from the original order)
+  number         String
+  title          String
+  description    String?
+  plannedSeconds Int?                    @map("planned_seconds")
+  actualStart    DateTime?               @map("actual_start")
+  actualSeconds  Int?                    @map("actual_seconds")
+  status         PrismaMeetingItemStatus @default(PENDING)
+  posts          PrismaMeetingItemPost[] @relation(name: "PrismaMeetingItemToPrismaMeetingItemPost")
+
+  @@unique([refSchedule, position])
+  @@map("meeting_items")
+}
+
+/// A post (funktionärspost) handled under an agenda item.
+model PrismaMeetingItemPost {
+  id             Int                     @id @default(autoincrement())
+  item           PrismaMeetingItem       @relation(name: "PrismaMeetingItemToPrismaMeetingItemPost", fields: [refItem], references: [id], onDelete: Cascade)
+  refItem        Int                     @map("ref_item")
+  position       Int
+  name           String
+  spots          Int?
+  /// Number of applicants read from the Typst handlingar
+  applicants          Int?                @map("applicants")
+  /// Time each applicant gets to present themselves, in seconds
+  presentationSeconds Int                 @default(120) @map("presentation_seconds")
+  plannedSeconds Int?                    @map("planned_seconds")
+  actualStart    DateTime?               @map("actual_start")
+  actualSeconds  Int?                    @map("actual_seconds")
+  status         PrismaMeetingItemStatus @default(PENDING)
+
+  @@unique([refItem, position])
+  @@map("meeting_item_posts")
+}
+
+/// A break in the schedule (e.g. the meeting continues the next day).
+model PrismaMeetingBreak {
+  id                Int                   @id @default(autoincrement())
+  schedule          PrismaMeetingSchedule @relation(name: "PrismaMeetingScheduleToPrismaMeetingBreak", fields: [refSchedule], references: [id], onDelete: Cascade)
+  refSchedule       Int                   @map("ref_schedule")
+  /// The break happens after the item with this position (0 = before the first item)
+  afterItemPosition Int                   @map("after_item_position")
+  startAt           DateTime              @map("start_at")
+  endAt             DateTime              @map("end_at")
+  label             String?
+
+  @@unique([refSchedule, afterItemPosition])
+  @@map("meeting_breaks")
 }

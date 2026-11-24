@@ -9,8 +9,10 @@ import prisma from './prisma';
 
 const logger = Logger.getLogger('MeetingAPI');
 
-const dateOnly = (date: Date): Date => new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-const endOfDateUTC = (date: Date): Date => new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999));
+const dateOnly = (date: Date): Date =>
+  new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+const endOfDateUTC = (date: Date): Date =>
+  new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999));
 
 export class MeetingAPI {
   /**
@@ -26,6 +28,20 @@ export class MeetingAPI {
     });
 
     return m;
+  }
+
+  /**
+   * Retrieves the next meeting, or one that was held during the last 24
+   * hours. Used by the public schedule page.
+   */
+  async getNextMeeting(): Promise<PrismaMeeting | null> {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 1);
+
+    return prisma.prismaMeeting.findFirst({
+      where: { date: { gte: cutoff } },
+      orderBy: [{ date: 'asc' }, { type: 'asc' }, { number: 'asc' }],
+    });
   }
 
   /**
@@ -105,7 +121,7 @@ export class MeetingAPI {
     endDate?: Date,
     number?: number,
     type?: MeetingType,
-    sortOrder: 'desc' | 'asc' = 'desc'
+    sortOrder: 'desc' | 'asc' = 'desc',
   ): Promise<PrismaMeeting[]> {
     const whereAnd: Prisma.PrismaMeetingWhereInput[] = [];
 
@@ -187,8 +203,8 @@ export class MeetingAPI {
           type: type as PrismaMeetingType,
           date: {
             gte: startOfYear,
-            lte: endOfYear
-          }
+            lte: endOfYear,
+          },
         },
         select: { number: true },
         orderBy: [{ number: 'desc' }],

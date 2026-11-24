@@ -1,10 +1,13 @@
 import { reduce } from '@/reducers';
 import { hasAccess } from '@/util';
 import { MeetingAPI } from '@api/meeting';
-import { Feature, Resolvers } from '@generated/graphql';
+import { MeetingScheduleAPI } from '@api/meeting-schedule';
+import { Feature, MeetingType, Resolvers } from '@generated/graphql';
 import { meetingReduce } from '@reducer/meeting';
+import { meetingScheduleReduce } from '@reducer/meeting-schedule';
 
 const api = new MeetingAPI();
+const scheduleApi = new MeetingScheduleAPI();
 
 // TODO: Säkra upp, typ kräv inlogg för queries och
 // admin för mutations
@@ -48,6 +51,20 @@ const meetingResolver: Resolvers = {
       }
       return null;
     },
+    schedule: async ({ id }) => {
+      if (id == null) return null;
+
+      const schedule = await scheduleApi.getByMeetingId(id);
+      if (schedule == null) return null;
+
+      const suggestions = await scheduleApi.getSuggestions(
+        schedule.meeting.type as unknown as MeetingType,
+        id,
+        schedule.items,
+      );
+
+      return meetingScheduleReduce(schedule, suggestions);
+    },
   },
   Query: {
     meeting: async (_, { id }) => {
@@ -80,6 +97,11 @@ const meetingResolver: Resolvers = {
       const m = await api.getLatestBoardMeetings(limit ?? undefined);
       return reduce(m, meetingReduce);
     },
+    nextMeeting: async () => {
+      // Meetings _should_ be visible to the public
+      const m = await api.getNextMeeting();
+      return m == null ? null : reduce(m, meetingReduce);
+    },
   },
   Mutation: {
     addMeeting: async (_, { type, number, date }, ctx) => {
@@ -99,6 +121,21 @@ const meetingResolver: Resolvers = {
     removeFileFromMeeting: async (_, { meetingId, fileType }, ctx) => {
       await hasAccess(ctx, Feature.MeetingsAdmin);
       return api.removeFileFromMeeting(meetingId, fileType);
+    },
+    saveMeetingSchedule: async (_, { meetingId, input }, ctx) => {
+      await hasAccess(ctx, Feature.MeetingsAdmin);
+      const schedule = await scheduleApi.save(meetingId, input);
+      const suggestions = await scheduleApi.getSuggestions(
+        schedule.meeting.type as unknown as MeetingType,
+        meetingId,
+        schedule.items,
+      );
+
+      return meetingScheduleReduce(schedule, suggestions);
+    },
+    removeMeetingSchedule: async (_, { meetingId }, ctx) => {
+      await hasAccess(ctx, Feature.MeetingsAdmin);
+      return scheduleApi.remove(meetingId);
     },
   },
 };

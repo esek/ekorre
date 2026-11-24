@@ -1,10 +1,18 @@
 # import File from 'file.graphql'
 
+scalar DateTime
+
 type Query {
   meeting(id: Int!): Meeting!
   meetings(type: MeetingType, number: Int, year: Int): [Meeting!]!
   meetingsByDate(startDate: Date, endDate: Date, number: Int, type: MeetingType, sortOrder: String): [Meeting!]!
   latestBoardMeetings(limit: Int): [Meeting!]!
+
+  """
+  The next meeting (or the one currently being held). Public, used by the
+  public schedule page. Null when there is no upcoming meeting.
+  """
+  nextMeeting: Meeting
 }
 
 type Mutation {
@@ -12,6 +20,11 @@ type Mutation {
   removeMeeting(id: Int!): Boolean!
   addFileToMeeting(meetingId: Int!, fileId: String!, fileType: MeetingDocumentType!): Boolean!
   removeFileFromMeeting(meetingId: Int!, fileType: MeetingDocumentType!): Boolean!
+
+  "Admin: create or replace the whole schedule for a meeting"
+  saveMeetingSchedule(meetingId: Int!, input: MeetingScheduleInput!): MeetingSchedule!
+  "Admin"
+  removeMeetingSchedule(meetingId: Int!): Boolean!
 }
 
 type Meeting {
@@ -40,6 +53,112 @@ type Meeting {
   
   "Bilaga"
   appendix: File
+
+  "Live/planned schedule for the meeting"
+  schedule: MeetingSchedule
+}
+
+enum MeetingScheduleStatus {
+  DRAFT
+  LIVE
+  FINISHED
+}
+
+enum MeetingItemStatus {
+  PENDING
+  ACTIVE
+  DONE
+  SKIPPED
+}
+
+"Planned and live timing for a meeting"
+type MeetingSchedule {
+  scheduledStart: DateTime
+  actualStart: DateTime
+  status: MeetingScheduleStatus!
+  items: [MeetingItem!]!
+  breaks: [MeetingBreak!]!
+}
+
+"One numbered point on the agenda"
+type MeetingItem {
+  "Position in the saved order (1-based)"
+  position: Int!
+  "Agenda number as written, e.g. 12"
+  number: String!
+  title: String!
+  description: String
+  plannedSeconds: Int
+  actualStart: DateTime
+  actualSeconds: Int
+  status: MeetingItemStatus!
+  "Predicted duration from previous meetings of the same type"
+  suggestedSeconds: Int
+  posts: [MeetingItemPost!]!
+}
+
+"A post handled under an agenda item"
+type MeetingItemPost {
+  position: Int!
+  name: String!
+  spots: Int
+  "Number of applicants, read from the Typst handlingar"
+  applicants: Int
+  "Seconds each applicant gets to present themselves"
+  presentationSeconds: Int!
+  plannedSeconds: Int
+  actualStart: DateTime
+  actualSeconds: Int
+  status: MeetingItemStatus!
+  "Predicted duration from previous meetings of the same type"
+  suggestedSeconds: Int
+  "Predicted presentation time from previous meetings of the same type"
+  suggestedPresentationSeconds: Int
+}
+
+"A break in the schedule, e.g. the meeting continues the next day"
+type MeetingBreak {
+  afterItemPosition: Int!
+  startAt: DateTime!
+  endAt: DateTime!
+  label: String
+}
+
+input MeetingScheduleInput {
+  scheduledStart: DateTime
+  actualStart: DateTime
+  status: MeetingScheduleStatus
+  items: [MeetingItemInput!]!
+  breaks: [MeetingBreakInput!]!
+}
+
+input MeetingItemInput {
+  number: String!
+  title: String!
+  description: String
+  plannedSeconds: Int
+  actualStart: DateTime
+  actualSeconds: Int
+  status: MeetingItemStatus
+  posts: [MeetingItemPostInput!]!
+}
+
+input MeetingItemPostInput {
+  name: String!
+  spots: Int
+  applicants: Int
+  presentationSeconds: Int
+  plannedSeconds: Int
+  actualStart: DateTime
+  actualSeconds: Int
+  status: MeetingItemStatus
+}
+
+input MeetingBreakInput {
+  afterItemPosition: Int!
+  startAt: DateTime!
+  endAt: DateTime!
+  label: String
 }
 
 scalar Date
