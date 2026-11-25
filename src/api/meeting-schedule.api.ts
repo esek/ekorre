@@ -60,11 +60,17 @@ const fitLinear = (samples: Sample[]): Regression | null => {
   if (sxx === 0) return null;
 
   const slope = sxy / sxx;
-  return { intercept: meanY - slope * meanX, slope };
+  const intercept = meanY - slope * meanX;
+
+  if (!Number.isFinite(slope) || !Number.isFinite(intercept)) return null;
+  return { intercept, slope };
 };
 
-const predictLinear = (line: Regression, x: number): number =>
-  Math.max(30, Math.round(line.intercept + line.slope * x));
+const predictLinear = (line: Regression, x: number): number => {
+  const predicted = line.intercept + line.slope * x;
+  if (!Number.isFinite(predicted)) return 30;
+  return Math.max(30, Math.round(predicted));
+};
 
 /** Most recent sample by meeting date. */
 const latestSample = <T extends { date: Date }>(samples: T[]): T | null =>
@@ -139,6 +145,7 @@ export class MeetingScheduleAPI {
       breaks: {
         create: input.breaks.map((meetingBreak) => ({
           afterItemPosition: meetingBreak.afterItemPosition,
+          afterPostPosition: meetingBreak.afterPostPosition ?? 0,
           startAt: validateDate(meetingBreak.startAt, 'Pausstart') as Date,
           endAt: validateDate(meetingBreak.endAt, 'Pausslut') as Date,
           label: meetingBreak.label ?? null,

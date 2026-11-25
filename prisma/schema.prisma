@@ -767,10 +767,12 @@ model PrismaMeetingBreak {
   refSchedule       Int                   @map("ref_schedule")
   /// The break happens after the item with this position (0 = before the first item)
   afterItemPosition Int                   @map("after_item_position")
+  /// 0 = after the item, 1+ = after that post within the item
+  afterPostPosition Int                   @default(0) @map("after_post_position")
   startAt           DateTime              @map("start_at")
   endAt             DateTime              @map("end_at")
   label             String?
 
-  @@unique([refSchedule, afterItemPosition])
+  @@unique([refSchedule, afterItemPosition, afterPostPosition])
   @@map("meeting_breaks")
 }

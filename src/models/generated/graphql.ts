@@ -510,6 +510,8 @@ export type Meeting = {
 /** A break in the schedule, e.g. the meeting continues the next day */
 export type MeetingBreak = {
   afterItemPosition: Scalars['Int'];
+  /** 0 = after the item, 1+ = after that post within the item */
+  afterPostPosition: Scalars['Int'];
   endAt: Scalars['DateTime'];
   label?: Maybe<Scalars['String']>;
   startAt: Scalars['DateTime'];
@@ -517,6 +519,7 @@ export type MeetingBreak = {
 
 export type MeetingBreakInput = {
   afterItemPosition: Scalars['Int'];
+  afterPostPosition?: InputMaybe<Scalars['Int']>;
   endAt: Scalars['DateTime'];
   label?: InputMaybe<Scalars['String']>;
   startAt: Scalars['DateTime'];
@@ -2801,6 +2804,7 @@ export type MeetingResolvers<ContextType = Context, ParentType extends Resolvers
 
 export type MeetingBreakResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MeetingBreak'] = ResolversParentTypes['MeetingBreak']> = ResolversObject<{
   afterItemPosition?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  afterPostPosition?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   endAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   label?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   startAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;

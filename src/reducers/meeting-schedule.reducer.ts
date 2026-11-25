@@ -31,6 +31,7 @@ export type MeetingScheduleResponse = {
   }[];
   breaks: {
     afterItemPosition: number;
+    afterPostPosition: number;
     startAt: Date;
     endAt: Date;
     label: string | null;
@@ -71,6 +72,7 @@ export function meetingScheduleReduce(
     })),
     breaks: schedule.breaks.map((meetingBreak) => ({
       afterItemPosition: meetingBreak.afterItemPosition,
+      afterPostPosition: meetingBreak.afterPostPosition,
       startAt: meetingBreak.startAt,
       endAt: meetingBreak.endAt,
       label: meetingBreak.label,

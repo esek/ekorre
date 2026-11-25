@@ -119,6 +119,8 @@ type MeetingItemPost {
 "A break in the schedule, e.g. the meeting continues the next day"
 type MeetingBreak {
   afterItemPosition: Int!
+  "0 = after the item, 1+ = after that post within the item"
+  afterPostPosition: Int!
   startAt: DateTime!
   endAt: DateTime!
   label: String
@@ -156,6 +158,7 @@ input MeetingItemPostInput {
 
 input MeetingBreakInput {
   afterItemPosition: Int!
+  afterPostPosition: Int
   startAt: DateTime!
   endAt: DateTime!
   label: String
