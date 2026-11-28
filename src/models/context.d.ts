@@ -10,6 +10,7 @@ export type Context = {
   response: Response;
   request: CustomReq;
   getUsername: () => string;
+  getUser: () => Promise<User>;
   getAccess: () => Promise<Access>;
   userDataLoader: DataLoader<string, User>;
   postDataLoader: DataLoader<number, Post>;

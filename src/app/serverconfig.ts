@@ -7,6 +7,7 @@ import type { Context, ContextParams } from '@/models/context';
 import * as Resolvers from '@/resolvers';
 import { AccessAPI } from '@api/access';
 import { ApiKeyAPI } from '@api/apikey';
+import { UserAPI } from '@api/user';
 import { batchElectionsFunction } from '@dataloader/election';
 import { batchFilesFunction } from '@dataloader/file';
 import { batchPostsFunction } from '@dataloader/post';
@@ -16,6 +17,7 @@ import { loadSchemaSync } from '@graphql-tools/load';
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { errorHandler } from '@middleware/graphql/errorhandler';
 import { accessReducer } from '@reducer/access';
+import { userReduce } from '@reducer/user';
 import {
   ApolloServerPluginLandingPageDisabled,
   ApolloServerPluginLandingPageGraphQLPlayground,
@@ -23,6 +25,7 @@ import {
 } from 'apollo-server-core';
 import { ExpressContext } from 'apollo-server-express';
 // Use scalarTypeDefs and scalarResolvers for more scalar types
+import type { User } from '@generated/graphql';
 import { DateResolver, DateTimeResolver } from 'graphql-scalars';
 
 // Ladda alla scheman från .graphql filer
@@ -43,6 +46,7 @@ const apolloLogger = Logger.getLogger('Apollo');
 
 const accessApi = new AccessAPI();
 const apiKeyApi = new ApiKeyAPI();
+const userApi = new UserAPI();
 
 const apolloServerConfig: Config<ExpressContext> = {
   schema,
@@ -79,6 +83,24 @@ const apolloServerConfig: Config<ExpressContext> = {
     };
 
     /**
+     * Loads the authenticated user as a GraphQL `User`.
+     *
+     * The promise is cached for the duration of the request, so multiple
+     * resolvers do not re-query the same row.
+     *
+     * @throws UnauthenticatedError if the request is not authenticated
+     * @throws NotFoundError if the user does not exist in Ekorre
+     */
+    let userPromise: Promise<User> | null = null;
+    const getUser = (): Promise<User> => {
+      userPromise ??= (async () => {
+        const user = await userApi.getSingleUser(getUsername());
+        return userReduce(user);
+      })();
+      return userPromise;
+    };
+
+    /**
      * Gets the user entire access
      * @returns A list of the users access
      */
@@ -105,6 +127,7 @@ const apolloServerConfig: Config<ExpressContext> = {
       bearerToken,
       apiKey,
       getUsername,
+      getUser,
       getAccess,
       response: res,
       request: req,
