@@ -19,12 +19,6 @@ const LU_PREFIX = 'lund-university:';
 const REQUEST_DELAY_MS = 30 * 1000;
 
 /**
- * Posts in these utskott are not synced. Posts in OTHER would end up directly
- * under the guild group, which is not wanted yet
- */
-const UNSYNCED_UTSKOTT: ReadonlySet<PrismaUtskott> = new Set([PrismaUtskott.OTHER]);
-
-/**
  * Names used if an utskott group is missing in Teknologappen and has to be created
  */
 const UTSKOTT_NAMES: Record<PrismaUtskott, string> = {
@@ -186,10 +180,6 @@ export const planPostGroup = (
       return { kind: 'skip', reason: `linked group ${post.teknologappenGroupId} does not exist` };
     }
     return { kind: 'existing', group, link: false };
-  }
-
-  if (UNSYNCED_UTSKOTT.has(post.utskott)) {
-    return { kind: 'skip', reason: `posts in ${post.utskott} are not synced` };
   }
 
   const slug = toGroupSlug(post.postname);

@@ -185,10 +185,14 @@ describe('planPostGroup', () => {
     ).toEqual({ kind: 'create', path: 'tlth.e.pengu.skattmastare', parentPath: 'tlth.e.pengu' });
   });
 
-  it('does not sync posts in OTHER', () => {
-    expect(planPostGroup(post({ utskott: PrismaUtskott.OTHER }), tree, new Set()).kind).toBe(
-      'skip',
-    );
+  it('creates posts in OTHER directly under the guild group', () => {
+    expect(
+      planPostGroup(post({ utskott: PrismaUtskott.OTHER }), tree, new Set()),
+    ).toEqual({
+      kind: 'create',
+      path: 'tlth.e.fotograf',
+      parentPath: 'tlth.e',
+    });
   });
 });
 
