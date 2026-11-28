@@ -5,6 +5,11 @@ Alla märkbara ändringar ska dokumenteras i denna fil.
 Baserat på [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 och följer [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.37.1] - 2026-11-28
+
+### Ändrat
+- Poster med utskottet `OTHER` synkas nu direkt under E-sektionens grupp i Teknologappen, inklusive funktionärerna på posterna
+
 ## [1.37.0] - 2026-11-24
 
 ### Tillagt
